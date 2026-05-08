@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
@@ -16,65 +17,145 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { navItems } from "@/lib/nav-items"
-import { ShieldCheck } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { navGroups } from "@/lib/nav-items"
+import { logoutAction } from "@/app/login/actions"
+import { ChevronsUpDown, LogOut } from "lucide-react"
+
+const menuButtonClass =
+  "relative h-9 gap-3 px-2.5 text-[13px] font-medium text-sidebar-foreground/75 transition-colors " +
+  "hover:bg-sidebar-accent/60 hover:text-sidebar-foreground " +
+  "data-active:bg-primary/10 data-active:text-primary data-active:font-semibold " +
+  "data-active:before:absolute data-active:before:left-0 data-active:before:top-1/2 data-active:before:-translate-y-1/2 " +
+  "data-active:before:h-5 data-active:before:w-[3px] data-active:before:rounded-r-full data-active:before:bg-primary " +
+  "[&_svg]:size-[18px] [&_svg]:opacity-75 data-active:[&_svg]:opacity-100 " +
+  "group-data-[collapsible=icon]:before:hidden"
 
 export function AppSidebar() {
   const pathname = usePathname()
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader>
+      <SidebarHeader className="pb-2">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" render={<Link href="/dashboard" />}>
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                <ShieldCheck className="size-4" />
+            <SidebarMenuButton
+              size="lg"
+              render={<Link href="/dashboard" />}
+              className="gap-3 hover:bg-transparent"
+            >
+              <div className="flex aspect-square size-9 items-center justify-center overflow-hidden rounded-lg bg-sidebar-primary/10 ring-1 ring-sidebar-primary/15">
+                <Image
+                  src="/mond-logo.png"
+                  alt="Mond"
+                  width={28}
+                  height={28}
+                  priority
+                  className="size-7 object-contain"
+                />
               </div>
-              <div className="flex flex-col gap-0.5 leading-none">
-                <span className="font-semibold">ERP Admin</span>
-                <span className="text-xs text-muted-foreground">Control Center</span>
+              <div className="flex flex-col gap-0.5 leading-tight">
+                <span className="font-heading text-sm font-semibold tracking-tight">
+                  ERP Admin
+                </span>
+                <span className="text-[11px] text-muted-foreground">
+                  Mond Control Center
+                </span>
               </div>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
 
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {navItems.map((item) => (
-                <SidebarMenuItem key={item.url}>
-                  <SidebarMenuButton
-                    render={<Link href={item.url} />}
-                    isActive={pathname === item.url || (item.url !== "/dashboard" && pathname.startsWith(item.url))}
-                    tooltip={item.title}
-                  >
-                    <item.icon />
-                    <span>{item.title}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+      <SidebarContent className="gap-4 px-1.5 py-2">
+        {navGroups.map((group) => (
+          <SidebarGroup key={group.id} className="px-0 py-0">
+            <SidebarGroupLabel className="px-2.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/60">
+              {group.label}
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu className="gap-0.5">
+                {group.items.map((item) => {
+                  const isActive =
+                    pathname === item.url ||
+                    (item.url !== "/dashboard" && pathname.startsWith(item.url))
+                  return (
+                    <SidebarMenuItem key={item.url}>
+                      <SidebarMenuButton
+                        render={<Link href={item.url} />}
+                        isActive={isActive}
+                        tooltip={item.title}
+                        className={menuButtonClass}
+                      >
+                        <item.icon />
+                        <span>{item.title}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
 
-      <SidebarFooter>
+      <SidebarFooter className="border-t border-sidebar-border/60 pt-2">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg">
-              <Avatar className="size-8 rounded-lg">
-                <AvatarImage src="/avatar.png" alt="Admin" />
-                <AvatarFallback className="rounded-lg">AD</AvatarFallback>
-              </Avatar>
-              <div className="flex flex-col gap-0.5 leading-none">
-                <span className="font-medium text-sm">Super Admin</span>
-                <span className="text-xs text-muted-foreground">admin@erp.com</span>
-              </div>
-            </SidebarMenuButton>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <SidebarMenuButton
+                    size="lg"
+                    className="gap-3 data-open:bg-sidebar-accent/60"
+                  >
+                    <Avatar className="size-8 shrink-0 rounded-lg ring-1 ring-sidebar-border">
+                      <AvatarImage src="/avatar.png" alt="Admin" />
+                      <AvatarFallback className="rounded-lg bg-sidebar-primary/10 text-[11px] font-semibold text-sidebar-primary">
+                        AD
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex min-w-0 flex-1 flex-col gap-0.5 text-left leading-tight">
+                      <span className="truncate text-[13px] font-medium">
+                        Super Admin
+                      </span>
+                      <span className="truncate text-[11px] text-muted-foreground">
+                        admin@erp.com
+                      </span>
+                    </div>
+                    <ChevronsUpDown className="ml-auto size-4 shrink-0 opacity-50" />
+                  </SidebarMenuButton>
+                }
+              />
+              <DropdownMenuContent
+                side="top"
+                align="end"
+                sideOffset={8}
+                className="w-56"
+              >
+                <DropdownMenuLabel className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/70">
+                  Akkaunt
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <form action={logoutAction}>
+                  <DropdownMenuItem
+                    variant="destructive"
+                    className="w-full cursor-pointer"
+                    render={<button type="submit" />}
+                  >
+                    <LogOut />
+                    Chiqish
+                  </DropdownMenuItem>
+                </form>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
