@@ -4,16 +4,9 @@ import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { TableCell, TableRow } from "@/components/ui/table";
+import { DataTableCard } from "@/components/ui/data-table-card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Sheet,
@@ -24,8 +17,6 @@ import {
 } from "@/components/ui/sheet";
 import {
   UserPlus,
-  Search,
-  Filter,
   ChevronLeft,
   ChevronRight,
   LayoutList,
@@ -337,114 +328,63 @@ function StatCard({
   );
 }
 
+const workerColumns = [
+  { label: "Ishchi" },
+  { label: "Lavozim" },
+  { label: "Holat" },
+  { label: "Faol", className: "text-center" },
+  { label: "Reyting", className: "text-center" },
+  { label: "Amallar", className: "text-right" },
+];
+
 function WorkersTable() {
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 className="font-heading text-base font-semibold tracking-tight">
-              Ishchilar ro'yxati
-            </h2>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {workers.length} ta ishchi topildi
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            {/* Input affordance: icon, padding, focus ring (UI/UX §1, §9) */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
-              <Input
-                placeholder="Qidirish..."
-                className="h-9 w-full pl-9 sm:w-64"
-              />
+    <DataTableCard
+      title="Ishchilar ro'yxati"
+      count={workers.length}
+      searchPlaceholder="Ishchi qidirish..."
+      columns={workerColumns}
+      data={workers}
+      renderRow={(w) => (
+        <TableRow key={w.id} className="group/row transition-colors duration-150 hover:bg-accent/40">
+          <TableCell className="py-3">
+            <div className="flex items-center gap-3">
+              <Avatar className="size-9 ring-1 ring-border">
+                <AvatarFallback className="bg-muted text-[11px] font-semibold">
+                  {w.name.slice(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex min-w-0 flex-col gap-0.5">
+                <span className="text-sm font-medium leading-tight">{w.name}</span>
+                <span className="text-[11px] text-muted-foreground">
+                  ID #{w.id.toString().padStart(4, "0")}
+                </span>
+              </div>
             </div>
-            <Button variant="outline" size="sm" className="gap-2">
-              <Filter className="size-4" />
-              <span className="hidden sm:inline">Filtr</span>
-            </Button>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="p-0">
-        <Table>
-          <TableHeader>
-            <TableRow className="hover:bg-transparent">
-              <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-                Ishchi
-              </TableHead>
-              <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-                Lavozim
-              </TableHead>
-              <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-                Holat
-              </TableHead>
-              <TableHead className="text-center text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-                Faol
-              </TableHead>
-              <TableHead className="text-center text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-                Reyting
-              </TableHead>
-              <TableHead className="text-right text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-                Amallar
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {workers.map((w) => (
-              <TableRow
-                key={w.id}
-                className="group/row transition-colors duration-150 hover:bg-accent/40"
-              >
-                <TableCell className="py-3">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="size-9 ring-1 ring-border">
-                      <AvatarFallback className="bg-muted text-[11px] font-semibold">
-                        {w.name.slice(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex min-w-0 flex-col gap-0.5">
-                      <span className="text-sm font-medium leading-tight">
-                        {w.name}
-                      </span>
-                      <span className="text-[11px] text-muted-foreground">
-                        ID #{w.id.toString().padStart(4, "0")}
-                      </span>
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <span
-                    className={cn("text-sm font-medium", roleColors[w.role])}
-                  >
-                    {w.role}
-                  </span>
-                </TableCell>
-                <TableCell>
-                  <Badge variant={statusVariant[w.status]}>{w.status}</Badge>
-                </TableCell>
-                <TableCell className="text-center">
-                  <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-muted px-2 text-xs font-semibold tabular-nums">
-                    {w.tasks}
-                  </span>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center justify-center gap-1 text-sm font-medium tabular-nums">
-                    <Star className="size-3.5 fill-amber-500 text-amber-500" />
-                    {w.rating.toFixed(1)}
-                  </div>
-                </TableCell>
-                <TableCell className="text-right">
-                  <Button variant="ghost" size="sm">
-                    Ko'rish
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+          </TableCell>
+          <TableCell>
+            <span className={cn("text-sm font-medium", roleColors[w.role])}>{w.role}</span>
+          </TableCell>
+          <TableCell>
+            <Badge variant={statusVariant[w.status]}>{w.status}</Badge>
+          </TableCell>
+          <TableCell className="text-center">
+            <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-muted px-2 text-xs font-semibold tabular-nums">
+              {w.tasks}
+            </span>
+          </TableCell>
+          <TableCell>
+            <div className="flex items-center justify-center gap-1 text-sm font-medium tabular-nums">
+              <Star className="size-3.5 fill-amber-500 text-amber-500" />
+              {w.rating.toFixed(1)}
+            </div>
+          </TableCell>
+          <TableCell className="text-right">
+            <Button variant="ghost" size="sm">Ko'rish</Button>
+          </TableCell>
+        </TableRow>
+      )}
+    />
   );
 }
 
