@@ -19,6 +19,7 @@ export function PropertyList({ owner }: { owner: Owner }) {
         <Button
           variant="ghost"
           size="sm"
+          nativeButton={false}
           render={<Link href="/dashboard/properties" />}
           className="text-primary"
         >

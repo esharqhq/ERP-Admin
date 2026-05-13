@@ -74,6 +74,7 @@ export default function OwnersPage() {
                     <Button
                       variant="ghost"
                       size="sm"
+                      nativeButton={false}
                       render={<Link href={`/dashboard/owners/${o.id}`} />}
                     >
                       View

@@ -32,6 +32,7 @@ export function PropertyOwnerCard({ property }: { property: Property }) {
             variant="outline"
             size="sm"
             className="w-full gap-1.5"
+            nativeButton={false}
             render={<Link href={`/dashboard/owners/${owner.id}`} />}
           >
             Profilni ko'rish

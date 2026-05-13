@@ -8,6 +8,7 @@ export function ActionBar() {
       <Button
         variant="ghost"
         size="sm"
+        nativeButton={false}
         render={<Link href="/dashboard/owners" />}
         className="gap-1.5 -ml-2 text-muted-foreground hover:text-foreground"
       >

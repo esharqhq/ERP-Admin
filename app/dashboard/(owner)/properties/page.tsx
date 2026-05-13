@@ -65,6 +65,7 @@ export default function PropertiesPage() {
                     <Button
                       variant="ghost"
                       size="sm"
+                      nativeButton={false}
                       render={<Link href={`/dashboard/properties/${p.id}`} />}
                     >
                       View

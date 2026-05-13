@@ -8,7 +8,8 @@ export function ActionBar() {
             <Button
                 variant="ghost"
                 size="sm"
-                render={<Link href="/dashboard/properties"/>}
+                nativeButton={false}
+                render={<Link href="/dashboard/properties" />}
                 className="gap-1.5 -ml-2 text-muted-foreground hover:text-foreground"
             >
                 <ArrowLeft className="size-4"/>
