@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -380,7 +381,14 @@ function WorkersTable() {
             </div>
           </TableCell>
           <TableCell className="text-right">
-            <Button variant="ghost" size="sm">Ko'rish</Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              nativeButton={false}
+              render={<Link href={`/dashboard/workers/${w.id}`} />}
+            >
+              Ko'rish
+            </Button>
           </TableCell>
         </TableRow>
       )}
