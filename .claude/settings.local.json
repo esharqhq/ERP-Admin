@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(npm run *)",
+      "Bash(git add *)",
+      "Bash(npm run *)",
+      "mcp__claude_ai_Notion__notion-search",
+      "Bash(git commit *)"
+    ]
+  }
+}

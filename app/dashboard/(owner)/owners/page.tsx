@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -7,14 +8,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table"
 import { Plus, Search } from "lucide-react"
-
-const owners = [
-  { id: 1, name: "Akbar Mirzayev",     type: "Individual", properties: 3,  risk: "Low",    status: "Verified"  },
-  { id: 2, name: "Sunrise LLC",        type: "Company",    properties: 12, risk: "Medium", status: "Verified"  },
-  { id: 3, name: "Feruza Abdullayeva", type: "Individual", properties: 1,  risk: "Low",    status: "Pending"   },
-  { id: 4, name: "GrandBuild Corp",    type: "Company",    properties: 24, risk: "High",   status: "Verified"  },
-  { id: 5, name: "Sardor Xolmatov",    type: "Individual", properties: 2,  risk: "Low",    status: "Rejected"  },
-]
+import { owners } from "@/lib/owners"
 
 const riskVariant: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
   Low:    "default",
@@ -36,10 +30,6 @@ export default function OwnersPage() {
           <h1 className="text-2xl font-bold tracking-tight">Owners</h1>
           <p className="text-muted-foreground">Property owners and KYC management.</p>
         </div>
-        <Button>
-          <Plus className="mr-2 size-4" />
-          Add Owner
-        </Button>
       </div>
 
       <Card>
@@ -81,7 +71,13 @@ export default function OwnersPage() {
                     <Badge variant={statusVariant[o.status]}>{o.status}</Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="sm">View</Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      render={<Link href={`/dashboard/owners/${o.id}`} />}
+                    >
+                      View
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}

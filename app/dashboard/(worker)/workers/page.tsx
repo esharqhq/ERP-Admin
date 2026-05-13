@@ -1,138 +1,240 @@
-"use client"
+"use client";
 
-import { useMemo, useState } from "react"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { useMemo, useState } from "react";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from "@/components/ui/table"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle,
-} from "@/components/ui/sheet"
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import {
-  UserPlus, Search, Filter, ChevronLeft, ChevronRight,
-  LayoutList, CalendarDays, MapPin, Star, Users, BadgeCheck,
-  Briefcase, TrendingUp,
-} from "lucide-react"
-import { cn } from "@/lib/utils"
+  UserPlus,
+  Search,
+  Filter,
+  ChevronLeft,
+  ChevronRight,
+  LayoutList,
+  CalendarDays,
+  MapPin,
+  Star,
+  Users,
+  BadgeCheck,
+  Briefcase,
+  TrendingUp,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
 type Worker = {
-  id: number
-  name: string
-  role: "Senior" | "Professional" | "Junior"
-  status: "Verified" | "Pending" | "Expired" | "Rejected"
-  tasks: number
-  rating: number
-}
+  id: number;
+  name: string;
+  role: "Senior" | "Professional" | "Junior";
+  status: "Verified" | "Pending" | "Expired" | "Rejected";
+  tasks: number;
+  rating: number;
+};
 
 const workers: Worker[] = [
-  { id: 1, name: "Jasur Toshmatov",   role: "Senior",       status: "Verified",  tasks: 12, rating: 4.8 },
-  { id: 2, name: "Dilnoza Yusupova",  role: "Professional", status: "Verified",  tasks: 8,  rating: 4.5 },
-  { id: 3, name: "Bobur Karimov",     role: "Junior",       status: "Pending",   tasks: 3,  rating: 3.9 },
-  { id: 4, name: "Malika Saidova",    role: "Professional", status: "Verified",  tasks: 10, rating: 4.7 },
-  { id: 5, name: "Otabek Nazarov",    role: "Senior",       status: "Expired",   tasks: 0,  rating: 4.2 },
-  { id: 6, name: "Zulfiya Rakhimova", role: "Junior",       status: "Rejected",  tasks: 0,  rating: 3.1 },
-]
+  {
+    id: 1,
+    name: "Jasur Toshmatov",
+    role: "Senior",
+    status: "Verified",
+    tasks: 12,
+    rating: 4.8,
+  },
+  {
+    id: 2,
+    name: "Dilnoza Yusupova",
+    role: "Professional",
+    status: "Verified",
+    tasks: 8,
+    rating: 4.5,
+  },
+  {
+    id: 3,
+    name: "Bobur Karimov",
+    role: "Junior",
+    status: "Pending",
+    tasks: 3,
+    rating: 3.9,
+  },
+  {
+    id: 4,
+    name: "Malika Saidova",
+    role: "Professional",
+    status: "Verified",
+    tasks: 10,
+    rating: 4.7,
+  },
+  {
+    id: 5,
+    name: "Otabek Nazarov",
+    role: "Senior",
+    status: "Expired",
+    tasks: 0,
+    rating: 4.2,
+  },
+  {
+    id: 6,
+    name: "Zulfiya Rakhimova",
+    role: "Junior",
+    status: "Rejected",
+    tasks: 0,
+    rating: 3.1,
+  },
+];
 
-const statusVariant: Record<Worker["status"], "default" | "secondary" | "destructive" | "outline"> = {
-  Verified:  "default",
-  Pending:   "secondary",
-  Expired:   "outline",
-  Rejected:  "destructive",
-}
+const statusVariant: Record<
+  Worker["status"],
+  "default" | "secondary" | "destructive" | "outline"
+> = {
+  Verified: "default",
+  Pending: "secondary",
+  Expired: "outline",
+  Rejected: "destructive",
+};
 
 const roleColors: Record<Worker["role"], string> = {
-  Senior:       "text-blue-600 dark:text-blue-400",
+  Senior: "text-blue-600 dark:text-blue-400",
   Professional: "text-emerald-600 dark:text-emerald-400",
-  Junior:       "text-amber-600 dark:text-amber-400",
-}
+  Junior: "text-amber-600 dark:text-amber-400",
+};
 
 const workerHues: Record<number, { chip: string; dot: string }> = {
-  1: { chip: "bg-blue-500/12 text-blue-700 dark:text-blue-300 ring-blue-500/25",          dot: "bg-blue-500"    },
-  2: { chip: "bg-emerald-500/12 text-emerald-700 dark:text-emerald-300 ring-emerald-500/25", dot: "bg-emerald-500" },
-  3: { chip: "bg-amber-500/12 text-amber-700 dark:text-amber-300 ring-amber-500/25",       dot: "bg-amber-500"   },
-  4: { chip: "bg-violet-500/12 text-violet-700 dark:text-violet-300 ring-violet-500/25",    dot: "bg-violet-500"  },
-  5: { chip: "bg-rose-500/12 text-rose-700 dark:text-rose-300 ring-rose-500/25",            dot: "bg-rose-500"    },
-  6: { chip: "bg-cyan-500/12 text-cyan-700 dark:text-cyan-300 ring-cyan-500/25",            dot: "bg-cyan-500"    },
-}
+  1: {
+    chip: "bg-blue-500/12 text-blue-700 dark:text-blue-300 ring-blue-500/25",
+    dot: "bg-blue-500",
+  },
+  2: {
+    chip: "bg-emerald-500/12 text-emerald-700 dark:text-emerald-300 ring-emerald-500/25",
+    dot: "bg-emerald-500",
+  },
+  3: {
+    chip: "bg-amber-500/12 text-amber-700 dark:text-amber-300 ring-amber-500/25",
+    dot: "bg-amber-500",
+  },
+  4: {
+    chip: "bg-violet-500/12 text-violet-700 dark:text-violet-300 ring-violet-500/25",
+    dot: "bg-violet-500",
+  },
+  5: {
+    chip: "bg-rose-500/12 text-rose-700 dark:text-rose-300 ring-rose-500/25",
+    dot: "bg-rose-500",
+  },
+  6: {
+    chip: "bg-cyan-500/12 text-cyan-700 dark:text-cyan-300 ring-cyan-500/25",
+    dot: "bg-cyan-500",
+  },
+};
 
-type Assignment = { workerId: number; offset: number; title: string }
+type Assignment = { workerId: number; offset: number; title: string };
 
 const assignmentSeed: Assignment[] = [
   { workerId: 1, offset: -3, title: "Yashnobod – montaj" },
   { workerId: 2, offset: -1, title: "Mirzo Ulugbek – ta'mir" },
-  { workerId: 4, offset: 0,  title: "Chilonzor – inspeksiya" },
-  { workerId: 1, offset: 0,  title: "Yunusobod – topshirish" },
-  { workerId: 3, offset: 1,  title: "Sergeli – yetkazish" },
-  { workerId: 6, offset: 2,  title: "Yakkasaroy – montaj" },
-  { workerId: 2, offset: 4,  title: "Bektemir – ta'mir" },
-  { workerId: 5, offset: 5,  title: "Olmazor – diagnostika" },
-  { workerId: 4, offset: 7,  title: "Mirobod – topshirish" },
-  { workerId: 1, offset: 8,  title: "Shayxontohur – montaj" },
+  { workerId: 4, offset: 0, title: "Chilonzor – inspeksiya" },
+  { workerId: 1, offset: 0, title: "Yunusobod – topshirish" },
+  { workerId: 3, offset: 1, title: "Sergeli – yetkazish" },
+  { workerId: 6, offset: 2, title: "Yakkasaroy – montaj" },
+  { workerId: 2, offset: 4, title: "Bektemir – ta'mir" },
+  { workerId: 5, offset: 5, title: "Olmazor – diagnostika" },
+  { workerId: 4, offset: 7, title: "Mirobod – topshirish" },
+  { workerId: 1, offset: 8, title: "Shayxontohur – montaj" },
   { workerId: 3, offset: 10, title: "Uchtepa – yetkazish" },
   { workerId: 6, offset: 12, title: "Yashnobod – diagnostika" },
   { workerId: 2, offset: 14, title: "Mirzo Ulugbek – ta'mir" },
   { workerId: 4, offset: 16, title: "Sergeli – inspeksiya" },
-]
+];
 
-const WEEKDAYS = ["Du", "Se", "Cho", "Pa", "Ju", "Sha", "Ya"]
+const WEEKDAYS = ["Du", "Se", "Cho", "Pa", "Ju", "Sha", "Ya"];
 const WEEKDAYS_LONG_UZ = [
-  "Dushanba", "Seshanba", "Chorshanba", "Payshanba", "Juma", "Shanba", "Yakshanba",
-]
+  "Dushanba",
+  "Seshanba",
+  "Chorshanba",
+  "Payshanba",
+  "Juma",
+  "Shanba",
+  "Yakshanba",
+];
 const MONTHS_UZ = [
-  "Yanvar", "Fevral", "Mart", "Aprel", "May", "Iyun",
-  "Iyul", "Avgust", "Sentabr", "Oktabr", "Noyabr", "Dekabr",
-]
+  "Yanvar",
+  "Fevral",
+  "Mart",
+  "Aprel",
+  "May",
+  "Iyun",
+  "Iyul",
+  "Avgust",
+  "Sentabr",
+  "Oktabr",
+  "Noyabr",
+  "Dekabr",
+];
 
 function formatLongDate(d: Date) {
-  const wd = (d.getDay() + 6) % 7
-  return `${WEEKDAYS_LONG_UZ[wd]}, ${d.getDate()}-${MONTHS_UZ[d.getMonth()].toLowerCase()} ${d.getFullYear()}`
+  const wd = (d.getDay() + 6) % 7;
+  return `${WEEKDAYS_LONG_UZ[wd]}, ${d.getDate()}-${MONTHS_UZ[d.getMonth()].toLowerCase()} ${d.getFullYear()}`;
 }
 
 function dateKey(d: Date) {
-  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
 }
 
-function buildEventMap(today: Date): Map<string, (Assignment & { worker: Worker })[]> {
-  const map = new Map<string, (Assignment & { worker: Worker })[]>()
+function buildEventMap(
+  today: Date,
+): Map<string, (Assignment & { worker: Worker })[]> {
+  const map = new Map<string, (Assignment & { worker: Worker })[]>();
   for (const a of assignmentSeed) {
-    const worker = workers.find((w) => w.id === a.workerId)
-    if (!worker) continue
-    const d = new Date(today)
-    d.setDate(today.getDate() + a.offset)
-    const key = dateKey(d)
-    const list = map.get(key) ?? []
-    list.push({ ...a, worker })
-    map.set(key, list)
+    const worker = workers.find((w) => w.id === a.workerId);
+    if (!worker) continue;
+    const d = new Date(today);
+    d.setDate(today.getDate() + a.offset);
+    const key = dateKey(d);
+    const list = map.get(key) ?? [];
+    list.push({ ...a, worker });
+    map.set(key, list);
   }
-  return map
+  return map;
 }
 
 function buildMonthGrid(viewYear: number, viewMonth: number) {
-  const firstOfMonth = new Date(viewYear, viewMonth, 1)
-  const startWeekday = (firstOfMonth.getDay() + 6) % 7
-  const gridStart = new Date(viewYear, viewMonth, 1 - startWeekday)
-  const cells: Date[] = []
+  const firstOfMonth = new Date(viewYear, viewMonth, 1);
+  const startWeekday = (firstOfMonth.getDay() + 6) % 7;
+  const gridStart = new Date(viewYear, viewMonth, 1 - startWeekday);
+  const cells: Date[] = [];
   for (let i = 0; i < 42; i++) {
-    const d = new Date(gridStart)
-    d.setDate(gridStart.getDate() + i)
-    cells.push(d)
+    const d = new Date(gridStart);
+    d.setDate(gridStart.getDate() + i);
+    cells.push(d);
   }
-  return cells
+  return cells;
 }
 
 export default function WorkersPage() {
   const stats = useMemo(() => {
-    const total = workers.length
-    const verified = workers.filter((w) => w.status === "Verified").length
-    const activeTasks = workers.reduce((s, w) => s + w.tasks, 0)
-    const avgRating = (workers.reduce((s, w) => s + w.rating, 0) / total).toFixed(1)
-    return { total, verified, activeTasks, avgRating }
-  }, [])
+    const total = workers.length;
+    const verified = workers.filter((w) => w.status === "Verified").length;
+    const activeTasks = workers.reduce((s, w) => s + w.tasks, 0);
+    const avgRating = (
+      workers.reduce((s, w) => s + w.rating, 0) / total
+    ).toFixed(1);
+    return { total, verified, activeTasks, avgRating };
+  }, []);
 
   return (
     <div className="flex flex-col gap-6">
@@ -147,41 +249,6 @@ export default function WorkersPage() {
           </p>
         </div>
         {/* Primary action — only one per view (UI/UX §8). Shadow + scale on press = clear signifier */}
-        <Button
-          size="lg"
-          className="gap-2 shadow-sm transition-all duration-150 hover:shadow-md active:scale-[0.98]"
-        >
-          <UserPlus className="size-4" />
-          Yangi ishchi qo'shish
-        </Button>
-      </div>
-
-      {/* KPI row — establishes secondary hierarchy. 4-column on lg, collapses on smaller */}
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
-        <StatCard
-          label="Jami ishchilar"
-          value={stats.total}
-          icon={<Users className="size-4" />}
-          tone="blue"
-        />
-        <StatCard
-          label="Tasdiqlangan"
-          value={stats.verified}
-          icon={<BadgeCheck className="size-4" />}
-          tone="emerald"
-        />
-        <StatCard
-          label="Faol topshiriqlar"
-          value={stats.activeTasks}
-          icon={<Briefcase className="size-4" />}
-          tone="violet"
-        />
-        <StatCard
-          label="O'rtacha reyting"
-          value={stats.avgRating}
-          icon={<TrendingUp className="size-4" />}
-          tone="amber"
-        />
       </div>
 
       <Tabs defaultValue="table" className="gap-4">
@@ -205,29 +272,55 @@ export default function WorkersPage() {
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }
 
 const STAT_TONES: Record<string, { ring: string; bg: string; text: string }> = {
-  blue:    { ring: "ring-blue-500/20",    bg: "bg-blue-500/10",    text: "text-blue-600 dark:text-blue-400"       },
-  emerald: { ring: "ring-emerald-500/20", bg: "bg-emerald-500/10", text: "text-emerald-600 dark:text-emerald-400" },
-  violet:  { ring: "ring-violet-500/20",  bg: "bg-violet-500/10",  text: "text-violet-600 dark:text-violet-400"   },
-  amber:   { ring: "ring-amber-500/20",   bg: "bg-amber-500/10",   text: "text-amber-600 dark:text-amber-400"     },
-}
+  blue: {
+    ring: "ring-blue-500/20",
+    bg: "bg-blue-500/10",
+    text: "text-blue-600 dark:text-blue-400",
+  },
+  emerald: {
+    ring: "ring-emerald-500/20",
+    bg: "bg-emerald-500/10",
+    text: "text-emerald-600 dark:text-emerald-400",
+  },
+  violet: {
+    ring: "ring-violet-500/20",
+    bg: "bg-violet-500/10",
+    text: "text-violet-600 dark:text-violet-400",
+  },
+  amber: {
+    ring: "ring-amber-500/20",
+    bg: "bg-amber-500/10",
+    text: "text-amber-600 dark:text-amber-400",
+  },
+};
 
 function StatCard({
-  label, value, icon, tone,
+  label,
+  value,
+  icon,
+  tone,
 }: {
-  label: string
-  value: string | number
-  icon: React.ReactNode
-  tone: keyof typeof STAT_TONES
+  label: string;
+  value: string | number;
+  icon: React.ReactNode;
+  tone: keyof typeof STAT_TONES;
 }) {
-  const t = STAT_TONES[tone]
+  const t = STAT_TONES[tone];
   return (
     <Card size="sm" className="transition-shadow duration-200 hover:shadow-sm">
       <CardContent className="flex items-center gap-3">
-        <div className={cn("flex size-10 shrink-0 items-center justify-center rounded-lg ring-1", t.ring, t.bg, t.text)}>
+        <div
+          className={cn(
+            "flex size-10 shrink-0 items-center justify-center rounded-lg ring-1",
+            t.ring,
+            t.bg,
+            t.text,
+          )}
+        >
           {icon}
         </div>
         <div className="flex min-w-0 flex-col gap-0.5">
@@ -241,7 +334,7 @@ function StatCard({
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 function WorkersTable() {
@@ -311,13 +404,19 @@ function WorkersTable() {
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex min-w-0 flex-col gap-0.5">
-                      <span className="text-sm font-medium leading-tight">{w.name}</span>
-                      <span className="text-[11px] text-muted-foreground">ID #{w.id.toString().padStart(4, "0")}</span>
+                      <span className="text-sm font-medium leading-tight">
+                        {w.name}
+                      </span>
+                      <span className="text-[11px] text-muted-foreground">
+                        ID #{w.id.toString().padStart(4, "0")}
+                      </span>
                     </div>
                   </div>
                 </TableCell>
                 <TableCell>
-                  <span className={cn("text-sm font-medium", roleColors[w.role])}>
+                  <span
+                    className={cn("text-sm font-medium", roleColors[w.role])}
+                  >
                     {w.role}
                   </span>
                 </TableCell>
@@ -346,29 +445,41 @@ function WorkersTable() {
         </Table>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 function WorkersCalendar() {
   const today = useMemo(() => {
-    const d = new Date()
-    d.setHours(0, 0, 0, 0)
-    return d
-  }, [])
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, []);
 
-  const [view, setView] = useState(() => ({ year: today.getFullYear(), month: today.getMonth() }))
-  const [selected, setSelected] = useState<Date | null>(null)
+  const [view, setView] = useState(() => ({
+    year: today.getFullYear(),
+    month: today.getMonth(),
+  }));
+  const [selected, setSelected] = useState<Date | null>(null);
 
-  const events = useMemo(() => buildEventMap(today), [today])
-  const cells = useMemo(() => buildMonthGrid(view.year, view.month), [view])
+  const events = useMemo(() => buildEventMap(today), [today]);
+  const cells = useMemo(() => buildMonthGrid(view.year, view.month), [view]);
 
-  const selectedEvents = selected ? events.get(dateKey(selected)) ?? [] : []
+  const selectedEvents = selected ? (events.get(dateKey(selected)) ?? []) : [];
 
   const goPrev = () =>
-    setView((v) => (v.month === 0 ? { year: v.year - 1, month: 11 } : { ...v, month: v.month - 1 }))
+    setView((v) =>
+      v.month === 0
+        ? { year: v.year - 1, month: 11 }
+        : { ...v, month: v.month - 1 },
+    );
   const goNext = () =>
-    setView((v) => (v.month === 11 ? { year: v.year + 1, month: 0 } : { ...v, month: v.month + 1 }))
-  const goToday = () => setView({ year: today.getFullYear(), month: today.getMonth() })
+    setView((v) =>
+      v.month === 11
+        ? { year: v.year + 1, month: 0 }
+        : { ...v, month: v.month + 1 },
+    );
+  const goToday = () =>
+    setView({ year: today.getFullYear(), month: today.getMonth() });
 
   return (
     <Card className="overflow-hidden">
@@ -378,7 +489,9 @@ function WorkersCalendar() {
             {/* H2-level title — semibold, tighter tracking (UI/UX §2, §4) */}
             <h2 className="font-heading text-xl font-semibold tracking-tight leading-none">
               {MONTHS_UZ[view.month]}{" "}
-              <span className="text-muted-foreground font-medium">{view.year}</span>
+              <span className="text-muted-foreground font-medium">
+                {view.year}
+              </span>
             </h2>
             <div className="flex items-center gap-1">
               <Button
@@ -413,7 +526,9 @@ function WorkersCalendar() {
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px] text-muted-foreground">
             {workers.slice(0, 6).map((w) => (
               <div key={w.id} className="flex items-center gap-1.5">
-                <span className={cn("size-2 rounded-full", workerHues[w.id]?.dot)} />
+                <span
+                  className={cn("size-2 rounded-full", workerHues[w.id]?.dot)}
+                />
                 <span className="font-medium">{w.name.split(" ")[0]}</span>
               </div>
             ))}
@@ -432,12 +547,12 @@ function WorkersCalendar() {
 
         <div className="grid grid-cols-7 grid-rows-6">
           {cells.map((d, i) => {
-            const inMonth = d.getMonth() === view.month
-            const isToday = d.getTime() === today.getTime()
-            const isWeekend = i % 7 >= 5
-            const dayEvents = events.get(dateKey(d)) ?? []
-            const visible = dayEvents.slice(0, 3)
-            const overflow = dayEvents.length - visible.length
+            const inMonth = d.getMonth() === view.month;
+            const isToday = d.getTime() === today.getTime();
+            const isWeekend = i % 7 >= 5;
+            const dayEvents = events.get(dateKey(d)) ?? [];
+            const visible = dayEvents.slice(0, 3);
+            const overflow = dayEvents.length - visible.length;
 
             return (
               <button
@@ -485,9 +600,18 @@ function WorkersCalendar() {
                       )}
                       title={`${ev.worker.name} — ${ev.title}`}
                     >
-                      <span className={cn("size-1.5 shrink-0 rounded-full", workerHues[ev.worker.id]?.dot)} />
-                      <span className="truncate">{ev.worker.name.split(" ")[0]}</span>
-                      <span className="truncate font-normal opacity-70">· {ev.title}</span>
+                      <span
+                        className={cn(
+                          "size-1.5 shrink-0 rounded-full",
+                          workerHues[ev.worker.id]?.dot,
+                        )}
+                      />
+                      <span className="truncate">
+                        {ev.worker.name.split(" ")[0]}
+                      </span>
+                      <span className="truncate font-normal opacity-70">
+                        · {ev.title}
+                      </span>
                     </div>
                   ))}
                   {overflow > 0 && (
@@ -497,12 +621,15 @@ function WorkersCalendar() {
                   )}
                 </div>
               </button>
-            )
+            );
           })}
         </div>
       </CardContent>
 
-      <Sheet open={selected !== null} onOpenChange={(open) => !open && setSelected(null)}>
+      <Sheet
+        open={selected !== null}
+        onOpenChange={(open) => !open && setSelected(null)}
+      >
         <SheetContent className="w-full gap-0 sm:max-w-md">
           <SheetHeader className="border-b border-border">
             <SheetTitle className="font-heading text-lg font-semibold tracking-tight">
@@ -554,7 +681,12 @@ function WorkersCalendar() {
                               <div className="truncate text-sm font-semibold leading-tight">
                                 {ev.worker.name}
                               </div>
-                              <div className={cn("text-[11px] font-medium", roleColors[ev.worker.role])}>
+                              <div
+                                className={cn(
+                                  "text-[11px] font-medium",
+                                  roleColors[ev.worker.role],
+                                )}
+                              >
                                 {ev.worker.role}
                               </div>
                             </div>
@@ -566,17 +698,23 @@ function WorkersCalendar() {
 
                         <div className="flex items-center gap-2 rounded-md bg-muted/50 px-2.5 py-1.5">
                           <MapPin className="size-3.5 text-muted-foreground shrink-0" />
-                          <span className="truncate text-[13px] font-medium">{ev.title}</span>
+                          <span className="truncate text-[13px] font-medium">
+                            {ev.title}
+                          </span>
                         </div>
 
                         <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
                           <span className="inline-flex items-center gap-1 font-medium">
                             <Star className="size-3 fill-amber-500 text-amber-500" />
-                            <span className="tabular-nums text-foreground">{ev.worker.rating.toFixed(1)}</span>
+                            <span className="tabular-nums text-foreground">
+                              {ev.worker.rating.toFixed(1)}
+                            </span>
                           </span>
                           <span className="text-border">|</span>
                           <span>
-                            <span className="tabular-nums font-medium text-foreground">{ev.worker.tasks}</span>{" "}
+                            <span className="tabular-nums font-medium text-foreground">
+                              {ev.worker.tasks}
+                            </span>{" "}
                             faol topshiriq
                           </span>
                         </div>
@@ -590,5 +728,5 @@ function WorkersCalendar() {
         </SheetContent>
       </Sheet>
     </Card>
-  )
+  );
 }
