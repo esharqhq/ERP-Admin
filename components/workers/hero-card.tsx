@@ -54,6 +54,7 @@ export function HeroCard({ worker }: { worker: Worker }) {
             <Button
               variant="outline"
               size="sm"
+              nativeButton={false}
               className="gap-1.5"
               render={<a href={`mailto:${worker.email}`} />}
             >
@@ -62,6 +63,7 @@ export function HeroCard({ worker }: { worker: Worker }) {
             </Button>
             <Button
               size="sm"
+              nativeButton={false}
               className="gap-1.5"
               render={<a href={`tel:${worker.phone.replace(/\s+/g, "")}`} />}
             >
