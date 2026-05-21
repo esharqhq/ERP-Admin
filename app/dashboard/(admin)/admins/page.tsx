@@ -5,13 +5,11 @@ import { Button } from "@/components/ui/button";
 import { DataTableCard } from "@/components/ui/data-table-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { UserPlus } from "lucide-react";
-import {
-  useAdmins, useCreateAdmin, useDeactivateAdmin, useChangeAdminRole,
-} from "@/hooks/use-admins";
+import { useAdmins, useCreateAdmin, useDeactivateAdmin } from "@/hooks/use-admins";
+import { useCreateRole } from "@/hooks/use-permissions";
 import { AdminRow } from "@/components/admins/admin-row";
-import { CreateAdminModal } from "@/components/admins/create-admin-modal";
+import { AdminDrawer } from "@/components/admins/admin-drawer";
 import { useAuthStore } from "@/store/auth.store";
-import type { CreateAdminRequest, AdminRoleCode } from "@/lib/types/admin-user.types";
 
 const columns = [
   { label: "Admin" },
@@ -24,31 +22,51 @@ export default function AdminsPage() {
   const [emailError, setEmailError] = useState<string | undefined>();
 
   const { data: admins = [], isLoading } = useAdmins();
-  const { mutate: createAdmin, isPending: isCreating } = useCreateAdmin();
+  const { mutate: createAdmin, isPending: isCreatingAdmin } = useCreateAdmin();
+  const { mutate: createRole, isPending: isCreatingRole } = useCreateRole();
   const { mutate: deactivateAdmin, isPending: isDeactivating } = useDeactivateAdmin();
-  const { mutate: changeRole, isPending: isChangingRole } = useChangeAdminRole();
 
   const currentAdminId = useAuthStore((s) => s.adminMe?.sub);
+  const isPending = isCreatingRole || isCreatingAdmin;
 
-  function handleCreate(data: CreateAdminRequest) {
+  function handleCreate(data: {
+    fullName: string;
+    email: string;
+    password: string;
+    permissionNames: string[];
+  }) {
     setEmailError(undefined);
-    createAdmin(data, {
-      onSuccess: () => setShowCreate(false),
-      onError: (err: unknown) => {
-        const error = err as { response?: { data?: { error?: string } } };
-        if (error?.response?.data?.error === "admin_email_exists") {
-          setEmailError("Bu email allaqachon band.");
-        }
+    const roleCode = `custom_${crypto.randomUUID()}`;
+
+    createRole(
+      {
+        code: roleCode,
+        name: data.fullName,
+        appliesTo: "ADMIN",
+        isDefault: false,
+        permissionNames: data.permissionNames,
       },
-    });
+      {
+        onSuccess: () => {
+          createAdmin(
+            { fullName: data.fullName, email: data.email, password: data.password, roleCode },
+            {
+              onSuccess: () => setShowCreate(false),
+              onError: (err: unknown) => {
+                const error = err as { response?: { data?: { error?: string } } };
+                if (error?.response?.data?.error === "admin_email_exists") {
+                  setEmailError("Bu email allaqachon band.");
+                }
+              },
+            },
+          );
+        },
+      },
+    );
   }
 
   function handleDeactivate(id: string, reason?: string) {
     deactivateAdmin({ id, body: { reason } });
-  }
-
-  function handleChangeRole(id: string, roleCode: AdminRoleCode) {
-    changeRole({ id, body: { roleCode } });
   }
 
   return (
@@ -92,11 +110,11 @@ export default function AdminsPage() {
         />
       )}
 
-      <CreateAdminModal
+      <AdminDrawer
         open={showCreate}
         onClose={() => { setShowCreate(false); setEmailError(undefined); }}
         onConfirm={handleCreate}
-        isPending={isCreating}
+        isPending={isPending}
         emailError={emailError}
       />
     </div>

@@ -5,7 +5,6 @@ import { adminUserService } from "@/lib/services/admin-user.service";
 import type {
   CreateAdminRequest,
   DeactivateAdminRequest,
-  ChangeAdminRoleRequest,
 } from "@/lib/types/admin-user.types";
 
 const QUERY_KEY = ["admins"] as const;
@@ -30,15 +29,6 @@ export function useDeactivateAdmin() {
   return useMutation({
     mutationFn: ({ id, body }: { id: string; body: DeactivateAdminRequest }) =>
       adminUserService.deactivateAdmin(id, body),
-    onSuccess: () => qc.invalidateQueries({ queryKey: QUERY_KEY }),
-  });
-}
-
-export function useChangeAdminRole() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: ({ id, body }: { id: string; body: ChangeAdminRoleRequest }) =>
-      adminUserService.changeAdminRole(id, body),
     onSuccess: () => qc.invalidateQueries({ queryKey: QUERY_KEY }),
   });
 }

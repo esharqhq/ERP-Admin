@@ -3,7 +3,6 @@ import type {
   AdminSummaryDto,
   CreateAdminRequest,
   DeactivateAdminRequest,
-  ChangeAdminRoleRequest,
 } from "@/lib/types/admin-user.types";
 
 export const adminUserService = {
@@ -19,9 +18,5 @@ export const adminUserService = {
 
   deactivateAdmin: async (id: string, body: DeactivateAdminRequest): Promise<void> => {
     await apiClient.post(`/api/admin/users/${id}/deactivate`, body);
-  },
-
-  changeAdminRole: async (id: string, body: ChangeAdminRoleRequest): Promise<void> => {
-    await apiClient.post(`/api/admin/users/${id}/role`, body);
   },
 };
