@@ -1,171 +1,168 @@
-import {Card, CardContent, CardHeader} from "@/components/ui/card";
-import {Badge} from "@/components/ui/badge";
-import {Button} from "@/components/ui/button";
-import {Input} from "@/components/ui/input";
+"use client";
+
+import { useState } from "react";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import {Download, Search} from "lucide-react";
+import { Search } from "lucide-react";
+import { useAuditLog } from "@/hooks/use-audit";
 
-const logs = [
-    {
-        id: "LOG-001",
-        user: "Super Admin",
-        action: "User Created",
-        target: "Jasur Toshmatov",
-        ip: "192.168.1.1",
-        time: "2026-05-05 09:14",
-        type: "Create",
-    },
-    {
-        id: "LOG-002",
-        user: "Admin",
-        action: "Status Changed",
-        target: "TXN-003 → Completed",
-        ip: "10.0.0.4",
-        time: "2026-05-05 09:02",
-        type: "Update",
-    },
-    {
-        id: "LOG-003",
-        user: "Super Admin",
-        action: "User Deleted",
-        target: "Sardor Xolmatov",
-        ip: "192.168.1.1",
-        time: "2026-05-04 17:45",
-        type: "Delete",
-    },
-    {
-        id: "LOG-004",
-        user: "Admin",
-        action: "Document Verified",
-        target: "GrandBuild_License",
-        ip: "10.0.0.4",
-        time: "2026-05-04 14:30",
-        type: "Update",
-    },
-    {
-        id: "LOG-005",
-        user: "Finance",
-        action: "Payout Processed",
-        target: "Worker Payout $2.1k",
-        ip: "10.0.0.7",
-        time: "2026-05-03 11:20",
-        type: "Payment",
-    },
-    {
-        id: "LOG-006",
-        user: "Dispatcher",
-        action: "Task Assigned",
-        target: "T-004 → Jasur T.",
-        ip: "10.0.0.9",
-        time: "2026-05-03 10:05",
-        type: "Create",
-    },
-];
+const AUDIT_ACTIONS = [
+  "ADMIN_CREATED", "ADMIN_MODIFIED", "ADMIN_DEACTIVATED", "ADMIN_ROLE_CHANGED",
+  "KYC_APPROVED", "KYC_REJECTED", "OWNER_KYC_RESET_TO_PENDING",
+  "OWNER_DEACTIVATED",
+  "WORKER_APPROVED", "WORKER_REJECTED", "WORKER_DEACTIVATED",
+  "WORKER_DOC_APPROVED", "WORKER_DOC_REJECTED",
+  "PROPERTY_DEACTIVATED_BY_ADMIN", "PROPERTY_RESTORED",
+  "ROLE_PERMISSION_ADDED", "ROLE_PERMISSION_REMOVED",
+  "WORKER_CONTRACT_FORCE_DEACTIVATED",
+] as const;
 
-const typeVariant: Record<
-    string,
-    "default" | "secondary" | "destructive" | "outline"
-> = {
-    Create: "default",
-    Update: "secondary",
-    Delete: "destructive",
-    Payment: "outline",
-};
+function getActionVariant(action: string): "default" | "secondary" | "destructive" | "outline" {
+  if (action.includes("APPROVED") || action.includes("RESTORED") || action.includes("CREATED")) return "default";
+  if (action.includes("REJECTED") || action.includes("DEACTIVATED") || action.includes("DELETED")) return "destructive";
+  if (action.includes("MODIFIED") || action.includes("CHANGED") || action.includes("ADDED") || action.includes("REMOVED")) return "secondary";
+  return "outline";
+}
+
+function formatAction(action: string) {
+  return action.replace(/_/g, " ");
+}
+
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleString("uz-UZ", {
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit",
+  });
+}
+
+function shortId(id: string | null) {
+  if (!id) return "—";
+  return id.slice(0, 8) + "…";
+}
 
 export default function AuditPage() {
-    return (
-        <div className="flex flex-col gap-4">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Audit Log</h1>
-                    <p className="text-muted-foreground">
-                        Full history of system actions and changes.
-                    </p>
-                </div>
-                <Button variant="outline">
-                    <Download className="mr-2 size-4"/>
-                    Export CSV
-                </Button>
-            </div>
+  const [actionFilter, setActionFilter] = useState<string>("all");
+  const [search, setSearch] = useState("");
 
-            <Card>
-                <CardHeader className="pb-4">
-                    <div className="flex items-center gap-2">
-                        <div className="relative flex-1 max-w-sm">
-                            <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground"/>
-                            <Input placeholder="Search logs..." className="pl-8"/>
-                        </div>
-                        <Select defaultValue="all">
-                            <SelectTrigger className="w-32">
-                                <SelectValue/>
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Types</SelectItem>
-                                <SelectItem value="create">Create</SelectItem>
-                                <SelectItem value="update">Update</SelectItem>
-                                <SelectItem value="delete">Delete</SelectItem>
-                                <SelectItem value="payment">Payment</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </CardHeader>
-                <CardContent className="p-0">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>ID</TableHead>
-                                <TableHead>User</TableHead>
-                                <TableHead>Action</TableHead>
-                                <TableHead>Target</TableHead>
-                                <TableHead>Type</TableHead>
-                                <TableHead>IP</TableHead>
-                                <TableHead>Time</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {logs.map((log) => (
-                                <TableRow key={log.id}>
-                                    <TableCell className="font-mono text-xs text-muted-foreground">
-                                        {log.id}
-                                    </TableCell>
-                                    <TableCell className="font-medium text-sm">
-                                        {log.user}
-                                    </TableCell>
-                                    <TableCell className="text-sm">{log.action}</TableCell>
-                                    <TableCell className="text-sm text-muted-foreground max-w-[180px] truncate">
-                                        {log.target}
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge variant={typeVariant[log.type]} className="text-xs">
-                                            {log.type}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell className="font-mono text-xs text-muted-foreground">
-                                        {log.ip}
-                                    </TableCell>
-                                    <TableCell className="text-xs text-muted-foreground">
-                                        {log.time}
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </CardContent>
-            </Card>
-        </div>
-    );
+  const { data: logs = [], isLoading } = useAuditLog(
+    actionFilter !== "all" ? { action: actionFilter } : undefined,
+  );
+
+  const filtered = search.trim()
+    ? logs.filter(
+        (l) =>
+          (l.actorFullName ?? "").toLowerCase().includes(search.toLowerCase()) ||
+          (l.targetEntity ?? "").toLowerCase().includes(search.toLowerCase()) ||
+          l.action.toLowerCase().includes(search.toLowerCase()),
+      )
+    : logs;
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-1">
+        <h1 className="font-heading text-3xl font-bold tracking-tight leading-tight">
+          Audit Log
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          SUPER_ADMIN tomonidan bajarilgan barcha amallar tarixi.
+        </p>
+      </div>
+
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative flex-1 min-w-[200px] max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
+              <Input
+                placeholder="Actor, entity yoki amal..."
+                className="h-9 pl-9"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+            <Select value={actionFilter} onValueChange={(v) => setActionFilter(v ?? "all")}>
+              <SelectTrigger className="h-9 w-52">
+                <SelectValue placeholder="Barcha amallar" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Barcha amallar</SelectItem>
+                {AUDIT_ACTIONS.map((a) => (
+                  <SelectItem key={a} value={a}>
+                    {formatAction(a)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardHeader>
+
+        <CardContent className="p-0">
+          {isLoading ? (
+            <div className="flex flex-col gap-2 p-4">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <Skeleton key={i} className="h-10 w-full rounded-lg" />
+              ))}
+            </div>
+          ) : filtered.length === 0 ? (
+            <p className="p-6 text-sm text-muted-foreground">
+              Hech qanday yozuv topilmadi.
+            </p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                    Actor
+                  </TableHead>
+                  <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                    Amal
+                  </TableHead>
+                  <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                    Entity
+                  </TableHead>
+                  <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                    Target ID
+                  </TableHead>
+                  <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                    Vaqt
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filtered.map((log) => (
+                  <TableRow key={log.id} className="hover:bg-accent/40">
+                    <TableCell className="py-2.5 text-sm font-medium">
+                      {log.actorFullName ?? "—"}
+                    </TableCell>
+                    <TableCell className="py-2.5">
+                      <Badge variant={getActionVariant(log.action)} className="text-[11px]">
+                        {formatAction(log.action)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="py-2.5 text-sm text-muted-foreground">
+                      {log.targetEntity ?? "—"}
+                    </TableCell>
+                    <TableCell className="py-2.5 font-mono text-xs text-muted-foreground">
+                      {shortId(log.targetId)}
+                    </TableCell>
+                    <TableCell className="py-2.5 text-xs text-muted-foreground">
+                      {formatDate(log.createdAt)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
 }

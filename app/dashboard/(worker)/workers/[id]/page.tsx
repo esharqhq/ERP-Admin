@@ -1,36 +1,125 @@
-// app/dashboard/(worker)/workers/[id]/page.tsx
-import { notFound } from "next/navigation"
-import { ClipboardList, Star, CheckCircle2, BadgeCheck } from "lucide-react"
-import { getWorkerById } from "@/lib/workers"
-import { ActionBar } from "@/components/workers/action-bar"
-import { HeroCard } from "@/components/workers/hero-card"
-import { StatCard } from "@/components/workers/stat-card"
-import { AssignmentsCard } from "@/components/workers/assignments-card"
-import { ContactCard } from "@/components/workers/contact-card"
-import { ActivityTimeline } from "@/components/workers/activity-timeline"
+"use client";
 
-export default async function WorkerDetailPage({
+import { use, useState } from "react";
+import {
+  Star,
+  CheckCircle2,
+  BadgeCheck,
+  User,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
+import { useWorkerDetail } from "@/hooks/use-worker-detail";
+import { useApproveWorker, useRejectWorker } from "@/hooks/use-worker-actions";
+import {
+  useWorkerDocs,
+  useApproveWorkerDoc,
+  useRejectWorkerDoc,
+} from "@/hooks/use-worker-docs";
+import { ActionBar } from "@/components/workers/action-bar";
+import { HeroCard } from "@/components/workers/hero-card";
+import { StatCard } from "@/components/workers/stat-card";
+import { ApproveWorkerModal } from "@/components/workers/approve-modal";
+import { RejectWorkerModal } from "@/components/workers/reject-modal";
+import { DocTable } from "@/components/workers/doc-table";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+
+export default function WorkerDetailPage({
   params,
 }: {
-  params: Promise<{ id: string }>
+  params: Promise<{ id: string }>;
 }) {
-  const { id } = await params
-  const worker = getWorkerById(Number(id))
-  if (!worker) notFound()
+  const { id } = use(params);
+  const { data: worker, isLoading, isError } = useWorkerDetail(id);
+  const [showApprove, setShowApprove] = useState(false);
+  const [showReject, setShowReject] = useState(false);
+  const { mutate: approve, isPending: isApproving } = useApproveWorker(id);
+  const { mutate: reject, isPending: isRejecting } = useRejectWorker(id);
+  const { data: docs = [], isLoading: isLoadingDocs } = useWorkerDocs(id);
+  const { mutate: approveDoc, isPending: isApprovingDoc } =
+    useApproveWorkerDoc(id);
+  const { mutate: rejectDoc, isPending: isRejectingDoc } =
+    useRejectWorkerDoc(id);
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col gap-6">
+        <ActionBar />
+        <Skeleton className="h-48 w-full rounded-xl" />
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-24 rounded-xl" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (isError || !worker) {
+    return (
+      <div className="flex flex-col gap-6">
+        <ActionBar />
+        <p className="text-sm text-destructive">
+          Ishchi topilmadi yoki xatolik yuz berdi.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6">
       <ActionBar />
       <HeroCard worker={worker} />
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard
-          label="Faol ishlar"
-          value={worker.tasks}
-          hint={worker.tasks > 0 ? "Hozirda bajarilmoqda" : "Hozircha yo'q"}
-          icon={<ClipboardList className="size-4" />}
-          tone="blue"
-        />
+      {!worker.isApproved && (
+        <div className="flex gap-2">
+          <Button className="gap-1.5" onClick={() => setShowApprove(true)}>
+            <CheckCircle className="size-4" />
+            Tasdiqlash
+          </Button>
+          <Button
+            variant="destructive"
+            className="gap-1.5"
+            onClick={() => setShowReject(true)}
+          >
+            <XCircle className="size-4" />
+            Rad etish
+          </Button>
+        </div>
+      )}
+
+      <ApproveWorkerModal
+        open={showApprove}
+        onClose={() => setShowApprove(false)}
+        onConfirm={() => {
+          approve();
+          setShowApprove(false);
+        }}
+        isPending={isApproving}
+        workerName={worker.fullName ?? "Ishchi"}
+      />
+      <RejectWorkerModal
+        open={showReject}
+        onClose={() => setShowReject(false)}
+        onConfirm={(reason) => {
+          reject(reason);
+          setShowReject(false);
+        }}
+        isPending={isRejecting}
+        workerName={worker.fullName ?? "Ishchi"}
+      />
+
+      <DocTable
+        docs={docs}
+        isLoading={isLoadingDocs}
+        onApprove={(docId) => approveDoc(docId)}
+        onReject={(docId, reason) => rejectDoc({ docId, reason })}
+        isApproving={isApprovingDoc}
+        isRejecting={isRejectingDoc}
+      />
+
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
         <StatCard
           label="Reyting"
           value={worker.rating.toFixed(1)}
@@ -39,30 +128,27 @@ export default async function WorkerDetailPage({
           tone="amber"
         />
         <StatCard
-          label="Bajarilgan"
-          value={worker.completedTasks}
-          hint="Jami vazifalar"
-          icon={<CheckCircle2 className="size-4" />}
-          tone="emerald"
-        />
-        <StatCard
           label="Holat"
-          value={worker.status}
-          hint={worker.status === "Verified" ? "Faol xodim" : "Tekshirilmoqda"}
+          value={worker.isApproved ? "Tasdiqlangan" : "Kutilmoqda"}
+          hint={worker.isApproved ? "Faol xodim" : "Tekshirilmoqda"}
           icon={<BadgeCheck className="size-4" />}
-          tone={worker.status === "Verified" ? "emerald" : "amber"}
+          tone={worker.isApproved ? "emerald" : "amber"}
         />
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="flex flex-col gap-6 lg:col-span-2">
-          <AssignmentsCard worker={worker} />
-          <ActivityTimeline worker={worker} />
-        </div>
-        <div className="flex flex-col gap-6">
-          <ContactCard worker={worker} />
-        </div>
+        {/* <StatCard
+          label="Verified"
+          value={worker.isVerified ? "Ha" : "Yo'q"}
+          hint="Hujjat tekshiruvi"
+          icon={<CheckCircle2 className="size-4" />}
+          tone={worker.isVerified ? "emerald" : "violet"}
+        /> */}
+        <StatCard
+          label="Kasb"
+          value={worker.professions?.length ?? 0}
+          hint="Mutaxassisliklar"
+          icon={<User className="size-4" />}
+          tone="blue"
+        />
       </div>
     </div>
-  )
+  );
 }

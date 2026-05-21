@@ -51,19 +51,19 @@ export function AppSidebar() {
               render={<Link href="/dashboard" />}
               className="gap-3 hover:bg-transparent"
             >
-              <div className="flex aspect-square size-9 items-center justify-center overflow-hidden rounded-lg bg-sidebar-primary/10 ring-1 ring-sidebar-primary/15">
+              {/*<div className="flex aspect-square  items-center justify-center overflow-hidden rounded-lg bg-sidebar-primary/10 ring-1 ring-sidebar-primary/15">*/}
                 <Image
-                  src="/mond-logo.png"
+                  src="/mond-favicon.png"
                   alt="Mond"
-                  width={28}
-                  height={28}
+                  width={60}
+                  height={60}
                   priority
-                  className="size-7 object-contain"
+                  className="size-18 object-contain"
                 />
-              </div>
+              {/*</div>*/}
               <div className="flex flex-col gap-0.5 leading-tight">
                 <span className="font-heading text-sm font-semibold tracking-tight">
-                  ERP Admin
+                  MONDD
                 </span>
                 <span className="text-[11px] text-muted-foreground">
                   Mond Control Center
@@ -77,7 +77,7 @@ export function AppSidebar() {
       <SidebarContent className="gap-4 px-1.5 py-2">
         {navGroups.map((group) => (
           <SidebarGroup key={group.id} className="px-0 py-0">
-            <SidebarGroupLabel className="px-2.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground/60">
+            <SidebarGroupLabel className="px-2.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
               {group.label}
             </SidebarGroupLabel>
             <SidebarGroupContent>

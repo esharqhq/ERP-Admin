@@ -16,6 +16,8 @@ type DataTableCardProps<T> = {
   title: string
   count: number
   searchPlaceholder?: string
+  searchValue?: string
+  onSearchChange?: (value: string) => void
   columns: DataTableColumn[]
   data: T[]
   renderRow: (item: T, index: number) => React.ReactNode
@@ -26,6 +28,8 @@ export function DataTableCard<T>({
   title,
   count,
   searchPlaceholder = "Qidirish...",
+  searchValue,
+  onSearchChange,
   columns,
   data,
   renderRow,
@@ -42,7 +46,12 @@ export function DataTableCard<T>({
           <div className="flex items-center gap-2">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
-              <Input placeholder={searchPlaceholder} className="h-9 w-full pl-9 sm:w-64" />
+              <Input
+                placeholder={searchPlaceholder}
+                className="h-9 w-full pl-9 sm:w-64"
+                value={searchValue ?? ""}
+                onChange={(e) => onSearchChange?.(e.target.value)}
+              />
             </div>
             <Button variant="outline" size="sm" className="gap-2">
               <Filter className="size-4" />

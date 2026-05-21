@@ -1,111 +1,183 @@
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Upload, Search, FileText, FileImage, File, Download } from "lucide-react"
-import { type LucideIcon } from "lucide-react"
+"use client";
 
-const documents: {
-  id: number
-  name: string
-  type: "ID" | "Contract" | "Report" | "Other"
-  worker: string
-  status: string
-  date: string
-  icon: LucideIcon
-}[] = [
-  { id: 1, name: "Jasur_Toshmatov_WorkContract.pdf", type: "Contract", worker: "Jasur T.",   status: "Signed",   date: "Jan 15, 2026", icon: FileText  },
-  { id: 2, name: "Malika_Saidova_ID.pdf",             type: "ID",       worker: "Malika S.",  status: "Verified", date: "Feb 10, 2026", icon: File      },
-  { id: 3, name: "Sardor_X_PerformanceReport.pdf",    type: "Report",   worker: "Sardor X.",  status: "Pending",  date: "Apr 30, 2026", icon: FileText  },
-  { id: 4, name: "Office_B_Inspection.pdf",           type: "Report",   worker: "Admin",      status: "Verified", date: "Apr 30, 2026", icon: FileText  },
-  { id: 5, name: "Villa_Sunrise_Photos.zip",          type: "Other",    worker: "Akbar M.",   status: "Pending",  date: "May 1, 2026",  icon: FileImage },
-  { id: 6, name: "Dilshod_I_Contract.pdf",            type: "Contract", worker: "Dilshod I.", status: "Signed",   date: "Mar 5, 2026",  icon: FileText  },
-]
+import { useState } from "react";
+import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Search, FolderOpen } from "lucide-react";
+import { useWorkers } from "@/hooks/use-workers";
+import type { WorkerSummaryDto } from "@/lib/types/worker.types";
 
-const statusVariant: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-  Verified: "default",
-  Signed:   "default",
-  Pending:  "secondary",
-  Expired:  "destructive",
+type FilterTab = "all" | "approved" | "pending";
+
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString("uz-UZ", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
 }
 
-const typeGroups = {
-  ids:       (d: typeof documents[0]) => d.type === "ID",
-  contracts: (d: typeof documents[0]) => d.type === "Contract",
-  reports:   (d: typeof documents[0]) => d.type === "Report",
-}
-
-function DocGrid({ docs }: { docs: typeof documents }) {
-  if (docs.length === 0) {
-    return <p className="text-sm text-muted-foreground mt-4">Hujjatlar topilmadi.</p>
+function ApprovalBadge({ isApproved, isVerified }: { isApproved: boolean; isVerified: boolean }) {
+  if (isApproved) {
+    return <Badge variant="default">Tasdiqlangan</Badge>;
   }
+  if (isVerified) {
+    return <Badge variant="secondary">Tekshirilmoqda</Badge>;
+  }
+  return <Badge variant="outline">Kutilmoqda</Badge>;
+}
+
+function WorkerRow({ worker }: { worker: WorkerSummaryDto }) {
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 mt-4">
-      {docs.map((doc) => (
-        <Card key={doc.id} className="hover:shadow-md transition-shadow cursor-pointer">
-          <CardContent className="flex items-start gap-3 p-4">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted">
-              <doc.icon className="size-5 text-muted-foreground" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{doc.name}</p>
-              <p className="text-xs text-muted-foreground">{doc.worker} · {doc.date}</p>
-              <div className="flex items-center justify-between mt-2">
-                <Badge variant={statusVariant[doc.status]} className="text-xs">{doc.status}</Badge>
-                <Button variant="ghost" size="icon" className="size-6">
-                  <Download className="size-3" />
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  )
+    <TableRow className="hover:bg-accent/40">
+      <TableCell className="py-3 font-medium">
+        {worker.fullName ?? "—"}
+      </TableCell>
+      <TableCell className="text-sm text-muted-foreground">
+        {worker.phoneNumber ?? worker.email ?? "—"}
+      </TableCell>
+      <TableCell className="text-sm text-muted-foreground">
+        {formatDate(worker.createdAt)}
+      </TableCell>
+      <TableCell>
+        <ApprovalBadge isApproved={worker.isApproved} isVerified={worker.isVerified} />
+      </TableCell>
+      <TableCell className="text-right">
+        <Button
+          size="sm"
+          variant="ghost"
+          nativeButton={false}
+          className="gap-1.5 text-muted-foreground"
+          render={<Link href={`/dashboard/workers/${worker.id}`} />}
+        >
+          <FolderOpen className="size-3.5" />
+          Hujjatlar
+        </Button>
+      </TableCell>
+    </TableRow>
+  );
 }
 
 export default function WorkerDocumentsPage() {
+  const [tab, setTab] = useState<FilterTab>("all");
+  const [search, setSearch] = useState("");
+
+  const approvedParam =
+    tab === "approved" ? true : tab === "pending" ? false : undefined;
+
+  const { data: workers = [], isLoading } = useWorkers(approvedParam);
+
+  const filtered = workers.filter((w) => {
+    if (!search) return true;
+    const q = search.toLowerCase();
+    return (
+      (w.fullName ?? "").toLowerCase().includes(q) ||
+      (w.email ?? "").toLowerCase().includes(q) ||
+      (w.phoneNumber ?? "").toLowerCase().includes(q)
+    );
+  });
+
+  const tabs: { key: FilterTab; label: string }[] = [
+    { key: "all", label: "Barchasi" },
+    { key: "approved", label: "Tasdiqlangan" },
+    { key: "pending", label: "Kutilmoqda" },
+  ];
+
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Worker Documents</h1>
-          <p className="text-muted-foreground">ID cards, work contracts, and reports for workers.</p>
-        </div>
-        <Button>
-          <Upload className="mr-2 size-4" />
-          Upload
-        </Button>
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-1">
+        <h1 className="font-heading text-3xl font-bold tracking-tight leading-tight">
+          Ishchi Hujjatlari
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Ishchilarning shaxsiy hujjatlari va shartnomalarini boshqaring.
+        </p>
       </div>
 
-      <Tabs defaultValue="all">
-        <div className="flex items-center gap-4">
-          <TabsList>
-            <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="ids">ID Cards</TabsTrigger>
-            <TabsTrigger value="contracts">Contracts</TabsTrigger>
-            <TabsTrigger value="reports">Reports</TabsTrigger>
-          </TabsList>
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
-            <Input placeholder="Search documents..." className="pl-8" />
-          </div>
+      {/* Filter bar */}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex rounded-lg border border-border bg-muted/50 p-0.5">
+          {tabs.map((t) => (
+            <button
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                tab === t.key
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
         </div>
+        <div className="relative flex-1 min-w-[200px] max-w-sm">
+          <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
+          <Input
+            placeholder="Ism yoki tel bo'yicha qidirish..."
+            className="pl-8"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+      </div>
 
-        <TabsContent value="all">
-          <DocGrid docs={documents} />
-        </TabsContent>
-        <TabsContent value="ids">
-          <DocGrid docs={documents.filter(typeGroups.ids)} />
-        </TabsContent>
-        <TabsContent value="contracts">
-          <DocGrid docs={documents.filter(typeGroups.contracts)} />
-        </TabsContent>
-        <TabsContent value="reports">
-          <DocGrid docs={documents.filter(typeGroups.reports)} />
-        </TabsContent>
-      </Tabs>
+      <Card>
+        <CardHeader className="pb-3">
+          <p className="text-xs text-muted-foreground">
+            {isLoading ? "Yuklanmoqda..." : `${filtered.length} ta ishchi`}
+          </p>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>To&apos;liq ism</TableHead>
+                <TableHead>Telefon / Email</TableHead>
+                <TableHead>Ro&apos;yxat sanasi</TableHead>
+                <TableHead>Holat</TableHead>
+                <TableHead className="text-right">Amallar</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell colSpan={5}>
+                      <Skeleton className="h-8 w-full rounded-md" />
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : filtered.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={5}
+                    className="py-10 text-center text-sm text-muted-foreground"
+                  >
+                    Ishchilar topilmadi
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filtered.map((worker) => (
+                  <WorkerRow key={worker.id} worker={worker} />
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
-  )
+  );
 }
