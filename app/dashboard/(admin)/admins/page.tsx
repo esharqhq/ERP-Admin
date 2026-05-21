@@ -85,9 +85,7 @@ export default function AdminsPage() {
               key={admin.id}
               admin={admin}
               isSelf={admin.id === currentAdminId}
-              onChangeRole={handleChangeRole}
               onDeactivate={handleDeactivate}
-              isChangingRole={isChangingRole}
               isDeactivating={isDeactivating}
             />
           )}

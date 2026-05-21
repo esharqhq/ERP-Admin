@@ -11,40 +11,37 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, ShieldCheck, UserX } from "lucide-react";
-import { ChangeRoleModal } from "./change-role-modal";
+import { MoreHorizontal, KeyRound, UserX } from "lucide-react";
 import { DeactivateConfirm } from "./deactivate-confirm";
-import type { AdminSummaryDto, AdminRoleCode } from "@/lib/types/admin-user.types";
+import { EditPermissionsDrawer } from "./edit-permissions-drawer";
+import { useUpdateRolePermissions } from "@/hooks/use-permissions";
+import type { AdminSummaryDto } from "@/lib/types/admin-user.types";
 
 interface Props {
   admin: AdminSummaryDto;
   isSelf: boolean;
-  onChangeRole: (id: string, roleCode: AdminRoleCode) => void;
   onDeactivate: (id: string, reason?: string) => void;
-  isChangingRole: boolean;
   isDeactivating: boolean;
 }
 
-const roleBadgeVariant: Record<AdminRoleCode, "default" | "secondary"> = {
-  SUPER_ADMIN: "default",
-  MODERATOR: "secondary",
-};
-
-const roleLabel: Record<AdminRoleCode, string> = {
-  SUPER_ADMIN: "Super Admin",
-  MODERATOR: "Moderator",
-};
-
-export function AdminRow({
-  admin,
-  isSelf,
-  onChangeRole,
-  onDeactivate,
-  isChangingRole,
-  isDeactivating,
-}: Props) {
-  const [showChangeRole, setShowChangeRole] = useState(false);
+export function AdminRow({ admin, isSelf, onDeactivate, isDeactivating }: Props) {
   const [showDeactivate, setShowDeactivate] = useState(false);
+  const [showPermissions, setShowPermissions] = useState(false);
+
+  const { mutate: updatePermissions, isPending: isUpdating } = useUpdateRolePermissions();
+
+  const isSystemAdmin = admin.roleCode === "SUPER_ADMIN";
+
+  function getRoleLabel(roleCode: string): string {
+    if (roleCode === "SUPER_ADMIN") return "Super Admin";
+    if (roleCode === "MODERATOR") return "Moderator";
+    return "Sub Admin";
+  }
+
+  function getRoleBadgeVariant(roleCode: string): "default" | "secondary" | "outline" {
+    if (roleCode === "SUPER_ADMIN") return "default";
+    return "secondary";
+  }
 
   return (
     <TableRow className="hover:bg-accent/40">
@@ -71,8 +68,8 @@ export function AdminRow({
       </TableCell>
 
       <TableCell>
-        <Badge variant={roleBadgeVariant[admin.roleCode]}>
-          {roleLabel[admin.roleCode]}
+        <Badge variant={getRoleBadgeVariant(admin.roleCode)}>
+          {getRoleLabel(admin.roleCode)}
         </Badge>
       </TableCell>
 
@@ -84,9 +81,12 @@ export function AdminRow({
             <MoreHorizontal className="size-4" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => setShowChangeRole(true)}>
-              <ShieldCheck className="mr-2 size-4" />
-              Rolni o&apos;zgartirish
+            <DropdownMenuItem
+              onClick={() => setShowPermissions(true)}
+              disabled={isSystemAdmin}
+            >
+              <KeyRound className="mr-2 size-4" />
+              Permissionlar
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => setShowDeactivate(true)}
@@ -100,17 +100,6 @@ export function AdminRow({
         </DropdownMenu>
       </TableCell>
 
-      <ChangeRoleModal
-        open={showChangeRole}
-        onClose={() => setShowChangeRole(false)}
-        onConfirm={(roleCode) => {
-          onChangeRole(admin.id, roleCode);
-          setShowChangeRole(false);
-        }}
-        isPending={isChangingRole}
-        adminName={admin.fullName}
-        currentRole={admin.roleCode}
-      />
       <DeactivateConfirm
         open={showDeactivate}
         onClose={() => setShowDeactivate(false)}
@@ -120,6 +109,20 @@ export function AdminRow({
         }}
         isPending={isDeactivating}
         adminName={admin.fullName}
+      />
+
+      <EditPermissionsDrawer
+        open={showPermissions}
+        onClose={() => setShowPermissions(false)}
+        onConfirm={(permissionNames) => {
+          updatePermissions(
+            { roleId: admin.roleId, body: { permissionNames } },
+            { onSuccess: () => setShowPermissions(false) },
+          );
+        }}
+        isPending={isUpdating}
+        adminName={admin.fullName}
+        roleId={admin.roleId}
       />
     </TableRow>
   );
