@@ -36,20 +36,24 @@ export default function AdminsPage() {
     permissionNames: string[];
   }) {
     setEmailError(undefined);
-    const roleCode = `custom_${crypto.randomUUID()}`;
 
     createRole(
       {
-        code: roleCode,
+        code: `custom_${crypto.randomUUID()}`,
         name: data.fullName,
         appliesTo: "ADMIN",
         isDefault: false,
         permissionNames: data.permissionNames,
       },
       {
-        onSuccess: () => {
+        onSuccess: (createdRole) => {
           createAdmin(
-            { fullName: data.fullName, email: data.email, password: data.password, roleCode },
+            {
+              fullName: data.fullName,
+              email: data.email,
+              password: data.password,
+              roleCode: createdRole.code ?? "",
+            },
             {
               onSuccess: () => setShowCreate(false),
               onError: (err: unknown) => {

@@ -1,111 +1,191 @@
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Upload, Search, FileText, File, Download } from "lucide-react"
-import { type LucideIcon } from "lucide-react"
+"use client";
 
-const documents: {
-  id: number
-  name: string
-  type: "KYC" | "Contract" | "License" | "Other"
-  owner: string
-  status: string
-  date: string
-  icon: LucideIcon
-}[] = [
-  { id: 1, name: "Jasur_Toshmatov_ID.pdf",      type: "KYC",      owner: "Jasur T.",   status: "Verified", date: "Apr 10, 2026", icon: FileText },
-  { id: 2, name: "Sunrise_LLC_Contract.pdf",     type: "Contract", owner: "Sunrise LLC",status: "Signed",   date: "Mar 22, 2026", icon: FileText },
-  { id: 3, name: "GrandBuild_License.pdf",       type: "License",  owner: "GrandBuild", status: "Verified", date: "Feb 14, 2026", icon: FileText },
-  { id: 4, name: "Malika_Saidova_KYC.pdf",       type: "KYC",      owner: "Malika S.",  status: "Expired",  date: "Jan 5, 2026",  icon: File     },
-  { id: 5, name: "Akbar_Mirzayev_Passport.pdf",  type: "KYC",      owner: "Akbar M.",   status: "Verified", date: "Feb 14, 2026", icon: FileText },
-  { id: 6, name: "Feruza_LLC_Agreement.pdf",     type: "Contract", owner: "Feruza A.",  status: "Pending",  date: "May 1, 2026",  icon: FileText },
-]
+import { useState } from "react";
+import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Search, FolderOpen } from "lucide-react";
+import { useKycList } from "@/hooks/use-kyc";
+import type { KycProfileSummaryDto, KycStatus } from "@/lib/types/kyc.types";
 
-const statusVariant: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-  Verified: "default",
-  Signed:   "default",
-  Pending:  "secondary",
-  Expired:  "destructive",
+type FilterTab = "all" | "approved" | "pending" | "rejected";
+
+const tabStatusMap: Record<FilterTab, KycStatus | undefined> = {
+  all: undefined,
+  pending: 1,
+  approved: 2,
+  rejected: 3,
+};
+
+function formatDate(iso: string | null) {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleDateString("uz-UZ", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
 }
 
-const typeGroups = {
-  kyc:       (d: typeof documents[0]) => d.type === "KYC",
-  contracts: (d: typeof documents[0]) => d.type === "Contract",
-  licenses:  (d: typeof documents[0]) => d.type === "License",
-}
-
-function DocGrid({ docs }: { docs: typeof documents }) {
-  if (docs.length === 0) {
-    return <p className="text-sm text-muted-foreground mt-4">Hujjatlar topilmadi.</p>
+function KycBadge({ isApproved, status }: { isApproved: boolean; status: string | null }) {
+  if (isApproved || status === "Approved") {
+    return <Badge variant="default">Tasdiqlangan</Badge>;
   }
+  if (status === "Rejected") {
+    return <Badge variant="destructive">Rad etilgan</Badge>;
+  }
+  return <Badge variant="outline">Kutilmoqda</Badge>;
+}
+
+function OwnerRow({ kyc }: { kyc: KycProfileSummaryDto }) {
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 mt-4">
-      {docs.map((doc) => (
-        <Card key={doc.id} className="hover:shadow-md transition-shadow cursor-pointer">
-          <CardContent className="flex items-start gap-3 p-4">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted">
-              <doc.icon className="size-5 text-muted-foreground" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{doc.name}</p>
-              <p className="text-xs text-muted-foreground">{doc.owner} · {doc.date}</p>
-              <div className="flex items-center justify-between mt-2">
-                <Badge variant={statusVariant[doc.status]} className="text-xs">{doc.status}</Badge>
-                <Button variant="ghost" size="icon" className="size-6">
-                  <Download className="size-3" />
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  )
+    <TableRow className="hover:bg-accent/40">
+      <TableCell className="py-3 font-medium">
+        {kyc.ownerName ?? "—"}
+      </TableCell>
+      <TableCell className="text-sm text-muted-foreground">
+        {kyc.ownerEmail ?? "—"}
+      </TableCell>
+      <TableCell className="text-center text-sm text-muted-foreground">
+        {kyc.documentCount}
+      </TableCell>
+      <TableCell className="text-sm text-muted-foreground">
+        {formatDate(kyc.kycReviewedAt)}
+      </TableCell>
+      <TableCell>
+        <KycBadge isApproved={kyc.isApproved} status={kyc.kycStatus} />
+      </TableCell>
+      <TableCell className="text-right">
+        <Button
+          size="sm"
+          variant="ghost"
+          nativeButton={false}
+          className="gap-1.5 text-muted-foreground"
+          render={<Link href={`/dashboard/kyc`} />}
+        >
+          <FolderOpen className="size-3.5" />
+          Hujjatlar
+        </Button>
+      </TableCell>
+    </TableRow>
+  );
 }
 
 export default function OwnerDocumentsPage() {
+  const [tab, setTab] = useState<FilterTab>("all");
+  const [search, setSearch] = useState("");
+
+  const { data: kycList = [], isLoading } = useKycList(tabStatusMap[tab]);
+
+  const filtered = kycList.filter((k) => {
+    if (!search) return true;
+    const q = search.toLowerCase();
+    return (
+      (k.ownerName ?? "").toLowerCase().includes(q) ||
+      (k.ownerEmail ?? "").toLowerCase().includes(q)
+    );
+  });
+
+  const tabs: { key: FilterTab; label: string }[] = [
+    { key: "all", label: "Barchasi" },
+    { key: "approved", label: "Tasdiqlangan" },
+    { key: "pending", label: "Kutilmoqda" },
+    { key: "rejected", label: "Rad etilgan" },
+  ];
+
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Owner Documents</h1>
-          <p className="text-muted-foreground">KYC files, contracts, and licenses for owners.</p>
-        </div>
-        <Button>
-          <Upload className="mr-2 size-4" />
-          Upload
-        </Button>
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-1">
+        <h1 className="font-heading text-3xl font-bold tracking-tight leading-tight">
+          Mulkdor Hujjatlari
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Mulkdorlarning shaxsiy hujjatlari va KYC holatini boshqaring.
+        </p>
       </div>
 
-      <Tabs defaultValue="all">
-        <div className="flex items-center gap-4">
-          <TabsList>
-            <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="kyc">KYC</TabsTrigger>
-            <TabsTrigger value="contracts">Contracts</TabsTrigger>
-            <TabsTrigger value="licenses">Licenses</TabsTrigger>
-          </TabsList>
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
-            <Input placeholder="Search documents..." className="pl-8" />
-          </div>
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex rounded-lg border border-border bg-muted/50 p-0.5">
+          {tabs.map((t) => (
+            <button
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                tab === t.key
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
         </div>
+        <div className="relative flex-1 min-w-[200px] max-w-sm">
+          <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
+          <Input
+            placeholder="Ism yoki email bo'yicha qidirish..."
+            className="pl-8"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+      </div>
 
-        <TabsContent value="all">
-          <DocGrid docs={documents} />
-        </TabsContent>
-        <TabsContent value="kyc">
-          <DocGrid docs={documents.filter(typeGroups.kyc)} />
-        </TabsContent>
-        <TabsContent value="contracts">
-          <DocGrid docs={documents.filter(typeGroups.contracts)} />
-        </TabsContent>
-        <TabsContent value="licenses">
-          <DocGrid docs={documents.filter(typeGroups.licenses)} />
-        </TabsContent>
-      </Tabs>
+      <Card>
+        <CardHeader className="pb-3">
+          <p className="text-xs text-muted-foreground">
+            {isLoading ? "Yuklanmoqda..." : `${filtered.length} ta mulkdor`}
+          </p>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>To&apos;liq ism</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead className="text-center">Hujjatlar</TableHead>
+                <TableHead>Ko&apos;rib chiqilgan</TableHead>
+                <TableHead>Holat</TableHead>
+                <TableHead className="text-right">Amallar</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell colSpan={6}>
+                      <Skeleton className="h-8 w-full rounded-md" />
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : filtered.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={6}
+                    className="py-10 text-center text-sm text-muted-foreground"
+                  >
+                    Mulkdorlar topilmadi
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filtered.map((kyc) => (
+                  <OwnerRow key={kyc.ownerProfileId} kyc={kyc} />
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
-  )
+  );
 }

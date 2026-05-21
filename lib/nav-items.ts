@@ -11,6 +11,7 @@ import {
   Settings,
   ShieldCheck,
   UserCog,
+  TicketCheck,
 } from "lucide-react"
 import { type LucideIcon } from "lucide-react"
 
@@ -59,6 +60,7 @@ export const navGroups: NavGroup[] = [
     id: "support",
     label: "Support",
     items: [
+      { title: "Tickets",   url: "/dashboard/support",  icon: TicketCheck   },
       { title: "Chat",      url: "/dashboard/chat",     icon: MessageSquare },
       { title: "Audit Log", url: "/dashboard/audit",    icon: ShieldCheck   },
       { title: "Admins",    url: "/dashboard/admins",   icon: UserCog       },

@@ -13,21 +13,15 @@ export interface AdminSummaryDto {
   createdAt: string;
 }
 
-export interface PermissionDto {
-  id: string;
-  name: string;               // "worker:list", "kyc:approve", etc.
-  description: string | null;
-  domain: string;
-}
 
 export interface RoleDto {
   id: string;
-  code: string;
-  name: string;
-  appliesTo: string;
+  code: string | null;
+  name: string | null;
+  appliesTo: string | null;
   isSystem: boolean;
   isDefault: boolean;
-  permissions: PermissionDto[];
+  permissions: string[];   // swagger: array of permission name strings
 }
 
 export interface CreateCustomRoleRequest {

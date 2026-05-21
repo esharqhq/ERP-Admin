@@ -3,13 +3,12 @@
 
 import { useState } from "react";
 import {
-  Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter,
-} from "@/components/ui/sheet";
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { PermissionSwitches } from "./permission-switches";
 
 interface AdminFormData {
@@ -47,14 +46,14 @@ export function AdminDrawer({ open, onClose, onConfirm, isPending, emailError }:
   }
 
   return (
-    <Sheet open={open} onOpenChange={(v) => !v && handleClose()}>
-      <SheetContent side="right" className="flex w-full flex-col sm:max-w-lg p-0">
-        <SheetHeader className="px-6 pt-6 pb-4 border-b border-border">
-          <SheetTitle>Yangi admin yaratish</SheetTitle>
-        </SheetHeader>
+    <Dialog open={open} onOpenChange={(v) => !v && handleClose()}>
+      <DialogContent className="flex max-h-[90vh] w-full sm:max-w-2xl flex-col gap-0 overflow-hidden p-0">
+        <DialogHeader className="shrink-0 px-6 pt-6 pb-4 border-b border-border">
+          <DialogTitle>Yangi admin yaratish</DialogTitle>
+        </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="flex flex-1 flex-col overflow-hidden">
-          <ScrollArea className="flex-1 px-6">
+        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <div className="flex-1 overflow-y-auto px-6">
             <div className="flex flex-col gap-4 py-4">
               <div className="flex flex-col gap-1.5">
                 <Label htmlFor="drawer-fullName">To&apos;liq ism</Label>
@@ -100,9 +99,9 @@ export function AdminDrawer({ open, onClose, onConfirm, isPending, emailError }:
                 <PermissionSwitches selected={selected} onChange={setSelected} />
               </div>
             </div>
-          </ScrollArea>
+          </div>
 
-          <SheetFooter className="px-6 py-4 border-t border-border">
+          <DialogFooter className="mx-0 mb-0 shrink-0 rounded-none px-6 py-4 border-t border-border">
             <Button type="button" variant="outline" onClick={handleClose} disabled={isPending}>
               Bekor qilish
             </Button>
@@ -110,9 +109,9 @@ export function AdminDrawer({ open, onClose, onConfirm, isPending, emailError }:
               {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
               Yaratish
             </Button>
-          </SheetFooter>
+          </DialogFooter>
         </form>
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   );
 }
