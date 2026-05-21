@@ -10,6 +10,7 @@ import {
   MessageSquare,
   Settings,
   ShieldCheck,
+  UserCog,
 } from "lucide-react"
 import { type LucideIcon } from "lucide-react"
 
@@ -40,6 +41,7 @@ export const navGroups: NavGroup[] = [
       { title: "Owners",     url: "/dashboard/owners",          icon: Building2  },
       { title: "Properties", url: "/dashboard/properties",      icon: Home       },
       { title: "Documents",  url: "/dashboard/owner-documents", icon: FolderOpen },
+      { title: "KYC Review", url: "/dashboard/kyc",             icon: ShieldCheck },
     ],
   },
   {
@@ -59,6 +61,7 @@ export const navGroups: NavGroup[] = [
     items: [
       { title: "Chat",      url: "/dashboard/chat",     icon: MessageSquare },
       { title: "Audit Log", url: "/dashboard/audit",    icon: ShieldCheck   },
+      { title: "Admins",    url: "/dashboard/admins",   icon: UserCog       },
       { title: "Settings",  url: "/dashboard/settings", icon: Settings      },
     ],
   },
