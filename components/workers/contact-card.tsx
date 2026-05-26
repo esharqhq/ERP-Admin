@@ -10,7 +10,7 @@ export function ContactCard({ worker }: { worker: Worker }) {
   return (
     <Card>
       <CardHeader className="pb-3">
-        <h2 className="font-heading text-base font-semibold tracking-tight">Aloqa ma'lumotlari</h2>
+        <h2 className="font-heading text-base font-semibold tracking-tight">{"Aloqa ma'lumotlari"}</h2>
       </CardHeader>
       <CardContent className="flex flex-col gap-3.5">
         <InfoRow icon={<Mail className="size-3.5" />}        label="Email"              value={worker.email} />

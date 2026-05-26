@@ -18,7 +18,7 @@ export function PropertyInfo({ property }: { property: Property }) {
     <Card>
       <CardHeader className="pb-3">
         <h2 className="font-heading text-base font-semibold tracking-tight">
-          Umumiy ma'lumot
+          {"Umumiy ma'lumot"}
         </h2>
       </CardHeader>
       <CardContent className="flex flex-col gap-3.5">

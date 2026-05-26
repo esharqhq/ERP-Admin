@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -32,15 +32,16 @@ export function EditPermissionsDrawer({
 }: Props) {
   const { data: roles = [] } = useAllRoles();
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [syncedKey, setSyncedKey] = useState<string>("");
 
-  // Mavjud roledan permissionlarni yukla
-  useEffect(() => {
-    if (!open) return;
-    const role = roles.find((r) => r.id === roleId);
-    if (role) {
-      setSelected(new Set(role.permissions));
+  const currentKey = open ? `${roleId}-${roles.length}` : "";
+  if (currentKey !== syncedKey) {
+    setSyncedKey(currentKey);
+    if (open) {
+      const role = roles.find((r) => r.id === roleId);
+      setSelected(new Set(role?.permissions ?? []));
     }
-  }, [open, roleId, roles]);
+  }
 
   function handleClose() {
     setSelected(new Set());

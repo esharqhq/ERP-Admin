@@ -6,8 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { DataTableCard } from "@/components/ui/data-table-card";
-import { Building2, User, Star } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Building2, User } from "lucide-react";
 import { owners } from "@/lib/owners";
 
 const statusVariant: Record<
@@ -17,24 +16,6 @@ const statusVariant: Record<
   Verified: "default",
   Pending: "secondary",
   Rejected: "destructive",
-};
-
-const riskStyle: Record<string, { ring: string; bg: string; text: string }> = {
-  Low: {
-    ring: "ring-emerald-500/25",
-    bg: "bg-emerald-500/10",
-    text: "text-emerald-700 dark:text-emerald-400",
-  },
-  Medium: {
-    ring: "ring-amber-500/25",
-    bg: "bg-amber-500/10",
-    text: "text-amber-700 dark:text-amber-400",
-  },
-  High: {
-    ring: "ring-rose-500/30",
-    bg: "bg-rose-500/10",
-    text: "text-rose-700 dark:text-rose-400",
-  },
 };
 
 const columns = [
@@ -118,7 +99,7 @@ export default function OwnersPage() {
                   nativeButton={false}
                   render={<Link href={`/dashboard/owners/${o.id}`} />}
                 >
-                  Ko'rish
+                  {"Ko'rish"}
                 </Button>
               </TableCell>
             </TableRow>

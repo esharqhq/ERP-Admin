@@ -117,7 +117,7 @@ function DroppableColumn({
         ))}
         {tasks.length === 0 && (
           <div className="flex h-16 items-center justify-center rounded-md border border-dashed border-border/50">
-            <p className="text-[11px] text-muted-foreground/50">Bo'sh</p>
+            <p className="text-[11px] text-muted-foreground/50">{"Bo'sh"}</p>
           </div>
         )}
       </div>

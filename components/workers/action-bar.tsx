@@ -14,7 +14,7 @@ export function ActionBar() {
         className="gap-1.5 -ml-2 text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="size-4" />
-        Workers ro'yxatiga qaytish
+        {"Workers ro'yxatiga qaytish"}
       </Button>
       <div className="flex items-center gap-2">
         <Button variant="outline" size="sm" className="gap-1.5">
@@ -27,7 +27,7 @@ export function ActionBar() {
         </Button>
         <Button variant="ghost" size="icon-sm">
           <MoreHorizontal className="size-4" />
-          <span className="sr-only">Qo'shimcha</span>
+          <span className="sr-only">{"Qo'shimcha"}</span>
         </Button>
       </div>
     </div>

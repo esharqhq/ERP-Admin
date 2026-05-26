@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -22,8 +22,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { MapPin, CalendarClock, Search } from "lucide-react";
@@ -142,44 +140,6 @@ export default function WorkersPage() {
   );
 }
 
-const STAT_TONES: Record<string, { ring: string; bg: string; text: string }> = {
-  blue:    { ring: "ring-blue-500/20",    bg: "bg-blue-500/10",    text: "text-blue-600 dark:text-blue-400" },
-  emerald: { ring: "ring-emerald-500/20", bg: "bg-emerald-500/10", text: "text-emerald-600 dark:text-emerald-400" },
-  violet:  { ring: "ring-violet-500/20",  bg: "bg-violet-500/10",  text: "text-violet-600 dark:text-violet-400" },
-  amber:   { ring: "ring-amber-500/20",   bg: "bg-amber-500/10",   text: "text-amber-600 dark:text-amber-400" },
-};
-
-function StatCard({
-  label,
-  value,
-  icon,
-  tone,
-}: {
-  label: string;
-  value: string | number;
-  icon: React.ReactNode;
-  tone: keyof typeof STAT_TONES;
-}) {
-  const t = STAT_TONES[tone];
-  return (
-    <Card size="sm" className="transition-shadow duration-200 hover:shadow-sm">
-      <CardContent className="flex items-center gap-3">
-        <div className={cn("flex size-10 shrink-0 items-center justify-center rounded-lg ring-1", t.ring, t.bg, t.text)}>
-          {icon}
-        </div>
-        <div className="flex min-w-0 flex-col gap-0.5">
-          <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
-            {label}
-          </span>
-          <span className="font-heading text-2xl font-semibold tracking-tight leading-none">
-            {value}
-          </span>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
 const workerColumns = [
   { label: "Ishchi" },
   { label: "Holat" },
@@ -250,7 +210,7 @@ function WorkersTable({
               nativeButton={false}
               render={<Link href={`/dashboard/workers/${w.id}`} />}
             >
-              Ko'rish
+              {"Ko'rish"}
             </Button>
           </TableCell>
         </TableRow>

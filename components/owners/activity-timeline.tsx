@@ -7,8 +7,8 @@ export function ActivityTimeline({ owner }: { owner: Owner }) {
   return (
     <Card>
       <CardHeader className="pb-3">
-        <h2 className="font-heading text-base font-semibold tracking-tight">So'nggi faollik</h2>
-        <p className="text-xs text-muted-foreground mt-0.5">Shartnomalar, to'lovlar va eslatmalar tarixi</p>
+        <h2 className="font-heading text-base font-semibold tracking-tight">{"So'nggi faollik"}</h2>
+        <p className="text-xs text-muted-foreground mt-0.5">{"Shartnomalar, to'lovlar va eslatmalar tarixi"}</p>
       </CardHeader>
       <CardContent>
         <ol className="relative flex flex-col gap-4 pl-6 before:absolute before:left-[11px] before:top-1 before:bottom-1 before:w-px before:bg-border">

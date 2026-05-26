@@ -138,7 +138,7 @@ export default function AttendancePage() {
                     </div>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="sm">Ko'rish</Button>
+                    <Button variant="ghost" size="sm">{"Ko'rish"}</Button>
                   </TableCell>
                 </TableRow>
               ))}

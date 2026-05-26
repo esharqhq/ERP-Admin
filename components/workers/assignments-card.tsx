@@ -23,7 +23,7 @@ export function AssignmentsCard({ worker }: { worker: Worker }) {
             <div className="flex size-10 items-center justify-center rounded-full bg-muted">
               <CalendarDays className="size-4 text-muted-foreground" />
             </div>
-            <span className="text-sm text-muted-foreground">Hozirda topshiriq yo'q</span>
+            <span className="text-sm text-muted-foreground">{"Hozirda topshiriq yo'q"}</span>
           </div>
         ) : (
           <ul className="flex flex-col gap-3">

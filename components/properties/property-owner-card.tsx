@@ -35,7 +35,7 @@ export function PropertyOwnerCard({ property }: { property: Property }) {
             nativeButton={false}
             render={<Link href={`/dashboard/owners/${owner.id}`} />}
           >
-            Profilni ko'rish
+            {"Profilni ko'rish"}
             <ArrowUpRight className="size-3.5" />
           </Button>
         )}

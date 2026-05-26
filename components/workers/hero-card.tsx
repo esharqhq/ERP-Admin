@@ -1,4 +1,4 @@
-import { Star, Phone, Mail, MapPin, Briefcase } from "lucide-react";
+import { Star, Phone, Mail, MapPin } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -84,7 +84,7 @@ export function HeroCard({ worker }: { worker: WorkerDetailDto }) {
                 }
               >
                 <Phone className="size-4" />
-                Qo'ng'iroq
+                {"Qo'ng'iroq"}
               </Button>
             )}
           </div>

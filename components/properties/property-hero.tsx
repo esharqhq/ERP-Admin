@@ -1,7 +1,6 @@
 import { Building2, Home, Hotel, Briefcase, Store } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { cn } from "@/lib/utils"
 import type { Property } from "@/lib/properties"
 
 const typeIcon: Record<string, React.ReactNode> = {

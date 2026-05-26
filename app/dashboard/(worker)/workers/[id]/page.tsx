@@ -3,7 +3,6 @@
 import { use, useState } from "react";
 import {
   Star,
-  CheckCircle2,
   BadgeCheck,
   User,
   CheckCircle,

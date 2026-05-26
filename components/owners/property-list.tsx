@@ -13,7 +13,7 @@ export function PropertyList({ owner }: { owner: Owner }) {
         <div>
           <h2 className="font-heading text-base font-semibold tracking-tight">Mulklari</h2>
           <p className="text-xs text-muted-foreground mt-0.5">
-            {owner.propertiesList.length} ta mulk ro'yxatda
+            {`${owner.propertiesList.length} ta mulk ro'yxatda`}
           </p>
         </div>
         <Button
