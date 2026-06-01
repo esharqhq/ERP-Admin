@@ -29,6 +29,7 @@ import { navGroups } from "@/lib/nav-items"
 import { logoutAction } from "@/app/[locale]/login/actions"
 import { useAuthStore } from "@/store/auth.store"
 import { ChevronsUpDown, LogOut } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 const menuButtonClass =
   "relative h-9 gap-3 px-2.5 text-[13px] font-medium text-sidebar-foreground/75 transition-colors " +
@@ -42,6 +43,7 @@ const menuButtonClass =
 export function AppSidebar() {
   const pathname = usePathname()
   const adminMe = useAuthStore((s) => s.adminMe)
+  const t = useTranslations()
 
   const email = adminMe?.email ?? "admin@erp.com"
   const displayName = adminMe?.role ?? "Super Admin"
@@ -84,7 +86,7 @@ export function AppSidebar() {
         {navGroups.map((group) => (
           <SidebarGroup key={group.id} className="px-0 py-0">
             <SidebarGroupLabel className="px-2.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
-              {group.label}
+              {t(group.labelKey)}
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu className="gap-0.5">
@@ -97,11 +99,11 @@ export function AppSidebar() {
                       <SidebarMenuButton
                         render={<Link href={item.url} />}
                         isActive={isActive}
-                        tooltip={item.title}
+                        tooltip={t(item.labelKey)}
                         className={menuButtonClass}
                       >
                         <item.icon />
-                        <span>{item.title}</span>
+                        <span>{t(item.labelKey)}</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   )
@@ -147,7 +149,7 @@ export function AppSidebar() {
                 className="w-56"
               >
                 <DropdownMenuLabel className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/70">
-                  Akkaunt
+                  {t('auth.account')}
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <form action={logoutAction}>
@@ -157,7 +159,7 @@ export function AppSidebar() {
                     render={<button type="submit" />}
                   >
                     <LogOut />
-                    Chiqish
+                    {t('auth.logout')}
                   </DropdownMenuItem>
                 </form>
               </DropdownMenuContent>

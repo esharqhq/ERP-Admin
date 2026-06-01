@@ -24,6 +24,7 @@ import {navItems} from "@/lib/nav-items"
 import {Bell} from "lucide-react"
 import Link from "next/link";
 import {LanguageSwitcher} from "./language-switcher";
+import {useTranslations} from "next-intl";
 
 const notifications = [
     {id: 1, title: "New task assigned", desc: "HVAC Repair — Villa Sunrise", time: "5 min ago", unread: true},
@@ -35,6 +36,7 @@ const notifications = [
 
 export function DashboardHeader() {
     const pathname = usePathname()
+    const t = useTranslations()
 
     const current = navItems.find(
         (item) =>
@@ -55,7 +57,7 @@ export function DashboardHeader() {
                     </BreadcrumbItem>
                     <BreadcrumbSeparator className="hidden md:block"/>
                     <BreadcrumbItem>
-                        <BreadcrumbPage>{current.title}</BreadcrumbPage>
+                        <BreadcrumbPage>{t(current.labelKey)}</BreadcrumbPage>
                     </BreadcrumbItem>
                 </BreadcrumbList>
             </Breadcrumb>
@@ -83,10 +85,10 @@ export function DashboardHeader() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" sideOffset={8} className="w-80 p-0">
                         <DropdownMenuLabel className="flex items-center justify-between px-3 py-2.5">
-                            <span className="text-sm font-semibold">Notifications</span>
+                            <span className="text-sm font-semibold">{t('layout.notifications.title')}</span>
                             {unreadCount > 0 && (
                                 <span className="text-[11px] text-muted-foreground">
-                  {unreadCount} new
+                  {t('layout.notifications.newCount', { count: unreadCount })}
                 </span>
                             )}
                         </DropdownMenuLabel>
@@ -114,7 +116,7 @@ export function DashboardHeader() {
                         <Link href={"/dashboard/chat"}>
                             <DropdownMenuItem
                                 className="cursor-pointer justify-center py-2.5 text-xs font-medium text-primary">
-                                {"View all"}
+                                {t('layout.notifications.viewAll')}
                             </DropdownMenuItem>
                         </Link>
                     </DropdownMenuContent>
