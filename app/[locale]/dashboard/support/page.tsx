@@ -48,7 +48,7 @@ interface Ticket {
 const mockTickets: Ticket[] = [
   {
     id: "TKT-001",
-    subject: "Worker ilovasida login ishlamayapti",
+    subject: "Login not working in worker app",
     category: "Technical",
     submittedBy: "Jasur Toshmatov",
     submittedByRole: "Worker",
@@ -56,11 +56,11 @@ const mockTickets: Ticket[] = [
     status: "Open",
     createdAt: "2026-05-20T09:15:00Z",
     description:
-      "Login qilganda 'Invalid credentials' xatosi chiqyapti, parol to'g'ri kiritilgan.",
+      "Getting 'Invalid credentials' error when logging in, even though the password is correct.",
   },
   {
     id: "TKT-002",
-    subject: "KYC hujjatim noto'g'ri rad etilgan",
+    subject: "My KYC document was incorrectly rejected",
     category: "KYC",
     submittedBy: "Sunrise LLC",
     submittedByRole: "Owner",
@@ -68,11 +68,11 @@ const mockTickets: Ticket[] = [
     status: "In Progress",
     createdAt: "2026-05-19T14:30:00Z",
     description:
-      "Pasportim amal qiladi, lekin tizim rad etdi. Qayta ko'rib chiqishni so'rayman.",
+      "My passport is valid, but the system rejected it. Requesting a re-review.",
   },
   {
     id: "TKT-003",
-    subject: "Mulk qo'shishda xato chiqmoqda",
+    subject: "Error when adding a property",
     category: "Property",
     submittedBy: "GrandBuild Co.",
     submittedByRole: "Owner",
@@ -80,33 +80,33 @@ const mockTickets: Ticket[] = [
     status: "Open",
     createdAt: "2026-05-19T10:00:00Z",
     description:
-      "Yangi mulk qo'shganda '500 Internal Server Error' chiqadi. 3 martadan ortiq urinib ko'rdim.",
+      "Getting '500 Internal Server Error' when adding a new property. Tried more than 3 times.",
   },
   {
     id: "TKT-004",
-    subject: "Ish haqi hisob-kitobida farq bor",
+    subject: "Discrepancy in salary calculation",
     category: "Billing",
     submittedBy: "Akbar Mirzayev",
     submittedByRole: "Worker",
     priority: "Medium",
     status: "Resolved",
     createdAt: "2026-05-18T16:45:00Z",
-    description: "May oyida 40 soat ishladim, lekin 35 soat ko'rsatilgan.",
+    description: "I worked 40 hours in May, but only 35 hours are shown.",
   },
   {
     id: "TKT-005",
-    subject: "Parolni unutdim, email kelmayapti",
+    subject: "Forgot password, reset email not arriving",
     category: "Account",
     submittedBy: "Malika Saidova",
     submittedByRole: "Owner",
     priority: "Low",
     status: "Resolved",
     createdAt: "2026-05-17T11:20:00Z",
-    description: "Parol tiklash havolasi emailga kelmayapti. Spam papkasini ham tekshirdim.",
+    description: "Password reset link is not arriving by email. Also checked spam folder.",
   },
   {
     id: "TKT-006",
-    subject: "Worker hujjatlarini yuklab bo'lmayapti",
+    subject: "Unable to upload worker documents",
     category: "Technical",
     submittedBy: "Feruza Alimova",
     submittedByRole: "Worker",
@@ -114,11 +114,11 @@ const mockTickets: Ticket[] = [
     status: "In Progress",
     createdAt: "2026-05-20T07:00:00Z",
     description:
-      "PDF hujjatlarni yuklashda 'File too large' deydi, holbuki hajmi 2MB dan kam.",
+      "Shows 'File too large' when uploading PDF documents, even though the size is under 2MB.",
   },
   {
     id: "TKT-007",
-    subject: "Shartnoma muddati tugagan, lekin faol ko'rinmoqda",
+    subject: "Contract expired but still showing as active",
     category: "Billing",
     submittedBy: "AlphaGroup LLC",
     submittedByRole: "Owner",
@@ -126,22 +126,22 @@ const mockTickets: Ticket[] = [
     status: "Open",
     createdAt: "2026-05-18T09:30:00Z",
     description:
-      "Shartnoma aprel oyida tugagan, lekin tizim hali ham aktiv deb ko'rsatmoqda.",
+      "Contract expired in April, but the system still shows it as active.",
   },
   {
     id: "TKT-008",
-    subject: "Profil rasmi o'zgarmayapti",
+    subject: "Profile picture not updating",
     category: "Account",
     submittedBy: "Bobur Rashidov",
     submittedByRole: "Worker",
     priority: "Low",
     status: "Closed",
     createdAt: "2026-05-15T13:00:00Z",
-    description: "Yangi rasm yuklaganda eski rasm qolaverayapti.",
+    description: "Old picture remains after uploading a new one.",
   },
   {
     id: "TKT-009",
-    subject: "Mulk egasini o'zgartirish imkoni yo'q",
+    subject: "Cannot change property owner",
     category: "Property",
     submittedBy: "Zilola Yusupova",
     submittedByRole: "Owner",
@@ -149,22 +149,22 @@ const mockTickets: Ticket[] = [
     status: "Open",
     createdAt: "2026-05-20T12:10:00Z",
     description:
-      "Mulkni boshqa egaga o'tkazmoqchiman, lekin 'Transfer' tugmasi yo'q.",
+      "I want to transfer the property to another owner, but there is no 'Transfer' button.",
   },
   {
     id: "TKT-010",
-    subject: "Ishchi lavozimi noto'g'ri ko'rsatilmoqda",
+    subject: "Worker job title displayed incorrectly",
     category: "Worker",
     submittedBy: "Sardor Nazarov",
     submittedByRole: "Worker",
     priority: "Low",
     status: "Closed",
     createdAt: "2026-05-14T08:00:00Z",
-    description: "Mening lavozimim 'Santexnik' bo'lishi kerak, lekin 'Elektrik' deb ko'rsatilgan.",
+    description: "My job title should be 'Plumber', but it shows 'Electrician'.",
   },
   {
     id: "TKT-011",
-    subject: "Dispatch ekranida joylashuv yangilanmayapti",
+    subject: "Location not updating on dispatch screen",
     category: "Technical",
     submittedBy: "Nodira Karimova",
     submittedByRole: "Admin",
@@ -172,18 +172,18 @@ const mockTickets: Ticket[] = [
     status: "In Progress",
     createdAt: "2026-05-20T08:45:00Z",
     description:
-      "Xarita real vaqtda ishchilar joylashuvini ko'rsatmayapti, 30 daqiqada bir yangilanadi.",
+      "The map does not show worker locations in real time — it only updates every 30 minutes.",
   },
   {
     id: "TKT-012",
-    subject: "Hisobot eksporti ishlamayapti",
+    subject: "Report export not working",
     category: "General",
     submittedBy: "Timur Ergashev",
     submittedByRole: "Admin",
     priority: "Medium",
     status: "Open",
     createdAt: "2026-05-19T17:00:00Z",
-    description: "Excel formatida hisobot yuklab olmoqchiman, lekin fayl 0 KB bo'lib tushyapti.",
+    description: "Trying to download a report in Excel format, but the file downloads as 0 KB.",
   },
 ];
 
@@ -200,10 +200,10 @@ const statusVariant: Record<
 };
 
 const statusLabel: Record<TicketStatus, string> = {
-  Open: "Ochiq",
-  "In Progress": "Jarayonda",
-  Resolved: "Hal qilindi",
-  Closed: "Yopiq",
+  Open: "Open",
+  "In Progress": "In Progress",
+  Resolved: "Resolved",
+  Closed: "Closed",
 };
 
 const priorityVariant: Record<
@@ -217,20 +217,20 @@ const priorityVariant: Record<
 };
 
 const priorityLabel: Record<TicketPriority, string> = {
-  Low: "Past",
-  Medium: "O'rta",
-  High: "Yuqori",
-  Critical: "Kritik",
+  Low: "Low",
+  Medium: "Medium",
+  High: "High",
+  Critical: "Critical",
 };
 
 const categoryLabel: Record<TicketCategory, string> = {
-  Technical: "Texnik",
-  Billing: "To'lov",
+  Technical: "Technical",
+  Billing: "Billing",
   KYC: "KYC",
-  Property: "Mulk",
-  Worker: "Ishchi",
-  Account: "Akkaunt",
-  General: "Umumiy",
+  Property: "Property",
+  Worker: "Worker",
+  Account: "Account",
+  General: "General",
 };
 
 function formatDate(iso: string) {
@@ -243,8 +243,8 @@ function formatDate(iso: string) {
 
 function RoleBadge({ role }: { role: Ticket["submittedByRole"] }) {
   const map: Record<Ticket["submittedByRole"], string> = {
-    Owner: "Mulkdor",
-    Worker: "Ishchi",
+    Owner: "Owner",
+    Worker: "Worker",
     Admin: "Admin",
   };
   return (
@@ -253,11 +253,11 @@ function RoleBadge({ role }: { role: Ticket["submittedByRole"] }) {
 }
 
 const tabs: { key: FilterTab; label: string }[] = [
-  { key: "all", label: "Barchasi" },
-  { key: "Open", label: "Ochiq" },
-  { key: "In Progress", label: "Jarayonda" },
-  { key: "Resolved", label: "Hal qilindi" },
-  { key: "Closed", label: "Yopiq" },
+  { key: "all", label: "All" },
+  { key: "Open", label: "Open" },
+  { key: "In Progress", label: "In Progress" },
+  { key: "Resolved", label: "Resolved" },
+  { key: "Closed", label: "Closed" },
 ];
 
 const ALL_CATEGORIES: TicketCategory[] = [
@@ -296,7 +296,7 @@ export default function SupportTicketsPage() {
           Support Tickets
         </h1>
         <p className="text-sm text-muted-foreground">
-          Foydalanuvchilarning murojaat va shikoyatlarini boshqaring.
+          Manage user requests and complaints.
         </p>
       </div>
 
@@ -325,10 +325,10 @@ export default function SupportTicketsPage() {
 
         <Select value={category} onValueChange={(v) => setCategory(v ?? "all")}>
           <SelectTrigger className="h-9 w-40">
-            <SelectValue placeholder="Kategoriya" />
+            <SelectValue placeholder="Category" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Barcha turlar</SelectItem>
+            <SelectItem value="all">All categories</SelectItem>
             {ALL_CATEGORIES.map((c) => (
               <SelectItem key={c} value={c}>
                 {categoryLabel[c]}
@@ -340,7 +340,7 @@ export default function SupportTicketsPage() {
         <div className="relative flex-1 min-w-[200px] max-w-sm">
           <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
           <Input
-            placeholder="Mavzu, yuboruvchi yoki #ID..."
+            placeholder="Subject, submitter or #ID..."
             className="pl-8"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -351,7 +351,7 @@ export default function SupportTicketsPage() {
       <Card>
         <CardHeader className="pb-3">
           <p className="text-xs text-muted-foreground">
-            {filtered.length} ta ticket
+            {filtered.length} tickets
           </p>
         </CardHeader>
         <CardContent className="p-0">
@@ -359,13 +359,13 @@ export default function SupportTicketsPage() {
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead className="w-24">ID</TableHead>
-                <TableHead>Mavzu</TableHead>
-                <TableHead>Kategoriya</TableHead>
-                <TableHead>Yuboruvchi</TableHead>
-                <TableHead>Prioritet</TableHead>
-                <TableHead>Holat</TableHead>
-                <TableHead>Sana</TableHead>
-                <TableHead className="text-right">Amallar</TableHead>
+                <TableHead>Subject</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Submitted by</TableHead>
+                <TableHead>Priority</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -375,7 +375,7 @@ export default function SupportTicketsPage() {
                     colSpan={8}
                     className="py-10 text-center text-sm text-muted-foreground"
                   >
-                    Ticketlar topilmadi
+                    No tickets found
                   </TableCell>
                 </TableRow>
               ) : (
@@ -419,7 +419,7 @@ export default function SupportTicketsPage() {
                         className="gap-1.5 text-muted-foreground"
                       >
                         <Eye className="size-3.5" />
-                        Ko&apos;rish
+                        View
                       </Button>
                     </TableCell>
                   </TableRow>

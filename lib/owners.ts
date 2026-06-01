@@ -75,7 +75,7 @@ export const owners: Owner[] = [
     totalRevenue: "84.5M so'm",
     pendingPayments: "0 so'm",
     satisfaction: 4.8,
-    bio: "Uchta xususiy mulkka egalik qiluvchi yakka tartibdagi mulkdor. Barcha shartnomalar bo'yicha to'lovlar o'z vaqtida.",
+    bio: "Individual owner of three private properties. All contract payments made on time.",
     tags: ["VIP", "On-time payer", "Long-term"],
     propertiesList: [
       { id: 1, name: "Sunrise Villa",       type: "Villa",     address: "Mirzo Ulug'bek, Toshkent", status: "Active" },
@@ -85,13 +85,13 @@ export const owners: Owner[] = [
     documents: [
       { id: 1, name: "Passport AA-1234567",   type: "Passport",     status: "Valid",    uploadedAt: "2024-02-14", expiresAt: "2030-02-14" },
       { id: 2, name: "STIR 302154789",        type: "Tax ID",       status: "Valid",    uploadedAt: "2024-02-14" },
-      { id: 3, name: "Xizmat shartnomasi #19", type: "Contract",    status: "Valid",    uploadedAt: "2024-03-02", expiresAt: "2027-03-02" },
+      { id: 3, name: "Service Contract #19", type: "Contract",    status: "Valid",    uploadedAt: "2024-03-02", expiresAt: "2027-03-02" },
     ],
     activity: [
-      { id: 1, kind: "payment",  title: "To'lov qabul qilindi",      description: "12.5M so'm — Sunrise Villa",      date: "2026-05-08" },
-      { id: 2, kind: "task",     title: "HVAC profilaktikasi tugadi", description: "Jasur Toshmatov tomonidan",        date: "2026-05-02" },
-      { id: 3, kind: "contract", title: "Shartnoma yangilandi",       description: "Akbar Apartments — 1 yilga",       date: "2026-04-21" },
-      { id: 4, kind: "document", title: "Pasport nusxasi yangilandi", description: "Yangi skan yuklandi",              date: "2026-03-14" },
+      { id: 1, kind: "payment",  title: "Payment received",      description: "12.5M UZS — Sunrise Villa",      date: "2026-05-08" },
+      { id: 2, kind: "task",     title: "HVAC maintenance completed", description: "By Jasur Toshmatov",        date: "2026-05-02" },
+      { id: 3, kind: "contract", title: "Contract renewed",       description: "Akbar Apartments — 1 year",       date: "2026-04-21" },
+      { id: 4, kind: "document", title: "Passport copy updated", description: "New scan uploaded",              date: "2026-03-14" },
     ],
   },
   {
@@ -114,7 +114,7 @@ export const owners: Owner[] = [
     totalRevenue: "412.8M so'm",
     pendingPayments: "8.4M so'm",
     satisfaction: 4.4,
-    bio: "Mehmonxona va biznes-markazlar tarmog'i. 12 ta ob'ektni boshqaradi, asosan shahar markazida joylashgan.",
+    bio: "Network of hotels and business centers. Manages 12 properties, mostly located in the city center.",
     tags: ["Enterprise", "Multi-property", "Hospitality"],
     propertiesList: [
       { id: 3,  name: "Sunrise Hotel",    type: "Hotel",       address: "Chilonzor, Toshkent",     status: "Pending Approval" },
@@ -123,16 +123,16 @@ export const owners: Owner[] = [
       { id: 33, name: "Sunrise BC",       type: "Business Ctr.", address: "Yunusobod, Toshkent",   status: "Active" },
     ],
     documents: [
-      { id: 1, name: "Davlat ro'yxati 14829",  type: "Registration", status: "Valid",    uploadedAt: "2023-08-04" },
+      { id: 1, name: "State Registration 14829",  type: "Registration", status: "Valid",    uploadedAt: "2023-08-04" },
       { id: 2, name: "STIR 204871923",         type: "Tax ID",       status: "Valid",    uploadedAt: "2023-08-04" },
-      { id: 3, name: "Litsenziya HOT-2024",    type: "License",      status: "Expiring", uploadedAt: "2024-01-10", expiresAt: "2026-07-10" },
-      { id: 4, name: "Bosh shartnoma #45",     type: "Contract",     status: "Valid",    uploadedAt: "2023-09-12", expiresAt: "2026-09-12" },
+      { id: 3, name: "License HOT-2024",    type: "License",      status: "Expiring", uploadedAt: "2024-01-10", expiresAt: "2026-07-10" },
+      { id: 4, name: "Master Agreement #45",     type: "Contract",     status: "Valid",    uploadedAt: "2023-09-12", expiresAt: "2026-09-12" },
     ],
     activity: [
-      { id: 1, kind: "note",     title: "Risk darajasi qayta baholandi", description: "Low → Medium (yangi mulk qo'shildi)", date: "2026-05-10" },
-      { id: 2, kind: "payment",  title: "To'lov kechiktirildi",          description: "8.4M so'm — Sunrise Plaza",            date: "2026-05-05" },
-      { id: 3, kind: "contract", title: "Yangi shartnoma tuzildi",       description: "Sunrise BC — 3 yilga",                 date: "2026-04-18" },
-      { id: 4, kind: "task",     title: "Inspeksiya o'tkazildi",         description: "Sunrise Hotel — 8 ta kamchilik",       date: "2026-04-11" },
+      { id: 1, kind: "note",     title: "Risk level reassessed", description: "Low → Medium (new property added)", date: "2026-05-10" },
+      { id: 2, kind: "payment",  title: "Payment delayed",          description: "8.4M UZS — Sunrise Plaza",            date: "2026-05-05" },
+      { id: 3, kind: "contract", title: "New contract signed",       description: "Sunrise BC — 3 years",                 date: "2026-04-18" },
+      { id: 4, kind: "task",     title: "Inspection completed",         description: "Sunrise Hotel — 8 issues found",       date: "2026-04-11" },
     ],
   },
   {
@@ -154,7 +154,7 @@ export const owners: Owner[] = [
     totalRevenue: "0 so'm",
     pendingPayments: "0 so'm",
     satisfaction: 0,
-    bio: "Yangi ro'yxatga olingan mulkdor. KYC tekshiruvi davom etmoqda.",
+    bio: "Newly registered owner. KYC verification in progress.",
     tags: ["New", "KYC pending"],
     propertiesList: [
       { id: 4, name: "Feruza Apartments", type: "Apartment", address: "Sergeli, Toshkent", status: "Pending Approval" },
@@ -164,7 +164,7 @@ export const owners: Owner[] = [
       { id: 2, name: "STIR",                type: "Tax ID",   status: "Missing" },
     ],
     activity: [
-      { id: 1, kind: "document", title: "KYC arizasi yuborildi", description: "Pasport va manzil tasdig'i",    date: "2026-04-28" },
+      { id: 1, kind: "document", title: "KYC application submitted", description: "Passport and address confirmation",    date: "2026-04-28" },
     ],
   },
   {
@@ -187,7 +187,7 @@ export const owners: Owner[] = [
     totalRevenue: "1.24B so'm",
     pendingPayments: "42.6M so'm",
     satisfaction: 3.9,
-    bio: "Yirik qurilish-investitsiya kompaniyasi. 24 ta ob'ekt portfeli, lekin so'nggi 3 oyda 5 ta shikoyat qayd etilgan.",
+    bio: "Large construction and investment company. Portfolio of 24 properties, but 5 complaints recorded in the last 3 months.",
     tags: ["Enterprise", "High volume", "Watchlist"],
     propertiesList: [
       { id: 2,  name: "GrandBuild Tower B", type: "Office",        address: "Yunusobod, Toshkent",   status: "Active" },
@@ -196,16 +196,16 @@ export const owners: Owner[] = [
       { id: 42, name: "GrandBuild Park",    type: "Apartment",     address: "Olmazor, Toshkent",      status: "Inactive" },
     ],
     documents: [
-      { id: 1, name: "Davlat ro'yxati 09122", type: "Registration", status: "Valid",    uploadedAt: "2022-11-30" },
+      { id: 1, name: "State Registration 09122", type: "Registration", status: "Valid",    uploadedAt: "2022-11-30" },
       { id: 2, name: "STIR 201338765",        type: "Tax ID",       status: "Valid",    uploadedAt: "2022-11-30" },
-      { id: 3, name: "Qurilish litsenziyasi",  type: "License",      status: "Expired",  uploadedAt: "2023-02-14", expiresAt: "2026-02-14" },
-      { id: 4, name: "Bosh shartnoma #12",    type: "Contract",     status: "Valid",    uploadedAt: "2022-12-15", expiresAt: "2027-12-15" },
+      { id: 3, name: "Construction License",  type: "License",      status: "Expired",  uploadedAt: "2023-02-14", expiresAt: "2026-02-14" },
+      { id: 4, name: "Master Agreement #12",    type: "Contract",     status: "Valid",    uploadedAt: "2022-12-15", expiresAt: "2027-12-15" },
     ],
     activity: [
-      { id: 1, kind: "note",     title: "Watchlist'ga qo'shildi",   description: "3 oyda 5 ta shikoyat",                 date: "2026-05-09" },
-      { id: 2, kind: "payment",  title: "To'lov kechikdi",          description: "42.6M so'm — Tower B",                 date: "2026-05-01" },
-      { id: 3, kind: "document", title: "Litsenziya muddati tugadi", description: "Qurilish litsenziyasini yangilash kerak", date: "2026-02-14" },
-      { id: 4, kind: "contract", title: "Yangi shartnoma",          description: "GrandBuild Park — qayta faollashtirish", date: "2026-01-22" },
+      { id: 1, kind: "note",     title: "Added to watchlist",   description: "5 complaints in 3 months",                 date: "2026-05-09" },
+      { id: 2, kind: "payment",  title: "Payment delayed",          description: "42.6M UZS — Tower B",                 date: "2026-05-01" },
+      { id: 3, kind: "document", title: "License expired", description: "Construction license renewal required", date: "2026-02-14" },
+      { id: 4, kind: "contract", title: "New contract",          description: "GrandBuild Park — reactivation", date: "2026-01-22" },
     ],
   },
   {
@@ -227,7 +227,7 @@ export const owners: Owner[] = [
     totalRevenue: "0 so'm",
     pendingPayments: "0 so'm",
     satisfaction: 0,
-    bio: "KYC tekshiruvidan o'tmadi — hujjatlar mos kelmadi. Qayta ariza yuborishi mumkin.",
+    bio: "Did not pass KYC verification — documents did not match. Can re-apply.",
     tags: ["Rejected", "Re-apply eligible"],
     propertiesList: [
       { id: 5,  name: "Sardor Office Suite", type: "Office",    address: "Mirobod, Toshkent",       status: "Inactive" },
@@ -238,8 +238,8 @@ export const owners: Owner[] = [
       { id: 2, name: "STIR",      type: "Tax ID",   status: "Missing" },
     ],
     activity: [
-      { id: 1, kind: "document", title: "KYC rad etildi", description: "Pasport muddati tugagan, STIR yo'q", date: "2025-09-20" },
-      { id: 2, kind: "note",     title: "Mulklar deaktiv qilindi", description: "Ikkala mulk inactive holatga o'tkazildi", date: "2025-09-21" },
+      { id: 1, kind: "document", title: "KYC rejected", description: "Passport expired, Tax ID missing", date: "2025-09-20" },
+      { id: 2, kind: "note",     title: "Properties deactivated", description: "Both properties set to inactive status", date: "2025-09-21" },
     ],
   },
 ]

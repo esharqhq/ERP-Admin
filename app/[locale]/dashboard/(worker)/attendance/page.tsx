@@ -9,10 +9,10 @@ import {
 import { Search, MapPin, Camera, CheckCircle2, XCircle, Clock as ClockIcon } from "lucide-react"
 
 const stats = [
-  { label: "Bugun keldi",        value: 18, accent: "text-emerald-600" },
-  { label: "Kelmadi",            value: 3,  accent: "text-rose-600"    },
-  { label: "Kechikkan",          value: 4,  accent: "text-amber-600"   },
-  { label: "Hali kelmagan",      value: 7,  accent: "text-muted-foreground" },
+  { label: "Arrived today",      value: 18, accent: "text-emerald-600" },
+  { label: "Absent",             value: 3,  accent: "text-rose-600"    },
+  { label: "Late",               value: 4,  accent: "text-amber-600"   },
+  { label: "Not yet arrived",    value: 7,  accent: "text-muted-foreground" },
 ]
 
 type Status = "On Time" | "Late" | "Absent" | "Checked Out"
@@ -30,10 +30,10 @@ const records: {
   reason?: string
 }[] = [
   { id: 1, name: "Jasur Toshmatov",   role: "Senior",       checkIn: "08:02", checkOut: "—",     location: "Villa Sunrise",       geofence: true,  selfie: true,  status: "On Time" },
-  { id: 2, name: "Malika Saidova",    role: "Professional", checkIn: "08:45", checkOut: "—",     location: "GrandBuild Tower B",  geofence: true,  selfie: true,  status: "Late",      reason: "Transport kechikishi" },
+  { id: 2, name: "Malika Saidova",    role: "Professional", checkIn: "08:45", checkOut: "—",     location: "GrandBuild Tower B",  geofence: true,  selfie: true,  status: "Late",      reason: "Transport delay" },
   { id: 3, name: "Bobur Karimov",     role: "Junior",       checkIn: "—",     checkOut: "—",     location: "—",                   geofence: false, selfie: false, status: "Absent" },
   { id: 4, name: "Zulfiya Rahimova",  role: "Junior",       checkIn: "07:55", checkOut: "17:10", location: "Sunrise Hotel",       geofence: true,  selfie: true,  status: "Checked Out" },
-  { id: 5, name: "Sherzod Aliyev",    role: "Professional", checkIn: "09:25", checkOut: "—",     location: "Office Block B",      geofence: false, selfie: true,  status: "Late",      reason: "Geofence tashqarida" },
+  { id: 5, name: "Sherzod Aliyev",    role: "Professional", checkIn: "09:25", checkOut: "—",     location: "Office Block B",      geofence: false, selfie: true,  status: "Late",      reason: "Outside geofence" },
   { id: 6, name: "Nodira Yusupova",   role: "Senior",       checkIn: "07:58", checkOut: "—",     location: "Feruza Apartments",   geofence: true,  selfie: true,  status: "On Time" },
   { id: 7, name: "Akmal Xolmatov",    role: "Junior",       checkIn: "—",     checkOut: "—",     location: "—",                   geofence: false, selfie: false, status: "Absent" },
 ]
@@ -51,11 +51,11 @@ export default function AttendancePage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Attendance</h1>
-          <p className="text-muted-foreground">Workerlar keldi-ketdi nazorati, GPS va selfi tasdiqlash.</p>
+          <p className="text-muted-foreground">Worker attendance tracking with GPS and selfie verification.</p>
         </div>
         <Button variant="outline">
           <ClockIcon className="mr-2 size-4" />
-          Bugungi sana
+          Today's date
         </Button>
       </div>
 
@@ -76,7 +76,7 @@ export default function AttendancePage() {
         <CardHeader className="pb-4">
           <div className="relative max-w-sm">
             <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
-            <Input placeholder="Worker ismi bo'yicha qidirish..." className="pl-8" />
+            <Input placeholder="Search by worker name..." className="pl-8" />
           </div>
         </CardHeader>
         <CardContent className="p-0">
@@ -86,11 +86,11 @@ export default function AttendancePage() {
                 <TableHead>Worker</TableHead>
                 <TableHead>Check-in</TableHead>
                 <TableHead>Check-out</TableHead>
-                <TableHead>Lokatsiya</TableHead>
+                <TableHead>Location</TableHead>
                 <TableHead className="text-center">Geofence</TableHead>
-                <TableHead className="text-center">Selfi</TableHead>
+                <TableHead className="text-center">Selfie</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="text-right">Amal</TableHead>
+                <TableHead className="text-right">Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -138,7 +138,7 @@ export default function AttendancePage() {
                     </div>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="sm">{"Ko'rish"}</Button>
+                    <Button variant="ghost" size="sm">{"View"}</Button>
                   </TableCell>
                 </TableRow>
               ))}
