@@ -66,6 +66,13 @@
     "docApprove": "Approve Document",
     "docReject": "Reject Document",
     "docNotFound": "No documents found.",
+    "tableView": "Table View",
+    "calendarView": "Calendar View",
+    "tabs": {
+      "all": "All",
+      "pending": "Pending",
+      "approved": "Approved"
+    },
     "columns": {
       "worker": "Worker",
       "status": "Status",
@@ -78,7 +85,24 @@
     "contact": {
       "title": "Contact Information",
       "address": "Address",
-      "registeredAt": "Registered"
+      "registeredAt": "Registered",
+      "call": "Call"
+    },
+    "calendar": {
+      "workerName": "Worker Name",
+      "thisWeek": "This Week",
+      "today": "Today",
+      "dayOff": "Day Off",
+      "tasks": "tasks",
+      "previousWeek": "Previous Week",
+      "nextWeek": "Next Week",
+      "selectTask": "Select Task",
+      "taskSearch": "Search tasks...",
+      "taskNotFound": "No tasks found.",
+      "selectOneTask": "Select one task",
+      "selected": "selected",
+      "assign": "Assign",
+      "cancel": "Cancel"
     },
     "activity": {
       "title": "Recent Activity",
@@ -265,6 +289,262 @@
       "title": "Notifications",
       "newCount": "{count} new",
       "viewAll": "View all"
+    }
+  },
+  "login": {
+    "badge": "Enterprise ERP",
+    "heading": "Welcome back",
+    "description": "Sign in to your admin account to continue",
+    "email": "Email",
+    "emailPlaceholder": "admin@erp.com",
+    "password": "Password",
+    "passwordPlaceholder": "Your password",
+    "rememberMe": "Remember me",
+    "forgotPassword": "Forgot password?",
+    "submit": "Sign In",
+    "error": "Invalid email or password",
+    "footer": "© 2024 Mond Control Center. All rights reserved.",
+    "help": "Help",
+    "privacy": "Privacy",
+    "realtime": "Real-time monitoring",
+    "verifiedTeam": "Verified team"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Overview of key metrics",
+    "kpi": {
+      "totalWorkers": "Total Workers",
+      "activeOwners": "Active Owners",
+      "openTickets": "Open Tickets",
+      "pendingKyc": "Pending KYC"
+    },
+    "change": {
+      "fromLastMonth": "from last month"
+    },
+    "charts": {
+      "workerActivity": "Worker Activity",
+      "workerActivityDesc": "Daily active workers over the past week",
+      "ticketStatus": "Ticket Status",
+      "ticketStatusDesc": "Distribution of support tickets by status"
+    }
+  },
+  "attendance": {
+    "title": "Attendance",
+    "subtitle": "Track and monitor worker attendance records",
+    "searchPlaceholder": "Search by worker name...",
+    "view": "View",
+    "todayDate": "Today's date",
+    "stats": {
+      "arrivedToday": "Arrived Today",
+      "absent": "Absent",
+      "late": "Late",
+      "notYetArrived": "Not Yet Arrived"
+    },
+    "columns": {
+      "worker": "Worker",
+      "checkIn": "Check-In",
+      "checkOut": "Check-Out",
+      "location": "Location",
+      "geofence": "Geofence",
+      "selfie": "Selfie",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "reasons": {
+      "transportDelay": "Transport delay",
+      "outsideGeofence": "Outside geofence",
+      "noSelfie": "No selfie submitted"
+    }
+  },
+  "support": {
+    "title": "Support Tickets",
+    "subtitle": "Manage and track support requests",
+    "searchPlaceholder": "Search tickets...",
+    "ticketCount": "{count} tickets",
+    "noResults": "No tickets found",
+    "tabs": {
+      "all": "All",
+      "open": "Open",
+      "inProgress": "In Progress",
+      "resolved": "Resolved",
+      "closed": "Closed"
+    },
+    "categories": {
+      "technical": "Technical",
+      "billing": "Billing",
+      "kyc": "KYC",
+      "property": "Property",
+      "worker": "Worker",
+      "account": "Account",
+      "general": "General"
+    },
+    "priorities": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "critical": "Critical"
+    },
+    "statuses": {
+      "open": "Open",
+      "inProgress": "In Progress",
+      "resolved": "Resolved",
+      "closed": "Closed"
+    },
+    "columns": {
+      "subject": "Subject",
+      "category": "Category",
+      "submittedBy": "Submitted By",
+      "priority": "Priority",
+      "status": "Status",
+      "date": "Date"
+    },
+    "roles": {
+      "worker": "Worker",
+      "owner": "Owner",
+      "admin": "Admin"
+    }
+  },
+  "tasks": {
+    "title": "Tasks",
+    "subtitle": "Manage and track work assignments",
+    "newTask": "New Task",
+    "searchPlaceholder": "Search tasks...",
+    "empty": "Empty",
+    "statuses": {
+      "todo": "To Do",
+      "inProgress": "In Progress",
+      "review": "Review",
+      "done": "Done",
+      "rejected": "Rejected"
+    },
+    "priorities": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
+    },
+    "emptyColumn": "No tasks"
+  },
+  "dispatch": {
+    "title": "Dispatch",
+    "subtitle": "Assign tasks to available workers",
+    "pendingTasks": "Pending Tasks",
+    "pendingTasksDesc": "Tasks waiting to be assigned",
+    "availableWorkers": "Available Workers",
+    "availableWorkersDesc": "Workers ready for assignment",
+    "assign": "Assign",
+    "statuses": {
+      "available": "Available",
+      "onTask": "On Task"
+    }
+  },
+  "audit": {
+    "title": "Audit Log",
+    "subtitle": "Track all administrative actions",
+    "searchPlaceholder": "Search logs...",
+    "allActions": "All Actions",
+    "noLogs": "No audit logs found",
+    "columns": {
+      "actor": "Actor",
+      "action": "Action",
+      "entity": "Entity",
+      "targetId": "Target ID",
+      "time": "Time"
+    }
+  },
+  "chat": {
+    "title": "Chat",
+    "subtitle": "Communicate with workers and owners",
+    "searchPlaceholder": "Search conversations...",
+    "messagePlaceholder": "Type a message...",
+    "online": "Online",
+    "lastSeen": "Last seen: today",
+    "roles": {
+      "worker": "Worker",
+      "owner": "Owner",
+      "admin": "Admin"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Manage system configuration",
+    "newSetting": "New Setting",
+    "count": "{count} settings",
+    "noSettings": "No settings configured",
+    "loading": "Loading settings...",
+    "dialog": {
+      "createTitle": "Create Setting",
+      "editTitle": "Edit Setting",
+      "key": "Key",
+      "keyPlaceholder": "setting_key",
+      "value": "Value",
+      "valuePlaceholder": "Setting value",
+      "description": "Description",
+      "descriptionPlaceholder": "Optional description"
+    },
+    "cancel": "Cancel",
+    "save": "Save"
+  },
+  "permissions": {
+    "groups": {
+      "workers": "Workers",
+      "owners": "Owners",
+      "kyc": "KYC",
+      "properties": "Properties",
+      "tasks": "Tasks",
+      "support": "Support",
+      "system": "System"
+    },
+    "perms": {
+      "worker_list": "View list",
+      "worker_detail": "View details",
+      "worker_approve": "Approve",
+      "worker_reject": "Reject",
+      "worker_delete": "Delete",
+      "worker_documents": "View documents",
+      "worker_restore": "Restore",
+      "owner_list": "View list",
+      "owner_detail": "View details",
+      "owner_approve": "Approve",
+      "owner_reject": "Reject",
+      "owner_delete": "Delete",
+      "owner_documents": "View documents",
+      "kyc_list": "View list",
+      "kyc_detail": "View details",
+      "kyc_approve": "Approve",
+      "kyc_reject": "Reject",
+      "property_list": "View list",
+      "property_detail": "View details",
+      "property_approve": "Approve",
+      "property_reject": "Reject",
+      "property_delete": "Delete",
+      "property_documents": "View documents",
+      "group_list": "View groups",
+      "group_detail": "Group details",
+      "group_cancel": "Cancel group",
+      "task_list": "View tasks",
+      "task_detail": "Task details",
+      "task_assign": "Assign worker",
+      "task_media": "View media",
+      "ticket_list": "View tickets",
+      "ticket_detail": "Ticket details",
+      "ticket_assign": "Assign ticket",
+      "ticket_resolve": "Resolve ticket",
+      "ticket_close": "Close ticket",
+      "chat_list": "View chats",
+      "chat_send": "Send message",
+      "audit_log": "View audit log",
+      "settings_view": "View settings",
+      "settings_edit": "Edit settings",
+      "admin_create": "Create admin",
+      "admin_list": "View admins",
+      "admin_detail": "Admin details",
+      "admin_edit": "Edit admin",
+      "admin_deactivate": "Deactivate admin",
+      "role_create": "Create role",
+      "role_edit": "Edit role",
+      "profession_create": "Create profession",
+      "profession_edit": "Edit profession",
+      "profession_delete": "Delete profession"
     }
   }
 }

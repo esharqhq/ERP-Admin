@@ -66,6 +66,13 @@
     "docApprove": "Dokument genehmigen",
     "docReject": "Dokument ablehnen",
     "docNotFound": "Keine Dokumente gefunden.",
+    "tableView": "Tabellenansicht",
+    "calendarView": "Kalenderansicht",
+    "tabs": {
+      "all": "Alle",
+      "pending": "Ausstehend",
+      "approved": "Genehmigt"
+    },
     "columns": {
       "worker": "Mitarbeiter",
       "status": "Status",
@@ -78,7 +85,24 @@
     "contact": {
       "title": "Kontaktinformationen",
       "address": "Adresse",
-      "registeredAt": "Registriert"
+      "registeredAt": "Registriert",
+      "call": "Anrufen"
+    },
+    "calendar": {
+      "workerName": "Mitarbeitername",
+      "thisWeek": "Diese Woche",
+      "today": "Heute",
+      "dayOff": "Freier Tag",
+      "tasks": "Aufgaben",
+      "previousWeek": "Vorherige Woche",
+      "nextWeek": "Nächste Woche",
+      "selectTask": "Aufgabe auswählen",
+      "taskSearch": "Aufgaben suchen...",
+      "taskNotFound": "Keine Aufgaben gefunden.",
+      "selectOneTask": "Eine Aufgabe auswählen",
+      "selected": "ausgewählt",
+      "assign": "Zuweisen",
+      "cancel": "Abbrechen"
     },
     "activity": {
       "title": "Letzte Aktivität",
@@ -265,6 +289,262 @@
       "title": "Benachrichtigungen",
       "newCount": "{count} neue",
       "viewAll": "Alle anzeigen"
+    }
+  },
+  "login": {
+    "badge": "Enterprise ERP",
+    "heading": "Willkommen zurück",
+    "description": "Melden Sie sich bei Ihrem Admin-Konto an",
+    "email": "E-Mail",
+    "emailPlaceholder": "admin@erp.com",
+    "password": "Passwort",
+    "passwordPlaceholder": "Ihr Passwort",
+    "rememberMe": "Angemeldet bleiben",
+    "forgotPassword": "Passwort vergessen?",
+    "submit": "Anmelden",
+    "error": "Ungültige E-Mail oder Passwort",
+    "footer": "© 2024 Mond Control Center. Alle Rechte vorbehalten.",
+    "help": "Hilfe",
+    "privacy": "Datenschutz",
+    "realtime": "Echtzeit-Überwachung",
+    "verifiedTeam": "Verifiziertes Team"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Übersicht der wichtigsten Kennzahlen",
+    "kpi": {
+      "totalWorkers": "Mitarbeiter gesamt",
+      "activeOwners": "Aktive Eigentümer",
+      "openTickets": "Offene Tickets",
+      "pendingKyc": "Ausstehende KYC"
+    },
+    "change": {
+      "fromLastMonth": "gegenüber letztem Monat"
+    },
+    "charts": {
+      "workerActivity": "Mitarbeiteraktivität",
+      "workerActivityDesc": "Täglich aktive Mitarbeiter der letzten Woche",
+      "ticketStatus": "Ticket-Status",
+      "ticketStatusDesc": "Verteilung der Support-Tickets nach Status"
+    }
+  },
+  "attendance": {
+    "title": "Anwesenheit",
+    "subtitle": "Anwesenheit der Mitarbeiter verfolgen",
+    "searchPlaceholder": "Nach Mitarbeiternamen suchen...",
+    "view": "Ansehen",
+    "todayDate": "Heutiges Datum",
+    "stats": {
+      "arrivedToday": "Heute anwesend",
+      "absent": "Abwesend",
+      "late": "Verspätet",
+      "notYetArrived": "Noch nicht eingetroffen"
+    },
+    "columns": {
+      "worker": "Mitarbeiter",
+      "checkIn": "Einchecken",
+      "checkOut": "Auschecken",
+      "location": "Standort",
+      "geofence": "Geofence",
+      "selfie": "Selfie",
+      "status": "Status",
+      "actions": "Aktionen"
+    },
+    "reasons": {
+      "transportDelay": "Transportverzögerung",
+      "outsideGeofence": "Außerhalb des Geofence",
+      "noSelfie": "Kein Selfie eingereicht"
+    }
+  },
+  "support": {
+    "title": "Support-Tickets",
+    "subtitle": "Support-Anfragen verwalten und verfolgen",
+    "searchPlaceholder": "Tickets suchen...",
+    "ticketCount": "{count} Tickets",
+    "noResults": "Keine Tickets gefunden",
+    "tabs": {
+      "all": "Alle",
+      "open": "Offen",
+      "inProgress": "In Bearbeitung",
+      "resolved": "Gelöst",
+      "closed": "Geschlossen"
+    },
+    "categories": {
+      "technical": "Technisch",
+      "billing": "Abrechnung",
+      "kyc": "KYC",
+      "property": "Objekt",
+      "worker": "Mitarbeiter",
+      "account": "Konto",
+      "general": "Allgemein"
+    },
+    "priorities": {
+      "low": "Niedrig",
+      "medium": "Mittel",
+      "high": "Hoch",
+      "critical": "Kritisch"
+    },
+    "statuses": {
+      "open": "Offen",
+      "inProgress": "In Bearbeitung",
+      "resolved": "Gelöst",
+      "closed": "Geschlossen"
+    },
+    "columns": {
+      "subject": "Betreff",
+      "category": "Kategorie",
+      "submittedBy": "Eingereicht von",
+      "priority": "Priorität",
+      "status": "Status",
+      "date": "Datum"
+    },
+    "roles": {
+      "worker": "Mitarbeiter",
+      "owner": "Eigentümer",
+      "admin": "Administrator"
+    }
+  },
+  "tasks": {
+    "title": "Aufgaben",
+    "subtitle": "Arbeitsaufträge verwalten und verfolgen",
+    "newTask": "Neue Aufgabe",
+    "searchPlaceholder": "Aufgaben suchen...",
+    "empty": "Leer",
+    "statuses": {
+      "todo": "Zu erledigen",
+      "inProgress": "In Bearbeitung",
+      "review": "Überprüfung",
+      "done": "Erledigt",
+      "rejected": "Abgelehnt"
+    },
+    "priorities": {
+      "low": "Niedrig",
+      "medium": "Mittel",
+      "high": "Hoch"
+    },
+    "emptyColumn": "Keine Aufgaben"
+  },
+  "dispatch": {
+    "title": "Disposition",
+    "subtitle": "Aufgaben an verfügbare Mitarbeiter zuweisen",
+    "pendingTasks": "Ausstehende Aufgaben",
+    "pendingTasksDesc": "Aufgaben, die zugewiesen werden müssen",
+    "availableWorkers": "Verfügbare Mitarbeiter",
+    "availableWorkersDesc": "Mitarbeiter bereit zur Zuweisung",
+    "assign": "Zuweisen",
+    "statuses": {
+      "available": "Verfügbar",
+      "onTask": "Im Einsatz"
+    }
+  },
+  "audit": {
+    "title": "Prüfprotokoll",
+    "subtitle": "Alle administrativen Aktionen verfolgen",
+    "searchPlaceholder": "Protokolle suchen...",
+    "allActions": "Alle Aktionen",
+    "noLogs": "Keine Prüfprotokolle gefunden",
+    "columns": {
+      "actor": "Akteur",
+      "action": "Aktion",
+      "entity": "Entität",
+      "targetId": "Ziel-ID",
+      "time": "Zeit"
+    }
+  },
+  "chat": {
+    "title": "Chat",
+    "subtitle": "Mit Mitarbeitern und Eigentümern kommunizieren",
+    "searchPlaceholder": "Konversationen suchen...",
+    "messagePlaceholder": "Nachricht eingeben...",
+    "online": "Online",
+    "lastSeen": "Zuletzt gesehen: heute",
+    "roles": {
+      "worker": "Mitarbeiter",
+      "owner": "Eigentümer",
+      "admin": "Administrator"
+    }
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "subtitle": "Systemkonfiguration verwalten",
+    "newSetting": "Neue Einstellung",
+    "count": "{count} Einstellungen",
+    "noSettings": "Keine Einstellungen konfiguriert",
+    "loading": "Einstellungen werden geladen...",
+    "dialog": {
+      "createTitle": "Einstellung erstellen",
+      "editTitle": "Einstellung bearbeiten",
+      "key": "Schlüssel",
+      "keyPlaceholder": "einstellungs_schlüssel",
+      "value": "Wert",
+      "valuePlaceholder": "Einstellungswert",
+      "description": "Beschreibung",
+      "descriptionPlaceholder": "Optionale Beschreibung"
+    },
+    "cancel": "Abbrechen",
+    "save": "Speichern"
+  },
+  "permissions": {
+    "groups": {
+      "workers": "Mitarbeiter",
+      "owners": "Eigentümer",
+      "kyc": "KYC",
+      "properties": "Objekte",
+      "tasks": "Aufgaben",
+      "support": "Support",
+      "system": "System"
+    },
+    "perms": {
+      "worker_list": "Liste anzeigen",
+      "worker_detail": "Details anzeigen",
+      "worker_approve": "Genehmigen",
+      "worker_reject": "Ablehnen",
+      "worker_delete": "Löschen",
+      "worker_documents": "Dokumente anzeigen",
+      "worker_restore": "Wiederherstellen",
+      "owner_list": "Liste anzeigen",
+      "owner_detail": "Details anzeigen",
+      "owner_approve": "Genehmigen",
+      "owner_reject": "Ablehnen",
+      "owner_delete": "Löschen",
+      "owner_documents": "Dokumente anzeigen",
+      "kyc_list": "Liste anzeigen",
+      "kyc_detail": "Details anzeigen",
+      "kyc_approve": "Genehmigen",
+      "kyc_reject": "Ablehnen",
+      "property_list": "Liste anzeigen",
+      "property_detail": "Details anzeigen",
+      "property_approve": "Genehmigen",
+      "property_reject": "Ablehnen",
+      "property_delete": "Löschen",
+      "property_documents": "Dokumente anzeigen",
+      "group_list": "Gruppen anzeigen",
+      "group_detail": "Gruppendetails",
+      "group_cancel": "Gruppe abbrechen",
+      "task_list": "Aufgaben anzeigen",
+      "task_detail": "Aufgabendetails",
+      "task_assign": "Mitarbeiter zuweisen",
+      "task_media": "Medien anzeigen",
+      "ticket_list": "Tickets anzeigen",
+      "ticket_detail": "Ticketdetails",
+      "ticket_assign": "Ticket zuweisen",
+      "ticket_resolve": "Ticket lösen",
+      "ticket_close": "Ticket schließen",
+      "chat_list": "Chats anzeigen",
+      "chat_send": "Nachricht senden",
+      "audit_log": "Prüfprotokoll anzeigen",
+      "settings_view": "Einstellungen anzeigen",
+      "settings_edit": "Einstellungen bearbeiten",
+      "admin_create": "Admin erstellen",
+      "admin_list": "Admins anzeigen",
+      "admin_detail": "Admin-Details",
+      "admin_edit": "Admin bearbeiten",
+      "admin_deactivate": "Admin deaktivieren",
+      "role_create": "Rolle erstellen",
+      "role_edit": "Rolle bearbeiten",
+      "profession_create": "Beruf erstellen",
+      "profession_edit": "Beruf bearbeiten",
+      "profession_delete": "Beruf löschen"
     }
   }
 }
