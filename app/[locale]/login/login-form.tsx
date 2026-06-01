@@ -1,6 +1,6 @@
 "use client";
 
-import {useState} from "react";
+import React, {useState} from "react";
 import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
@@ -35,7 +35,7 @@ export function LoginForm() {
 
     return (
         <form onSubmit={handleSubmit} autoComplete="off" className="flex flex-col gap-5">
-            {/* trick browsers into not autofilling the real fields */}
+
             <input type="text" name="fake-user" className="hidden" aria-hidden="true" readOnly/>
             <input type="password" name="fake-pass" className="hidden" aria-hidden="true" readOnly/>
             {errorMessage ? (

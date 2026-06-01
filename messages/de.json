@@ -1,0 +1,270 @@
+{
+  "common": {
+    "cancel": "Abbrechen",
+    "confirm": "Bestätigen",
+    "save": "Speichern",
+    "delete": "Löschen",
+    "view": "Ansehen",
+    "approve": "Genehmigen",
+    "reject": "Ablehnen",
+    "search": "Suchen",
+    "actions": "Aktionen",
+    "status": "Status",
+    "email": "E-Mail",
+    "loading": "Wird geladen...",
+    "error": "Ein Fehler ist aufgetreten",
+    "notFound": "Nicht gefunden",
+    "back": "Zurück",
+    "unknown": "Unbekannt"
+  },
+  "status": {
+    "pending": "Ausstehend",
+    "approved": "Genehmigt",
+    "rejected": "Abgelehnt",
+    "active": "Aktiv",
+    "inactive": "Inaktiv"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "overview": "Übersicht",
+    "owner": "Eigentümer",
+    "owners": "Eigentümer",
+    "properties": "Objekte",
+    "documents": "Dokumente",
+    "worker": "Mitarbeiter",
+    "workers": "Mitarbeiter",
+    "attendance": "Anwesenheit",
+    "tasks": "Aufgaben",
+    "dispatching": "Disposition",
+    "support": "Support",
+    "tickets": "Tickets",
+    "chat": "Chat",
+    "auditLog": "Prüfprotokoll",
+    "admins": "Administratoren",
+    "settings": "Einstellungen"
+  },
+  "auth": {
+    "logout": "Abmelden",
+    "account": "Konto"
+  },
+  "workers": {
+    "title": "Mitarbeiter",
+    "subtitle": "Mitarbeiter verwalten und überwachen.",
+    "list": "Mitarbeiterliste",
+    "searchPlaceholder": "Mitarbeiter suchen...",
+    "notFound": "Mitarbeiter nicht gefunden oder ein Fehler ist aufgetreten.",
+    "approvedNotFound": "Keine genehmigten Mitarbeiter gefunden.",
+    "approve": "Genehmigen",
+    "reject": "Ablehnen",
+    "rejectReason": "Ablehnungsgrund...",
+    "rejectReasonMin": "Mindestens {min} Zeichen eingeben.",
+    "rejectTitle": "Mitarbeiter ablehnen",
+    "approveTitle": "Mitarbeiter genehmigen",
+    "approveConfirm": "Möchten Sie diesen Mitarbeiter genehmigen?",
+    "documents": "Mitarbeiterdokumente",
+    "documentsSubtitle": "Persönliche Dokumente und Verträge verwalten.",
+    "docApprove": "Dokument genehmigen",
+    "docReject": "Dokument ablehnen",
+    "docNotFound": "Keine Dokumente gefunden.",
+    "columns": {
+      "worker": "Mitarbeiter",
+      "status": "Status",
+      "rating": "Bewertung",
+      "actions": "Aktionen",
+      "fullName": "Vollständiger Name",
+      "phone": "Telefon / E-Mail",
+      "registeredAt": "Registrierungsdatum"
+    },
+    "contact": {
+      "title": "Kontaktinformationen",
+      "address": "Adresse",
+      "registeredAt": "Registriert"
+    },
+    "activity": {
+      "title": "Letzte Aktivität",
+      "subtitle": "Aufgaben-, Zahlungs- und Dokumentenverlauf",
+      "empty": "Kein Aktivitätsverlauf"
+    },
+    "assignments": {
+      "title": "Zuweisungen",
+      "subtitle": "Aktive und geplante Aufgaben",
+      "empty": "Derzeit keine Zuweisungen"
+    }
+  },
+  "owners": {
+    "title": "Eigentümer",
+    "subtitle": "Eigentümer verwalten und KYC-Status überwachen.",
+    "list": "Eigentümerliste",
+    "searchPlaceholder": "Eigentümer suchen...",
+    "notFound": "Eigentümer nicht gefunden oder ein Fehler ist aufgetreten.",
+    "errorConnect": "Verbindungsfehler mit dem Server",
+    "errorLoad": "Fehler beim Laden der Daten",
+    "columns": {
+      "owner": "Eigentümer",
+      "email": "E-Mail",
+      "kycStatus": "KYC-Status",
+      "documents": "Dokumente",
+      "actions": "Aktionen"
+    },
+    "kyc": {
+      "documents": "KYC-Dokumente",
+      "documentsEmpty": "Keine Dokumente gefunden",
+      "approveTitle": "KYC genehmigen",
+      "approveConfirm": "Möchten Sie diesen KYC-Antrag genehmigen?",
+      "rejectTitle": "KYC ablehnen",
+      "rejectReason": "Ablehnungsgrund (mindestens {min} Zeichen, erforderlich).",
+      "rejectPlaceholder": "Ablehnungsgrund...",
+      "rejectReasonMin": "Mindestens {min} Zeichen eingeben.",
+      "reviewedAt": "Geprüft am",
+      "rejectReasonLabel": "Ablehnungsgrund"
+    },
+    "detail": {
+      "documents": "Dokumente",
+      "uploadedFiles": "Hochgeladene Dateien",
+      "kycStatus": "KYC-Status",
+      "activeOwner": "Aktiver Eigentümer",
+      "underReview": "In Prüfung",
+      "reviewedAt": "Geprüft",
+      "reviewedDate": "Prüfdatum",
+      "rejectReason": "Ablehnungsgrund",
+      "exists": "Vorhanden",
+      "none": "Keiner",
+      "notRejected": "Nicht abgelehnt"
+    },
+    "contact": {
+      "title": "Kontaktinformationen",
+      "userId": "Benutzer-ID",
+      "reviewedAt": "Geprüft am"
+    },
+    "properties": {
+      "title": "Objekte",
+      "list": "Objektliste",
+      "viewAll": "Alle anzeigen",
+      "empty": "Dieser Eigentümer hat keine Objekte",
+      "unnamed": "Unbenanntes Objekt"
+    },
+    "activity": {
+      "title": "Letzte Aktivität",
+      "subtitle": "Vertrags-, Zahlungs- und Notizverlauf",
+      "empty": "Kein Aktivitätsverlauf",
+      "unnamed": "Unbenannte Buchung"
+    },
+    "actions": {
+      "backToList": "Zurück zur Eigentümerliste",
+      "approveKyc": "Genehmigen",
+      "rejectKyc": "Ablehnen",
+      "delete": "Löschen",
+      "rejectTitle": "KYC ablehnen",
+      "rejectReasonMin": "Mindestens {min} Zeichen eingeben.",
+      "rejectPlaceholder": "Ablehnungsgrund...",
+      "approved": "Genehmigt",
+      "reReview": "Erneut prüfen"
+    }
+  },
+  "properties": {
+    "title": "Objekte",
+    "subtitle": "Villen, Hotels, Büros und Geschäftszentren in der Liste.",
+    "list": "Objektliste",
+    "searchPlaceholder": "Objekt suchen...",
+    "notFound": "Objekt nicht gefunden oder ein Fehler ist aufgetreten.",
+    "errorConnect": "Verbindungsfehler mit dem Server",
+    "errorLoad": "Fehler beim Laden der Daten",
+    "columns": {
+      "name": "Name",
+      "address": "Adresse",
+      "type": "Typ",
+      "docsStatus": "Dokumentenstatus",
+      "createdAt": "Erstellt",
+      "actions": "Aktionen"
+    },
+    "info": {
+      "title": "Allgemeine Informationen",
+      "address": "Adresse",
+      "coordinates": "Koordinaten",
+      "floors": "Stockwerkanzahl",
+      "floorUnit": "Stockwerke",
+      "entryInstructions": "Zugangsanweisungen"
+    },
+    "owner": {
+      "title": "Eigentümer",
+      "ownerId": "Eigentümer-ID",
+      "viewProfile": "Profil anzeigen"
+    },
+    "docsStatus": {
+      "title": "Dokumentenstatus",
+      "reviewedAt": "Geprüft am",
+      "rejectReason": "Ablehnungsgrund",
+      "approved": "Genehmigt",
+      "docsApproved": "Dokumente genehmigt",
+      "pending": "Ausstehend",
+      "docsPending": "Dokumente in Prüfung",
+      "rejected": "Abgelehnt",
+      "docsRejected": "Dokumente abgelehnt",
+      "unknown": "Unbekannt"
+    },
+    "docs": {
+      "title": "Objektdokumente",
+      "empty": "Keine Dokumente hochgeladen",
+      "document": "Dokument",
+      "open": "Öffnen",
+      "rejectReason": "Ablehnungsgrund",
+      "approveBtn": "Genehmigen",
+      "rejectBtn": "Ablehnen",
+      "resetBtn": "Erneut prüfen",
+      "rejectTitle": "Dokumente ablehnen",
+      "rejectSubtitle": "Ablehnungsgrund (mindestens {min} Zeichen, erforderlich).",
+      "rejectPlaceholder": "Ablehnungsgrund...",
+      "rejectReasonMin": "Mindestens {min} Zeichen eingeben.",
+      "resetTitle": "Dokumente erneut prüfen",
+      "resetPlaceholder": "Grund für erneute Prüfung...",
+      "resetReasonMin": "Mindestens {min} Zeichen eingeben."
+    },
+    "actions": {
+      "backToList": "Zurück zur Objektliste",
+      "more": "Mehr"
+    }
+  },
+  "admins": {
+    "title": "Administratoren",
+    "subtitle": "Plattformadministratoren verwalten.",
+    "newAdmin": "Neuer Admin",
+    "createTitle": "Neuen Admin erstellen",
+    "columns": {
+      "admin": "Administrator",
+      "role": "Rolle",
+      "actions": "Aktionen"
+    },
+    "form": {
+      "fullName": "Vollständiger Name",
+      "fullNamePlaceholder": "Max Mustermann",
+      "email": "E-Mail",
+      "emailPlaceholder": "max@erp.com",
+      "password": "Passwort",
+      "passwordPlaceholder": "Mindestens 8 Zeichen",
+      "permissions": "Berechtigungen"
+    },
+    "roles": {
+      "superAdmin": "Super Admin",
+      "moderator": "Moderator",
+      "subAdmin": "Sub Admin"
+    },
+    "deactivate": {
+      "title": "Admin deaktivieren",
+      "reasonLabel": "Grund (optional)",
+      "reasonPlaceholder": "Deaktivierungsgrund...",
+      "confirm": "Deaktivieren",
+      "you": "(Sie)"
+    },
+    "errors": {
+      "emailTaken": "Diese E-Mail-Adresse ist bereits vergeben."
+    }
+  },
+  "layout": {
+    "appName": "Mond Control Center",
+    "notifications": {
+      "title": "Benachrichtigungen",
+      "newCount": "{count} neue",
+      "viewAll": "Alle anzeigen"
+    }
+  }
+}

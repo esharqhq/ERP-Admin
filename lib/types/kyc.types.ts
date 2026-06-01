@@ -28,6 +28,10 @@ export interface KycProfileSummaryDto {
   documentCount: number;
 }
 
+export interface KycProfileDto extends KycProfileSummaryDto {
+  documents: KycDocDto[];
+}
+
 export interface KycApprovalDto {
   ownerProfileId: string;
   kycStatus: string | null;

@@ -1,0 +1,270 @@
+{
+  "common": {
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "delete": "Delete",
+    "view": "View",
+    "approve": "Approve",
+    "reject": "Reject",
+    "search": "Search",
+    "actions": "Actions",
+    "status": "Status",
+    "email": "Email",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "notFound": "Not found",
+    "back": "Back",
+    "unknown": "Unknown"
+  },
+  "status": {
+    "pending": "Pending",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "overview": "Overview",
+    "owner": "Owner",
+    "owners": "Owners",
+    "properties": "Properties",
+    "documents": "Documents",
+    "worker": "Worker",
+    "workers": "Workers",
+    "attendance": "Attendance",
+    "tasks": "Tasks",
+    "dispatching": "Dispatching",
+    "support": "Support",
+    "tickets": "Tickets",
+    "chat": "Chat",
+    "auditLog": "Audit Log",
+    "admins": "Admins",
+    "settings": "Settings"
+  },
+  "auth": {
+    "logout": "Logout",
+    "account": "Account"
+  },
+  "workers": {
+    "title": "Workers",
+    "subtitle": "Manage and monitor workers.",
+    "list": "Workers list",
+    "searchPlaceholder": "Search workers...",
+    "notFound": "Worker not found or an error occurred.",
+    "approvedNotFound": "No approved workers found.",
+    "approve": "Approve",
+    "reject": "Reject",
+    "rejectReason": "Rejection reason...",
+    "rejectReasonMin": "Enter at least {min} characters.",
+    "rejectTitle": "Reject Worker",
+    "approveTitle": "Approve Worker",
+    "approveConfirm": "Are you sure you want to approve this worker?",
+    "documents": "Worker Documents",
+    "documentsSubtitle": "Manage worker personal documents and contracts.",
+    "docApprove": "Approve Document",
+    "docReject": "Reject Document",
+    "docNotFound": "No documents found.",
+    "columns": {
+      "worker": "Worker",
+      "status": "Status",
+      "rating": "Rating",
+      "actions": "Actions",
+      "fullName": "Full Name",
+      "phone": "Phone / Email",
+      "registeredAt": "Registered Date"
+    },
+    "contact": {
+      "title": "Contact Information",
+      "address": "Address",
+      "registeredAt": "Registered"
+    },
+    "activity": {
+      "title": "Recent Activity",
+      "subtitle": "Tasks, payments and documents history",
+      "empty": "No activity history"
+    },
+    "assignments": {
+      "title": "Assignments",
+      "subtitle": "Active and planned tasks",
+      "empty": "No assignments currently"
+    }
+  },
+  "owners": {
+    "title": "Owners",
+    "subtitle": "Manage owners and monitor KYC status.",
+    "list": "Owners list",
+    "searchPlaceholder": "Search owner...",
+    "notFound": "Owner not found or an error occurred.",
+    "errorConnect": "Connection error with server",
+    "errorLoad": "Error loading data",
+    "columns": {
+      "owner": "Owner",
+      "email": "Email",
+      "kycStatus": "KYC Status",
+      "documents": "Documents",
+      "actions": "Actions"
+    },
+    "kyc": {
+      "documents": "KYC Documents",
+      "documentsEmpty": "No documents found",
+      "approveTitle": "Approve KYC",
+      "approveConfirm": "Do you want to approve this KYC application?",
+      "rejectTitle": "Reject KYC",
+      "rejectReason": "Rejection reason (at least {min} characters, required).",
+      "rejectPlaceholder": "Rejection reason...",
+      "rejectReasonMin": "Enter at least {min} characters.",
+      "reviewedAt": "Reviewed At",
+      "rejectReasonLabel": "Rejection Reason"
+    },
+    "detail": {
+      "documents": "Documents",
+      "uploadedFiles": "Uploaded files",
+      "kycStatus": "KYC Status",
+      "activeOwner": "Active owner",
+      "underReview": "Under review",
+      "reviewedAt": "Reviewed",
+      "reviewedDate": "Review date",
+      "rejectReason": "Rejection Reason",
+      "exists": "Exists",
+      "none": "None",
+      "notRejected": "Not rejected"
+    },
+    "contact": {
+      "title": "Contact Information",
+      "userId": "User ID",
+      "reviewedAt": "Reviewed At"
+    },
+    "properties": {
+      "title": "Properties",
+      "list": "Properties list",
+      "viewAll": "View All",
+      "empty": "This owner has no properties",
+      "unnamed": "Unnamed property"
+    },
+    "activity": {
+      "title": "Recent Activity",
+      "subtitle": "Contracts, payments and notes history",
+      "empty": "No activity history",
+      "unnamed": "Unnamed booking"
+    },
+    "actions": {
+      "backToList": "Back to Owners list",
+      "approveKyc": "Approve",
+      "rejectKyc": "Reject",
+      "delete": "Delete",
+      "rejectTitle": "Reject KYC",
+      "rejectReasonMin": "Enter at least {min} characters.",
+      "rejectPlaceholder": "Rejection reason...",
+      "approved": "Approved",
+      "reReview": "Re-review"
+    }
+  },
+  "properties": {
+    "title": "Properties",
+    "subtitle": "Villas, hotels, offices and business centers in the list.",
+    "list": "Properties list",
+    "searchPlaceholder": "Search property...",
+    "notFound": "Property not found or an error occurred.",
+    "errorConnect": "Connection error with server",
+    "errorLoad": "Error loading data",
+    "columns": {
+      "name": "Name",
+      "address": "Address",
+      "type": "Type",
+      "docsStatus": "Docs Status",
+      "createdAt": "Created",
+      "actions": "Actions"
+    },
+    "info": {
+      "title": "General Information",
+      "address": "Address",
+      "coordinates": "Coordinates",
+      "floors": "Floor Count",
+      "floorUnit": "floors",
+      "entryInstructions": "Entry Instructions"
+    },
+    "owner": {
+      "title": "Owner",
+      "ownerId": "Owner ID",
+      "viewProfile": "View Profile"
+    },
+    "docsStatus": {
+      "title": "Docs Status",
+      "reviewedAt": "Reviewed At",
+      "rejectReason": "Rejection Reason",
+      "approved": "Approved",
+      "docsApproved": "Documents approved",
+      "pending": "Pending",
+      "docsPending": "Documents under review",
+      "rejected": "Rejected",
+      "docsRejected": "Documents rejected",
+      "unknown": "Unknown"
+    },
+    "docs": {
+      "title": "Property Documents",
+      "empty": "No documents uploaded",
+      "document": "Document",
+      "open": "Open",
+      "rejectReason": "Rejection Reason",
+      "approveBtn": "Approve",
+      "rejectBtn": "Reject",
+      "resetBtn": "Re-review",
+      "rejectTitle": "Reject Documents",
+      "rejectSubtitle": "Rejection reason (at least {min} characters, required).",
+      "rejectPlaceholder": "Rejection reason...",
+      "rejectReasonMin": "Enter at least {min} characters.",
+      "resetTitle": "Re-review Documents",
+      "resetPlaceholder": "Reset reason...",
+      "resetReasonMin": "Enter at least {min} characters."
+    },
+    "actions": {
+      "backToList": "Back to Properties list",
+      "more": "More"
+    }
+  },
+  "admins": {
+    "title": "Admins",
+    "subtitle": "Manage platform administrators.",
+    "newAdmin": "New Admin",
+    "createTitle": "Create New Admin",
+    "columns": {
+      "admin": "Admin",
+      "role": "Role",
+      "actions": "Actions"
+    },
+    "form": {
+      "fullName": "Full Name",
+      "fullNamePlaceholder": "John Smith",
+      "email": "Email",
+      "emailPlaceholder": "john@erp.com",
+      "password": "Password",
+      "passwordPlaceholder": "At least 8 characters",
+      "permissions": "Permissions"
+    },
+    "roles": {
+      "superAdmin": "Super Admin",
+      "moderator": "Moderator",
+      "subAdmin": "Sub Admin"
+    },
+    "deactivate": {
+      "title": "Deactivate Admin",
+      "reasonLabel": "Reason (optional)",
+      "reasonPlaceholder": "Deactivation reason...",
+      "confirm": "Deactivate",
+      "you": "(you)"
+    },
+    "errors": {
+      "emailTaken": "This email is already taken."
+    }
+  },
+  "layout": {
+    "appName": "Mond Control Center",
+    "notifications": {
+      "title": "Notifications",
+      "newCount": "{count} new",
+      "viewAll": "View all"
+    }
+  }
+}

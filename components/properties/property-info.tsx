@@ -1,18 +1,11 @@
-import { MapPin, Maximize2, BedDouble, Layers, CalendarDays, AlignLeft } from "lucide-react"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
-import { InfoRow } from "@/components/owners/info-row"
-import type { Property } from "@/lib/properties"
+import { MapPin, Layers, Key, Navigation } from "lucide-react";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { InfoRow } from "@/components/owners/info-row";
+import type { PropertyDto } from "@/lib/types/property.types";
 
-export function PropertyInfo({ property }: { property: Property }) {
-  const floorLabel =
-    property.floor != null && property.totalFloors != null
-      ? `${property.floor} / ${property.totalFloors}`
-      : property.totalFloors != null
-      ? `Jami ${property.totalFloors} qavat`
-      : property.floor != null
-      ? `${property.floor}-qavat`
-      : null
+export function PropertyInfo({ property }: { property: PropertyDto }) {
+  const coords = `${property.lat.toFixed(6)}, ${property.long.toFixed(6)}`;
 
   return (
     <Card>
@@ -25,45 +18,29 @@ export function PropertyInfo({ property }: { property: Property }) {
         <InfoRow
           icon={<MapPin className="size-3.5" />}
           label="Manzil"
-          value={property.address}
+          value={property.address ?? "—"}
         />
         <InfoRow
-          icon={<Maximize2 className="size-3.5" />}
-          label="Maydon"
-          value={`${property.area} m²`}
+          icon={<Navigation className="size-3.5" />}
+          label="Koordinatalar"
+          value={coords}
         />
-        {property.rooms != null && (
-          <InfoRow
-            icon={<BedDouble className="size-3.5" />}
-            label="Xonalar"
-            value={`${property.rooms} ta`}
-          />
-        )}
-        {floorLabel && (
-          <InfoRow
-            icon={<Layers className="size-3.5" />}
-            label="Qavat"
-            value={floorLabel}
-          />
-        )}
-        {property.yearBuilt != null && (
-          <InfoRow
-            icon={<CalendarDays className="size-3.5" />}
-            label="Qurilgan yil"
-            value={String(property.yearBuilt)}
-          />
-        )}
-        {property.description && (
+        <InfoRow
+          icon={<Layers className="size-3.5" />}
+          label="Qavatlar soni"
+          value={`${property.floorCount} qavat`}
+        />
+        {property.entryInstructions !== null && (
           <>
             <Separator />
             <InfoRow
-              icon={<AlignLeft className="size-3.5" />}
-              label="Tavsif"
-              value={property.description}
+              icon={<Key className="size-3.5" />}
+              label="Kirish yo'riqnomasi"
+              value={property.entryInstructions ?? "—"}
             />
           </>
         )}
       </CardContent>
     </Card>
-  )
+  );
 }

@@ -23,7 +23,6 @@ export const useAuthStore = create<AuthState>()(
       adminMe: null,
 
       setTokens: (result) => {
-        // sync a lightweight cookie so middleware can guard routes server-side
         if (typeof document !== "undefined") {
           document.cookie = `auth-token=1; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
         }
@@ -57,6 +56,7 @@ export const useAuthStore = create<AuthState>()(
         refreshToken: state.refreshToken,
         expireDate: state.expireDate,
         isAuthenticated: state.isAuthenticated,
+        adminMe: state.adminMe,
       }),
     },
   ),

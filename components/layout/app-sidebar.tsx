@@ -26,7 +26,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { navGroups } from "@/lib/nav-items"
-import { logoutAction } from "@/app/login/actions"
+import { logoutAction } from "@/app/[locale]/login/actions"
+import { useAuthStore } from "@/store/auth.store"
 import { ChevronsUpDown, LogOut } from "lucide-react"
 
 const menuButtonClass =
@@ -40,6 +41,11 @@ const menuButtonClass =
 
 export function AppSidebar() {
   const pathname = usePathname()
+  const adminMe = useAuthStore((s) => s.adminMe)
+
+  const email = adminMe?.email ?? "admin@erp.com"
+  const displayName = adminMe?.role ?? "Super Admin"
+  const initials = email.slice(0, 2).toUpperCase()
 
   return (
     <Sidebar collapsible="icon">
@@ -119,15 +125,15 @@ export function AppSidebar() {
                     <Avatar className="size-8 shrink-0 rounded-lg ring-1 ring-sidebar-border">
                       <AvatarImage src="/avatar.png" alt="Admin" />
                       <AvatarFallback className="rounded-lg bg-sidebar-primary/10 text-[11px] font-semibold text-sidebar-primary">
-                        AD
+                        {initials}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex min-w-0 flex-1 flex-col gap-0.5 text-left leading-tight">
                       <span className="truncate text-[13px] font-medium">
-                        Super Admin
+                        {displayName}
                       </span>
                       <span className="truncate text-[11px] text-muted-foreground">
-                        admin@erp.com
+                        {email}
                       </span>
                     </div>
                     <ChevronsUpDown className="ml-auto size-4 shrink-0 opacity-50" />
@@ -159,7 +165,6 @@ export function AppSidebar() {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
-
       <SidebarRail />
     </Sidebar>
   )

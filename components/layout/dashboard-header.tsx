@@ -23,6 +23,7 @@ import {
 import {navItems} from "@/lib/nav-items"
 import {Bell} from "lucide-react"
 import Link from "next/link";
+import {LanguageSwitcher} from "./language-switcher";
 
 const notifications = [
     {id: 1, title: "Yangi task tayinlandi", desc: "HVAC Repair — Villa Sunrise", time: "5 daq oldin", unread: true},
@@ -60,6 +61,7 @@ export function DashboardHeader() {
             </Breadcrumb>
 
             <div className="ml-auto flex items-center gap-2">
+                <LanguageSwitcher/>
                 <DropdownMenu>
                     <DropdownMenuTrigger
                         render={

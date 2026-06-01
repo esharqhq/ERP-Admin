@@ -1,15 +1,24 @@
-import { Mail, Phone, Building2, User, Star } from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { cn } from "@/lib/utils"
-import { statusVariant, riskTone } from "@/lib/owner-utils"
-import type { Owner } from "@/lib/owners"
+import { Mail } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import type { KycProfileSummaryDto } from "@/lib/types/kyc.types";
 
-export function HeroCard({ owner }: { owner: Owner }) {
-  const risk = riskTone[owner.risk]
-  const initials = owner.name.slice(0, 2).toUpperCase()
+const kycStatusConfig: Record<
+  string,
+  { label: string; variant: "default" | "secondary" | "destructive" | "outline" }
+> = {
+  "1": { label: "Kutilmoqda", variant: "secondary" },
+  "2": { label: "Tasdiqlangan", variant: "default" },
+  "3": { label: "Rad etilgan", variant: "destructive" },
+};
+
+export function HeroCard({ owner }: { owner: KycProfileSummaryDto }) {
+  const initials = (owner.ownerName ?? "??").slice(0, 2).toUpperCase();
+  const status = owner.kycStatus
+    ? (kycStatusConfig[owner.kycStatus] ?? { label: owner.kycStatus, variant: "outline" as const })
+    : { label: "Noma'lum", variant: "outline" as const };
 
   return (
     <Card className="overflow-hidden">
@@ -31,64 +40,31 @@ export function HeroCard({ owner }: { owner: Owner }) {
               </AvatarFallback>
             </Avatar>
             <div className="flex flex-col gap-1.5 pb-1">
+              <h1 className="font-heading text-2xl font-bold tracking-tight leading-tight sm:text-[28px]">
+                {owner.ownerName ?? "—"}
+              </h1>
               <div className="flex flex-wrap items-center gap-2">
-                <h1 className="font-heading text-2xl font-bold tracking-tight leading-tight sm:text-[28px]">
-                  {owner.name}
-                </h1>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
-                  {owner.type === "Company" ? <Building2 className="size-3" /> : <User className="size-3" />}
-                  {owner.type}
-                </span>
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge variant={statusVariant[owner.status]}>{owner.status}</Badge>
-                <span
-                  className={cn(
-                    "inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset",
-                    risk.bg, risk.text, risk.ring,
-                  )}
-                >
-                  {risk.icon}
-                  {risk.label}
-                </span>
-                {owner.satisfaction > 0 && (
-                  <span className="inline-flex items-center gap-1 text-[12px] font-medium text-muted-foreground">
-                    <Star className="size-3.5 fill-amber-500 text-amber-500" />
-                    <span className="tabular-nums text-foreground">{owner.satisfaction.toFixed(1)}</span>
-                    <span>reyting</span>
-                  </span>
-                )}
+                <Badge variant={status.variant}>{status.label}</Badge>
               </div>
             </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <Button variant="outline" size="sm" className="gap-1.5" render={<a href={`mailto:${owner.email}`} />}>
-              <Mail className="size-4" />
-              Email
-            </Button>
-            <Button size="sm" className="gap-1.5" render={<a href={`tel:${owner.phone.replace(/\s+/g, "")}`} />}>
-              <Phone className="size-4" />
-              {`Qo'ng'iroq`}
-            </Button>
+            {owner.ownerEmail && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                nativeButton={false}
+                render={<a href={`mailto:${owner.ownerEmail}`} />}
+              >
+                <Mail className="size-4" />
+                Email
+              </Button>
+            )}
           </div>
         </div>
-
-        <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">{owner.bio}</p>
-
-        {owner.tags.length > 0 && (
-          <div className="flex flex-wrap items-center gap-1.5">
-            {owner.tags.map((t) => (
-              <span
-                key={t}
-                className="inline-flex items-center rounded-md border border-dashed border-border bg-muted/40 px-2 py-0.5 text-[11px] font-medium text-muted-foreground"
-              >
-                #{t}
-              </span>
-            ))}
-          </div>
-        )}
       </CardContent>
     </Card>
-  )
+  );
 }

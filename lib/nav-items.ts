@@ -42,7 +42,6 @@ export const navGroups: NavGroup[] = [
       { title: "Owners",     url: "/dashboard/owners",          icon: Building2  },
       { title: "Properties", url: "/dashboard/properties",      icon: Home       },
       { title: "Documents",  url: "/dashboard/owner-documents", icon: FolderOpen },
-      { title: "KYC Review", url: "/dashboard/kyc",             icon: ShieldCheck },
     ],
   },
   {
