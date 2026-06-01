@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations, useLocale } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -199,13 +200,6 @@ const statusVariant: Record<
   Closed: "destructive",
 };
 
-const statusLabel: Record<TicketStatus, string> = {
-  Open: "Open",
-  "In Progress": "In Progress",
-  Resolved: "Resolved",
-  Closed: "Closed",
-};
-
 const priorityVariant: Record<
   TicketPriority,
   "default" | "secondary" | "destructive" | "outline"
@@ -215,50 +209,6 @@ const priorityVariant: Record<
   High: "default",
   Critical: "destructive",
 };
-
-const priorityLabel: Record<TicketPriority, string> = {
-  Low: "Low",
-  Medium: "Medium",
-  High: "High",
-  Critical: "Critical",
-};
-
-const categoryLabel: Record<TicketCategory, string> = {
-  Technical: "Technical",
-  Billing: "Billing",
-  KYC: "KYC",
-  Property: "Property",
-  Worker: "Worker",
-  Account: "Account",
-  General: "General",
-};
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("uz-UZ", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
-}
-
-function RoleBadge({ role }: { role: Ticket["submittedByRole"] }) {
-  const map: Record<Ticket["submittedByRole"], string> = {
-    Owner: "Owner",
-    Worker: "Worker",
-    Admin: "Admin",
-  };
-  return (
-    <span className="text-[11px] text-muted-foreground">({map[role]})</span>
-  );
-}
-
-const tabs: { key: FilterTab; label: string }[] = [
-  { key: "all", label: "All" },
-  { key: "Open", label: "Open" },
-  { key: "In Progress", label: "In Progress" },
-  { key: "Resolved", label: "Resolved" },
-  { key: "Closed", label: "Closed" },
-];
 
 const ALL_CATEGORIES: TicketCategory[] = [
   "Technical",
@@ -270,20 +220,80 @@ const ALL_CATEGORIES: TicketCategory[] = [
   "General",
 ];
 
+function RoleBadge({
+  role,
+  t,
+}: {
+  role: Ticket["submittedByRole"];
+  t: ReturnType<typeof useTranslations<"support">>;
+}) {
+  const map: Record<Ticket["submittedByRole"], string> = {
+    Owner: t("roles.owner"),
+    Worker: t("roles.worker"),
+    Admin: t("roles.admin"),
+  };
+  return (
+    <span className="text-[11px] text-muted-foreground">({map[role]})</span>
+  );
+}
+
 export default function SupportTicketsPage() {
+  const t = useTranslations("support");
+  const locale = useLocale();
+
   const [tab, setTab] = useState<FilterTab>("all");
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<string>("all");
 
-  const filtered = mockTickets.filter((t) => {
-    if (tab !== "all" && t.status !== tab) return false;
-    if (category !== "all" && t.category !== category) return false;
+  const statusLabel: Record<TicketStatus, string> = {
+    Open: t("statuses.open"),
+    "In Progress": t("statuses.inProgress"),
+    Resolved: t("statuses.resolved"),
+    Closed: t("statuses.closed"),
+  };
+
+  const priorityLabel: Record<TicketPriority, string> = {
+    Low: t("priorities.low"),
+    Medium: t("priorities.medium"),
+    High: t("priorities.high"),
+    Critical: t("priorities.critical"),
+  };
+
+  const categoryLabel: Record<TicketCategory, string> = {
+    Technical: t("categories.technical"),
+    Billing: t("categories.billing"),
+    KYC: t("categories.kyc"),
+    Property: t("categories.property"),
+    Worker: t("categories.worker"),
+    Account: t("categories.account"),
+    General: t("categories.general"),
+  };
+
+  const tabs: { key: FilterTab; label: string }[] = [
+    { key: "all", label: t("tabs.all") },
+    { key: "Open", label: t("tabs.open") },
+    { key: "In Progress", label: t("tabs.inProgress") },
+    { key: "Resolved", label: t("tabs.resolved") },
+    { key: "Closed", label: t("tabs.closed") },
+  ];
+
+  function formatDate(iso: string) {
+    return new Date(iso).toLocaleDateString(locale, {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+  }
+
+  const filtered = mockTickets.filter((ticket) => {
+    if (tab !== "all" && ticket.status !== tab) return false;
+    if (category !== "all" && ticket.category !== category) return false;
     if (search) {
       const q = search.toLowerCase();
       return (
-        t.subject.toLowerCase().includes(q) ||
-        t.submittedBy.toLowerCase().includes(q) ||
-        t.id.toLowerCase().includes(q)
+        ticket.subject.toLowerCase().includes(q) ||
+        ticket.submittedBy.toLowerCase().includes(q) ||
+        ticket.id.toLowerCase().includes(q)
       );
     }
     return true;
@@ -293,30 +303,30 @@ export default function SupportTicketsPage() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
         <h1 className="font-heading text-3xl font-bold tracking-tight leading-tight">
-          Support Tickets
+          {t("title")}
         </h1>
         <p className="text-sm text-muted-foreground">
-          Manage user requests and complaints.
+          {t("subtitle")}
         </p>
       </div>
 
       {/* Filter bar */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex rounded-lg border border-border bg-muted/50 p-0.5">
-          {tabs.map((t) => (
+          {tabs.map((tab_item) => (
             <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
+              key={tab_item.key}
+              onClick={() => setTab(tab_item.key)}
               className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                tab === t.key
+                tab === tab_item.key
                   ? "bg-background text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              {t.label}
-              {t.key !== "all" && (
+              {tab_item.label}
+              {tab_item.key !== "all" && (
                 <span className="ml-1.5 tabular-nums text-xs opacity-60">
-                  {mockTickets.filter((x) => x.status === t.key).length}
+                  {mockTickets.filter((x) => x.status === tab_item.key).length}
                 </span>
               )}
             </button>
@@ -325,10 +335,10 @@ export default function SupportTicketsPage() {
 
         <Select value={category} onValueChange={(v) => setCategory(v ?? "all")}>
           <SelectTrigger className="h-9 w-40">
-            <SelectValue placeholder="Category" />
+            <SelectValue placeholder={t("categories.general")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All categories</SelectItem>
+            <SelectItem value="all">{t("tabs.all")}</SelectItem>
             {ALL_CATEGORIES.map((c) => (
               <SelectItem key={c} value={c}>
                 {categoryLabel[c]}
@@ -340,7 +350,7 @@ export default function SupportTicketsPage() {
         <div className="relative flex-1 min-w-[200px] max-w-sm">
           <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
           <Input
-            placeholder="Subject, submitter or #ID..."
+            placeholder={t("searchPlaceholder")}
             className="pl-8"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -351,7 +361,7 @@ export default function SupportTicketsPage() {
       <Card>
         <CardHeader className="pb-3">
           <p className="text-xs text-muted-foreground">
-            {filtered.length} tickets
+            {t("ticketCount", { count: filtered.length })}
           </p>
         </CardHeader>
         <CardContent className="p-0">
@@ -359,12 +369,12 @@ export default function SupportTicketsPage() {
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead className="w-24">ID</TableHead>
-                <TableHead>Subject</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Submitted by</TableHead>
-                <TableHead>Priority</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Date</TableHead>
+                <TableHead>{t("columns.subject")}</TableHead>
+                <TableHead>{t("columns.category")}</TableHead>
+                <TableHead>{t("columns.submittedBy")}</TableHead>
+                <TableHead>{t("columns.priority")}</TableHead>
+                <TableHead>{t("columns.status")}</TableHead>
+                <TableHead>{t("columns.date")}</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -375,7 +385,7 @@ export default function SupportTicketsPage() {
                     colSpan={8}
                     className="py-10 text-center text-sm text-muted-foreground"
                   >
-                    No tickets found
+                    {t("noResults")}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -397,7 +407,7 @@ export default function SupportTicketsPage() {
                     </TableCell>
                     <TableCell className="py-3">
                       <p className="text-sm font-medium">{ticket.submittedBy}</p>
-                      <RoleBadge role={ticket.submittedByRole} />
+                      <RoleBadge role={ticket.submittedByRole} t={t} />
                     </TableCell>
                     <TableCell>
                       <Badge variant={priorityVariant[ticket.priority]} className="text-xs">

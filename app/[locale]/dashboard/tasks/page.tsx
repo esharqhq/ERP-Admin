@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -89,23 +90,27 @@ function DraggableCard({ task }: { task: Task }) {
 
 function DroppableColumn({
   status,
+  label,
   color,
   dot,
   tasks,
   isOver,
+  emptyColumnText,
 }: {
   status: TaskStatus
+  label: string
   color: string
   dot: string
   tasks: Task[]
   isOver: boolean
+  emptyColumnText: string
 }) {
   const { setNodeRef } = useDroppable({ id: status })
   return (
     <div className="flex flex-col gap-2 min-w-0">
       <div className="flex items-center gap-2 mb-1">
         <span className={`size-2 rounded-full shrink-0 ${dot}`} />
-        <h3 className={`text-sm font-semibold flex-1 truncate ${color}`}>{status}</h3>
+        <h3 className={`text-sm font-semibold flex-1 truncate ${color}`}>{label}</h3>
         <Badge variant="outline" className="text-xs shrink-0">{tasks.length}</Badge>
       </div>
       <div
@@ -117,7 +122,7 @@ function DroppableColumn({
         ))}
         {tasks.length === 0 && (
           <div className="flex h-16 items-center justify-center rounded-md border border-dashed border-border/50">
-            <p className="text-[11px] text-muted-foreground/50">{"Bo'sh"}</p>
+            <p className="text-[11px] text-muted-foreground/50">{emptyColumnText}</p>
           </div>
         )}
       </div>
@@ -126,16 +131,25 @@ function DroppableColumn({
 }
 
 export default function TasksPage() {
+  const t = useTranslations("tasks")
   const [tasks, setTasks] = useState<Task[]>(INITIAL_TASKS)
   const [activeTask, setActiveTask] = useState<Task | null>(null)
   const [overId, setOverId] = useState<string | null>(null)
+
+  const statusLabels: Record<TaskStatus, string> = {
+    "To Do": t("statuses.todo"),
+    "In Progress": t("statuses.inProgress"),
+    "Review": t("statuses.review"),
+    "Done": t("statuses.done"),
+    "Rejected": t("statuses.rejected"),
+  }
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   )
 
   function handleDragStart(event: DragStartEvent) {
-    const task = tasks.find((t) => t.id === event.active.id)
+    const task = tasks.find((task) => task.id === event.active.id)
     setActiveTask(task ?? null)
   }
 
@@ -151,7 +165,7 @@ export default function TasksPage() {
     const newStatus = String(over.id) as TaskStatus
     if (!COLUMNS.find((c) => c.status === newStatus)) return
     setTasks((prev) =>
-      prev.map((t) => (t.id === active.id ? { ...t, status: newStatus } : t))
+      prev.map((task) => (task.id === active.id ? { ...task, status: newStatus } : task))
     )
   }
 
@@ -159,18 +173,18 @@ export default function TasksPage() {
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Tasks</h1>
-          <p className="text-muted-foreground">Manage and track all service tasks.</p>
+          <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
+          <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
         <Button>
           <Plus className="mr-2 size-4" />
-          New Task
+          {t("newTask")}
         </Button>
       </div>
 
       <div className="relative max-w-sm">
         <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
-        <Input placeholder="Search tasks..." className="pl-8" />
+        <Input placeholder={t("searchPlaceholder")} className="pl-8" />
       </div>
 
       <DndContext
@@ -185,10 +199,12 @@ export default function TasksPage() {
             <DroppableColumn
               key={col.status}
               status={col.status}
+              label={statusLabels[col.status]}
               color={col.color}
               dot={col.dot}
-              tasks={tasks.filter((t) => t.status === col.status)}
+              tasks={tasks.filter((task) => task.status === col.status)}
               isOver={overId === col.status}
+              emptyColumnText={t("emptyColumn")}
             />
           ))}
         </div>

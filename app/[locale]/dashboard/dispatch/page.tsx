@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import {
   Card,
   CardContent,
@@ -59,13 +62,15 @@ const priorityVariant: Record<
 };
 
 export default function DispatchPage() {
+  const t = useTranslations("dispatch");
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Dispatching</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
           <p className="text-muted-foreground">
-            Assign tasks to available workers.
+            {t("subtitle")}
           </p>
         </div>
         <Button>
@@ -77,8 +82,8 @@ export default function DispatchPage() {
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Pending Tasks</CardTitle>
-            <CardDescription>Assign to a worker</CardDescription>
+            <CardTitle>{t("pendingTasks")}</CardTitle>
+            <CardDescription>{t("pendingTasksDesc")}</CardDescription>
           </CardHeader>
           <CardContent>
             <ScrollArea className="h-105 pr-3">
@@ -109,7 +114,7 @@ export default function DispatchPage() {
                       variant="secondary"
                       className="h-7 text-xs w-full"
                     >
-                      Assign
+                      {t("assign")}
                     </Button>
                   </div>
                 ))}
@@ -120,8 +125,8 @@ export default function DispatchPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Available Workers</CardTitle>
-            <CardDescription>Current availability status</CardDescription>
+            <CardTitle>{t("availableWorkers")}</CardTitle>
+            <CardDescription>{t("availableWorkersDesc")}</CardDescription>
           </CardHeader>
           <CardContent>
             <ScrollArea className="h-[420px] pr-3">
@@ -149,7 +154,9 @@ export default function DispatchPage() {
                         worker.status === "Available" ? "default" : "secondary"
                       }
                     >
-                      {worker.status}
+                      {worker.status === "Available"
+                        ? t("statuses.available")
+                        : t("statuses.onTask")}
                     </Badge>
                   </div>
                 ))}
