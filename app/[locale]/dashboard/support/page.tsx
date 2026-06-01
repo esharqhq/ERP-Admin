@@ -335,10 +335,10 @@ export default function SupportTicketsPage() {
 
         <Select value={category} onValueChange={(v) => setCategory(v ?? "all")}>
           <SelectTrigger className="h-9 w-40">
-            <SelectValue placeholder={t("categories.general")} />
+            <SelectValue placeholder="Category" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">{t("tabs.all")}</SelectItem>
+            <SelectItem value="all">All categories</SelectItem>
             {ALL_CATEGORIES.map((c) => (
               <SelectItem key={c} value={c}>
                 {categoryLabel[c]}

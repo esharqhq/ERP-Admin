@@ -1,6 +1,4 @@
-"use client";
-
-import { useTranslations } from "next-intl";
+import { getTranslations } from "next-intl/server";
 import {
   Card,
   CardContent,
@@ -61,8 +59,8 @@ const priorityVariant: Record<
   Low: "outline",
 };
 
-export default function DispatchPage() {
-  const t = useTranslations("dispatch");
+export default async function DispatchPage() {
+  const t = await getTranslations("dispatch");
 
   return (
     <div className="flex flex-col gap-4">
