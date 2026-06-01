@@ -1,8 +1,10 @@
 import Image from "next/image";
 import {LoginForm} from "./login-form";
 import {Sparkles, ShieldCheck, Zap} from "lucide-react";
+import {getTranslations} from "next-intl/server";
 
-export default function LoginPage() {
+export default async function LoginPage() {
+    const t = await getTranslations('login');
     return (
         <div className="grid min-h-svh lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
             <div className="relative flex flex-col px-6 py-8 sm:px-10 lg:px-14 lg:py-10">
@@ -24,17 +26,13 @@ export default function LoginPage() {
               <span
                   className="inline-flex w-fit items-center gap-1.5 rounded-full bg-primary/8 px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.12em] text-primary ring-1 ring-primary/15">
                 <Sparkles className="size-3"/>
-                Boshqaruv paneli
+                {t('badge')}
               </span>
                             <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground sm:text-[34px] sm:leading-[1.1]">
-                                Xush kelibsiz,
-                                <br/>
-                                <span className="text-primary">tizimga kiring</span>
+                                {t('heading')}
                             </h1>
                             <p className="max-w-sm text-[14px] leading-relaxed text-muted-foreground">
-                                Workerlar, Ownerlar va tasklarni{" "}
-                                <span className="font-medium text-foreground">real vaqtda</span>{" "}
-                                boshqaring. Bir ekrandan butun biznesni nazorat qiling.
+                                {t('description')}
                             </p>
                         </div>
 
@@ -45,13 +43,13 @@ export default function LoginPage() {
                     </div>
                 </main>
                 <footer className="flex items-center justify-between text-[11px] text-muted-foreground">
-                    <span>© 2026 Mond. Barcha huquqlar himoyalangan.</span>
+                    <span>{t('footer')}</span>
                     <div className="hidden items-center gap-4 sm:flex">
                         <a href="#" className="transition-colors hover:text-foreground">
-                            Yordam
+                            {t('help')}
                         </a>
                         <a href="#" className="transition-colors hover:text-foreground">
-                            Maxfiylik
+                            {t('privacy')}
                         </a>
                         <span className="font-mono text-[10px]">v1.0.0</span>
                     </div>
@@ -102,12 +100,12 @@ export default function LoginPage() {
                             <div
                                 className="absolute -left-3 top-8 hidden rotate-6 items-center gap-1.5 rounded-full bg-accent px-3 py-1.5 text-[11px] font-semibold text-accent-foreground shadow-lg ring-2 ring-white/40 xl:flex">
                                 <Zap className="size-3"/>
-                                Real-time
+                                {t('realtime')}
                             </div>
                             <div
                                 className="absolute -right-2 bottom-10 hidden rotate-[5deg] items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-[11px] font-semibold text-primary-foreground shadow-lg ring-2 ring-white/40 xl:flex">
                                 <ShieldCheck className="size-3"/>
-                                Verified team
+                                {t('verifiedTeam')}
                             </div>
                         </div>
                     </div>

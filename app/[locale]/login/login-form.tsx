@@ -5,6 +5,7 @@ import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
 import {useLogin} from "@/hooks/use-login";
+import {useTranslations} from "next-intl";
 import {
     AlertCircle,
     ArrowRight,
@@ -16,6 +17,7 @@ import {
 } from "lucide-react";
 
 export function LoginForm() {
+    const t = useTranslations('login');
     const [showPassword, setShowPassword] = useState(false);
     const {mutate: login, isPending, error} = useLogin();
 
@@ -30,7 +32,7 @@ export function LoginForm() {
 
     const errorMessage = error
         ? (error as { response?: { data?: { message?: string } } })?.response?.data
-        ?.message ?? "Email yoki parol noto'g'ri"
+        ?.message ?? t('error')
         : null;
 
     return (
@@ -51,7 +53,7 @@ export function LoginForm() {
                     htmlFor="email"
                     className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground"
                 >
-                    Email manzil
+                    {t('email')}
                 </Label>
                 <div className="relative">
                     <Mail
@@ -62,7 +64,7 @@ export function LoginForm() {
                         type="email"
                         autoComplete="off"
                         required
-                        placeholder="example@gmail.com"
+                        placeholder={t('emailPlaceholder')}
                         className="h-11 pl-9 text-sm"
                     />
                 </div>
@@ -74,13 +76,13 @@ export function LoginForm() {
                         htmlFor="password"
                         className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground"
                     >
-                        Parol
+                        {t('password')}
                     </Label>
                     <a
                         href="#"
                         className="text-[11px] font-medium text-primary transition-colors hover:text-primary/80"
                     >
-                        Esladan chiqdimi?
+                        {t('forgotPassword')}
                     </a>
                 </div>
                 <div className="relative">
@@ -98,7 +100,7 @@ export function LoginForm() {
                     <button
                         type="button"
                         onClick={() => setShowPassword((v) => !v)}
-                        aria-label={showPassword ? "Parolni yashirish" : "Parolni ko'rsatish"}
+                        aria-label={t('password')}
                         className="absolute right-2.5 top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                     >
                         {showPassword ? <EyeOff className="size-4"/> : <Eye className="size-4"/>}
@@ -112,10 +114,7 @@ export function LoginForm() {
                     name="remember"
                     className="size-3.5 rounded border-border text-primary focus:ring-1 focus:ring-primary/30"
                 />
-                <span>
-          Meni eslab qol{" "}
-                    <span className="text-foreground/60">(7 kungacha sessiya)</span>
-        </span>
+                <span>{t('rememberMe')}</span>
             </label>
 
             <Button
@@ -127,11 +126,11 @@ export function LoginForm() {
                 {isPending ? (
                     <>
                         <Loader2 className="size-4 animate-spin"/>
-                        Kirilmoqda...
+                        {t('submit')}
                     </>
                 ) : (
                     <>
-                        Tizimga kirish
+                        {t('submit')}
                         <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5"/>
                     </>
                 )}
