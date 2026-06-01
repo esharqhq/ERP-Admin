@@ -11,6 +11,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { useTranslations } from "next-intl";
 import type { KycProfileSummaryDto } from "@/lib/types/kyc.types";
 
 interface ActionBarProps {
@@ -32,6 +33,8 @@ export function ActionBar({
   isRejecting = false,
   isDeleting = false,
 }: ActionBarProps) {
+  const t = useTranslations("owners");
+  const tCommon = useTranslations("common");
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
 
@@ -61,7 +64,7 @@ export function ActionBar({
           className="gap-1.5 -ml-2 text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="size-4" />
-          {"Owners ro'yxatiga qaytish"}
+          {t("actions.backToList")}
         </Button>
 
         {owner && (
@@ -79,7 +82,7 @@ export function ActionBar({
                   ) : (
                     <CheckCircle className="size-4" />
                   )}
-                  Tasdiqlash
+                  {t("actions.approveKyc")}
                 </Button>
                 <Button
                   size="sm"
@@ -93,7 +96,7 @@ export function ActionBar({
                   ) : (
                     <XCircle className="size-4" />
                   )}
-                  Rad etish
+                  {t("actions.rejectKyc")}
                 </Button>
               </>
             )}
@@ -111,7 +114,7 @@ export function ActionBar({
                 ) : (
                   <Trash2 className="size-4" />
                 )}
-                {"O'chirish"}
+                {t("actions.delete")}
               </Button>
             )}
           </div>
@@ -121,24 +124,23 @@ export function ActionBar({
       <Dialog open={showRejectModal} onOpenChange={(v) => !v && handleRejectClose()}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>KYC ni rad etish</DialogTitle>
+            <DialogTitle>{t("actions.rejectTitle")}</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            <strong>{owner?.ownerName ?? "Owner"}</strong> — rad etish sababi (kamida 5 belgi,
-            majburiy).
+            <strong>{owner?.ownerName ?? "Owner"}</strong> — {t("kyc.rejectReason", { min: 5 })}
           </p>
           <textarea
             value={rejectReason}
             onChange={(e) => setRejectReason(e.target.value)}
-            placeholder="Rad etish sababi..."
+            placeholder={t("actions.rejectPlaceholder")}
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring min-h-[80px] resize-none"
           />
           {!isReasonValid && rejectReason.length > 0 && (
-            <p className="text-xs text-destructive">Kamida 5 ta belgi kiriting.</p>
+            <p className="text-xs text-destructive">{t("actions.rejectReasonMin", { min: 5 })}</p>
           )}
           <DialogFooter>
             <Button variant="outline" onClick={handleRejectClose} disabled={isRejecting}>
-              Bekor qilish
+              {tCommon("cancel")}
             </Button>
             <Button
               variant="destructive"
@@ -146,7 +148,7 @@ export function ActionBar({
               disabled={!isReasonValid || isRejecting}
             >
               {isRejecting && <Loader2 className="mr-2 size-4 animate-spin" />}
-              Rad etish
+              {t("actions.rejectKyc")}
             </Button>
           </DialogFooter>
         </DialogContent>

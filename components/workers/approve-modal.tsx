@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface Props {
   open: boolean;
@@ -20,23 +21,25 @@ interface Props {
 }
 
 export function ApproveWorkerModal({ open, onClose, onConfirm, isPending, workerName }: Props) {
+  const t = useTranslations("workers");
+  const tCommon = useTranslations("common");
+
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Ishchini tasdiqlash</DialogTitle>
+          <DialogTitle>{t("approveTitle")}</DialogTitle>
           <DialogDescription>
-            <strong>{workerName}</strong> ni tasdiqlamoqchimisiz? Bu ishchi vazifa
-            topshiriqlariga qo&apos;shilishi mumkin bo&apos;ladi.
+            {t("approveConfirm")}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={isPending}>
-            Bekor qilish
+            {tCommon("cancel")}
           </Button>
           <Button onClick={onConfirm} disabled={isPending}>
             {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
-            Tasdiqlash
+            {t("approve")}
           </Button>
         </DialogFooter>
       </DialogContent>

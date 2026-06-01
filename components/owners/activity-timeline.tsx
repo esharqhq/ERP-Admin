@@ -1,6 +1,7 @@
 import { Clock, PlayCircle, CheckCircle2, XCircle } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useTranslations } from "next-intl";
 import type { AdminTaskGroupSummaryDto } from "@/lib/types/task.types";
 
 interface ActivityTimelineProps {
@@ -9,7 +10,7 @@ interface ActivityTimelineProps {
 
 function formatDate(iso: string): string {
   const d = new Date(iso);
-  return d.toLocaleDateString("uz-UZ", { day: "2-digit", month: "short", year: "numeric" });
+  return d.toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" });
 }
 
 function StatusIcon({ status }: { status: string }) {
@@ -26,19 +27,21 @@ function statusVariant(status: string): "default" | "secondary" | "destructive" 
 }
 
 export function ActivityTimeline({ taskGroups }: ActivityTimelineProps) {
+  const t = useTranslations("owners");
+
   return (
     <Card>
       <CardHeader className="pb-3">
-        <h2 className="font-heading text-base font-semibold tracking-tight">{"So'nggi faollik"}</h2>
+        <h2 className="font-heading text-base font-semibold tracking-tight">{t("activity.title")}</h2>
         <p className="text-xs text-muted-foreground mt-0.5">
-          {"Shartnomalar, to'lovlar va eslatmalar tarixi"}
+          {t("activity.subtitle")}
         </p>
       </CardHeader>
 
       {taskGroups.length === 0 ? (
         <CardContent className="flex flex-col items-center gap-2 py-8 text-center">
           <Clock className="size-8 text-muted-foreground/40" />
-          <p className="text-sm text-muted-foreground">Faoliyat tarixi mavjud emas</p>
+          <p className="text-sm text-muted-foreground">{t("activity.empty")}</p>
         </CardContent>
       ) : (
         <CardContent className="flex flex-col gap-2.5">
@@ -52,7 +55,7 @@ export function ActivityTimeline({ taskGroups }: ActivityTimelineProps) {
               </div>
               <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <span className="truncate text-[13px] font-medium leading-tight">
-                  {group.title ?? "Nomsiz booking"}
+                  {group.title ?? t("activity.unnamed")}
                 </span>
                 <span className="truncate text-[11px] text-muted-foreground">
                   {group.propertyName}

@@ -3,6 +3,7 @@ import { Home } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useTranslations } from "next-intl";
 import type { PropertyDto } from "@/lib/types/property.types";
 
 interface PropertyListProps {
@@ -16,13 +17,15 @@ function docsStatusVariant(status: string | null): "default" | "secondary" | "de
 }
 
 export function PropertyList({ properties }: PropertyListProps) {
+  const t = useTranslations("owners");
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between gap-2 pb-3">
         <div>
-          <h2 className="font-heading text-base font-semibold tracking-tight">Mulklari</h2>
+          <h2 className="font-heading text-base font-semibold tracking-tight">{t("properties.title")}</h2>
           <p className="text-xs text-muted-foreground mt-0.5">
-            {"Mulklar ro'yxati"}
+            {t("properties.list")}
           </p>
         </div>
         <Button
@@ -32,14 +35,14 @@ export function PropertyList({ properties }: PropertyListProps) {
           render={<Link href="/dashboard/properties" />}
           className="text-primary"
         >
-          Barchasi
+          {t("properties.viewAll")}
         </Button>
       </CardHeader>
 
       {properties.length === 0 ? (
         <CardContent className="flex flex-col items-center gap-2 py-8 text-center">
           <Home className="size-8 text-muted-foreground/40" />
-          <p className="text-sm text-muted-foreground">{"Bu owner ning mulklari yo'q"}</p>
+          <p className="text-sm text-muted-foreground">{t("properties.empty")}</p>
         </CardContent>
       ) : (
         <CardContent className="flex flex-col gap-2.5">
@@ -54,7 +57,7 @@ export function PropertyList({ properties }: PropertyListProps) {
               </div>
               <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <span className="truncate text-[13px] font-medium leading-tight">
-                  {property.name ?? "Nomsiz mulk"}
+                  {property.name ?? t("properties.unnamed")}
                 </span>
                 <span className="truncate text-[11px] text-muted-foreground">
                   {property.address ?? "—"}

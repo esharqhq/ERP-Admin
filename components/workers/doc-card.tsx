@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { FileText, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useTranslations } from "next-intl";
 import { DocApproveModal } from "./doc-approve-modal";
 import { DocRejectModal } from "./doc-reject-modal";
 import type { WorkerDocumentDto } from "@/lib/types/worker.types";
@@ -16,9 +17,11 @@ interface Props {
 }
 
 export function DocCard({ doc, onApprove, onReject, isApproving, isRejecting }: Props) {
+  const t = useTranslations("workers");
+  const tCommon = useTranslations("common");
   const [showApprove, setShowApprove] = useState(false);
   const [showReject, setShowReject] = useState(false);
-  const fileName = doc.fileName ?? doc.type ?? "Hujjat";
+  const fileName = doc.fileName ?? doc.type ?? "Document";
 
   return (
     <div className="flex items-center gap-3 rounded-lg border border-border bg-card p-3">
@@ -43,11 +46,11 @@ export function DocCard({ doc, onApprove, onReject, isApproving, isRejecting }: 
             render={<a href={doc.fileUrl} target="_blank" rel="noreferrer" />}
           >
             <ExternalLink className="size-3.5" />
-            Ko&apos;rish
+            {tCommon("view")}
           </Button>
         )}
         <Button size="sm" variant="outline" onClick={() => setShowApprove(true)} disabled={isApproving}>
-          Tasdiqlash
+          {t("approve")}
         </Button>
         <Button
           size="sm"
@@ -56,7 +59,7 @@ export function DocCard({ doc, onApprove, onReject, isApproving, isRejecting }: 
           disabled={isRejecting}
           className="text-destructive hover:bg-destructive/10"
         >
-          Rad etish
+          {t("reject")}
         </Button>
       </div>
 

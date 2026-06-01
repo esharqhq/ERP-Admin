@@ -16,13 +16,14 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Search, FolderOpen } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useWorkers } from "@/hooks/use-workers";
 import type { WorkerSummaryDto } from "@/lib/types/worker.types";
 
 type FilterTab = "all" | "approved" | "pending";
 
 function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("uz-UZ", {
+  return new Date(iso).toLocaleDateString("en-US", {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -31,12 +32,12 @@ function formatDate(iso: string) {
 
 function ApprovalBadge({ isApproved, isVerified }: { isApproved: boolean; isVerified: boolean }) {
   if (isApproved) {
-    return <Badge variant="default">Tasdiqlangan</Badge>;
+    return <Badge variant="default">Approved</Badge>;
   }
   if (isVerified) {
-    return <Badge variant="secondary">Tekshirilmoqda</Badge>;
+    return <Badge variant="secondary">Under Review</Badge>;
   }
-  return <Badge variant="outline">Kutilmoqda</Badge>;
+  return <Badge variant="outline">Pending</Badge>;
 }
 
 function WorkerRow({ worker }: { worker: WorkerSummaryDto }) {
@@ -63,7 +64,7 @@ function WorkerRow({ worker }: { worker: WorkerSummaryDto }) {
           render={<Link href={`/dashboard/workers/${worker.id}`} />}
         >
           <FolderOpen className="size-3.5" />
-          Hujjatlar
+          Documents
         </Button>
       </TableCell>
     </TableRow>
@@ -71,6 +72,8 @@ function WorkerRow({ worker }: { worker: WorkerSummaryDto }) {
 }
 
 export default function WorkerDocumentsPage() {
+  const t = useTranslations("workers");
+  const tStatus = useTranslations("status");
   const [tab, setTab] = useState<FilterTab>("all");
   const [search, setSearch] = useState("");
 
@@ -90,43 +93,43 @@ export default function WorkerDocumentsPage() {
   });
 
   const tabs: { key: FilterTab; label: string }[] = [
-    { key: "all", label: "Barchasi" },
-    { key: "approved", label: "Tasdiqlangan" },
-    { key: "pending", label: "Kutilmoqda" },
+    { key: "all", label: t("tabs.all") },
+    { key: "approved", label: tStatus("approved") },
+    { key: "pending", label: tStatus("pending") },
   ];
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
         <h1 className="font-heading text-3xl font-bold tracking-tight leading-tight">
-          Ishchi Hujjatlari
+          {t("documents")}
         </h1>
         <p className="text-sm text-muted-foreground">
-          Ishchilarning shaxsiy hujjatlari va shartnomalarini boshqaring.
+          {t("documentsSubtitle")}
         </p>
       </div>
 
       {/* Filter bar */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex rounded-lg border border-border bg-muted/50 p-0.5">
-          {tabs.map((t) => (
+          {tabs.map((tb) => (
             <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
+              key={tb.key}
+              onClick={() => setTab(tb.key)}
               className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                tab === t.key
+                tab === tb.key
                   ? "bg-background text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              {t.label}
+              {tb.label}
             </button>
           ))}
         </div>
         <div className="relative flex-1 min-w-[200px] max-w-sm">
           <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
           <Input
-            placeholder="Ism yoki tel bo'yicha qidirish..."
+            placeholder={t("searchPlaceholder")}
             className="pl-8"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -137,18 +140,18 @@ export default function WorkerDocumentsPage() {
       <Card>
         <CardHeader className="pb-3">
           <p className="text-xs text-muted-foreground">
-            {isLoading ? "Yuklanmoqda..." : `${filtered.length} ta ishchi`}
+            {isLoading ? "Loading..." : `${filtered.length} workers`}
           </p>
         </CardHeader>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>To&apos;liq ism</TableHead>
-                <TableHead>Telefon / Email</TableHead>
-                <TableHead>Ro&apos;yxat sanasi</TableHead>
-                <TableHead>Holat</TableHead>
-                <TableHead className="text-right">Amallar</TableHead>
+                <TableHead>{t("columns.fullName")}</TableHead>
+                <TableHead>{t("columns.phone")}</TableHead>
+                <TableHead>{t("columns.registeredAt")}</TableHead>
+                <TableHead>{t("columns.status")}</TableHead>
+                <TableHead className="text-right">{t("columns.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -166,7 +169,7 @@ export default function WorkerDocumentsPage() {
                     colSpan={5}
                     className="py-10 text-center text-sm text-muted-foreground"
                   >
-                    Ishchilar topilmadi
+                    {t("docNotFound")}
                   </TableCell>
                 </TableRow>
               ) : (

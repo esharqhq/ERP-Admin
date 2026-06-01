@@ -20,7 +20,7 @@ const docsStatusVariant: Record<string, "default" | "secondary" | "destructive" 
 };
 
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("uz-UZ", {
+  return new Date(iso).toLocaleDateString("en-US", {
     day: "2-digit",
     month: "short",
     year: "numeric",

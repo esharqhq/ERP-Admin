@@ -2,6 +2,7 @@
 
 import { use } from "react";
 import { FileText, ShieldCheck, CalendarDays, MessageSquare } from "lucide-react";
+import { useTranslations } from "next-intl";
 import {
   useOwnerFromList,
   useApproveOwnerKyc,
@@ -32,6 +33,8 @@ export default function OwnerDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const t = useTranslations("owners");
+  const tStatus = useTranslations("status");
   const { data: owner, isLoading } = useOwnerFromList(id);
   const { mutate: approve, isPending: isApproving } = useApproveOwnerKyc();
   const { mutate: reject, isPending: isRejecting } = useRejectOwnerKyc();
@@ -60,7 +63,7 @@ export default function OwnerDetailPage({
     return (
       <div className="flex flex-col gap-6">
         <ActionBar />
-        <p className="text-sm text-destructive">Owner topilmadi yoki xatolik yuz berdi.</p>
+        <p className="text-sm text-destructive">{t("notFound")}</p>
       </div>
     );
   }
@@ -80,30 +83,30 @@ export default function OwnerDetailPage({
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard
-          label="Hujjatlar"
+          label={t("detail.documents")}
           value={owner.documentCount}
-          hint="Yuklangan fayllar"
+          hint={t("detail.uploadedFiles")}
           icon={<FileText className="size-4" />}
           tone="blue"
         />
         <StatCard
-          label="KYC holati"
-          value={owner.isApproved ? "Tasdiqlangan" : "Kutilmoqda"}
-          hint={owner.isApproved ? "Faol mulkdor" : "Ko'rib chiqilmoqda"}
+          label={t("detail.kycStatus")}
+          value={owner.isApproved ? t("actions.approved") : tStatus("pending")}
+          hint={owner.isApproved ? t("detail.activeOwner") : t("detail.underReview")}
           icon={<ShieldCheck className="size-4" />}
           tone={owner.isApproved ? "emerald" : "amber"}
         />
         <StatCard
-          label="Tekshirildi"
+          label={t("detail.reviewedAt")}
           value={formatReviewedAt(owner.kycReviewedAt)}
-          hint="Ko'rib chiqilgan sana"
+          hint={t("detail.reviewedDate")}
           icon={<CalendarDays className="size-4" />}
           tone="violet"
         />
         <StatCard
-          label="Rad sababi"
-          value={owner.kycRejectReason ? "Mavjud" : "Yo'q"}
-          hint={owner.kycRejectReason ?? "Rad etilmagan"}
+          label={t("detail.rejectReason")}
+          value={owner.kycRejectReason ? t("detail.exists") : t("detail.none")}
+          hint={owner.kycRejectReason ?? t("detail.notRejected")}
           icon={<MessageSquare className="size-4" />}
           tone={owner.kycRejectReason ? "amber" : "emerald"}
         />

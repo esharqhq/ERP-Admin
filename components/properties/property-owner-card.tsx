@@ -2,15 +2,17 @@ import Link from "next/link";
 import { User, ArrowUpRight } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useTranslations } from "next-intl";
 import type { PropertyDto } from "@/lib/types/property.types";
 
 export function PropertyOwnerCard({ property }: { property: PropertyDto }) {
+  const t = useTranslations("properties");
   const shortId = property.bossOwnerUserId.slice(0, 8) + "…";
 
   return (
     <Card>
       <CardHeader className="pb-3">
-        <h2 className="font-heading text-base font-semibold tracking-tight">Mulkdor</h2>
+        <h2 className="font-heading text-base font-semibold tracking-tight">{t("owner.title")}</h2>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
         <div className="flex items-center gap-3">
@@ -21,7 +23,7 @@ export function PropertyOwnerCard({ property }: { property: PropertyDto }) {
             <span className="font-mono text-[12px] font-medium leading-tight text-foreground">
               {shortId}
             </span>
-            <span className="text-[11px] text-muted-foreground">Owner ID</span>
+            <span className="text-[11px] text-muted-foreground">{t("owner.ownerId")}</span>
           </div>
         </div>
         {/* TODO: show owner name when backend adds it to PropertyDto */}
@@ -32,7 +34,7 @@ export function PropertyOwnerCard({ property }: { property: PropertyDto }) {
           nativeButton={false}
           render={<Link href={`/dashboard/owners/${property.bossOwnerUserId}`} />}
         >
-          {"Profilni ko'rish"}
+          {t("owner.viewProfile")}
           <ArrowUpRight className="size-3.5" />
         </Button>
       </CardContent>

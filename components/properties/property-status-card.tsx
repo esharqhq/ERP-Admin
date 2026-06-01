@@ -1,50 +1,12 @@
 import { CheckCircle2, Clock, XCircle } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 import type { PropertyDto } from "@/lib/types/property.types";
-
-const docsStatusStyle: Record<
-  string,
-  { ring: string; bg: string; text: string; icon: React.ReactNode; label: string; hint: string }
-> = {
-  Approved: {
-    ring: "ring-emerald-500/25",
-    bg: "bg-emerald-500/10",
-    text: "text-emerald-700 dark:text-emerald-400",
-    icon: <CheckCircle2 className="size-4" />,
-    label: "Tasdiqlangan",
-    hint: "Hujjatlar tasdiqlangan",
-  },
-  Pending: {
-    ring: "ring-amber-500/25",
-    bg: "bg-amber-500/10",
-    text: "text-amber-700 dark:text-amber-400",
-    icon: <Clock className="size-4" />,
-    label: "Kutilmoqda",
-    hint: "Hujjatlar ko'rib chiqilmoqda",
-  },
-  Rejected: {
-    ring: "ring-rose-500/30",
-    bg: "bg-rose-500/10",
-    text: "text-rose-700 dark:text-rose-400",
-    icon: <XCircle className="size-4" />,
-    label: "Rad etilgan",
-    hint: "Hujjatlar rad etildi",
-  },
-};
-
-const fallbackStyle = {
-  ring: "ring-border",
-  bg: "bg-muted/50",
-  text: "text-muted-foreground",
-  icon: <Clock className="size-4" />,
-  label: "Noma'lum",
-  hint: "",
-};
 
 function formatDate(iso: string | null): string {
   if (!iso) return "—";
-  return new Date(iso).toLocaleDateString("uz-UZ", {
+  return new Date(iso).toLocaleDateString("en-US", {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -52,6 +14,47 @@ function formatDate(iso: string | null): string {
 }
 
 export function PropertyStatusCard({ property }: { property: PropertyDto }) {
+  const t = useTranslations("properties");
+
+  const docsStatusStyle: Record<
+    string,
+    { ring: string; bg: string; text: string; icon: React.ReactNode; label: string; hint: string }
+  > = {
+    Approved: {
+      ring: "ring-emerald-500/25",
+      bg: "bg-emerald-500/10",
+      text: "text-emerald-700 dark:text-emerald-400",
+      icon: <CheckCircle2 className="size-4" />,
+      label: t("docsStatus.approved"),
+      hint: t("docsStatus.docsApproved"),
+    },
+    Pending: {
+      ring: "ring-amber-500/25",
+      bg: "bg-amber-500/10",
+      text: "text-amber-700 dark:text-amber-400",
+      icon: <Clock className="size-4" />,
+      label: t("docsStatus.pending"),
+      hint: t("docsStatus.docsPending"),
+    },
+    Rejected: {
+      ring: "ring-rose-500/30",
+      bg: "bg-rose-500/10",
+      text: "text-rose-700 dark:text-rose-400",
+      icon: <XCircle className="size-4" />,
+      label: t("docsStatus.rejected"),
+      hint: t("docsStatus.docsRejected"),
+    },
+  };
+
+  const fallbackStyle = {
+    ring: "ring-border",
+    bg: "bg-muted/50",
+    text: "text-muted-foreground",
+    icon: <Clock className="size-4" />,
+    label: t("docsStatus.unknown"),
+    hint: "",
+  };
+
   const s =
     property.docsStatus !== null
       ? (docsStatusStyle[property.docsStatus] ?? fallbackStyle)
@@ -60,7 +63,7 @@ export function PropertyStatusCard({ property }: { property: PropertyDto }) {
   return (
     <Card>
       <CardHeader className="pb-3">
-        <h2 className="font-heading text-base font-semibold tracking-tight">Docs holati</h2>
+        <h2 className="font-heading text-base font-semibold tracking-tight">{t("docsStatus.title")}</h2>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
         <div
@@ -79,12 +82,12 @@ export function PropertyStatusCard({ property }: { property: PropertyDto }) {
 
         <div className="flex flex-col gap-1.5 text-[12px]">
           <div className="flex items-center justify-between gap-2">
-            <span className="text-muted-foreground">Ko'rib chiqilgan</span>
+            <span className="text-muted-foreground">{t("docsStatus.reviewedAt")}</span>
             <span className="font-medium tabular-nums">{formatDate(property.docsReviewedAt)}</span>
           </div>
           {property.docsStatus === "Rejected" && property.docsRejectReason && (
             <div className="flex flex-col gap-0.5 rounded-md bg-destructive/5 px-2.5 py-2 text-destructive">
-              <span className="font-semibold text-[11px] uppercase tracking-wide">Rad sababi</span>
+              <span className="font-semibold text-[11px] uppercase tracking-wide">{t("docsStatus.rejectReason")}</span>
               <span>{property.docsRejectReason}</span>
             </div>
           )}

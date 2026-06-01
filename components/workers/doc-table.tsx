@@ -12,6 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslations } from "next-intl";
 import { DocApproveModal } from "./doc-approve-modal";
 import { DocRejectModal } from "./doc-reject-modal";
 import type { WorkerDocumentDto } from "@/lib/types/worker.types";
@@ -38,9 +39,11 @@ function DocRow({
   isApproving: boolean;
   isRejecting: boolean;
 }) {
+  const t = useTranslations("workers");
+  const tCommon = useTranslations("common");
   const [showApprove, setShowApprove] = useState(false);
   const [showReject, setShowReject] = useState(false);
-  const fileName = doc.fileName ?? doc.type ?? "Hujjat";
+  const fileName = doc.fileName ?? doc.type ?? "Document";
 
   return (
     <>
@@ -57,7 +60,7 @@ function DocRow({
           {doc.type ?? "—"}
         </TableCell>
         <TableCell className="text-sm text-muted-foreground">
-          {new Date(doc.createdAt).toLocaleDateString("uz-UZ", {
+          {new Date(doc.createdAt).toLocaleDateString("en-US", {
             year: "numeric",
             month: "2-digit",
             day: "2-digit",
@@ -76,7 +79,7 @@ function DocRow({
                 }
               >
                 <ExternalLink className="size-3.5" />
-                Ko&apos;rish
+                {tCommon("view")}
               </Button>
             )}
             <Button
@@ -87,7 +90,7 @@ function DocRow({
               disabled={isApproving}
             >
               <CheckCircle className="size-3.5" />
-              Tasdiqlash
+              {t("approve")}
             </Button>
             <Button
               size="sm"
@@ -97,7 +100,7 @@ function DocRow({
               disabled={isRejecting}
             >
               <XCircle className="size-3.5" />
-              Rad etish
+              {t("reject")}
             </Button>
           </div>
         </TableCell>
@@ -135,22 +138,25 @@ export function DocTable({
   isApproving,
   isRejecting,
 }: Props) {
+  const t = useTranslations("workers");
+  const tCommon = useTranslations("common");
+
   return (
     <div className="rounded-xl border border-border bg-card">
       <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-        <h2 className="font-heading text-base font-semibold">Hujjatlar</h2>
+        <h2 className="font-heading text-base font-semibold">{t("documents")}</h2>
         {!isLoading && (
-          <span className="text-xs text-muted-foreground">{docs.length} ta</span>
+          <span className="text-xs text-muted-foreground">{docs.length}</span>
         )}
       </div>
 
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Fayl nomi</TableHead>
-            <TableHead>Tur</TableHead>
-            <TableHead>Yuklangan sana</TableHead>
-            <TableHead className="text-right">Amallar</TableHead>
+            <TableHead>File Name</TableHead>
+            <TableHead>Type</TableHead>
+            <TableHead>Upload Date</TableHead>
+            <TableHead className="text-right">{tCommon("actions")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -168,7 +174,7 @@ export function DocTable({
                 colSpan={4}
                 className="py-8 text-center text-sm text-muted-foreground"
               >
-                Hujjatlar topilmadi
+                {t("docNotFound")}
               </TableCell>
             </TableRow>
           ) : (

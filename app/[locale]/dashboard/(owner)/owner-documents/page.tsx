@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Search, FolderOpen } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useKycList } from "@/hooks/use-kyc";
 import type { KycProfileSummaryDto, KycStatus } from "@/lib/types/kyc.types";
 
@@ -30,7 +31,7 @@ const tabStatusMap: Record<FilterTab, KycStatus | undefined> = {
 
 function formatDate(iso: string | null) {
   if (!iso) return "—";
-  return new Date(iso).toLocaleDateString("uz-UZ", {
+  return new Date(iso).toLocaleDateString("en-US", {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -39,12 +40,12 @@ function formatDate(iso: string | null) {
 
 function KycBadge({ isApproved, status }: { isApproved: boolean; status: string | null }) {
   if (isApproved || status === "Approved") {
-    return <Badge variant="default">Tasdiqlangan</Badge>;
+    return <Badge variant="default">Approved</Badge>;
   }
   if (status === "Rejected") {
-    return <Badge variant="destructive">Rad etilgan</Badge>;
+    return <Badge variant="destructive">Rejected</Badge>;
   }
-  return <Badge variant="outline">Kutilmoqda</Badge>;
+  return <Badge variant="outline">Pending</Badge>;
 }
 
 function OwnerRow({ kyc }: { kyc: KycProfileSummaryDto }) {
@@ -74,7 +75,7 @@ function OwnerRow({ kyc }: { kyc: KycProfileSummaryDto }) {
           render={<Link href={`/dashboard/kyc`} />}
         >
           <FolderOpen className="size-3.5" />
-          Hujjatlar
+          Documents
         </Button>
       </TableCell>
     </TableRow>
@@ -82,6 +83,8 @@ function OwnerRow({ kyc }: { kyc: KycProfileSummaryDto }) {
 }
 
 export default function OwnerDocumentsPage() {
+  const t = useTranslations("owners");
+  const tStatus = useTranslations("status");
   const [tab, setTab] = useState<FilterTab>("all");
   const [search, setSearch] = useState("");
 
@@ -97,43 +100,43 @@ export default function OwnerDocumentsPage() {
   });
 
   const tabs: { key: FilterTab; label: string }[] = [
-    { key: "all", label: "Barchasi" },
-    { key: "approved", label: "Tasdiqlangan" },
-    { key: "pending", label: "Kutilmoqda" },
-    { key: "rejected", label: "Rad etilgan" },
+    { key: "all", label: "All" },
+    { key: "approved", label: tStatus("approved") },
+    { key: "pending", label: tStatus("pending") },
+    { key: "rejected", label: tStatus("rejected") },
   ];
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
         <h1 className="font-heading text-3xl font-bold tracking-tight leading-tight">
-          Mulkdor Hujjatlari
+          Owner Documents
         </h1>
         <p className="text-sm text-muted-foreground">
-          Mulkdorlarning shaxsiy hujjatlari va KYC holatini boshqaring.
+          Manage owner personal documents and KYC status.
         </p>
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex rounded-lg border border-border bg-muted/50 p-0.5">
-          {tabs.map((t) => (
+          {tabs.map((tb) => (
             <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
+              key={tb.key}
+              onClick={() => setTab(tb.key)}
               className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                tab === t.key
+                tab === tb.key
                   ? "bg-background text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              {t.label}
+              {tb.label}
             </button>
           ))}
         </div>
         <div className="relative flex-1 min-w-[200px] max-w-sm">
           <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
           <Input
-            placeholder="Ism yoki email bo'yicha qidirish..."
+            placeholder="Search by name or email..."
             className="pl-8"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -144,19 +147,19 @@ export default function OwnerDocumentsPage() {
       <Card>
         <CardHeader className="pb-3">
           <p className="text-xs text-muted-foreground">
-            {isLoading ? "Yuklanmoqda..." : `${filtered.length} ta mulkdor`}
+            {isLoading ? "Loading..." : `${filtered.length} owners`}
           </p>
         </CardHeader>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>To&apos;liq ism</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead className="text-center">Hujjatlar</TableHead>
-                <TableHead>Ko&apos;rib chiqilgan</TableHead>
-                <TableHead>Holat</TableHead>
-                <TableHead className="text-right">Amallar</TableHead>
+                <TableHead>Full Name</TableHead>
+                <TableHead>{t("columns.email")}</TableHead>
+                <TableHead className="text-center">{t("kyc.documents")}</TableHead>
+                <TableHead>{t("contact.reviewedAt")}</TableHead>
+                <TableHead>{t("columns.kycStatus")}</TableHead>
+                <TableHead className="text-right">{t("columns.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -174,7 +177,7 @@ export default function OwnerDocumentsPage() {
                     colSpan={6}
                     className="py-10 text-center text-sm text-muted-foreground"
                   >
-                    Mulkdorlar topilmadi
+                    {t("kyc.documentsEmpty")}
                   </TableCell>
                 </TableRow>
               ) : (

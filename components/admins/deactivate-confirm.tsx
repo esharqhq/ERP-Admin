@@ -8,6 +8,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface Props {
   open: boolean;
@@ -18,6 +19,8 @@ interface Props {
 }
 
 export function DeactivateConfirm({ open, onClose, onConfirm, isPending, adminName }: Props) {
+  const t = useTranslations("admins");
+  const tCommon = useTranslations("common");
   const [reason, setReason] = useState("");
 
   function handleClose() {
@@ -29,24 +32,23 @@ export function DeactivateConfirm({ open, onClose, onConfirm, isPending, adminNa
     <AlertDialog open={open} onOpenChange={(v) => !v && handleClose()}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Adminni deactivate qilish</AlertDialogTitle>
+          <AlertDialogTitle>{t("deactivate.title")}</AlertDialogTitle>
           <AlertDialogDescription>
-            <strong>{adminName}</strong> ni deactivate qilmoqchimisiz? Bu admin tizimga kira
-            olmay qoladi.
+            <strong>{adminName}</strong>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <div className="flex flex-col gap-1.5 py-2">
-          <Label htmlFor="reason">Sabab (ixtiyoriy)</Label>
+          <Label htmlFor="reason">{t("deactivate.reasonLabel")}</Label>
           <Input
             id="reason"
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            placeholder="Deactivate sababi..."
+            placeholder={t("deactivate.reasonPlaceholder")}
           />
         </div>
         <AlertDialogFooter>
           <AlertDialogCancel onClick={handleClose} disabled={isPending}>
-            Bekor qilish
+            {tCommon("cancel")}
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={() => onConfirm(reason || undefined)}
@@ -54,7 +56,7 @@ export function DeactivateConfirm({ open, onClose, onConfirm, isPending, adminNa
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
             {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
-            Deactivate
+            {t("deactivate.confirm")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
