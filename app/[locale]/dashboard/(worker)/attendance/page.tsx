@@ -1,3 +1,5 @@
+"use client";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -7,13 +9,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table"
 import { Search, MapPin, Camera, CheckCircle2, XCircle, Clock as ClockIcon } from "lucide-react"
-
-const stats = [
-  { label: "Arrived today",      value: 18, accent: "text-emerald-600" },
-  { label: "Absent",             value: 3,  accent: "text-rose-600"    },
-  { label: "Late",               value: 4,  accent: "text-amber-600"   },
-  { label: "Not yet arrived",    value: 7,  accent: "text-muted-foreground" },
-]
+import { useTranslations, useLocale } from "next-intl"
 
 type Status = "On Time" | "Late" | "Absent" | "Checked Out"
 
@@ -46,16 +42,28 @@ const statusVariant: Record<Status, "default" | "secondary" | "destructive" | "o
 }
 
 export default function AttendancePage() {
+  const t = useTranslations("attendance")
+  const locale = useLocale()
+
+  const stats = [
+    { label: t("stats.arrivedToday"),   value: 18, accent: "text-emerald-600" },
+    { label: t("stats.absent"),         value: 3,  accent: "text-rose-600"    },
+    { label: t("stats.late"),           value: 4,  accent: "text-amber-600"   },
+    { label: t("stats.notYetArrived"), value: 7,  accent: "text-muted-foreground" },
+  ]
+
+  const todayLabel = new Date().toLocaleDateString(locale, { weekday: "long", month: "long", day: "numeric" })
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Attendance</h1>
-          <p className="text-muted-foreground">Worker attendance tracking with GPS and selfie verification.</p>
+          <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
+          <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
         <Button variant="outline">
           <ClockIcon className="mr-2 size-4" />
-          Today's date
+          {todayLabel}
         </Button>
       </div>
 
@@ -76,21 +84,21 @@ export default function AttendancePage() {
         <CardHeader className="pb-4">
           <div className="relative max-w-sm">
             <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
-            <Input placeholder="Search by worker name..." className="pl-8" />
+            <Input placeholder={t("searchPlaceholder")} className="pl-8" />
           </div>
         </CardHeader>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Worker</TableHead>
-                <TableHead>Check-in</TableHead>
-                <TableHead>Check-out</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead className="text-center">Geofence</TableHead>
-                <TableHead className="text-center">Selfie</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Action</TableHead>
+                <TableHead>{t("columns.worker")}</TableHead>
+                <TableHead>{t("columns.checkIn")}</TableHead>
+                <TableHead>{t("columns.checkOut")}</TableHead>
+                <TableHead>{t("columns.location")}</TableHead>
+                <TableHead className="text-center">{t("columns.geofence")}</TableHead>
+                <TableHead className="text-center">{t("columns.selfie")}</TableHead>
+                <TableHead>{t("columns.status")}</TableHead>
+                <TableHead className="text-right">{t("columns.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -138,7 +146,7 @@ export default function AttendancePage() {
                     </div>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="sm">{"View"}</Button>
+                    <Button variant="ghost" size="sm">{t("view")}</Button>
                   </TableCell>
                 </TableRow>
               ))}

@@ -9,39 +9,44 @@ import { DataTableCard } from "@/components/ui/data-table-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useOwnerList } from "@/hooks/use-owners";
 import type { KycProfileSummaryDto } from "@/lib/types/kyc.types";
-
-const kycStatusConfig: Record<
-  string,
-  { label: string; variant: "default" | "secondary" | "destructive" | "outline" }
-> = {
-  "1": { label: "Kutilmoqda", variant: "secondary" },
-  "2": { label: "Tasdiqlangan", variant: "default" },
-  "3": { label: "Rad etilgan", variant: "destructive" },
-};
-
-function getStatusConfig(kycStatus: string | null) {
-  if (!kycStatus) return { label: "Noma'lum", variant: "outline" as const };
-  return kycStatusConfig[kycStatus] ?? { label: kycStatus, variant: "outline" as const };
-}
-
-const columns = [
-  { label: "Mulkdor" },
-  { label: "Email" },
-  { label: "KYC Holati" },
-  { label: "Hujjatlar", className: "text-center" },
-  { label: "Amallar", className: "text-right" },
-];
+import { useTranslations } from "next-intl";
 
 export default function OwnersPage() {
+  const t = useTranslations("owners");
+  const tStatus = useTranslations("status");
+  const tCommon = useTranslations("common");
+
+  const kycStatusConfig: Record<
+    string,
+    { label: string; variant: "default" | "secondary" | "destructive" | "outline" }
+  > = {
+    "1": { label: tStatus("pending"), variant: "secondary" },
+    "2": { label: tStatus("approved"), variant: "default" },
+    "3": { label: tStatus("rejected"), variant: "destructive" },
+  };
+
+  function getStatusConfig(kycStatus: string | null) {
+    if (!kycStatus) return { label: tCommon("unknown"), variant: "outline" as const };
+    return kycStatusConfig[kycStatus] ?? { label: kycStatus, variant: "outline" as const };
+  }
+
+  const columns = [
+    { label: t("columns.owner") },
+    { label: tCommon("email") },
+    { label: t("columns.kycStatus") },
+    { label: t("columns.documents"), className: "text-center" },
+    { label: t("columns.actions"), className: "text-right" },
+  ];
+
   const { data: owners = [], isLoading, isError, error } = useOwnerList();
 
   if (isLoading) {
     return (
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-1">
-          <h1 className="font-heading text-3xl font-bold tracking-tight leading-tight">Owners</h1>
+          <h1 className="font-heading text-3xl font-bold tracking-tight leading-tight">{t("title")}</h1>
           <p className="text-sm text-muted-foreground">
-            Mulkdorlarni boshqaring va KYC holatini kuzating.
+            {t("subtitle")}
           </p>
         </div>
         <div className="flex flex-col gap-2 rounded-xl border border-border p-4">
@@ -57,15 +62,15 @@ export default function OwnersPage() {
     const msg = (error as { response?: { status?: number; data?: { message?: string } } })
       ?.response?.data?.message
       ?? (error as Error)?.message
-      ?? "Server bilan bog'lanishda xatolik";
+      ?? t("errorConnect");
     const status = (error as { response?: { status?: number } })?.response?.status;
     return (
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-1">
-          <h1 className="font-heading text-3xl font-bold tracking-tight leading-tight">Owners</h1>
+          <h1 className="font-heading text-3xl font-bold tracking-tight leading-tight">{t("title")}</h1>
         </div>
         <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-5 text-sm text-destructive">
-          <p className="font-semibold">Ma&apos;lumotlarni yuklashda xatolik{status ? ` (${status})` : ""}</p>
+          <p className="font-semibold">{t("errorLoad")}{status ? ` (${status})` : ""}</p>
           <p className="mt-1 text-destructive/80">{msg}</p>
         </div>
       </div>
@@ -75,16 +80,16 @@ export default function OwnersPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
-        <h1 className="font-heading text-3xl font-bold tracking-tight leading-tight">Owners</h1>
+        <h1 className="font-heading text-3xl font-bold tracking-tight leading-tight">{t("title")}</h1>
         <p className="text-sm text-muted-foreground">
-          Mulkdorlarni boshqaring va KYC holatini kuzating.
+          {t("subtitle")}
         </p>
       </div>
 
       <DataTableCard
-        title="Mulkdorlar ro'yxati"
+        title={t("list")}
         count={owners.length}
-        searchPlaceholder="Mulkdor qidirish..."
+        searchPlaceholder={t("searchPlaceholder")}
         columns={columns}
         data={owners}
         renderRow={(o: KycProfileSummaryDto) => {
@@ -124,7 +129,7 @@ export default function OwnersPage() {
                   nativeButton={false}
                   render={<Link href={`/dashboard/owners/${o.ownerProfileId}`} />}
                 >
-                  {"Ko'rish"}
+                  {tCommon("view")}
                 </Button>
               </TableCell>
             </TableRow>
