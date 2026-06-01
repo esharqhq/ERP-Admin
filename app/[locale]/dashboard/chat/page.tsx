@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -48,13 +51,14 @@ const activeMessages: Message[] = [
 ]
 
 export default function ChatPage() {
+  const t = useTranslations("chat");
   const active = conversations.find((c) => c.active) ?? conversations[0]
 
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Chat</h1>
-        <p className="text-muted-foreground">Internal messaging with Workers and Owners.</p>
+        <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
+        <p className="text-muted-foreground">{t("subtitle")}</p>
       </div>
 
       <Card className="overflow-hidden p-0">
@@ -63,7 +67,7 @@ export default function ChatPage() {
             <div className="border-b p-3">
               <div className="relative">
                 <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
-                <Input placeholder="Search conversations..." className="pl-8" />
+                <Input placeholder={t("searchPlaceholder")} className="pl-8" />
               </div>
             </div>
             <ScrollArea className="flex-1">
@@ -94,7 +98,9 @@ export default function ChatPage() {
                           <Badge className="h-5 min-w-5 shrink-0 px-1.5 text-[10px]">{c.unread}</Badge>
                         ) : null}
                       </div>
-                      <Badge variant="outline" className="mt-0.5 w-fit text-[10px]">{c.role}</Badge>
+                      <Badge variant="outline" className="mt-0.5 w-fit text-[10px]">
+                        {c.role === "Worker" ? t("roles.worker") : t("roles.owner")}
+                      </Badge>
                     </div>
                   </button>
                 ))}
@@ -112,9 +118,9 @@ export default function ChatPage() {
                   <div className="text-sm font-semibold">{active.name}</div>
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     {active.online && <span className="size-1.5 rounded-full bg-emerald-500" />}
-                    {active.online ? "Online" : "Last seen: today"}
+                    {active.online ? t("online") : t("lastSeen")}
                     <span>·</span>
-                    {active.role}
+                    {active.role === "Worker" ? t("roles.worker") : t("roles.owner")}
                   </div>
                 </div>
               </div>
@@ -165,7 +171,7 @@ export default function ChatPage() {
             <div className="flex items-center gap-2 border-t p-3">
               <Button variant="ghost" size="icon"><Paperclip className="size-4" /></Button>
               <Button variant="ghost" size="icon"><Smile className="size-4" /></Button>
-              <Input placeholder="Write a message..." className="flex-1" />
+              <Input placeholder={t("messagePlaceholder")} className="flex-1" />
               <Button size="icon">
                 <Send className="size-4" />
               </Button>

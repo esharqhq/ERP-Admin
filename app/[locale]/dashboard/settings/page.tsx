@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +27,8 @@ interface NewSetting {
 }
 
 export default function SettingsPage() {
+  const t = useTranslations("settings");
+  const locale = useLocale();
   const { data: settings = [], isLoading } = useSettings();
   const { mutate: upsert, isPending } = useUpsertSetting();
 
@@ -61,7 +65,7 @@ export default function SettingsPage() {
 
   function formatDate(iso: string | null) {
     if (!iso) return "—";
-    return new Date(iso).toLocaleString("uz-UZ", {
+    return new Date(iso).toLocaleString(locale, {
       year: "numeric", month: "2-digit", day: "2-digit",
       hour: "2-digit", minute: "2-digit",
     });
@@ -72,22 +76,22 @@ export default function SettingsPage() {
       <div className="flex items-start justify-between gap-4">
         <div className="flex flex-col gap-1">
           <h1 className="font-heading text-3xl font-bold tracking-tight leading-tight">
-            Sozlamalar
+            {t("title")}
           </h1>
           <p className="text-sm text-muted-foreground">
-            Tizim konfiguratsiyasi — kalit-qiymat juftliklari.
+            {t("subtitle")}
           </p>
         </div>
         <Button size="sm" className="gap-2 shrink-0" onClick={() => setShowAdd(true)}>
           <Plus className="size-4" />
-          Yangi sozlama
+          {t("newSetting")}
         </Button>
       </div>
 
       <Card>
         <CardHeader className="pb-3">
           <p className="text-xs text-muted-foreground">
-            {settings.length} ta sozlama
+            {t("count", { count: settings.length })}
           </p>
         </CardHeader>
         <CardContent className="p-0">
@@ -99,7 +103,7 @@ export default function SettingsPage() {
             </div>
           ) : settings.length === 0 ? (
             <p className="p-6 text-sm text-muted-foreground">
-              Hech qanday sozlama topilmadi.
+              {t("noSettings")}
             </p>
           ) : (
             <div className="divide-y divide-border">
@@ -175,36 +179,35 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      {/* Yangi sozlama modali */}
       <Dialog open={showAdd} onOpenChange={(v) => !v && setShowAdd(false)}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Yangi sozlama</DialogTitle>
+            <DialogTitle>{t("dialog.createTitle")}</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-3">
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="new-key">Kalit</Label>
+              <Label htmlFor="new-key">{t("dialog.key")}</Label>
               <Input
                 id="new-key"
-                placeholder="company.name"
+                placeholder={t("dialog.keyPlaceholder")}
                 value={newSetting.key}
                 onChange={(e) => setNewSetting((p) => ({ ...p, key: e.target.value }))}
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="new-value">Qiymat</Label>
+              <Label htmlFor="new-value">{t("dialog.value")}</Label>
               <Input
                 id="new-value"
-                placeholder="ERP Admin"
+                placeholder={t("dialog.valuePlaceholder")}
                 value={newSetting.value}
                 onChange={(e) => setNewSetting((p) => ({ ...p, value: e.target.value }))}
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="new-desc">Tavsif (ixtiyoriy)</Label>
+              <Label htmlFor="new-desc">{t("dialog.description")}</Label>
               <Input
                 id="new-desc"
-                placeholder="Kompaniya nomi"
+                placeholder={t("dialog.descriptionPlaceholder")}
                 value={newSetting.description}
                 onChange={(e) => setNewSetting((p) => ({ ...p, description: e.target.value }))}
               />
@@ -212,13 +215,13 @@ export default function SettingsPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAdd(false)} disabled={isPending}>
-              Bekor qilish
+              {t("cancel")}
             </Button>
             <Button
               onClick={saveNew}
               disabled={isPending || !newSetting.key || !newSetting.value}
             >
-              Saqlash
+              {t("save")}
             </Button>
           </DialogFooter>
         </DialogContent>
