@@ -23,12 +23,15 @@ import { RejectWorkerModal } from "@/components/workers/reject-modal";
 import { DocTable } from "@/components/workers/doc-table";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslations } from "next-intl";
 
 export default function WorkerDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const t = useTranslations("workers");
+  const tStatus = useTranslations("status");
   const { id } = use(params);
   const { data: worker, isLoading, isError } = useWorkerDetail(id);
   const [showApprove, setShowApprove] = useState(false);
@@ -60,7 +63,7 @@ export default function WorkerDetailPage({
       <div className="flex flex-col gap-6">
         <ActionBar />
         <p className="text-sm text-destructive">
-          Ishchi topilmadi yoki xatolik yuz berdi.
+          {t("notFound")}
         </p>
       </div>
     );
@@ -75,7 +78,7 @@ export default function WorkerDetailPage({
         <div className="flex gap-2">
           <Button className="gap-1.5" onClick={() => setShowApprove(true)}>
             <CheckCircle className="size-4" />
-            Tasdiqlash
+            {t("approve")}
           </Button>
           <Button
             variant="destructive"
@@ -83,7 +86,7 @@ export default function WorkerDetailPage({
             onClick={() => setShowReject(true)}
           >
             <XCircle className="size-4" />
-            Rad etish
+            {t("reject")}
           </Button>
         </div>
       )}
@@ -96,7 +99,7 @@ export default function WorkerDetailPage({
           setShowApprove(false);
         }}
         isPending={isApproving}
-        workerName={worker.fullName ?? "Ishchi"}
+        workerName={worker.fullName ?? "—"}
       />
       <RejectWorkerModal
         open={showReject}
@@ -106,7 +109,7 @@ export default function WorkerDetailPage({
           setShowReject(false);
         }}
         isPending={isRejecting}
-        workerName={worker.fullName ?? "Ishchi"}
+        workerName={worker.fullName ?? "—"}
       />
 
       <DocTable
@@ -120,16 +123,16 @@ export default function WorkerDetailPage({
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
         <StatCard
-          label="Reyting"
+          label={t("columns.rating")}
           value={worker.rating.toFixed(1)}
-          hint="Mijozlar bahosi"
+          hint="Customer rating"
           icon={<Star className="size-4" />}
           tone="amber"
         />
         <StatCard
-          label="Holat"
-          value={worker.isApproved ? "Tasdiqlangan" : "Kutilmoqda"}
-          hint={worker.isApproved ? "Faol xodim" : "Tekshirilmoqda"}
+          label={t("columns.status")}
+          value={worker.isApproved ? tStatus("approved") : tStatus("pending")}
+          hint={worker.isApproved ? "Active worker" : "Under review"}
           icon={<BadgeCheck className="size-4" />}
           tone={worker.isApproved ? "emerald" : "amber"}
         />
@@ -141,9 +144,9 @@ export default function WorkerDetailPage({
           tone={worker.isVerified ? "emerald" : "violet"}
         /> */}
         <StatCard
-          label="Kasb"
+          label="Profession"
           value={worker.professions?.length ?? 0}
-          hint="Mutaxassisliklar"
+          hint="Specializations"
           icon={<User className="size-4" />}
           tone="blue"
         />

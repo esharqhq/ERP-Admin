@@ -1,11 +1,16 @@
+"use client";
+
 import { Star, Phone, Mail, MapPin } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { WorkerDetailDto } from "@/lib/types/worker.types";
+import { useTranslations } from "next-intl";
 
 export function HeroCard({ worker }: { worker: WorkerDetailDto }) {
+  const t = useTranslations("workers");
+  const tStatus = useTranslations("status");
   const initials = (worker.fullName ?? "??").slice(0, 2).toUpperCase();
   const profession = worker.professions?.[0]?.name ?? null;
 
@@ -47,7 +52,7 @@ export function HeroCard({ worker }: { worker: WorkerDetailDto }) {
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <Badge variant={worker.isApproved ? "default" : "secondary"}>
-                  {worker.isApproved ? "Tasdiqlangan" : "Kutilmoqda"}
+                  {worker.isApproved ? tStatus("approved") : tStatus("pending")}
                 </Badge>
                 {/* {worker.isVerified && <Badge variant="outline">Verified</Badge>} */}
                 <span className="inline-flex items-center gap-1 text-[12px] font-medium text-muted-foreground">
@@ -55,7 +60,7 @@ export function HeroCard({ worker }: { worker: WorkerDetailDto }) {
                   <span className="tabular-nums text-foreground">
                     {worker.rating.toFixed(1)}
                   </span>
-                  <span>reyting</span>
+                  <span>{t("columns.rating")}</span>
                 </span>
               </div>
             </div>
@@ -84,7 +89,7 @@ export function HeroCard({ worker }: { worker: WorkerDetailDto }) {
                 }
               >
                 <Phone className="size-4" />
-                {"Qo'ng'iroq"}
+                {t("contact.call")}
               </Button>
             )}
           </div>
