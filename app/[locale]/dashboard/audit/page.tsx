@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -36,19 +38,14 @@ function formatAction(action: string) {
   return action.replace(/_/g, " ");
 }
 
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleString("uz-UZ", {
-    year: "numeric", month: "2-digit", day: "2-digit",
-    hour: "2-digit", minute: "2-digit",
-  });
-}
-
 function shortId(id: string | null) {
   if (!id) return "—";
   return id.slice(0, 8) + "…";
 }
 
 export default function AuditPage() {
+  const t = useTranslations("audit");
+  const locale = useLocale();
   const [actionFilter, setActionFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
 
@@ -65,14 +62,21 @@ export default function AuditPage() {
       )
     : logs;
 
+  function formatDate(iso: string) {
+    return new Date(iso).toLocaleString(locale, {
+      year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit",
+    });
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
         <h1 className="font-heading text-3xl font-bold tracking-tight leading-tight">
-          Audit Log
+          {t("title")}
         </h1>
         <p className="text-sm text-muted-foreground">
-          SUPER_ADMIN tomonidan bajarilgan barcha amallar tarixi.
+          {t("subtitle")}
         </p>
       </div>
 
@@ -82,7 +86,7 @@ export default function AuditPage() {
             <div className="relative flex-1 min-w-[200px] max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
               <Input
-                placeholder="Actor, entity yoki amal..."
+                placeholder={t("searchPlaceholder")}
                 className="h-9 pl-9"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -90,10 +94,10 @@ export default function AuditPage() {
             </div>
             <Select value={actionFilter} onValueChange={(v) => setActionFilter(v ?? "all")}>
               <SelectTrigger className="h-9 w-52">
-                <SelectValue placeholder="Barcha amallar" />
+                <SelectValue placeholder={t("allActions")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Barcha amallar</SelectItem>
+                <SelectItem value="all">{t("allActions")}</SelectItem>
                 {AUDIT_ACTIONS.map((a) => (
                   <SelectItem key={a} value={a}>
                     {formatAction(a)}
@@ -113,26 +117,26 @@ export default function AuditPage() {
             </div>
           ) : filtered.length === 0 ? (
             <p className="p-6 text-sm text-muted-foreground">
-              Hech qanday yozuv topilmadi.
+              {t("noLogs")}
             </p>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
                   <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-                    Actor
+                    {t("columns.actor")}
                   </TableHead>
                   <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-                    Amal
+                    {t("columns.action")}
                   </TableHead>
                   <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-                    Entity
+                    {t("columns.entity")}
                   </TableHead>
                   <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-                    Target ID
+                    {t("columns.targetId")}
                   </TableHead>
                   <TableHead className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-                    Vaqt
+                    {t("columns.time")}
                   </TableHead>
                 </TableRow>
               </TableHeader>

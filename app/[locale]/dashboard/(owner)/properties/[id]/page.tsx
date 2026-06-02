@@ -1,6 +1,7 @@
 "use client";
 
 import { use } from "react";
+import { useTranslations } from "next-intl";
 import { ActionBar } from "@/components/properties/action-bar";
 import { PropertyHero } from "@/components/properties/property-hero";
 import { PropertyInfo } from "@/components/properties/property-info";
@@ -22,6 +23,7 @@ export default function PropertyDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const t = useTranslations("properties");
   const { data: property, isLoading, isError } = usePropertyById(id);
   const { data: docsBundle } = useAdminPropertyDocs(id);
   const { mutate: approve, isPending: isApproving } = useApprovePropertyDocs();
@@ -50,7 +52,7 @@ export default function PropertyDetailPage({
     return (
       <div className="flex flex-col gap-6">
         <ActionBar />
-        <p className="text-sm text-destructive">Property topilmadi yoki xatolik yuz berdi.</p>
+        <p className="text-sm text-destructive">{t("notFound")}</p>
       </div>
     );
   }

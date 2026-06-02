@@ -12,6 +12,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { useTranslations } from "next-intl";
 import type { PropertyDocsBundleDto } from "@/lib/types/property.types";
 
 const docsStatusVariant: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
@@ -40,6 +41,8 @@ export function PropertyDocsCard({
   isRejecting = false,
   isResetting = false,
 }: PropertyDocsCardProps) {
+  const t = useTranslations("properties");
+  const tCommon = useTranslations("common");
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
   const [showResetDialog, setShowResetDialog] = useState(false);
@@ -79,7 +82,7 @@ export function PropertyDocsCard({
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between gap-2">
             <h2 className="font-heading text-base font-semibold tracking-tight">
-              Mulk hujjatlari
+              {t("docs.title")}
             </h2>
             {status && (
               <Badge variant={statusVariant}>{status}</Badge>
@@ -92,7 +95,7 @@ export function PropertyDocsCard({
           {docs.length === 0 ? (
             <div className="flex flex-col items-center gap-1.5 py-6 text-center">
               <FileText className="size-7 text-muted-foreground/40" />
-              <p className="text-sm text-muted-foreground">Hujjatlar yuklanmagan</p>
+              <p className="text-sm text-muted-foreground">{t("docs.empty")}</p>
             </div>
           ) : (
             <div className="flex flex-col gap-2">
@@ -106,7 +109,7 @@ export function PropertyDocsCard({
                   </div>
                   <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                     <span className="truncate text-[13px] font-medium leading-tight">
-                      {doc.fileName ?? "Hujjat"}
+                      {doc.fileName ?? t("docs.document")}
                     </span>
                     {doc.type && (
                       <span className="text-[11px] text-muted-foreground">{doc.type}</span>
@@ -118,7 +121,7 @@ export function PropertyDocsCard({
                       target="_blank"
                       rel="noopener noreferrer"
                       className="shrink-0 opacity-0 transition-opacity group-hover/doc:opacity-100"
-                      aria-label="Ochish"
+                      aria-label={t("docs.open")}
                     >
                       <ExternalLink className="size-3.5 text-muted-foreground hover:text-foreground" />
                     </a>
@@ -131,7 +134,7 @@ export function PropertyDocsCard({
           {/* Reject reason box */}
           {status === "Rejected" && bundle.docsRejectReason && (
             <div className="rounded-md bg-destructive/5 px-3 py-2.5 text-[12px] text-destructive">
-              <p className="font-semibold uppercase tracking-wide text-[11px] mb-1">Rad sababi</p>
+              <p className="font-semibold uppercase tracking-wide text-[11px] mb-1">{t("docsStatus.rejectReason")}</p>
               <p>{bundle.docsRejectReason}</p>
             </div>
           )}
@@ -151,7 +154,7 @@ export function PropertyDocsCard({
                   ) : (
                     <CheckCircle className="size-3.5" />
                   )}
-                  Tasdiqlash
+                  {t("docs.approveBtn")}
                 </Button>
                 <Button
                   size="sm"
@@ -165,7 +168,7 @@ export function PropertyDocsCard({
                   ) : (
                     <XCircle className="size-3.5" />
                   )}
-                  Rad etish
+                  {t("docs.rejectBtn")}
                 </Button>
               </>
             )}
@@ -183,7 +186,7 @@ export function PropertyDocsCard({
                 ) : (
                   <RotateCcw className="size-3.5" />
                 )}
-                Qayta ko&apos;rish
+                {t("docs.resetBtn")}
               </Button>
             )}
           </div>
@@ -194,23 +197,23 @@ export function PropertyDocsCard({
       <Dialog open={showRejectDialog} onOpenChange={(v) => !v && handleRejectClose()}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Hujjatlarni rad etish</DialogTitle>
+            <DialogTitle>{t("docs.rejectTitle")}</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            Rad etish sababi (kamida 5 belgi, majburiy).
+            {t("docs.rejectSubtitle", { min: 5 })}
           </p>
           <textarea
             value={rejectReason}
             onChange={(e) => setRejectReason(e.target.value)}
-            placeholder="Rad etish sababi..."
+            placeholder={t("docs.rejectPlaceholder")}
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring min-h-[80px] resize-none"
           />
           {rejectReason.length > 0 && rejectReason.trim().length < 5 && (
-            <p className="text-xs text-destructive">Kamida 5 ta belgi kiriting.</p>
+            <p className="text-xs text-destructive">{t("docs.rejectReasonMin", { min: 5 })}</p>
           )}
           <DialogFooter>
             <Button variant="outline" onClick={handleRejectClose} disabled={isRejecting}>
-              Bekor qilish
+              {tCommon("cancel")}
             </Button>
             <Button
               variant="destructive"
@@ -218,7 +221,7 @@ export function PropertyDocsCard({
               disabled={rejectReason.trim().length < 5 || isRejecting}
             >
               {isRejecting && <Loader2 className="mr-2 size-4 animate-spin" />}
-              Rad etish
+              {t("docs.rejectBtn")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -228,30 +231,30 @@ export function PropertyDocsCard({
       <Dialog open={showResetDialog} onOpenChange={(v) => !v && handleResetClose()}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{"Hujjatlarni qayta ko'rib chiqish"}</DialogTitle>
+            <DialogTitle>{t("docs.resetTitle")}</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            {"Holat «Pending» ga qaytariladi. Sabab (kamida 3 belgi, majburiy)."}
+            {t("docs.resetReasonMin", { min: 3 })}
           </p>
           <textarea
             value={resetReason}
             onChange={(e) => setResetReason(e.target.value)}
-            placeholder="Reset sababi..."
+            placeholder={t("docs.resetPlaceholder")}
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring min-h-[80px] resize-none"
           />
           {resetReason.length > 0 && resetReason.trim().length < 3 && (
-            <p className="text-xs text-destructive">Kamida 3 ta belgi kiriting.</p>
+            <p className="text-xs text-destructive">{t("docs.resetReasonMin", { min: 3 })}</p>
           )}
           <DialogFooter>
             <Button variant="outline" onClick={handleResetClose} disabled={isResetting}>
-              Bekor qilish
+              {tCommon("cancel")}
             </Button>
             <Button
               onClick={handleResetConfirm}
               disabled={resetReason.trim().length < 3 || isResetting}
             >
               {isResetting && <Loader2 className="mr-2 size-4 animate-spin" />}
-              {"Qayta ko'rish"}
+              {t("docs.resetBtn")}
             </Button>
           </DialogFooter>
         </DialogContent>

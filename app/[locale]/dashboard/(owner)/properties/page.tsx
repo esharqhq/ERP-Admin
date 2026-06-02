@@ -8,52 +8,56 @@ import { DataTableCard } from "@/components/ui/data-table-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MapPin } from "lucide-react";
 import { useProperties } from "@/hooks/use-properties";
+import { useTranslations } from "next-intl";
 import type { PropertyDto } from "@/lib/types/property.types";
 
 const docsStatusConfig: Record<
   string,
-  { label: string; variant: "default" | "secondary" | "destructive" | "outline" }
+  { labelKey: string; variant: "default" | "secondary" | "destructive" | "outline" }
 > = {
-  Pending:  { label: "Kutilmoqda", variant: "secondary" },
-  Approved: { label: "Tasdiqlangan", variant: "default" },
-  Rejected: { label: "Rad etilgan", variant: "destructive" },
+  Pending:  { labelKey: "docsStatus.pending", variant: "secondary" },
+  Approved: { labelKey: "docsStatus.approved", variant: "default" },
+  Rejected: { labelKey: "docsStatus.rejected", variant: "destructive" },
 };
 
-function getDocsStatusConfig(status: string | null) {
-  if (!status) return { label: "Noma'lum", variant: "outline" as const };
-  return docsStatusConfig[status] ?? { label: status, variant: "outline" as const };
-}
-
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("uz-UZ", {
+  return new Date(iso).toLocaleDateString("en-US", {
     day: "2-digit",
     month: "short",
     year: "numeric",
   });
 }
 
-const columns = [
-  { label: "#", className: "w-10 text-center" },
-  { label: "Nomi" },
-  { label: "Manzil" },
-  { label: "Turi" },
-  { label: "Docs holati" },
-  { label: "Yaratilgan" },
-  { label: "Amallar", className: "text-right" },
-];
-
 export default function PropertiesPage() {
+  const t = useTranslations("properties");
   const { data: properties = [], isLoading, isError, error } = useProperties();
+
+  const columns = [
+    { label: "#", className: "w-10 text-center" },
+    { label: t("columns.name") },
+    { label: t("columns.address") },
+    { label: t("columns.type") },
+    { label: t("columns.docsStatus") },
+    { label: t("columns.createdAt") },
+    { label: t("columns.actions"), className: "text-right" },
+  ];
+
+  function getDocsStatusConfig(status: string | null) {
+    if (!status) return { label: t("docsStatus.unknown"), variant: "outline" as const };
+    const config = docsStatusConfig[status];
+    if (!config) return { label: status, variant: "outline" as const };
+    return { label: t(config.labelKey as Parameters<typeof t>[0]), variant: config.variant };
+  }
 
   if (isLoading) {
     return (
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-1">
           <h1 className="font-heading text-3xl font-bold tracking-tight leading-tight">
-            Properties
+            {t("title")}
           </h1>
           <p className="text-sm text-muted-foreground">
-            {"Ro'yxatdagi villa, mehmonxona, ofis va biznes-markazlar."}
+            {t("subtitle")}
           </p>
         </div>
         <div className="flex flex-col gap-2 rounded-xl border border-border p-4">
@@ -69,18 +73,18 @@ export default function PropertiesPage() {
     const msg =
       (error as { response?: { data?: { message?: string } } })?.response?.data?.message ??
       (error as Error)?.message ??
-      "Server bilan bog'lanishda xatolik";
+      t("errorConnect");
     const status = (error as { response?: { status?: number } })?.response?.status;
     return (
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-1">
           <h1 className="font-heading text-3xl font-bold tracking-tight leading-tight">
-            Properties
+            {t("title")}
           </h1>
         </div>
         <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-5 text-sm text-destructive">
           <p className="font-semibold">
-            Ma&apos;lumotlarni yuklashda xatolik{status ? ` (${status})` : ""}
+            {t("errorLoad")}{status ? ` (${status})` : ""}
           </p>
           <p className="mt-1 text-destructive/80">{msg}</p>
         </div>
@@ -92,17 +96,17 @@ export default function PropertiesPage() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
         <h1 className="font-heading text-3xl font-bold tracking-tight leading-tight">
-          Properties
+          {t("title")}
         </h1>
         <p className="text-sm text-muted-foreground">
-          {"Ro'yxatdagi villa, mehmonxona, ofis va biznes-markazlar."}
+          {t("subtitle")}
         </p>
       </div>
 
       <DataTableCard
-        title="Mulklar ro'yxati"
+        title={t("list")}
         count={properties.length}
-        searchPlaceholder="Mulk qidirish..."
+        searchPlaceholder={t("searchPlaceholder")}
         columns={columns}
         data={properties}
         renderRow={(p: PropertyDto, index: number) => {
@@ -136,7 +140,7 @@ export default function PropertiesPage() {
                   nativeButton={false}
                   render={<Link href={`/dashboard/properties/${p.id}`} />}
                 >
-                  {"Ko'rish"}
+                  {t("actions.more")}
                 </Button>
               </TableCell>
             </TableRow>

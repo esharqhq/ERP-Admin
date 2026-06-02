@@ -24,17 +24,19 @@ import {navItems} from "@/lib/nav-items"
 import {Bell} from "lucide-react"
 import Link from "next/link";
 import {LanguageSwitcher} from "./language-switcher";
+import {useTranslations} from "next-intl";
 
 const notifications = [
-    {id: 1, title: "Yangi task tayinlandi", desc: "HVAC Repair — Villa Sunrise", time: "5 daq oldin", unread: true},
-    {id: 2, title: "Worker kechikdi", desc: "Malika S. — Geofence tashqarida", time: "1 soat oldin", unread: true},
-    {id: 3, title: "Shartnoma imzolandi", desc: "Sunrise LLC", time: "3 soat oldin", unread: true},
-    {id: 4, title: "Hujjat muddati tugayapti", desc: "Jasur T. — 5 kun qoldi", time: "Bugun", unread: false},
-    {id: 5, title: "Yangi shikoyat", desc: "GrandBuild Corp", time: "Kecha", unread: false},
+    {id: 1, title: "New task assigned", desc: "HVAC Repair — Villa Sunrise", time: "5 min ago", unread: true},
+    {id: 2, title: "Worker delayed", desc: "Malika S. — Outside geofence", time: "1 hour ago", unread: true},
+    {id: 3, title: "Contract signed", desc: "Sunrise LLC", time: "3 hours ago", unread: true},
+    {id: 4, title: "Document expiring", desc: "Jasur T. — 5 days left", time: "Today", unread: false},
+    {id: 5, title: "New complaint", desc: "GrandBuild Corp", time: "Yesterday", unread: false},
 ]
 
 export function DashboardHeader() {
     const pathname = usePathname()
+    const t = useTranslations()
 
     const current = navItems.find(
         (item) =>
@@ -55,7 +57,7 @@ export function DashboardHeader() {
                     </BreadcrumbItem>
                     <BreadcrumbSeparator className="hidden md:block"/>
                     <BreadcrumbItem>
-                        <BreadcrumbPage>{current.title}</BreadcrumbPage>
+                        <BreadcrumbPage>{t(current.labelKey)}</BreadcrumbPage>
                     </BreadcrumbItem>
                 </BreadcrumbList>
             </Breadcrumb>
@@ -79,14 +81,14 @@ export function DashboardHeader() {
                 {unreadCount}
               </span>
                         )}
-                        <span className="sr-only">Bildirishnomalar</span>
+                        <span className="sr-only">Notifications</span>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" sideOffset={8} className="w-80 p-0">
                         <DropdownMenuLabel className="flex items-center justify-between px-3 py-2.5">
-                            <span className="text-sm font-semibold">Bildirishnomalar</span>
+                            <span className="text-sm font-semibold">{t('layout.notifications.title')}</span>
                             {unreadCount > 0 && (
                                 <span className="text-[11px] text-muted-foreground">
-                  {unreadCount} ta yangi
+                  {t('layout.notifications.newCount', { count: unreadCount })}
                 </span>
                             )}
                         </DropdownMenuLabel>
@@ -114,7 +116,7 @@ export function DashboardHeader() {
                         <Link href={"/dashboard/chat"}>
                             <DropdownMenuItem
                                 className="cursor-pointer justify-center py-2.5 text-xs font-medium text-primary">
-                                {"Barchasini ko'rish"}
+                                {t('layout.notifications.viewAll')}
                             </DropdownMenuItem>
                         </Link>
                     </DropdownMenuContent>

@@ -3,22 +3,26 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useTranslations } from "next-intl";
 import type { KycProfileSummaryDto } from "@/lib/types/kyc.types";
 
-const kycStatusConfig: Record<
-  string,
-  { label: string; variant: "default" | "secondary" | "destructive" | "outline" }
-> = {
-  "1": { label: "Kutilmoqda", variant: "secondary" },
-  "2": { label: "Tasdiqlangan", variant: "default" },
-  "3": { label: "Rad etilgan", variant: "destructive" },
-};
-
 export function HeroCard({ owner }: { owner: KycProfileSummaryDto }) {
+  const tStatus = useTranslations("status");
+  const tCommon = useTranslations("common");
+
+  const kycStatusConfig: Record<
+    string,
+    { label: string; variant: "default" | "secondary" | "destructive" | "outline" }
+  > = {
+    "1": { label: tStatus("pending"), variant: "secondary" },
+    "2": { label: tStatus("approved"), variant: "default" },
+    "3": { label: tStatus("rejected"), variant: "destructive" },
+  };
+
   const initials = (owner.ownerName ?? "??").slice(0, 2).toUpperCase();
   const status = owner.kycStatus
     ? (kycStatusConfig[owner.kycStatus] ?? { label: owner.kycStatus, variant: "outline" as const })
-    : { label: "Noma'lum", variant: "outline" as const };
+    : { label: tCommon("unknown"), variant: "outline" as const };
 
   return (
     <Card className="overflow-hidden">

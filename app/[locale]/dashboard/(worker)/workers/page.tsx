@@ -30,6 +30,7 @@ import { cn } from "@/lib/utils";
 import { useWorkers } from "@/hooks/use-workers";
 import { useAdminTaskGroups } from "@/hooks/use-tasks";
 import type { WorkerSummaryDto } from "@/lib/types/worker.types";
+import { useTranslations } from "next-intl";
 
 
 const workerHues: Record<number, { chip: string; dot: string }> = {
@@ -42,10 +43,10 @@ const workerHues: Record<number, { chip: string; dot: string }> = {
 };
 
 
-const WEEKDAYS = ["Du", "Se", "Cho", "Pa", "Ju", "Sha", "Ya"];
+const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const MONTHS_UZ = [
-  "Yanvar", "Fevral", "Mart",    "Aprel", "May",    "Iyun",
-  "Iyul",   "Avgust", "Sentabr", "Oktabr","Noyabr", "Dekabr",
+  "January", "February", "March",     "April",   "May",      "June",
+  "July",    "August",   "September", "October", "November", "December",
 ];
 
 function dateKey(d: Date) {
@@ -54,25 +55,26 @@ function dateKey(d: Date) {
 
 // 0=Mon 1=Tue 2=Wed 3=Thu 4=Fri 5=Sat 6=Sun
 function isWorkerDayOff(workerIdx: number, dayOfWeek: number): boolean {
-  if (dayOfWeek >= 5) return true; // hafta oxiri har doim dam kuni
-  // Mock: ba'zi ishchilar qo'shimcha dam kuniga ega
+  if (dayOfWeek >= 5) return true; // weekends are always days off
+  // Mock: some workers have an extra day off
   const extraDayOff = [2, 0, -1, -1, 4, -1]; // idx%6 → extra off weekday
   return extraDayOff[workerIdx % 6] === dayOfWeek;
 }
 
 const MOCK_ASSIGNABLE_TASKS = [
-  { id: "t1", label: "HVAC Ta'mirlash",         property: "Villa Sunrise #12"    },
-  { id: "t2", label: "Santexnik ishlar",         property: "Amir Business Center" },
-  { id: "t3", label: "Elektr tekshiruvi",        property: "GrandBuild Tower B"   },
-  { id: "t4", label: "Tozalash ishlari",         property: "Hotel Grand, 3-qavat" },
-  { id: "t5", label: "Oyna almashtirish",        property: "Office Block B"       },
-  { id: "t6", label: "Devor bo'yash",            property: "Residence North"      },
-  { id: "t7", label: "Konditsioner o'rnatish",   property: "Feruza Apartments"    },
+  { id: "t1", label: "HVAC Repair",              property: "Villa Sunrise #12"    },
+  { id: "t2", label: "Plumbing Work",            property: "Amir Business Center" },
+  { id: "t3", label: "Electrical Inspection",    property: "GrandBuild Tower B"   },
+  { id: "t4", label: "Cleaning",                 property: "Hotel Grand, 3rd floor" },
+  { id: "t5", label: "Window Replacement",       property: "Office Block B"       },
+  { id: "t6", label: "Wall Painting",            property: "Residence North"      },
+  { id: "t7", label: "AC Installation",          property: "Feruza Apartments"    },
 ];
 
 type StatusTab = "all" | "pending" | "approved";
 
 export default function WorkersPage() {
+  const t = useTranslations("workers");
   const [viewTab, setViewTab] = useState<"table" | "calendar">("table");
   const [statusTab, setStatusTab] = useState<StatusTab>("pending");
   const [search, setSearch] = useState("");
@@ -96,10 +98,10 @@ export default function WorkersPage() {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex flex-col gap-1">
           <h1 className="font-heading text-3xl font-bold tracking-tight leading-tight">
-            Workers
+            {t("title")}
           </h1>
           <p className="text-sm text-muted-foreground">
-            Ishchilarni boshqaring va monitoring qiling.
+            {t("subtitle")}
           </p>
         </div>
       </div>
@@ -108,20 +110,20 @@ export default function WorkersPage() {
         <TabsList variant="line" className="self-start">
           <TabsTrigger value="table" className="gap-2">
             <LayoutList className="size-4" />
-            Jadval
+            {t("tableView")}
           </TabsTrigger>
           <TabsTrigger value="calendar" className="gap-2">
             <CalendarDays className="size-4" />
-            Calendar
+            {t("calendarView")}
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="table" className="flex flex-col gap-4">
           <Tabs value={statusTab} onValueChange={(v) => setStatusTab(v as StatusTab)}>
             <TabsList variant="line" className="self-start">
-              <TabsTrigger value="all">Barchasi</TabsTrigger>
-              <TabsTrigger value="pending">Kutilmoqda</TabsTrigger>
-              <TabsTrigger value="approved">Tasdiqlangan</TabsTrigger>
+              <TabsTrigger value="all">{t("tabs.all")}</TabsTrigger>
+              <TabsTrigger value="pending">{t("tabs.pending")}</TabsTrigger>
+              <TabsTrigger value="approved">{t("tabs.approved")}</TabsTrigger>
             </TabsList>
           </Tabs>
           <WorkersTable
@@ -129,6 +131,7 @@ export default function WorkersPage() {
             isLoading={isLoading}
             search={search}
             onSearch={setSearch}
+            t={t}
           />
         </TabsContent>
 
@@ -140,24 +143,25 @@ export default function WorkersPage() {
   );
 }
 
-const workerColumns = [
-  { label: "Ishchi" },
-  { label: "Holat" },
-  { label: "Reyting", className: "text-center" },
-  { label: "Amallar", className: "text-right" },
-];
-
 function WorkersTable({
   workers,
   isLoading,
   search,
   onSearch,
+  t,
 }: {
   workers: WorkerSummaryDto[];
   isLoading: boolean;
   search: string;
   onSearch: (v: string) => void;
+  t: ReturnType<typeof useTranslations<"workers">>;
 }) {
+  const workerColumns = [
+    { label: t("columns.worker") },
+    { label: t("columns.status") },
+    { label: t("columns.rating"), className: "text-center" },
+    { label: t("columns.actions"), className: "text-right" },
+  ];
   if (isLoading) {
     return (
       <div className="flex flex-col gap-2 rounded-xl border border-border p-4">
@@ -170,9 +174,9 @@ function WorkersTable({
 
   return (
     <DataTableCard
-      title="Ishchilar ro'yxati"
+      title={t("list")}
       count={workers.length}
-      searchPlaceholder="Ishchi qidirish..."
+      searchPlaceholder={t("searchPlaceholder")}
       searchValue={search}
       onSearchChange={onSearch}
       columns={workerColumns}
@@ -194,7 +198,7 @@ function WorkersTable({
           </TableCell>
           <TableCell>
             <Badge variant={w.isApproved ? "default" : "secondary"}>
-              {w.isApproved ? "Tasdiqlangan" : "Kutilmoqda"}
+              {w.isApproved ? t("tabs.approved") : t("tabs.pending")}
             </Badge>
           </TableCell>
           <TableCell>
@@ -210,7 +214,7 @@ function WorkersTable({
               nativeButton={false}
               render={<Link href={`/dashboard/workers/${w.id}`} />}
             >
-              {"Ko'rish"}
+              {"View"}
             </Button>
           </TableCell>
         </TableRow>
@@ -220,6 +224,7 @@ function WorkersTable({
 }
 
 function WorkersCalendar() {
+  const t = useTranslations("workers");
   const today = useMemo(() => {
     const d = new Date();
     d.setHours(0, 0, 0, 0);
@@ -254,7 +259,7 @@ function WorkersCalendar() {
   const workerDayMap = useMemo(() => {
     const map = new Map<string, Map<string, string[]>>();
     for (const group of taskGroups) {
-      const title = group.title ?? "Ish";
+      const title = group.title ?? "Task";
       for (const task of group.tasks ?? []) {
         if (!task.scheduledDate) continue;
         for (const tw of task.workers ?? []) {
@@ -298,7 +303,7 @@ function WorkersCalendar() {
 
   function openAssignDialog(workerName: string, d: Date, isoDate: string) {
     const wd = (d.getDay() + 6) % 7;
-    const wdNames = ["Dushanba", "Seshanba", "Chorshanba", "Payshanba", "Juma", "Shanba", "Yakshanba"];
+    const wdNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
     setSelectedCell({
       workerName,
       workerInitials: workerName.slice(0, 2).toUpperCase(),
@@ -329,7 +334,7 @@ function WorkersCalendar() {
                 variant="ghost"
                 size="icon"
                 onClick={() => setWeekOffset((o) => o - 1)}
-                aria-label="Oldingi hafta"
+                aria-label={t("calendar.previousWeek")}
                 className="size-8 transition-colors hover:bg-accent"
               >
                 <ChevronLeft className="size-4" />
@@ -341,7 +346,7 @@ function WorkersCalendar() {
                 variant="ghost"
                 size="icon"
                 onClick={() => setWeekOffset((o) => o + 1)}
-                aria-label="Keyingi hafta"
+                aria-label={t("calendar.nextWeek")}
                 className="size-8 transition-colors hover:bg-accent"
               >
                 <ChevronRight className="size-4" />
@@ -353,7 +358,7 @@ function WorkersCalendar() {
               onClick={() => setWeekOffset(0)}
               className="h-8 transition-all duration-150 active:scale-[0.97]"
             >
-              Bugun
+              {t("calendar.today")}
             </Button>
           </div>
         </CardHeader>
@@ -366,13 +371,13 @@ function WorkersCalendar() {
                   scope="col"
                   className="sticky left-0 z-20 min-w-[180px] border-b border-r border-border bg-muted/50 px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground"
                 >
-                  Ishchi ismi
+                  {t("calendar.workerName")}
                 </th>
                 <th
                   scope="col"
                   className="sticky left-[180px] z-20 min-w-[130px] border-b border-r border-border bg-muted/50 px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground"
                 >
-                  Bu hafta
+                  {t("calendar.thisWeek")}
                 </th>
                 {weekDays.map((d) => {
                   const isToday = dateKey(d) === dateKey(today);
@@ -433,7 +438,7 @@ function WorkersCalendar() {
                     <td className="sticky left-[180px] z-10 min-w-[130px] border-b border-r border-border bg-background px-4 py-3 transition-colors duration-150 group-hover/row:bg-accent/30">
                       <div className="flex flex-col gap-0.5">
                         <span className="text-[13px] font-medium tabular-nums">
-                          {weekTaskCount} ish
+                          {weekTaskCount} {t("calendar.tasks")}
                         </span>
                         <span className="inline-flex items-center gap-1 text-[12px]">
                           <Star className="size-3 fill-amber-500 text-amber-500" />
@@ -462,7 +467,7 @@ function WorkersCalendar() {
                           >
                             <div className="flex h-7 items-center justify-center">
                               <span className="text-[10px] font-medium text-muted-foreground/35">
-                                Dam
+                                {t("calendar.dayOff")}
                               </span>
                             </div>
                           </td>
@@ -472,7 +477,7 @@ function WorkersCalendar() {
                       return (
                         <td
                           key={dateKey(d)}
-                          onClick={isEmpty ? () => openAssignDialog(w.fullName ?? "Ishchi", d, isoDate) : undefined}
+                          onClick={isEmpty ? () => openAssignDialog(w.fullName ?? "Worker", d, isoDate) : undefined}
                           className={cn(
                             "min-w-[120px] border-b border-r border-border px-2 py-2 last:border-r-0 transition-colors duration-150 group/cell",
                             isToday
@@ -513,7 +518,7 @@ function WorkersCalendar() {
                     colSpan={9}
                     className="px-4 py-6 text-center text-sm text-muted-foreground"
                   >
-                    Tasdiqlangan ishchi topilmadi.
+                    {t("approvedNotFound")}
                   </td>
                 </tr>
               )}
@@ -545,12 +550,12 @@ function WorkersCalendar() {
           {/* Divider + search */}
           <div className="border-t border-border px-5 pt-3 pb-2 flex flex-col gap-2">
             <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-              Task tanlang
+              {t("calendar.selectTask")}
             </p>
             <div className="relative">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none" />
               <Input
-                placeholder="Task qidirish..."
+                placeholder={t("calendar.taskSearch")}
                 className="h-8 pl-8 text-sm"
                 value={taskSearch}
                 onChange={(e) => setTaskSearch(e.target.value)}
@@ -569,7 +574,7 @@ function WorkersCalendar() {
               if (results.length === 0) {
                 return (
                   <p className="py-4 text-center text-sm text-muted-foreground">
-                    &ldquo;{taskSearch}&rdquo; bo&apos;yicha task topilmadi
+                    {t("calendar.taskNotFound")}
                   </p>
                 );
               }
@@ -614,22 +619,22 @@ function WorkersCalendar() {
           <div className="-mx-0 border-t border-border bg-muted/40 px-5 py-3 flex items-center justify-end gap-2">
             <DialogDescription className="mr-auto text-xs text-muted-foreground">
               {selectedTaskId
-                ? `Tanlandi: ${MOCK_ASSIGNABLE_TASKS.find((t) => t.id === selectedTaskId)?.label}`
-                : "Bitta task tanlang"}
+                ? `${t("calendar.selected")}: ${MOCK_ASSIGNABLE_TASKS.find((task) => task.id === selectedTaskId)?.label}`
+                : t("calendar.selectOneTask")}
             </DialogDescription>
             <Button
               variant="outline"
               size="sm"
               onClick={() => setSelectedCell(null)}
             >
-              Bekor
+              {t("calendar.cancel")}
             </Button>
             <Button
               size="sm"
               disabled={!selectedTaskId}
               onClick={() => setSelectedCell(null)}
             >
-              Biriktirish
+              {t("calendar.assign")}
             </Button>
           </div>
         </DialogContent>

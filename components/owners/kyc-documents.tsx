@@ -1,14 +1,16 @@
 import { FileText, ExternalLink } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { useTranslations } from "next-intl";
 import type { KycDocDto } from "@/lib/types/kyc.types";
 
 function formatDate(iso: string): string {
   const d = new Date(iso);
-  return d.toLocaleDateString("uz-UZ", { day: "2-digit", month: "short", year: "numeric" });
+  return d.toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" });
 }
 
 export function KYCDocuments({ documents }: { documents: KycDocDto[] }) {
+  const t = useTranslations("owners");
   const docsWithUrl = documents.filter((d) => d.fileUrl !== null).length;
   const kycPct = Math.round((docsWithUrl / Math.max(documents.length, 1)) * 100);
 
@@ -16,10 +18,10 @@ export function KYCDocuments({ documents }: { documents: KycDocDto[] }) {
     return (
       <Card>
         <CardHeader className="pb-3">
-          <h2 className="font-heading text-base font-semibold tracking-tight">KYC hujjatlari</h2>
+          <h2 className="font-heading text-base font-semibold tracking-tight">{t("kyc.documents")}</h2>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">Hujjatlar topilmadi</p>
+          <p className="text-sm text-muted-foreground">{t("kyc.documentsEmpty")}</p>
         </CardContent>
       </Card>
     );
@@ -29,7 +31,7 @@ export function KYCDocuments({ documents }: { documents: KycDocDto[] }) {
     <Card>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between gap-2">
-          <h2 className="font-heading text-base font-semibold tracking-tight">KYC hujjatlari</h2>
+          <h2 className="font-heading text-base font-semibold tracking-tight">{t("kyc.documents")}</h2>
           <span className="text-[11px] font-medium tabular-nums text-muted-foreground">
             {docsWithUrl}/{documents.length}
           </span>
@@ -47,7 +49,7 @@ export function KYCDocuments({ documents }: { documents: KycDocDto[] }) {
             </div>
             <div className="flex min-w-0 flex-1 flex-col gap-0.5">
               <span className="truncate text-[13px] font-medium leading-tight">
-                {d.fileName ?? d.type ?? "Hujjat"}
+                {d.fileName ?? d.type ?? "Document"}
               </span>
               <span className="text-[11px] text-muted-foreground tabular-nums">
                 {formatDate(d.createdAt)}
@@ -59,7 +61,7 @@ export function KYCDocuments({ documents }: { documents: KycDocDto[] }) {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="opacity-0 transition-opacity group-hover/doc:opacity-100"
-                aria-label="Ochish"
+                aria-label="Open"
               >
                 <ExternalLink className="size-3.5 text-muted-foreground hover:text-foreground" />
               </a>

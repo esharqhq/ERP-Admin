@@ -5,19 +5,15 @@ import { Button } from "@/components/ui/button";
 import { DataTableCard } from "@/components/ui/data-table-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { UserPlus } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useAdmins, useCreateAdmin, useDeactivateAdmin } from "@/hooks/use-admins";
 import { useCreateRole } from "@/hooks/use-permissions";
 import { AdminRow } from "@/components/admins/admin-row";
 import { AdminDrawer } from "@/components/admins/admin-drawer";
 import { useAuthStore } from "@/store/auth.store";
 
-const columns = [
-  { label: "Admin" },
-  { label: "Rol" },
-  { label: "Amallar", className: "text-right" },
-];
-
 export default function AdminsPage() {
+  const t = useTranslations("admins");
   const [showCreate, setShowCreate] = useState(false);
   const [emailError, setEmailError] = useState<string | undefined>();
 
@@ -59,7 +55,7 @@ export default function AdminsPage() {
               onError: (err: unknown) => {
                 const error = err as { response?: { data?: { error?: string } } };
                 if (error?.response?.data?.error === "admin_email_exists") {
-                  setEmailError("Bu email allaqachon band.");
+                  setEmailError(t("errors.emailTaken"));
                 }
               },
             },
@@ -77,10 +73,10 @@ export default function AdminsPage() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
         <h1 className="font-heading text-3xl font-bold tracking-tight leading-tight">
-          Adminlar
+          {t("title")}
         </h1>
         <p className="text-sm text-muted-foreground">
-          Platforma administratorlarini boshqaring.
+          {t("subtitle")}
         </p>
       </div>
 
@@ -92,14 +88,18 @@ export default function AdminsPage() {
         </div>
       ) : (
         <DataTableCard
-          title="Adminlar"
+          title={t("title")}
           count={admins.length}
-          columns={columns}
+          columns={[
+            { label: t("columns.admin") },
+            { label: t("columns.role") },
+            { label: t("columns.actions"), className: "text-right" },
+          ]}
           data={admins}
           action={
             <Button size="sm" className="gap-2" onClick={() => setShowCreate(true)}>
               <UserPlus className="size-4" />
-              <span>Yangi admin</span>
+              <span>{t("newAdmin")}</span>
             </Button>
           }
           renderRow={(admin) => (

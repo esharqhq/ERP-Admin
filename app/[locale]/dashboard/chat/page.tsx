@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -18,14 +21,14 @@ type Conversation = {
 }
 
 const conversations: Conversation[] = [
-  { id: 1, name: "Jasur Toshmatov",    role: "Worker", lastMessage: "Task tugadi, foto yubordim",       time: "12:42", unread: 2, online: true,  active: true },
-  { id: 2, name: "Sunrise LLC",        role: "Owner",  lastMessage: "Shartnoma yangilandimi?",          time: "11:58", unread: 1 },
-  { id: 3, name: "Malika Saidova",     role: "Worker", lastMessage: "Materiallar yetib keldi",         time: "10:30", online: true },
-  { id: 4, name: "GrandBuild Corp",    role: "Owner",  lastMessage: "Worker o'z vaqtida kelmadi",      time: "09:15", unread: 3 },
-  { id: 5, name: "Bobur Karimov",      role: "Worker", lastMessage: "Bugun kasalman, kela olmayman",   time: "08:02" },
-  { id: 6, name: "Feruza Abdullayeva", role: "Owner",  lastMessage: "Rahmat, hammasi a'lo!",           time: "Kecha" },
-  { id: 7, name: "Zulfiya Rahimova",   role: "Worker", lastMessage: "Check-out qildim",                time: "Kecha" },
-  { id: 8, name: "Akbar Mirzayev",     role: "Owner",  lastMessage: "Yangi mulk qo'shmoqchiman",       time: "May 10" },
+  { id: 1, name: "Jasur Toshmatov",    role: "Worker", lastMessage: "Task done, photo sent",           time: "12:42", unread: 2, online: true,  active: true },
+  { id: 2, name: "Sunrise LLC",        role: "Owner",  lastMessage: "Has the contract been renewed?",  time: "11:58", unread: 1 },
+  { id: 3, name: "Malika Saidova",     role: "Worker", lastMessage: "Materials have arrived",          time: "10:30", online: true },
+  { id: 4, name: "GrandBuild Corp",    role: "Owner",  lastMessage: "Worker did not arrive on time",   time: "09:15", unread: 3 },
+  { id: 5, name: "Bobur Karimov",      role: "Worker", lastMessage: "I'm sick today, can't come",      time: "08:02" },
+  { id: 6, name: "Feruza Abdullayeva", role: "Owner",  lastMessage: "Thank you, everything is great!", time: "Yesterday" },
+  { id: 7, name: "Zulfiya Rahimova",   role: "Worker", lastMessage: "Checked out",                     time: "Yesterday" },
+  { id: 8, name: "Akbar Mirzayev",     role: "Owner",  lastMessage: "I want to add a new property",    time: "May 10" },
 ]
 
 type Message = {
@@ -37,24 +40,25 @@ type Message = {
 }
 
 const activeMessages: Message[] = [
-  { id: 1, from: "them", text: "Assalomu alaykum, Villa Sunrise'ga keldim",            time: "11:20" },
-  { id: 2, from: "me",   text: "Vaalaykum assalom. Ish boshlasangiz bo'ladi",          time: "11:22" },
-  { id: 3, from: "them", text: "HVAC tizimida muammo katta ekan, kompressorni almashtirish kerak", time: "11:45" },
-  { id: 4, from: "me",   text: "Foto yuboring, ko'rib chiqaman",                       time: "11:46" },
-  { id: 5, from: "them", text: "Mana, eski kompressor",                                time: "11:50", attachment: "compressor_old.jpg" },
-  { id: 6, from: "me",   text: "Tushunarli. Yangi qism uchun zayavka berdim, ertaga keladi", time: "12:05" },
-  { id: 7, from: "them", text: "Yaxshi. Bugun esa boshqa nosozliklarni ko'rib chiqaman", time: "12:30" },
-  { id: 8, from: "them", text: "Task tugadi, foto yubordim",                           time: "12:42", attachment: "completion.jpg" },
+  { id: 1, from: "them", text: "Hello, I've arrived at Villa Sunrise",                            time: "11:20" },
+  { id: 2, from: "me",   text: "Great. You can start the work",                                   time: "11:22" },
+  { id: 3, from: "them", text: "The HVAC system has a major issue — the compressor needs replacing", time: "11:45" },
+  { id: 4, from: "me",   text: "Send a photo, I'll take a look",                                  time: "11:46" },
+  { id: 5, from: "them", text: "Here, the old compressor",                                        time: "11:50", attachment: "compressor_old.jpg" },
+  { id: 6, from: "me",   text: "Understood. I've submitted a request for a new part, it arrives tomorrow", time: "12:05" },
+  { id: 7, from: "them", text: "OK. I'll check the other issues today",                           time: "12:30" },
+  { id: 8, from: "them", text: "Task done, photo sent",                                           time: "12:42", attachment: "completion.jpg" },
 ]
 
 export default function ChatPage() {
+  const t = useTranslations("chat");
   const active = conversations.find((c) => c.active) ?? conversations[0]
 
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Chat</h1>
-        <p className="text-muted-foreground">Workerlar va Ownerlar bilan ichki yozishmalar.</p>
+        <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
+        <p className="text-muted-foreground">{t("subtitle")}</p>
       </div>
 
       <Card className="overflow-hidden p-0">
@@ -63,7 +67,7 @@ export default function ChatPage() {
             <div className="border-b p-3">
               <div className="relative">
                 <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
-                <Input placeholder="Yozishmalarni qidirish..." className="pl-8" />
+                <Input placeholder={t("searchPlaceholder")} className="pl-8" />
               </div>
             </div>
             <ScrollArea className="flex-1">
@@ -94,7 +98,9 @@ export default function ChatPage() {
                           <Badge className="h-5 min-w-5 shrink-0 px-1.5 text-[10px]">{c.unread}</Badge>
                         ) : null}
                       </div>
-                      <Badge variant="outline" className="mt-0.5 w-fit text-[10px]">{c.role}</Badge>
+                      <Badge variant="outline" className="mt-0.5 w-fit text-[10px]">
+                        {c.role === "Worker" ? t("roles.worker") : t("roles.owner")}
+                      </Badge>
                     </div>
                   </button>
                 ))}
@@ -112,9 +118,9 @@ export default function ChatPage() {
                   <div className="text-sm font-semibold">{active.name}</div>
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     {active.online && <span className="size-1.5 rounded-full bg-emerald-500" />}
-                    {active.online ? "Online" : "Oxirgi: bugun"}
+                    {active.online ? t("online") : t("lastSeen")}
                     <span>·</span>
-                    {active.role}
+                    {active.role === "Worker" ? t("roles.worker") : t("roles.owner")}
                   </div>
                 </div>
               </div>
@@ -165,7 +171,7 @@ export default function ChatPage() {
             <div className="flex items-center gap-2 border-t p-3">
               <Button variant="ghost" size="icon"><Paperclip className="size-4" /></Button>
               <Button variant="ghost" size="icon"><Smile className="size-4" /></Button>
-              <Input placeholder="Xabar yozing..." className="flex-1" />
+              <Input placeholder={t("messagePlaceholder")} className="flex-1" />
               <Button size="icon">
                 <Send className="size-4" />
               </Button>

@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { PermissionSwitches } from "./permission-switches";
 import { useAllRoles } from "@/hooks/use-permissions";
 
@@ -30,6 +31,8 @@ export function EditPermissionsDrawer({
   adminName,
   roleId,
 }: Props) {
+  const t = useTranslations("admins");
+  const tCommon = useTranslations("common");
   const { data: roles = [] } = useAllRoles();
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [syncedKey, setSyncedKey] = useState<string>("");
@@ -52,7 +55,7 @@ export function EditPermissionsDrawer({
     <Dialog open={open} onOpenChange={(v) => !v && handleClose()}>
       <DialogContent className="flex max-h-[90vh] w-full sm:max-w-2xl flex-col gap-0 overflow-hidden p-0">
         <DialogHeader className="shrink-0 px-6 pt-6 pb-4 border-b border-border">
-          <DialogTitle>{adminName} — Permissionlar</DialogTitle>
+          <DialogTitle>{adminName} — {t("form.permissions")}</DialogTitle>
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto px-6">
@@ -67,14 +70,14 @@ export function EditPermissionsDrawer({
             onClick={handleClose}
             disabled={isPending}
           >
-            Bekor qilish
+            {tCommon("cancel")}
           </Button>
           <Button
             onClick={() => onConfirm(Array.from(selected))}
             disabled={isPending}
           >
             {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
-            Saqlash
+            {tCommon("save")}
           </Button>
         </DialogFooter>
       </DialogContent>

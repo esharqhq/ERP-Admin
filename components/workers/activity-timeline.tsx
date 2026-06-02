@@ -2,18 +2,21 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import { activityIcon, formatDate } from "@/lib/worker-utils"
+import { useTranslations } from "next-intl"
 import type { Worker } from "@/lib/workers"
 
 export function ActivityTimeline({ worker }: { worker: Worker }) {
+  const t = useTranslations("workers");
+
   return (
     <Card>
       <CardHeader className="pb-3">
-        <h2 className="font-heading text-base font-semibold tracking-tight">{"So'nggi faollik"}</h2>
-        <p className="text-xs text-muted-foreground mt-0.5">{"Vazifalar, to'lovlar va hujjatlar tarixi"}</p>
+        <h2 className="font-heading text-base font-semibold tracking-tight">{t("activity.title")}</h2>
+        <p className="text-xs text-muted-foreground mt-0.5">{t("activity.subtitle")}</p>
       </CardHeader>
       <CardContent>
         {worker.activity.length === 0 ? (
-          <p className="py-6 text-center text-sm text-muted-foreground">{"Faollik tarixi yo'q"}</p>
+          <p className="py-6 text-center text-sm text-muted-foreground">{t("activity.empty")}</p>
         ) : (
           <ol className="relative flex flex-col gap-4 pl-6 before:absolute before:left-[11px] before:top-1 before:bottom-1 before:w-px before:bg-border">
             {worker.activity.map((a) => {

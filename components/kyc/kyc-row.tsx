@@ -5,6 +5,7 @@ import { TableCell, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useTranslations } from "next-intl";
 import { KycApproveModal } from "./kyc-approve-modal";
 import { KycRejectModal } from "./kyc-reject-modal";
 import type { KycProfileSummaryDto } from "@/lib/types/kyc.types";
@@ -24,6 +25,7 @@ const statusVariant: Record<string, "default" | "secondary" | "destructive" | "o
 };
 
 export function KycRow({ kyc, onApprove, onReject, isApproving, isRejecting }: Props) {
+  const tCommon = useTranslations("common");
   const [showApprove, setShowApprove] = useState(false);
   const [showReject, setShowReject] = useState(false);
   const canAct = kyc.kycStatus === "Pending" || (!kyc.isApproved && !kyc.kycRejectReason);
@@ -64,7 +66,7 @@ export function KycRow({ kyc, onApprove, onReject, isApproving, isRejecting }: P
         {canAct && (
           <div className="flex justify-end gap-1.5">
             <Button size="sm" onClick={() => setShowApprove(true)} disabled={isApproving}>
-              Tasdiqlash
+              {tCommon("approve")}
             </Button>
             <Button
               size="sm"
@@ -73,7 +75,7 @@ export function KycRow({ kyc, onApprove, onReject, isApproving, isRejecting }: P
               disabled={isRejecting}
               className="text-destructive hover:bg-destructive/10"
             >
-              Rad etish
+              {tCommon("reject")}
             </Button>
           </div>
         )}

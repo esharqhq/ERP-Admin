@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface Props {
   open: boolean;
@@ -20,22 +21,25 @@ interface Props {
 }
 
 export function DocApproveModal({ open, onClose, onConfirm, isPending, fileName }: Props) {
+  const t = useTranslations("workers");
+  const tCommon = useTranslations("common");
+
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Hujjatni tasdiqlash</DialogTitle>
+          <DialogTitle>{t("docApprove")}</DialogTitle>
           <DialogDescription>
-            <strong>{fileName}</strong> ni tasdiqlashni xohlaysizmi?
+            <strong>{fileName}</strong>
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={isPending}>
-            Bekor qilish
+            {tCommon("cancel")}
           </Button>
           <Button onClick={onConfirm} disabled={isPending}>
             {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
-            Tasdiqlash
+            {t("approve")}
           </Button>
         </DialogFooter>
       </DialogContent>
