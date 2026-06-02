@@ -15,7 +15,7 @@ export default async function LoginPage() {
                         width={100}
                         height={40}
                         priority
-                        className=" object-contain"
+                        className="h-auto object-contain"
                     />
 
                 </header>

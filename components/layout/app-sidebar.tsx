@@ -29,7 +29,7 @@ import { navGroups } from "@/lib/nav-items"
 import { logoutAction } from "@/app/[locale]/login/actions"
 import { useAuthStore } from "@/store/auth.store"
 import { ChevronsUpDown, LogOut } from "lucide-react"
-import { useTranslations } from "next-intl"
+import { useTranslations, useLocale } from "next-intl"
 
 const menuButtonClass =
   "relative h-9 gap-3 px-2.5 text-[13px] font-medium text-sidebar-foreground/75 transition-colors " +
@@ -41,7 +41,9 @@ const menuButtonClass =
   "group-data-[collapsible=icon]:before:hidden"
 
 export function AppSidebar() {
-  const pathname = usePathname()
+  const rawPathname = usePathname()
+  const locale = useLocale()
+  const pathname = rawPathname.replace(`/${locale}`, "") || "/"
   const adminMe = useAuthStore((s) => s.adminMe)
   const t = useTranslations()
 
@@ -156,6 +158,7 @@ export function AppSidebar() {
                   <DropdownMenuItem
                     variant="destructive"
                     className="w-full cursor-pointer"
+                    nativeButton
                     render={<button type="submit" />}
                   >
                     <LogOut />
