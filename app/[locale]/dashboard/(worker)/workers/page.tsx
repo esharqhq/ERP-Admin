@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -30,7 +30,7 @@ import { cn } from "@/lib/utils";
 import { useWorkers } from "@/hooks/use-workers";
 import { useAdminTaskGroups } from "@/hooks/use-tasks";
 import type { WorkerSummaryDto } from "@/lib/types/worker.types";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 
 
 const workerHues: Record<number, { chip: string; dot: string }> = {
@@ -44,10 +44,6 @@ const workerHues: Record<number, { chip: string; dot: string }> = {
 
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-const MONTHS_UZ = [
-  "January", "February", "March",     "April",   "May",      "June",
-  "July",    "August",   "September", "October", "November", "December",
-];
 
 function dateKey(d: Date) {
   return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
@@ -63,12 +59,12 @@ function isWorkerDayOff(workerIdx: number, dayOfWeek: number): boolean {
 
 const MOCK_ASSIGNABLE_TASKS = [
   { id: "t1", label: "HVAC Repair",              property: "Villa Sunrise #12"    },
-  { id: "t2", label: "Plumbing Work",            property: "Amir Business Center" },
+  { id: "t2", label: "Plumbing Work",            property: "Empire Business Center" },
   { id: "t3", label: "Electrical Inspection",    property: "GrandBuild Tower B"   },
   { id: "t4", label: "Cleaning",                 property: "Hotel Grand, 3rd floor" },
   { id: "t5", label: "Window Replacement",       property: "Office Block B"       },
   { id: "t6", label: "Wall Painting",            property: "Residence North"      },
-  { id: "t7", label: "AC Installation",          property: "Feruza Apartments"    },
+  { id: "t7", label: "AC Installation",          property: "Frieda Apartments"    },
 ];
 
 type StatusTab = "all" | "pending" | "approved";
@@ -225,10 +221,16 @@ function WorkersTable({
 
 function WorkersCalendar() {
   const t = useTranslations("workers");
-  const today = useMemo(() => {
-    const d = new Date();
+  const locale = useLocale();
+  const [today, setToday] = useState<Date>(() => {
+    const d = new Date(0); // epoch — stable placeholder for SSR
     d.setHours(0, 0, 0, 0);
     return d;
+  });
+  useEffect(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    setToday(d);
   }, []);
 
   const [weekOffset, setWeekOffset] = useState(0);
@@ -296,18 +298,21 @@ function WorkersCalendar() {
     const mon = weekDays[0];
     const sun = weekDays[6];
     if (mon.getMonth() === sun.getMonth()) {
-      return `${mon.getDate()}–${sun.getDate()} ${MONTHS_UZ[sun.getMonth()]} ${sun.getFullYear()}`;
+      const monStr = mon.toLocaleDateString(locale, { day: "numeric" });
+      const sunStr = sun.toLocaleDateString(locale, { day: "numeric", month: "long", year: "numeric" });
+      return `${monStr}–${sunStr}`;
     }
-    return `${mon.getDate()} ${MONTHS_UZ[mon.getMonth()]} – ${sun.getDate()} ${MONTHS_UZ[sun.getMonth()]} ${sun.getFullYear()}`;
+    const monStr = mon.toLocaleDateString(locale, { day: "numeric", month: "long" });
+    const sunStr = sun.toLocaleDateString(locale, { day: "numeric", month: "long", year: "numeric" });
+    return `${monStr} – ${sunStr}`;
   })();
 
   function openAssignDialog(workerName: string, d: Date, isoDate: string) {
-    const wd = (d.getDay() + 6) % 7;
-    const wdNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    const displayDate = `${d.toLocaleDateString(locale, { weekday: "long" })}, ${d.toLocaleDateString(locale, { day: "numeric", month: "long" })}`;
     setSelectedCell({
       workerName,
       workerInitials: workerName.slice(0, 2).toUpperCase(),
-      displayDate: `${wdNames[wd]}, ${d.getDate()}-${MONTHS_UZ[d.getMonth()].toLowerCase()}`,
+      displayDate,
       isoDate,
     });
     setSelectedTaskId("");

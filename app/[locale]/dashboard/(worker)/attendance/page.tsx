@@ -9,6 +9,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table"
 import { Search, MapPin, Camera, CheckCircle2, XCircle, Clock as ClockIcon } from "lucide-react"
+import { useState, useEffect } from "react"
 import { useTranslations, useLocale } from "next-intl"
 
 type Status = "On Time" | "Late" | "Absent" | "Checked Out"
@@ -25,13 +26,13 @@ const records: {
   status: Status
   reason?: string
 }[] = [
-  { id: 1, name: "Jasur Toshmatov",   role: "Senior",       checkIn: "08:02", checkOut: "—",     location: "Villa Sunrise",       geofence: true,  selfie: true,  status: "On Time" },
-  { id: 2, name: "Malika Saidova",    role: "Professional", checkIn: "08:45", checkOut: "—",     location: "GrandBuild Tower B",  geofence: true,  selfie: true,  status: "Late",      reason: "Transport delay" },
-  { id: 3, name: "Bobur Karimov",     role: "Junior",       checkIn: "—",     checkOut: "—",     location: "—",                   geofence: false, selfie: false, status: "Absent" },
-  { id: 4, name: "Zulfiya Rahimova",  role: "Junior",       checkIn: "07:55", checkOut: "17:10", location: "Sunrise Hotel",       geofence: true,  selfie: true,  status: "Checked Out" },
-  { id: 5, name: "Sherzod Aliyev",    role: "Professional", checkIn: "09:25", checkOut: "—",     location: "Office Block B",      geofence: false, selfie: true,  status: "Late",      reason: "Outside geofence" },
-  { id: 6, name: "Nodira Yusupova",   role: "Senior",       checkIn: "07:58", checkOut: "—",     location: "Feruza Apartments",   geofence: true,  selfie: true,  status: "On Time" },
-  { id: 7, name: "Akmal Xolmatov",    role: "Junior",       checkIn: "—",     checkOut: "—",     location: "—",                   geofence: false, selfie: false, status: "Absent" },
+  { id: 1, name: "John Schmidt",   role: "Senior",       checkIn: "08:02", checkOut: "—",     location: "Sunrise Villa",       geofence: true,  selfie: true,  status: "On Time" },
+  { id: 2, name: "Emma Schulz",    role: "Professional", checkIn: "08:45", checkOut: "—",     location: "GrandBuild Tower B",  geofence: true,  selfie: true,  status: "Late",      reason: "Transport delay" },
+  { id: 3, name: "Michael Kaiser",     role: "Junior",       checkIn: "—",     checkOut: "—",     location: "—",                   geofence: false, selfie: false, status: "Absent" },
+  { id: 4, name: "Anna Wagner",  role: "Junior",       checkIn: "07:55", checkOut: "17:10", location: "Sunrise Hotel",       geofence: true,  selfie: true,  status: "Checked Out" },
+  { id: 5, name: "Robert Weber",    role: "Professional", checkIn: "09:25", checkOut: "—",     location: "Office Block B",      geofence: false, selfie: true,  status: "Late",      reason: "Outside geofence" },
+  { id: 6, name: "Laura Becker",   role: "Senior",       checkIn: "07:58", checkOut: "—",     location: "Frieda Apartments",   geofence: true,  selfie: true,  status: "On Time" },
+  { id: 7, name: "Thomas Hoffmann",    role: "Junior",       checkIn: "—",     checkOut: "—",     location: "—",                   geofence: false, selfie: false, status: "Absent" },
 ]
 
 const statusVariant: Record<Status, "default" | "secondary" | "destructive" | "outline"> = {
@@ -52,7 +53,10 @@ export default function AttendancePage() {
     { label: t("stats.notYetArrived"), value: 7,  accent: "text-muted-foreground" },
   ]
 
-  const todayLabel = new Date().toLocaleDateString(locale, { weekday: "long", month: "long", day: "numeric" })
+  const [todayLabel, setTodayLabel] = useState("")
+  useEffect(() => {
+    setTodayLabel(new Date().toLocaleDateString(locale, { weekday: "long", month: "long", day: "numeric" }))
+  }, [locale])
 
   return (
     <div className="flex flex-col gap-4">
