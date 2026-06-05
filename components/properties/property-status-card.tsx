@@ -1,12 +1,12 @@
 import { CheckCircle2, Clock, XCircle } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import type { PropertyDto } from "@/lib/types/property.types";
 
-function formatDate(iso: string | null): string {
+function formatDate(iso: string | null, locale: string): string {
   if (!iso) return "—";
-  return new Date(iso).toLocaleDateString("en-US", {
+  return new Date(iso).toLocaleDateString(locale, {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -15,6 +15,7 @@ function formatDate(iso: string | null): string {
 
 export function PropertyStatusCard({ property }: { property: PropertyDto }) {
   const t = useTranslations("properties");
+  const locale = useLocale();
 
   const docsStatusStyle: Record<
     string,
@@ -83,7 +84,7 @@ export function PropertyStatusCard({ property }: { property: PropertyDto }) {
         <div className="flex flex-col gap-1.5 text-[12px]">
           <div className="flex items-center justify-between gap-2">
             <span className="text-muted-foreground">{t("docsStatus.reviewedAt")}</span>
-            <span className="font-medium tabular-nums">{formatDate(property.docsReviewedAt)}</span>
+            <span className="font-medium tabular-nums">{formatDate(property.docsReviewedAt, locale)}</span>
           </div>
           {property.docsStatus === "Rejected" && property.docsRejectReason && (
             <div className="flex flex-col gap-0.5 rounded-md bg-destructive/5 px-2.5 py-2 text-destructive">

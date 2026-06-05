@@ -7,7 +7,7 @@ export interface AdminSummaryDto {
   fullName: string;
   email: string;
   roleCode: string;           // "SUPER_ADMIN" | "custom_xxx" | "MODERATOR"
-  roleId: string;             // UUID — PATCH /api/admin/roles/{roleId} uchun kerak
+  roleId: string;             // UUID — needed for PATCH /api/admin/roles/{roleId}
   isVerified: boolean;
   profilePictureUrl: string | null;
   createdAt: string;

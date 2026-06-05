@@ -1,16 +1,17 @@
 import { FileText, ExternalLink } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import type { KycDocDto } from "@/lib/types/kyc.types";
 
-function formatDate(iso: string): string {
+function formatDate(iso: string, locale: string): string {
   const d = new Date(iso);
-  return d.toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" });
+  return d.toLocaleDateString(locale, { day: "2-digit", month: "short", year: "numeric" });
 }
 
 export function KYCDocuments({ documents }: { documents: KycDocDto[] }) {
   const t = useTranslations("owners");
+  const locale = useLocale();
   const docsWithUrl = documents.filter((d) => d.fileUrl !== null).length;
   const kycPct = Math.round((docsWithUrl / Math.max(documents.length, 1)) * 100);
 
@@ -52,7 +53,7 @@ export function KYCDocuments({ documents }: { documents: KycDocDto[] }) {
                 {d.fileName ?? d.type ?? "Document"}
               </span>
               <span className="text-[11px] text-muted-foreground tabular-nums">
-                {formatDate(d.createdAt)}
+                {formatDate(d.createdAt, locale)}
               </span>
             </div>
             {d.fileUrl && (

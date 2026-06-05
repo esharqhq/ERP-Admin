@@ -1,6 +1,7 @@
 import { Building2, Home, Hotel, Briefcase, Store, MapPin } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useLocale } from "next-intl";
 import type { PropertyDto } from "@/lib/types/property.types";
 
 const typeIcon: Record<string, React.ReactNode> = {
@@ -19,8 +20,8 @@ const docsStatusVariant: Record<string, "default" | "secondary" | "destructive" 
   Rejected: "destructive",
 };
 
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", {
+function formatDate(iso: string, locale: string): string {
+  return new Date(iso).toLocaleDateString(locale, {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -28,6 +29,7 @@ function formatDate(iso: string): string {
 }
 
 export function PropertyHero({ property }: { property: PropertyDto }) {
+  const locale = useLocale();
   const resolvedType = property.type ?? "Other";
   const icon = typeIcon[resolvedType] ?? <Building2 className="size-5" />;
   const statusVariant = property.docsStatus
@@ -69,7 +71,7 @@ export function PropertyHero({ property }: { property: PropertyDto }) {
                 {property.docsStatus ?? "—"}
               </Badge>
               <span className="text-[11px] text-muted-foreground">
-                {formatDate(property.createdAt)}
+                {formatDate(property.createdAt, locale)}
               </span>
             </div>
           </div>

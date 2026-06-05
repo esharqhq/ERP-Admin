@@ -16,14 +16,14 @@ const pendingTasks = [
   {
     id: "T-001",
     title: "HVAC Repair",
-    property: "Villa Sunrise, #12",
+    property: "Sunrise Villa, #12",
     priority: "High",
     time: "2h",
   },
   {
     id: "T-002",
     title: "Plumbing Fix",
-    property: "Amir Business Center",
+    property: "Empire Business Center",
     priority: "Medium",
     time: "4h",
   },
@@ -44,10 +44,10 @@ const pendingTasks = [
 ];
 
 const availableWorkers = [
-  { id: 1, name: "Jasur T.", role: "Senior", status: "Available" },
-  { id: 2, name: "Malika S.", role: "Professional", status: "Available" },
-  { id: 3, name: "Bobur K.", role: "Junior", status: "On Task" },
-  { id: 4, name: "Zulfiya R.", role: "Junior", status: "Available" },
+  { id: 1, name: "John S.", role: "Senior", status: "Available" },
+  { id: 2, name: "Emma S.", role: "Professional", status: "Available" },
+  { id: 3, name: "Michael K.", role: "Junior", status: "On Task" },
+  { id: 4, name: "Anna W.", role: "Junior", status: "Available" },
 ];
 
 const priorityVariant: Record<

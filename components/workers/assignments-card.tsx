@@ -3,19 +3,22 @@ import { MapPin, CalendarDays } from "lucide-react"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import { assignmentStatusStyle, formatDate } from "@/lib/worker-utils"
+import { useLocale } from "next-intl"
 import type { Worker } from "@/lib/workers"
 
 export function AssignmentsCard({ worker }: { worker: Worker }) {
+  const locale = useLocale()
+
   return (
     <Card>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between gap-2">
-          <h2 className="font-heading text-base font-semibold tracking-tight">Topshiriqlar</h2>
+          <h2 className="font-heading text-base font-semibold tracking-tight">Assignments</h2>
           <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-muted px-1.5 text-[11px] font-semibold tabular-nums text-muted-foreground">
             {worker.assignments.length}
           </span>
         </div>
-        <p className="text-xs text-muted-foreground mt-0.5">Faol va rejalangan vazifalar</p>
+        <p className="text-xs text-muted-foreground mt-0.5">Active and upcoming tasks</p>
       </CardHeader>
       <CardContent>
         {worker.assignments.length === 0 ? (
@@ -23,7 +26,7 @@ export function AssignmentsCard({ worker }: { worker: Worker }) {
             <div className="flex size-10 items-center justify-center rounded-full bg-muted">
               <CalendarDays className="size-4 text-muted-foreground" />
             </div>
-            <span className="text-sm text-muted-foreground">{"Hozirda topshiriq yo'q"}</span>
+            <span className="text-sm text-muted-foreground">No assignments right now</span>
           </div>
         ) : (
           <ul className="flex flex-col gap-3">
@@ -50,7 +53,7 @@ export function AssignmentsCard({ worker }: { worker: Worker }) {
                       </span>
                       <span className="inline-flex items-center gap-1">
                         <CalendarDays className="size-3 shrink-0" />
-                        {formatDate(a.date)}
+                        {formatDate(a.date, locale)}
                       </span>
                     </div>
                   </div>

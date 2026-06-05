@@ -16,14 +16,14 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Search, FolderOpen } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useWorkers } from "@/hooks/use-workers";
 import type { WorkerSummaryDto } from "@/lib/types/worker.types";
 
 type FilterTab = "all" | "approved" | "pending";
 
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-US", {
+function formatDate(iso: string, locale: string) {
+  return new Date(iso).toLocaleDateString(locale, {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -40,7 +40,7 @@ function ApprovalBadge({ isApproved, isVerified }: { isApproved: boolean; isVeri
   return <Badge variant="outline">Pending</Badge>;
 }
 
-function WorkerRow({ worker }: { worker: WorkerSummaryDto }) {
+function WorkerRow({ worker, locale }: { worker: WorkerSummaryDto; locale: string }) {
   return (
     <TableRow className="hover:bg-accent/40">
       <TableCell className="py-3 font-medium">
@@ -50,7 +50,7 @@ function WorkerRow({ worker }: { worker: WorkerSummaryDto }) {
         {worker.phoneNumber ?? worker.email ?? "—"}
       </TableCell>
       <TableCell className="text-sm text-muted-foreground">
-        {formatDate(worker.createdAt)}
+        {formatDate(worker.createdAt, locale)}
       </TableCell>
       <TableCell>
         <ApprovalBadge isApproved={worker.isApproved} isVerified={worker.isVerified} />
@@ -74,6 +74,7 @@ function WorkerRow({ worker }: { worker: WorkerSummaryDto }) {
 export default function WorkerDocumentsPage() {
   const t = useTranslations("workers");
   const tStatus = useTranslations("status");
+  const locale = useLocale();
   const [tab, setTab] = useState<FilterTab>("all");
   const [search, setSearch] = useState("");
 
@@ -174,7 +175,7 @@ export default function WorkerDocumentsPage() {
                 </TableRow>
               ) : (
                 filtered.map((worker) => (
-                  <WorkerRow key={worker.id} worker={worker} />
+                  <WorkerRow key={worker.id} worker={worker} locale={locale} />
                 ))
               )}
             </TableBody>

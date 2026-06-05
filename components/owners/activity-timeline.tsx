@@ -1,16 +1,16 @@
 import { Clock, PlayCircle, CheckCircle2, XCircle } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import type { AdminTaskGroupSummaryDto } from "@/lib/types/task.types";
 
 interface ActivityTimelineProps {
   taskGroups: AdminTaskGroupSummaryDto[];
 }
 
-function formatDate(iso: string): string {
+function formatDate(iso: string, locale: string): string {
   const d = new Date(iso);
-  return d.toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" });
+  return d.toLocaleDateString(locale, { day: "2-digit", month: "short", year: "numeric" });
 }
 
 function StatusIcon({ status }: { status: string }) {
@@ -28,6 +28,7 @@ function statusVariant(status: string): "default" | "secondary" | "destructive" 
 
 export function ActivityTimeline({ taskGroups }: ActivityTimelineProps) {
   const t = useTranslations("owners");
+  const locale = useLocale();
 
   return (
     <Card>
@@ -63,7 +64,7 @@ export function ActivityTimeline({ taskGroups }: ActivityTimelineProps) {
               </div>
               <div className="flex shrink-0 flex-col items-end gap-1">
                 <span className="text-[11px] tabular-nums text-muted-foreground">
-                  {formatDate(group.firstDate)}
+                  {formatDate(group.firstDate, locale)}
                 </span>
                 <Badge variant={statusVariant(group.status)} className="text-[10px]">
                   {group.status}

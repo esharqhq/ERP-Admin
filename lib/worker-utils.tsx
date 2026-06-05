@@ -16,9 +16,9 @@ export const roleColors: Record<string, string> = {
 }
 
 export const assignmentStatusStyle: Record<string, { dot: string; text: string; label: string; icon: React.ReactNode }> = {
-  Active:   { dot: "bg-emerald-500", text: "text-emerald-700 dark:text-emerald-400", label: "Faol",      icon: <CheckCircle2 className="size-3.5" /> },
-  Upcoming: { dot: "bg-blue-500",    text: "text-blue-700 dark:text-blue-400",       label: "Rejalangan", icon: <Clock className="size-3.5" /> },
-  Done:     { dot: "bg-zinc-400",    text: "text-muted-foreground",                  label: "Bajarilgan", icon: <XCircle className="size-3.5" /> },
+  Active:   { dot: "bg-emerald-500", text: "text-emerald-700 dark:text-emerald-400", label: "Active",   icon: <CheckCircle2 className="size-3.5" /> },
+  Upcoming: { dot: "bg-blue-500",    text: "text-blue-700 dark:text-blue-400",       label: "Upcoming", icon: <Clock className="size-3.5" /> },
+  Done:     { dot: "bg-zinc-400",    text: "text-muted-foreground",                  label: "Done",     icon: <XCircle className="size-3.5" /> },
 }
 
 export const activityIcon: Record<WorkerActivity["kind"], { icon: React.ReactNode; ring: string; bg: string; text: string }> = {
@@ -35,8 +35,8 @@ export const STAT_TONES: Record<string, { ring: string; bg: string; text: string
   amber:   { ring: "ring-amber-500/20",   bg: "bg-amber-500/10",   text: "text-amber-600 dark:text-amber-400" },
 }
 
-export function formatDate(iso: string) {
+export function formatDate(iso: string, locale = "en-US") {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return iso
   const d = new Date(iso)
-  return d.toLocaleDateString("uz-UZ", { day: "2-digit", month: "short", year: "numeric" })
+  return d.toLocaleDateString(locale, { day: "2-digit", month: "short", year: "numeric" })
 }

@@ -2,11 +2,12 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import { activityIcon, formatDate } from "@/lib/worker-utils"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import type { Worker } from "@/lib/workers"
 
 export function ActivityTimeline({ worker }: { worker: Worker }) {
   const t = useTranslations("workers");
+  const locale = useLocale();
 
   return (
     <Card>
@@ -34,7 +35,7 @@ export function ActivityTimeline({ worker }: { worker: Worker }) {
                   <div className="flex flex-col gap-0.5">
                     <div className="flex flex-wrap items-baseline justify-between gap-2">
                       <span className="text-sm font-medium">{a.title}</span>
-                      <span className="text-[11px] text-muted-foreground tabular-nums">{formatDate(a.date)}</span>
+                      <span className="text-[11px] text-muted-foreground tabular-nums">{formatDate(a.date, locale)}</span>
                     </div>
                     <span className="text-xs text-muted-foreground">{a.description}</span>
                   </div>

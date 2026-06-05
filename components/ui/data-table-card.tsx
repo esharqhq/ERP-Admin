@@ -5,6 +5,7 @@ import {
   Table, TableBody, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table"
 import { Search, Filter } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { cn } from "@/lib/utils"
 
 export type DataTableColumn = {
@@ -27,7 +28,7 @@ type DataTableCardProps<T> = {
 export function DataTableCard<T>({
   title,
   count,
-  searchPlaceholder = "Qidirish...",
+  searchPlaceholder,
   searchValue,
   onSearchChange,
   columns,
@@ -35,19 +36,20 @@ export function DataTableCard<T>({
   renderRow,
   action,
 }: DataTableCardProps<T>) {
+  const t = useTranslations("common")
   return (
     <Card>
       <CardHeader className="pb-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="font-heading text-base font-semibold tracking-tight">{title}</h2>
-            <p className="text-xs text-muted-foreground mt-0.5">{count} ta natija topildi</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{t("resultsFound", { count })}</p>
           </div>
           <div className="flex items-center gap-2">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
               <Input
-                placeholder={searchPlaceholder}
+                placeholder={searchPlaceholder ?? `${t("search")}...`}
                 className="h-9 w-full pl-9 sm:w-64"
                 value={searchValue ?? ""}
                 onChange={(e) => onSearchChange?.(e.target.value)}
@@ -55,7 +57,7 @@ export function DataTableCard<T>({
             </div>
             <Button variant="outline" size="sm" className="gap-2">
               <Filter className="size-4" />
-              <span className="hidden sm:inline">Filtr</span>
+              <span className="hidden sm:inline">{t("filter")}</span>
             </Button>
             {action}
           </div>

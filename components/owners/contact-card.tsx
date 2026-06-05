@@ -2,17 +2,18 @@ import { Mail, Hash, CalendarDays, MessageSquare } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { InfoRow } from "./info-row";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import type { KycProfileSummaryDto } from "@/lib/types/kyc.types";
 
-function formatDate(iso: string | null): string {
+function formatDate(iso: string | null, locale: string): string {
   if (!iso) return "—";
   const d = new Date(iso);
-  return d.toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" });
+  return d.toLocaleDateString(locale, { day: "2-digit", month: "short", year: "numeric" });
 }
 
 export function ContactCard({ owner }: { owner: KycProfileSummaryDto }) {
   const t = useTranslations("owners");
+  const locale = useLocale();
 
   return (
     <Card>
@@ -37,7 +38,7 @@ export function ContactCard({ owner }: { owner: KycProfileSummaryDto }) {
         <InfoRow
           icon={<CalendarDays className="size-3.5" />}
           label={t("contact.reviewedAt")}
-          value={formatDate(owner.kycReviewedAt)}
+          value={formatDate(owner.kycReviewedAt, locale)}
         />
         {owner.kycRejectReason && (
           <InfoRow

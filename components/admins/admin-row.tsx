@@ -15,6 +15,7 @@ import { MoreHorizontal, KeyRound, UserX } from "lucide-react";
 import { DeactivateConfirm } from "./deactivate-confirm";
 import { EditPermissionsDrawer } from "./edit-permissions-drawer";
 import { useUpdateRolePermissions } from "@/hooks/use-permissions";
+import { useTranslations } from "next-intl";
 import type { AdminSummaryDto } from "@/lib/types/admin-user.types";
 
 interface Props {
@@ -25,6 +26,7 @@ interface Props {
 }
 
 export function AdminRow({ admin, isSelf, onDeactivate, isDeactivating }: Props) {
+  const t = useTranslations("admins");
   const [showDeactivate, setShowDeactivate] = useState(false);
   const [showPermissions, setShowPermissions] = useState(false);
 
@@ -33,9 +35,9 @@ export function AdminRow({ admin, isSelf, onDeactivate, isDeactivating }: Props)
   const isSystemAdmin = admin.roleCode === "SUPER_ADMIN";
 
   function getRoleLabel(roleCode: string): string {
-    if (roleCode === "SUPER_ADMIN") return "Super Admin";
-    if (roleCode === "MODERATOR") return "Moderator";
-    return "Sub Admin";
+    if (roleCode === "SUPER_ADMIN") return t("roles.superAdmin");
+    if (roleCode === "MODERATOR") return t("roles.moderator");
+    return t("roles.subAdmin");
   }
 
   function getRoleBadgeVariant(roleCode: string): "default" | "secondary" | "outline" {
@@ -59,7 +61,7 @@ export function AdminRow({ admin, isSelf, onDeactivate, isDeactivating }: Props)
             <span className="text-sm font-medium">
               {admin.fullName}
               {isSelf && (
-                <span className="ml-1.5 text-[10px] text-muted-foreground">(siz)</span>
+                <span className="ml-1.5 text-[10px] text-muted-foreground">{t("deactivate.you")}</span>
               )}
             </span>
             <span className="text-[11px] text-muted-foreground">{admin.email}</span>
@@ -86,7 +88,7 @@ export function AdminRow({ admin, isSelf, onDeactivate, isDeactivating }: Props)
               disabled={isSystemAdmin}
             >
               <KeyRound className="mr-2 size-4" />
-              Permissionlar
+              {t("form.permissions")}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => setShowDeactivate(true)}
@@ -94,7 +96,7 @@ export function AdminRow({ admin, isSelf, onDeactivate, isDeactivating }: Props)
               className="text-destructive focus:text-destructive"
             >
               <UserX className="mr-2 size-4" />
-              Deactivate
+              {t("deactivate.confirm")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

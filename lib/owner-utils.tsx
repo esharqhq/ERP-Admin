@@ -8,9 +8,9 @@ export const statusVariant: Record<Owner["status"], "default" | "secondary" | "d
 }
 
 export const riskTone: Record<Owner["risk"], { ring: string; bg: string; text: string; icon: React.ReactNode; label: string }> = {
-  Low:    { ring: "ring-emerald-500/25", bg: "bg-emerald-500/10",  text: "text-emerald-700 dark:text-emerald-400", icon: <ShieldCheck className="size-4" />, label: "Past xavf" },
-  Medium: { ring: "ring-amber-500/25",   bg: "bg-amber-500/10",    text: "text-amber-700 dark:text-amber-400",     icon: <ShieldAlert className="size-4" />, label: "O'rta xavf" },
-  High:   { ring: "ring-rose-500/30",    bg: "bg-rose-500/10",     text: "text-rose-700 dark:text-rose-400",       icon: <AlertTriangle className="size-4" />, label: "Yuqori xavf" },
+  Low:    { ring: "ring-emerald-500/25", bg: "bg-emerald-500/10",  text: "text-emerald-700 dark:text-emerald-400", icon: <ShieldCheck className="size-4" />, label: "Low risk" },
+  Medium: { ring: "ring-amber-500/25",   bg: "bg-amber-500/10",    text: "text-amber-700 dark:text-amber-400",     icon: <ShieldAlert className="size-4" />, label: "Medium risk" },
+  High:   { ring: "ring-rose-500/30",    bg: "bg-rose-500/10",     text: "text-rose-700 dark:text-rose-400",       icon: <AlertTriangle className="size-4" />, label: "High risk" },
 }
 
 export const propStatusVariant: Record<string, "default" | "secondary" | "destructive"> = {
@@ -20,10 +20,10 @@ export const propStatusVariant: Record<string, "default" | "secondary" | "destru
 }
 
 export const docStatusStyle: Record<OwnerDocument["status"], { dot: string; text: string; label: string; icon: React.ReactNode }> = {
-  Valid:    { dot: "bg-emerald-500", text: "text-emerald-700 dark:text-emerald-400", label: "Amal qiladi", icon: <CheckCircle2 className="size-3.5" /> },
-  Expiring: { dot: "bg-amber-500",   text: "text-amber-700 dark:text-amber-400",     label: "Muddati tugayapti", icon: <Clock className="size-3.5" /> },
-  Expired:  { dot: "bg-rose-500",    text: "text-rose-700 dark:text-rose-400",       label: "Muddati tugagan", icon: <XCircle className="size-3.5" /> },
-  Missing:  { dot: "bg-zinc-400",    text: "text-muted-foreground",                  label: "Yuklanmagan", icon: <XCircle className="size-3.5" /> },
+  Valid:    { dot: "bg-emerald-500", text: "text-emerald-700 dark:text-emerald-400", label: "Valid", icon: <CheckCircle2 className="size-3.5" /> },
+  Expiring: { dot: "bg-amber-500",   text: "text-amber-700 dark:text-amber-400",     label: "Expiring soon", icon: <Clock className="size-3.5" /> },
+  Expired:  { dot: "bg-rose-500",    text: "text-rose-700 dark:text-rose-400",       label: "Expired", icon: <XCircle className="size-3.5" /> },
+  Missing:  { dot: "bg-zinc-400",    text: "text-muted-foreground",                  label: "Missing", icon: <XCircle className="size-3.5" /> },
 }
 
 export const activityIcon: Record<OwnerActivity["kind"], { icon: React.ReactNode; ring: string; bg: string; text: string }> = {
@@ -35,15 +35,14 @@ export const activityIcon: Record<OwnerActivity["kind"], { icon: React.ReactNode
 }
 
 export const languageLabel: Record<Owner["language"], string> = {
-  uz: "O'zbek",
-  ru: "Русский",
   en: "English",
+  de: "Deutsch",
 }
 
-export function formatDate(iso: string) {
+export function formatDate(iso: string, locale = "en-US") {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return iso
   const d = new Date(iso)
-  return d.toLocaleDateString("uz-UZ", { day: "2-digit", month: "short", year: "numeric" })
+  return d.toLocaleDateString(locale, { day: "2-digit", month: "short", year: "numeric" })
 }
 
 export const STAT_TONES: Record<string, { ring: string; bg: string; text: string }> = {

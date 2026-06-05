@@ -138,8 +138,8 @@ export default function WorkerDetailPage({
         />
         {/* <StatCard
           label="Verified"
-          value={worker.isVerified ? "Ha" : "Yo'q"}
-          hint="Hujjat tekshiruvi"
+          value={worker.isVerified ? "Yes" : "No"}
+          hint="Document verification"
           icon={<CheckCircle2 className="size-4" />}
           tone={worker.isVerified ? "emerald" : "violet"}
         /> */}

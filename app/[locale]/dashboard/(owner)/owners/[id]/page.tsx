@@ -2,7 +2,7 @@
 
 import { use } from "react";
 import { FileText, ShieldCheck, CalendarDays, MessageSquare } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import {
   useOwnerFromList,
   useApproveOwnerKyc,
@@ -21,10 +21,10 @@ import { ContactCard } from "@/components/owners/contact-card";
 import { KYCDocuments } from "@/components/owners/kyc-documents";
 import { Skeleton } from "@/components/ui/skeleton";
 
-function formatReviewedAt(iso: string | null): string {
+function formatReviewedAt(iso: string | null, locale: string): string {
   if (!iso) return "—";
   const d = new Date(iso);
-  return d.toLocaleDateString("uz-UZ", { day: "2-digit", month: "short", year: "numeric" });
+  return d.toLocaleDateString(locale, { day: "2-digit", month: "short", year: "numeric" });
 }
 
 export default function OwnerDetailPage({
@@ -34,6 +34,7 @@ export default function OwnerDetailPage({
 }) {
   const { id } = use(params);
   const t = useTranslations("owners");
+  const locale = useLocale();
   const tStatus = useTranslations("status");
   const { data: owner, isLoading } = useOwnerFromList(id);
   const { mutate: approve, isPending: isApproving } = useApproveOwnerKyc();
@@ -98,7 +99,7 @@ export default function OwnerDetailPage({
         />
         <StatCard
           label={t("detail.reviewedAt")}
-          value={formatReviewedAt(owner.kycReviewedAt)}
+          value={formatReviewedAt(owner.kycReviewedAt, locale)}
           hint={t("detail.reviewedDate")}
           icon={<CalendarDays className="size-4" />}
           tone="violet"

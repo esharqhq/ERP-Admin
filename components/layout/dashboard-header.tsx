@@ -27,10 +27,10 @@ import {LanguageSwitcher} from "./language-switcher";
 import {useTranslations} from "next-intl";
 
 const notifications = [
-    {id: 1, title: "New task assigned", desc: "HVAC Repair — Villa Sunrise", time: "5 min ago", unread: true},
-    {id: 2, title: "Worker delayed", desc: "Malika S. — Outside geofence", time: "1 hour ago", unread: true},
+    {id: 1, title: "New task assigned", desc: "HVAC Repair — Sunrise Villa", time: "5 min ago", unread: true},
+    {id: 2, title: "Worker delayed", desc: "Emma S. — Outside geofence", time: "1 hour ago", unread: true},
     {id: 3, title: "Contract signed", desc: "Sunrise LLC", time: "3 hours ago", unread: true},
-    {id: 4, title: "Document expiring", desc: "Jasur T. — 5 days left", time: "Today", unread: false},
+    {id: 4, title: "Document expiring", desc: "John S. — 5 days left", time: "Today", unread: false},
     {id: 5, title: "New complaint", desc: "GrandBuild Corp", time: "Yesterday", unread: false},
 ]
 
