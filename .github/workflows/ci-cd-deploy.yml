@@ -1,0 +1,135 @@
+name: Build & Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── Pre-build type check (fast-fail before the slower Docker build) ────
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type-check
+        run: npx tsc --noEmit
+
+      # ── Docker image build & push ─────────────────────────────────────────
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          target: runner
+          push: true
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/erp-admin:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/erp-admin:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # ── Deploy to VDS ────────────────────────────────────────────────────
+      - name: Deploy to VDS
+        uses: appleboy/ssh-action@v1
+        env:
+          IMAGE_REPO: ${{ secrets.DOCKERHUB_USERNAME }}/erp-admin
+          IMAGE_SHA: ${{ github.sha }}
+        with:
+          host: ${{ secrets.VDS_HOST }}
+          username: ${{ secrets.VDS_USER }}
+          key: ${{ secrets.VDS_SSH_KEY }}
+          envs: IMAGE_REPO,IMAGE_SHA
+          script: |
+            set -euo pipefail
+
+            REPO_DIR=~/erp-admin
+            COMPOSE_FILE=docker-compose.prod.yml
+            DOMAIN=admin.germany-erp.esharq.com
+            HEALTH_URL=https://$DOMAIN
+            HEALTH_TIMEOUT_SECONDS=60
+            APP_SERVICE=app
+
+            if [ ! -d "$REPO_DIR" ]; then
+              git clone ${{ secrets.VDS_REPO_URL }} "$REPO_DIR"
+            fi
+            cd "$REPO_DIR"
+            git fetch origin main
+            git reset --hard origin/main
+
+            # ── 0. Sync nginx site config and reload ─────────────────────
+            NGINX_AVAILABLE="/etc/nginx/sites-available/$DOMAIN"
+            NGINX_ENABLED="/etc/nginx/sites-enabled/$DOMAIN"
+            if [ -f "$NGINX_AVAILABLE" ]; then
+              cp "$REPO_DIR/nginx/$DOMAIN" "$NGINX_AVAILABLE"
+              nginx -t && systemctl reload nginx
+            fi
+
+            # ── 1. Capture currently-deployed image digest for rollback ────
+            PREV_DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' \
+              "$IMAGE_REPO:latest" 2>/dev/null || echo "")
+            echo "Previous digest: ${PREV_DIGEST:-<none>}"
+
+            # ── 2. Pull new image + swap container ────────────────────────
+            docker compose -f "$COMPOSE_FILE" pull "$APP_SERVICE"
+            docker compose -f "$COMPOSE_FILE" up -d "$APP_SERVICE"
+
+            # ── 3. Health probe ────────────────────────────────────────────
+            echo "Waiting up to ${HEALTH_TIMEOUT_SECONDS}s for $HEALTH_URL ..."
+            HEALTHY=0
+            DEADLINE=$(( $(date +%s) + HEALTH_TIMEOUT_SECONDS ))
+            while [ $(date +%s) -lt $DEADLINE ]; do
+              if curl -fsS --max-time 3 "$HEALTH_URL" > /dev/null 2>&1; then
+                HEALTHY=1
+                echo "Healthy."
+                break
+              fi
+              sleep 2
+            done
+
+            if [ $HEALTHY -eq 1 ]; then
+              docker tag "$IMAGE_REPO:$IMAGE_SHA" "$IMAGE_REPO:previous" || true
+              exit 0
+            fi
+
+            # ── 4. Rollback ────────────────────────────────────────────────
+            echo "Health check failed after ${HEALTH_TIMEOUT_SECONDS}s — rolling back."
+            docker compose -f "$COMPOSE_FILE" logs --tail=80 "$APP_SERVICE" || true
+
+            if [ -z "$PREV_DIGEST" ]; then
+              echo "No previous digest available (first-ever deploy?). Manual recovery needed."
+              exit 1
+            fi
+
+            echo "Restoring $PREV_DIGEST"
+            docker pull "$PREV_DIGEST"
+            docker tag "$PREV_DIGEST" "$IMAGE_REPO:latest"
+            docker compose -f "$COMPOSE_FILE" up -d "$APP_SERVICE"
+
+            sleep 5
+            if curl -fsS --max-time 5 "$HEALTH_URL" > /dev/null 2>&1; then
+              echo "Rollback succeeded — running on previous image."
+            else
+              echo "Rollback container is also unhealthy. Manual intervention required."
+            fi
+            exit 1
