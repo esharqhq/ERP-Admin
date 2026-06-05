@@ -15,7 +15,9 @@
     "error": "Ein Fehler ist aufgetreten",
     "notFound": "Nicht gefunden",
     "back": "Zurück",
-    "unknown": "Unbekannt"
+    "unknown": "Unbekannt",
+    "filter": "Filter",
+    "resultsFound": "{count} Ergebnisse gefunden"
   },
   "status": {
     "pending": "Ausstehend",
@@ -113,6 +115,12 @@
       "title": "Zuweisungen",
       "subtitle": "Aktive und geplante Aufgaben",
       "empty": "Derzeit keine Zuweisungen"
+    },
+    "actions": {
+      "backToList": "Zurück zur Mitarbeiterliste",
+      "sendMessage": "Nachricht senden",
+      "edit": "Bearbeiten",
+      "more": "Mehr"
     }
   },
   "owners": {

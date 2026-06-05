@@ -21,14 +21,14 @@ type Conversation = {
 }
 
 const conversations: Conversation[] = [
-  { id: 1, name: "Jasur Toshmatov",    role: "Worker", lastMessage: "Task done, photo sent",           time: "12:42", unread: 2, online: true,  active: true },
+  { id: 1, name: "John Schmidt",    role: "Worker", lastMessage: "Task done, photo sent",           time: "12:42", unread: 2, online: true,  active: true },
   { id: 2, name: "Sunrise LLC",        role: "Owner",  lastMessage: "Has the contract been renewed?",  time: "11:58", unread: 1 },
-  { id: 3, name: "Malika Saidova",     role: "Worker", lastMessage: "Materials have arrived",          time: "10:30", online: true },
+  { id: 3, name: "Emma Schulz",     role: "Worker", lastMessage: "Materials have arrived",          time: "10:30", online: true },
   { id: 4, name: "GrandBuild Corp",    role: "Owner",  lastMessage: "Worker did not arrive on time",   time: "09:15", unread: 3 },
-  { id: 5, name: "Bobur Karimov",      role: "Worker", lastMessage: "I'm sick today, can't come",      time: "08:02" },
-  { id: 6, name: "Feruza Abdullayeva", role: "Owner",  lastMessage: "Thank you, everything is great!", time: "Yesterday" },
-  { id: 7, name: "Zulfiya Rahimova",   role: "Worker", lastMessage: "Checked out",                     time: "Yesterday" },
-  { id: 8, name: "Akbar Mirzayev",     role: "Owner",  lastMessage: "I want to add a new property",    time: "May 10" },
+  { id: 5, name: "Michael Kaiser",      role: "Worker", lastMessage: "I'm sick today, can't come",      time: "08:02" },
+  { id: 6, name: "Frieda Beck", role: "Owner",  lastMessage: "Thank you, everything is great!", time: "Yesterday" },
+  { id: 7, name: "Anna Wagner",   role: "Worker", lastMessage: "Checked out",                     time: "Yesterday" },
+  { id: 8, name: "Albert Meyer",     role: "Owner",  lastMessage: "I want to add a new property",    time: "May 10" },
 ]
 
 type Message = {
@@ -40,7 +40,7 @@ type Message = {
 }
 
 const activeMessages: Message[] = [
-  { id: 1, from: "them", text: "Hello, I've arrived at Villa Sunrise",                            time: "11:20" },
+  { id: 1, from: "them", text: "Hello, I've arrived at Sunrise Villa",                            time: "11:20" },
   { id: 2, from: "me",   text: "Great. You can start the work",                                   time: "11:22" },
   { id: 3, from: "them", text: "The HVAC system has a major issue — the compressor needs replacing", time: "11:45" },
   { id: 4, from: "me",   text: "Send a photo, I'll take a look",                                  time: "11:46" },

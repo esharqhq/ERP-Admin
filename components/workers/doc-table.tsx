@@ -12,7 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { DocApproveModal } from "./doc-approve-modal";
 import { DocRejectModal } from "./doc-reject-modal";
 import type { WorkerDocumentDto } from "@/lib/types/worker.types";
@@ -41,6 +41,7 @@ function DocRow({
 }) {
   const t = useTranslations("workers");
   const tCommon = useTranslations("common");
+  const locale = useLocale();
   const [showApprove, setShowApprove] = useState(false);
   const [showReject, setShowReject] = useState(false);
   const fileName = doc.fileName ?? doc.type ?? "Document";
@@ -60,7 +61,7 @@ function DocRow({
           {doc.type ?? "—"}
         </TableCell>
         <TableCell className="text-sm text-muted-foreground">
-          {new Date(doc.createdAt).toLocaleDateString("en-US", {
+          {new Date(doc.createdAt).toLocaleDateString(locale, {
             year: "numeric",
             month: "2-digit",
             day: "2-digit",

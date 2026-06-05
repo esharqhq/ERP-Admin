@@ -65,7 +65,7 @@ export function AdminDrawer({ open, onClose, onConfirm, isPending, emailError }:
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   required
-                  placeholder="Ali Karimov"
+                  placeholder="Alex Miller"
                 />
               </div>
 
@@ -77,7 +77,7 @@ export function AdminDrawer({ open, onClose, onConfirm, isPending, emailError }:
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  placeholder="ali@erp.com"
+                  placeholder="alex@erp.com"
                 />
                 {emailError && (
                   <p className="text-xs text-destructive">{emailError}</p>

@@ -42,11 +42,11 @@ const COLUMNS: { status: TaskStatus; color: string; dot: string }[] = [
 ]
 
 const INITIAL_TASKS: Task[] = [
-  { id: "T-001", title: "HVAC Repair",       status: "In Progress", priority: "High",   property: "Villa Sunrise",   deadline: "Today 14:00" },
+  { id: "T-001", title: "HVAC Repair",       status: "In Progress", priority: "High",   property: "Sunrise Villa",   deadline: "Today 14:00" },
   { id: "T-002", title: "Deep Cleaning",     status: "To Do",       priority: "Medium", property: "Hotel Grand 3F",  deadline: "Tomorrow"    },
-  { id: "T-003", title: "Security Audit",    status: "Review",      priority: "High",   property: "Amir Biz Center", deadline: "May 7"       },
+  { id: "T-003", title: "Security Audit",    status: "Review",      priority: "High",   property: "Empire Business Center", deadline: "May 7"       },
   { id: "T-004", title: "Plumbing Fix",      status: "Done",        priority: "Low",    property: "Office Block B",  deadline: "Completed"   },
-  { id: "T-005", title: "Window Replace",    status: "Rejected",    priority: "Medium", property: "Villa Sunrise",   deadline: "—"           },
+  { id: "T-005", title: "Window Replace",    status: "Rejected",    priority: "Medium", property: "Sunrise Villa",   deadline: "—"           },
   { id: "T-006", title: "Electrical Check",  status: "To Do",       priority: "High",   property: "Residence North", deadline: "May 6"       },
   { id: "T-007", title: "Paint Interior",    status: "In Progress", priority: "Low",    property: "Office Block A",  deadline: "May 8"       },
 ]

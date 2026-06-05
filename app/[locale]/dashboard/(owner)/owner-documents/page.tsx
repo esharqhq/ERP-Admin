@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Search, FolderOpen } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useKycList } from "@/hooks/use-kyc";
 import type { KycProfileSummaryDto, KycStatus } from "@/lib/types/kyc.types";
 
@@ -29,9 +29,9 @@ const tabStatusMap: Record<FilterTab, KycStatus | undefined> = {
   rejected: 3,
 };
 
-function formatDate(iso: string | null) {
+function formatDate(iso: string | null, locale: string) {
   if (!iso) return "—";
-  return new Date(iso).toLocaleDateString("en-US", {
+  return new Date(iso).toLocaleDateString(locale, {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -48,7 +48,7 @@ function KycBadge({ isApproved, status }: { isApproved: boolean; status: string 
   return <Badge variant="outline">Pending</Badge>;
 }
 
-function OwnerRow({ kyc }: { kyc: KycProfileSummaryDto }) {
+function OwnerRow({ kyc, locale }: { kyc: KycProfileSummaryDto; locale: string }) {
   return (
     <TableRow className="hover:bg-accent/40">
       <TableCell className="py-3 font-medium">
@@ -61,7 +61,7 @@ function OwnerRow({ kyc }: { kyc: KycProfileSummaryDto }) {
         {kyc.documentCount}
       </TableCell>
       <TableCell className="text-sm text-muted-foreground">
-        {formatDate(kyc.kycReviewedAt)}
+        {formatDate(kyc.kycReviewedAt, locale)}
       </TableCell>
       <TableCell>
         <KycBadge isApproved={kyc.isApproved} status={kyc.kycStatus} />
@@ -85,6 +85,7 @@ function OwnerRow({ kyc }: { kyc: KycProfileSummaryDto }) {
 export default function OwnerDocumentsPage() {
   const t = useTranslations("owners");
   const tStatus = useTranslations("status");
+  const locale = useLocale();
   const [tab, setTab] = useState<FilterTab>("all");
   const [search, setSearch] = useState("");
 
@@ -182,7 +183,7 @@ export default function OwnerDocumentsPage() {
                 </TableRow>
               ) : (
                 filtered.map((kyc) => (
-                  <OwnerRow key={kyc.ownerProfileId} kyc={kyc} />
+                  <OwnerRow key={kyc.ownerProfileId} kyc={kyc} locale={locale} />
                 ))
               )}
             </TableBody>

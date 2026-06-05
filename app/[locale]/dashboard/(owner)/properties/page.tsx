@@ -8,7 +8,7 @@ import { DataTableCard } from "@/components/ui/data-table-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MapPin } from "lucide-react";
 import { useProperties } from "@/hooks/use-properties";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import type { PropertyDto } from "@/lib/types/property.types";
 
 const docsStatusConfig: Record<
@@ -20,8 +20,8 @@ const docsStatusConfig: Record<
   Rejected: { labelKey: "docsStatus.rejected", variant: "destructive" },
 };
 
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", {
+function formatDate(iso: string, locale: string): string {
+  return new Date(iso).toLocaleDateString(locale, {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -30,6 +30,7 @@ function formatDate(iso: string): string {
 
 export default function PropertiesPage() {
   const t = useTranslations("properties");
+  const locale = useLocale();
   const { data: properties = [], isLoading, isError, error } = useProperties();
 
   const columns = [
@@ -131,7 +132,7 @@ export default function PropertiesPage() {
                 <Badge variant={docs.variant}>{docs.label}</Badge>
               </TableCell>
               <TableCell className="text-sm text-muted-foreground">
-                {formatDate(p.createdAt)}
+                {formatDate(p.createdAt, locale)}
               </TableCell>
               <TableCell className="text-right">
                 <Button

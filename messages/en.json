@@ -15,7 +15,9 @@
     "error": "An error occurred",
     "notFound": "Not found",
     "back": "Back",
-    "unknown": "Unknown"
+    "unknown": "Unknown",
+    "filter": "Filter",
+    "resultsFound": "{count} results found"
   },
   "status": {
     "pending": "Pending",
@@ -113,6 +115,12 @@
       "title": "Assignments",
       "subtitle": "Active and planned tasks",
       "empty": "No assignments currently"
+    },
+    "actions": {
+      "backToList": "Back to Workers list",
+      "sendMessage": "Send message",
+      "edit": "Edit",
+      "more": "More"
     }
   },
   "owners": {

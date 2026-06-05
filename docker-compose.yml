@@ -1,0 +1,17 @@
+services:
+  app:
+    build:
+      context: .
+      target: deps           # stop at the deps stage — no build, just mount source
+    image: erp-admin:local
+    volumes:
+      - .:/app               # live source mount
+      - /app/node_modules    # keep container node_modules
+      - /app/.next           # keep container build cache
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://germany-erp.esharq.com}
+    command: npm run dev
+    restart: unless-stopped
