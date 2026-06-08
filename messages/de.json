@@ -17,7 +17,9 @@
     "back": "Zurück",
     "unknown": "Unbekannt",
     "filter": "Filter",
-    "resultsFound": "{count} Ergebnisse gefunden"
+    "resultsFound": "{count} Ergebnisse gefunden",
+    "yes": "Ja",
+    "no": "Nein"
   },
   "status": {
     "pending": "Ausstehend",
@@ -418,6 +420,70 @@
     "newTask": "Neue Aufgabe",
     "searchPlaceholder": "Aufgaben suchen...",
     "empty": "Leer",
+    "list": {
+      "empty": "Keine Aufgabengruppen gefunden",
+      "tabs": {
+        "all": "Alle",
+        "Pending": "Ausstehend",
+        "Active": "Aktiv",
+        "Done": "Erledigt",
+        "Cancelled": "Abgebrochen"
+      },
+      "columns": {
+        "title": "Titel",
+        "status": "Status",
+        "dates": "Termine",
+        "tasks": "Aufgaben",
+        "workers": "Mitarbeiter",
+        "actions": "Aktionen"
+      }
+    },
+    "detail": {
+      "backToList": "Zurück zu Aufgaben",
+      "infoTitle": "Gruppeninformationen",
+      "tasksTitle": "Aufgaben",
+      "noTasks": "Keine Aufgaben in dieser Gruppe",
+      "noWorkers": "Keine Mitarbeiter zugewiesen",
+      "info": {
+        "propertyId": "Objekt-ID",
+        "ownerId": "Eigentümer-ID",
+        "startTime": "Startzeit",
+        "deadline": "Frist",
+        "ratingFloor": "Mindestbewertung",
+        "allowNewWorkers": "Neue Mitarbeiter zulassen",
+        "createdAt": "Erstellt",
+        "dates": "Termine",
+        "instructions": "Anweisungen"
+      },
+      "taskColumns": {
+        "started": "Begonnen",
+        "completed": "Abgeschlossen"
+      },
+      "workerColumns": {
+        "worker": "Mitarbeiter",
+        "outcome": "Ergebnis",
+        "rating": "Bewertung",
+        "checkIn": "Einchecken",
+        "checkOut": "Auschecken",
+        "actions": "Aktionen"
+      }
+    },
+    "actions": {
+      "cancelGroup": "Gruppe abbrechen",
+      "cancelGroupTitle": "Aufgabengruppe abbrechen",
+      "cancelGroupConfirm": "Dies bricht die Gruppe und alle nicht abgeschlossenen Aufgaben ab und archiviert deren Konversationen. Dies kann nicht rückgängig gemacht werden.",
+      "assign": "Mitarbeiter zuweisen",
+      "assignTitle": "Mitarbeiter zuweisen",
+      "assignSearch": "Mitarbeiter suchen...",
+      "noWorkers": "Keine Mitarbeiter gefunden",
+      "rate": "Bewerten",
+      "rateTitle": "Mitarbeiter bewerten",
+      "outcome": "Ergebnis",
+      "outcomeTitle": "Ergebnis überschreiben",
+      "unassign": "Entfernen",
+      "unassignTitle": "Mitarbeiter entfernen",
+      "unassignConfirm": "{name} aus dieser Aufgabe entfernen?"
+    },
     "statuses": {
       "todo": "Zu erledigen",
       "inProgress": "In Bearbeitung",

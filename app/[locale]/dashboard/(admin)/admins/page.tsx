@@ -22,7 +22,7 @@ export default function AdminsPage() {
   const { mutate: createRole, isPending: isCreatingRole } = useCreateRole();
   const { mutate: deactivateAdmin, isPending: isDeactivating } = useDeactivateAdmin();
 
-  const currentAdminId = useAuthStore((s) => s.adminMe?.sub);
+  const currentAdminId = useAuthStore((s) => s.adminMe?.id);
   const isPending = isCreatingRole || isCreatingAdmin;
 
   function handleCreate(data: {

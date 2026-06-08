@@ -18,9 +18,21 @@ export interface ApiError {
   status: number;
 }
 
-export interface AdminMeDto {
-  sub: string;
-  email?: string;
-  role?: string;
-  [key: string]: unknown;
+export interface AdminRoleRefDto {
+  id: string;
+  code: string;
+  name: string;
 }
+
+/** Shape returned by GET /api/profile for an admin (AdminProfileDto). */
+export interface AdminProfileDto {
+  id: string;
+  fullName: string;
+  email: string;
+  isVerified: boolean;
+  profilePictureUrl?: string | null;
+  role?: AdminRoleRefDto | null;
+}
+
+/** @deprecated retained for import compatibility — use AdminProfileDto. */
+export type AdminMeDto = AdminProfileDto;

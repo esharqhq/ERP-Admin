@@ -17,7 +17,9 @@
     "back": "Back",
     "unknown": "Unknown",
     "filter": "Filter",
-    "resultsFound": "{count} results found"
+    "resultsFound": "{count} results found",
+    "yes": "Yes",
+    "no": "No"
   },
   "status": {
     "pending": "Pending",
@@ -418,6 +420,70 @@
     "newTask": "New Task",
     "searchPlaceholder": "Search tasks...",
     "empty": "Empty",
+    "list": {
+      "empty": "No task groups found",
+      "tabs": {
+        "all": "All",
+        "Pending": "Pending",
+        "Active": "Active",
+        "Done": "Done",
+        "Cancelled": "Cancelled"
+      },
+      "columns": {
+        "title": "Title",
+        "status": "Status",
+        "dates": "Dates",
+        "tasks": "Tasks",
+        "workers": "Workers",
+        "actions": "Actions"
+      }
+    },
+    "detail": {
+      "backToList": "Back to Tasks",
+      "infoTitle": "Group Information",
+      "tasksTitle": "Tasks",
+      "noTasks": "No tasks in this group",
+      "noWorkers": "No workers assigned",
+      "info": {
+        "propertyId": "Property ID",
+        "ownerId": "Owner ID",
+        "startTime": "Start Time",
+        "deadline": "Deadline",
+        "ratingFloor": "Rating Floor",
+        "allowNewWorkers": "Allow New Workers",
+        "createdAt": "Created",
+        "dates": "Dates",
+        "instructions": "Instructions"
+      },
+      "taskColumns": {
+        "started": "Started",
+        "completed": "Completed"
+      },
+      "workerColumns": {
+        "worker": "Worker",
+        "outcome": "Outcome",
+        "rating": "Rating",
+        "checkIn": "Check-In",
+        "checkOut": "Check-Out",
+        "actions": "Actions"
+      }
+    },
+    "actions": {
+      "cancelGroup": "Cancel Group",
+      "cancelGroupTitle": "Cancel Task Group",
+      "cancelGroupConfirm": "This cancels the group and all its non-completed tasks and archives their conversations. This cannot be undone.",
+      "assign": "Assign Worker",
+      "assignTitle": "Assign Worker",
+      "assignSearch": "Search workers...",
+      "noWorkers": "No workers found",
+      "rate": "Rate",
+      "rateTitle": "Rate Worker",
+      "outcome": "Outcome",
+      "outcomeTitle": "Override Outcome",
+      "unassign": "Unassign",
+      "unassignTitle": "Unassign Worker",
+      "unassignConfirm": "Remove {name} from this task?"
+    },
     "statuses": {
       "todo": "To Do",
       "inProgress": "In Progress",

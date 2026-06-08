@@ -1,5 +1,5 @@
 import { apiClient } from "@/lib/http/client";
-import type { AdminMeDto, AuthResultDto, LoginDto, RefreshTokenDto } from "@/lib/types/auth.types";
+import type { AdminProfileDto, AuthResultDto, LoginDto, RefreshTokenDto } from "@/lib/types/auth.types";
 
 export const authService = {
   login: async (credentials: LoginDto): Promise<AuthResultDto> => {
@@ -18,8 +18,8 @@ export const authService = {
     return data;
   },
 
-  getMe: async (): Promise<AdminMeDto> => {
-    const { data } = await apiClient.get<AdminMeDto>("/api/Auth/me");
+  getProfile: async (): Promise<AdminProfileDto> => {
+    const { data } = await apiClient.get<AdminProfileDto>("/api/profile");
     return data;
   },
 };

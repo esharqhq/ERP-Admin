@@ -16,7 +16,7 @@ export function useLogin() {
     onSuccess: async (data) => {
       setTokens(data);
       try {
-        const me = await authService.getMe();
+        const me = await authService.getProfile();
         setAdminMe(me);
       } catch {
         // non-fatal: proceed to dashboard

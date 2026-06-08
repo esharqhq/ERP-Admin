@@ -28,6 +28,7 @@ import {
 import { navGroups } from "@/lib/nav-items"
 import { logoutAction } from "@/app/[locale]/login/actions"
 import { useAuthStore } from "@/store/auth.store"
+import { useCurrentPermissions } from "@/hooks/use-current-permissions"
 import { ChevronsUpDown, LogOut } from "lucide-react"
 import { useTranslations, useLocale } from "next-intl"
 
@@ -45,10 +46,14 @@ export function AppSidebar() {
   const locale = useLocale()
   const pathname = rawPathname.replace(`/${locale}`, "") || "/"
   const adminMe = useAuthStore((s) => s.adminMe)
+  const { permissions } = useCurrentPermissions()
   const t = useTranslations()
 
+  const canSee = (perm?: string) =>
+    !perm || permissions === null || permissions.has(perm)
+
   const email = adminMe?.email ?? "admin@erp.com"
-  const displayName = adminMe?.role ?? "Super Admin"
+  const displayName = adminMe?.role?.name ?? adminMe?.fullName ?? "Admin"
   const initials = email.slice(0, 2).toUpperCase()
 
   return (
@@ -85,14 +90,17 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent className="gap-4 px-1.5 py-2">
-        {navGroups.map((group) => (
+        {navGroups.map((group) => {
+          const items = group.items.filter((item) => canSee(item.permission))
+          if (items.length === 0) return null
+          return (
           <SidebarGroup key={group.id} className="px-0 py-0">
             <SidebarGroupLabel className="px-2.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
               {t(group.labelKey)}
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu className="gap-0.5">
-                {group.items.map((item) => {
+                {items.map((item) => {
                   const isActive =
                     pathname === item.url ||
                     (item.url !== "/dashboard" && pathname.startsWith(item.url))
@@ -113,7 +121,8 @@ export function AppSidebar() {
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
-        ))}
+          )
+        })}
       </SidebarContent>
 
       <SidebarFooter className="border-t border-sidebar-border/60 pt-2">
