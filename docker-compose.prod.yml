@@ -2,12 +2,12 @@ services:
   app:
     image: ${IMAGE_REPO}:latest
     ports:
-      - "127.0.0.1:3000:3000"   # bind only to loopback — nginx proxies from outside
+      - "127.0.0.1:3100:3100"   # bind only to loopback — nginx proxies from outside
     environment:
       - NODE_ENV=production
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3000/"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:3100/"]
       interval: 30s
       timeout: 10s
       retries: 3
