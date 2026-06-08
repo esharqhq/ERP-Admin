@@ -20,7 +20,6 @@ server {
 server {
     listen 443 ssl;
     listen [::]:443 ssl;
-    http2 on;
     server_name admin.germany-erp.esharq.com;
 
     ssl_certificate     /etc/letsencrypt/live/admin.germany-erp.esharq.com/fullchain.pem;
