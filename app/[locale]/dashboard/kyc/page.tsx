@@ -1,0 +1,149 @@
+"use client";
+
+import { useState } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useKycList, useApproveKyc, useRejectKyc } from "@/hooks/use-kyc";
+import { KycRow } from "@/components/kyc/kyc-row";
+import type { KycStatus } from "@/lib/types/kyc.types";
+
+type FilterTab = "all" | "pending" | "approved" | "rejected";
+
+const tabStatusMap: Record<FilterTab, KycStatus | undefined> = {
+  all: undefined,
+  pending: 1,
+  approved: 2,
+  rejected: 3,
+};
+
+export default function KycPage() {
+  const t = useTranslations("owners");
+  const tStatus = useTranslations("status");
+  const [tab, setTab] = useState<FilterTab>("all");
+  const [search, setSearch] = useState("");
+
+  const { data: kycList = [], isLoading } = useKycList(tabStatusMap[tab]);
+  const approveMutation = useApproveKyc();
+  const rejectMutation = useRejectKyc();
+
+  const filtered = kycList.filter((k) => {
+    if (!search) return true;
+    const q = search.toLowerCase();
+    return (
+      (k.ownerName ?? "").toLowerCase().includes(q) ||
+      (k.ownerEmail ?? "").toLowerCase().includes(q)
+    );
+  });
+
+  const tabs: { key: FilterTab; label: string }[] = [
+    { key: "all", label: "All" },
+    { key: "pending", label: tStatus("pending") },
+    { key: "approved", label: tStatus("approved") },
+    { key: "rejected", label: tStatus("rejected") },
+  ];
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-1">
+        <h1 className="font-heading text-3xl font-bold tracking-tight leading-tight">
+          {t("kyc.documents")}
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Review and manage owner KYC applications.
+        </p>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex rounded-lg border border-border bg-muted/50 p-0.5">
+          {tabs.map((tb) => (
+            <button
+              key={tb.key}
+              onClick={() => setTab(tb.key)}
+              className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                tab === tb.key
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {tb.label}
+            </button>
+          ))}
+        </div>
+        <div className="relative flex-1 min-w-[200px] max-w-sm">
+          <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by name or email..."
+            className="pl-8"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+      </div>
+
+      <Card>
+        <CardHeader className="pb-3">
+          <p className="text-xs text-muted-foreground">
+            {isLoading ? "Loading..." : `${filtered.length} owners`}
+          </p>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t("columns.owner")}</TableHead>
+                <TableHead>{t("columns.kycStatus")}</TableHead>
+                <TableHead className="text-center">{t("columns.documents")}</TableHead>
+                <TableHead>{t("kyc.rejectReasonLabel")}</TableHead>
+                <TableHead className="text-right">{t("columns.actions")}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell colSpan={5}>
+                      <Skeleton className="h-8 w-full rounded-md" />
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : filtered.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={5}
+                    className="py-10 text-center text-sm text-muted-foreground"
+                  >
+                    {t("kyc.documentsEmpty")}
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filtered.map((kyc) => (
+                  <KycRow
+                    key={kyc.ownerProfileId}
+                    kyc={kyc}
+                    onApprove={(id) => approveMutation.mutate(id)}
+                    onReject={(id, reason) =>
+                      rejectMutation.mutate({ ownerProfileId: id, reason })
+                    }
+                    isApproving={approveMutation.isPending}
+                    isRejecting={rejectMutation.isPending}
+                  />
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
