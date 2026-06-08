@@ -35,20 +35,20 @@ server {
 
     # Next.js static assets — immutable, cache 1 year
     location /_next/static/ {
-        proxy_pass http://127.0.0.1:3000;
+        proxy_pass http://127.0.0.1:3100;
         add_header Cache-Control "public, max-age=31536000, immutable";
     }
 
     # Next.js image optimisation
     location /_next/image {
-        proxy_pass         http://127.0.0.1:3000;
+        proxy_pass         http://127.0.0.1:3100;
         proxy_set_header   Host              $host;
         proxy_set_header   X-Forwarded-Proto $scheme;
     }
 
     # All other requests
     location / {
-        proxy_pass         http://127.0.0.1:3000;
+        proxy_pass         http://127.0.0.1:3100;
         proxy_http_version 1.1;
         proxy_set_header   Upgrade           $http_upgrade;
         proxy_set_header   Connection        "upgrade";
