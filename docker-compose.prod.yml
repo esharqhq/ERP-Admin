@@ -1,16 +1,10 @@
 services:
   app:
-    build:
-      context: .
-      target: runner
-      args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
-    image: erp-admin:prod
+    image: ${IMAGE_REPO}:latest
     ports:
       - "127.0.0.1:3000:3000"   # bind only to loopback — nginx proxies from outside
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:3000/"]
