@@ -55,13 +55,17 @@ jobs:
         env:
           IMAGE_REPO: ${{ secrets.DOCKERHUB_USERNAME }}/erp-admin
           IMAGE_SHA: ${{ github.sha }}
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
         with:
           host: ${{ secrets.VDS_HOST }}
           username: ${{ secrets.VDS_USER }}
           key: ${{ secrets.VDS_SSH_KEY }}
-          envs: IMAGE_REPO,IMAGE_SHA
+          envs: IMAGE_REPO,IMAGE_SHA,DOCKERHUB_USERNAME,DOCKERHUB_TOKEN
           script: |
             set -euo pipefail
+
+            echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
 
             REPO_DIR=~/erp-admin
             COMPOSE_FILE=docker-compose.prod.yml
