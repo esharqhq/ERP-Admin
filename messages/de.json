@@ -4,6 +4,7 @@
     "confirm": "Bestätigen",
     "save": "Speichern",
     "delete": "Löschen",
+    "edit": "Bearbeiten",
     "view": "Ansehen",
     "approve": "Genehmigen",
     "reject": "Ablehnen",
@@ -42,6 +43,7 @@
     "dispatching": "Disposition",
     "leave": "Urlaubsanträge",
     "contracts": "Verträge",
+    "professions": "Berufe",
     "support": "Support",
     "tickets": "Tickets",
     "chat": "Chat",
@@ -627,6 +629,39 @@
       "worker_not_found": "Mitarbeiter nicht gefunden.",
       "contract_not_found": "Vertrag nicht gefunden.",
       "contract_already_inactive": "Dieser Vertrag ist bereits inaktiv."
+    }
+  },
+  "professions": {
+    "title": "Berufe",
+    "subtitle": "Gewerke verwalten, auf die sich Mitarbeiter spezialisieren können",
+    "new": "Neuer Beruf",
+    "empty": "Keine Berufe gefunden",
+    "columns": {
+      "code": "Code",
+      "name": "Name",
+      "description": "Beschreibung"
+    },
+    "form": {
+      "createTitle": "Neuer Beruf",
+      "editTitle": "Beruf bearbeiten",
+      "code": "Code",
+      "codePlaceholder": "z. B. PLUMBER",
+      "codeImmutable": "Der Code kann nach dem Erstellen nicht geändert werden.",
+      "name": "Name",
+      "namePlaceholder": "Anzeigename",
+      "description": "Beschreibung",
+      "descriptionPlaceholder": "Optionale Beschreibung…",
+      "create": "Erstellen"
+    },
+    "delete": {
+      "title": "Beruf löschen?",
+      "confirm": "Den Beruf „{name}“ dauerhaft löschen? Dies kann nicht rückgängig gemacht werden."
+    },
+    "errors": {
+      "generic": "Der Beruf konnte nicht gespeichert werden. Bitte erneut versuchen.",
+      "code_exists": "Ein Beruf mit diesem Code existiert bereits.",
+      "deleteGeneric": "Der Beruf konnte nicht gelöscht werden. Bitte erneut versuchen.",
+      "profession_in_use": "Dieser Beruf ist Mitarbeitern oder Aufgabengruppen zugewiesen und kann nicht gelöscht werden."
     }
   },
   "dispatch": {

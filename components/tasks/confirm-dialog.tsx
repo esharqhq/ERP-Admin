@@ -21,6 +21,8 @@ interface Props {
   description?: string;
   confirmLabel: string;
   destructive?: boolean;
+  /** Localized error surfaced in-dialog (e.g. a blocked delete) without closing it. */
+  error?: string | null;
 }
 
 /** Generic confirm dialog (cancel-group, unassign-worker, …). */
@@ -33,6 +35,7 @@ export function ConfirmDialog({
   description,
   confirmLabel,
   destructive,
+  error,
 }: Props) {
   const tCommon = useTranslations("common");
   return (
@@ -44,6 +47,7 @@ export function ConfirmDialog({
             <DialogDescription>{description}</DialogDescription>
           ) : null}
         </DialogHeader>
+        {error ? <p className="text-sm text-destructive">{error}</p> : null}
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={isPending}>
             {tCommon("cancel")}

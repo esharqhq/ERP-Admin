@@ -4,6 +4,7 @@
     "confirm": "Confirm",
     "save": "Save",
     "delete": "Delete",
+    "edit": "Edit",
     "view": "View",
     "approve": "Approve",
     "reject": "Reject",
@@ -42,6 +43,7 @@
     "dispatching": "Dispatching",
     "leave": "Leave Requests",
     "contracts": "Contracts",
+    "professions": "Professions",
     "support": "Support",
     "tickets": "Tickets",
     "chat": "Chat",
@@ -627,6 +629,39 @@
       "worker_not_found": "Worker not found.",
       "contract_not_found": "Contract not found.",
       "contract_already_inactive": "This contract is already inactive."
+    }
+  },
+  "professions": {
+    "title": "Professions",
+    "subtitle": "Manage the trades workers can specialise in",
+    "new": "New profession",
+    "empty": "No professions found",
+    "columns": {
+      "code": "Code",
+      "name": "Name",
+      "description": "Description"
+    },
+    "form": {
+      "createTitle": "New profession",
+      "editTitle": "Edit profession",
+      "code": "Code",
+      "codePlaceholder": "e.g. PLUMBER",
+      "codeImmutable": "The code cannot be changed after creation.",
+      "name": "Name",
+      "namePlaceholder": "Display name",
+      "description": "Description",
+      "descriptionPlaceholder": "Optional description…",
+      "create": "Create"
+    },
+    "delete": {
+      "title": "Delete profession?",
+      "confirm": "Permanently delete the “{name}” profession? This cannot be undone."
+    },
+    "errors": {
+      "generic": "The profession could not be saved. Please try again.",
+      "code_exists": "A profession with this code already exists.",
+      "deleteGeneric": "The profession could not be deleted. Please try again.",
+      "profession_in_use": "This profession is assigned to workers or task groups and cannot be deleted."
     }
   },
   "dispatch": {
