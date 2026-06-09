@@ -5,7 +5,7 @@ import type {
 } from "@/lib/types/kyc.types";
 import type { OwnerSummaryDto } from "@/lib/types/owner.types";
 import type { PropertyDto } from "@/lib/types/property.types";
-import type { AdminTaskGroupSummaryDto } from "@/lib/types/task.types";
+import type { TaskGroupDto } from "@/lib/types/task.types";
 
 export const ownerService = {
   // ── KYC verification queue (GET /api/admin/kyc) — used by the Contracts owner picker ──
@@ -59,8 +59,10 @@ export const ownerService = {
     return data;
   },
 
-  getOwnerTaskGroups: async (ownerUserId: string): Promise<AdminTaskGroupSummaryDto[]> => {
-    const { data } = await apiClient.get<AdminTaskGroupSummaryDto[]>(
+  // GET /api/tasks/admin/groups returns the FULL TaskGroupDto list (NOT a summary
+  // projection) — propertyName/firstDate must be derived client-side by consumers.
+  getOwnerTaskGroups: async (ownerUserId: string): Promise<TaskGroupDto[]> => {
+    const { data } = await apiClient.get<TaskGroupDto[]>(
       "/api/tasks/admin/groups",
       { params: { ownerUserId } },
     );

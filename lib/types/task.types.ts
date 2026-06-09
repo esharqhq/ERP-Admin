@@ -124,15 +124,3 @@ export const TASK_WORKER_OUTCOMES: TaskWorkerOutcomeName[] = [
 export function normalizeStatus(status: string | null | undefined): string {
   return (status ?? "").trim().toLowerCase();
 }
-
-// ── Pre-existing owner activity-timeline summary (kept for owner.service consumers) ──
-export interface AdminTaskGroupSummaryDto {
-  id: string;
-  title: string | null;
-  status: string;
-  firstDate: string;
-  lastDate: string;
-  totalTasks: number;
-  activeWorkers: number;
-  propertyName: string;
-}
