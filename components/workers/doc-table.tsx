@@ -154,9 +154,9 @@ export function DocTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>File Name</TableHead>
-            <TableHead>Type</TableHead>
-            <TableHead>Upload Date</TableHead>
+            <TableHead>{t("docFileName")}</TableHead>
+            <TableHead>{t("docTypeLabel")}</TableHead>
+            <TableHead>{t("docUploadDate")}</TableHead>
             <TableHead className="text-right">{tCommon("actions")}</TableHead>
           </TableRow>
         </TableHeader>

@@ -46,11 +46,16 @@ export function useSoftDeleteProperty() {
   });
 }
 
-export function useAdminPropertyDocs(propertyId: string) {
+/**
+ * Admin property-docs bundle. `enabled` should be gated on `property:doc:read_any`
+ * so an admin on a custom-override role without it doesn't trigger a 403 on page
+ * load (mirrors the worker-docs / worker-rating defensive gating).
+ */
+export function useAdminPropertyDocs(propertyId: string, enabled = true) {
   return useQuery({
     queryKey: ["property-docs", propertyId],
     queryFn: () => propertyService.getAdminPropertyDocs(propertyId),
-    enabled: !!propertyId,
+    enabled: !!propertyId && enabled,
   });
 }
 

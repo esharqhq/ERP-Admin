@@ -51,7 +51,11 @@ export default function WorkerDetailPage({
   const [showDelete, setShowDelete] = useState(false);
   const { mutate: approve, isPending: isApproving } = useApproveWorker(id);
   const { mutate: reject, isPending: isRejecting } = useRejectWorker(id);
-  const { data: docs = [], isLoading: isLoadingDocs } = useWorkerDocs(id);
+  const canViewDocs = useHasPermission("worker:doc:read_any");
+  const { data: docs = [], isLoading: isLoadingDocs } = useWorkerDocs(
+    id,
+    canViewDocs,
+  );
   const { mutate: approveDoc, isPending: isApprovingDoc } =
     useApproveWorkerDoc(id);
   const { mutate: rejectDoc, isPending: isRejectingDoc } =
@@ -175,14 +179,16 @@ export default function WorkerDetailPage({
         error={deleteError}
       />
 
-      <DocTable
-        docs={docs}
-        isLoading={isLoadingDocs}
-        onApprove={(docId) => approveDoc(docId)}
-        onReject={(docId, reason) => rejectDoc({ docId, reason })}
-        isApproving={isApprovingDoc}
-        isRejecting={isRejectingDoc}
-      />
+      <Can permission="worker:doc:read_any">
+        <DocTable
+          docs={docs}
+          isLoading={isLoadingDocs}
+          onApprove={(docId) => approveDoc(docId)}
+          onReject={(docId, reason) => rejectDoc({ docId, reason })}
+          isApproving={isApprovingDoc}
+          isRejecting={isRejectingDoc}
+        />
+      </Can>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
         <StatCard

@@ -9,7 +9,9 @@ import { PropertyInfo } from "@/components/properties/property-info";
 import { PropertyOwnerCard } from "@/components/properties/property-owner-card";
 import { PropertyStatusCard } from "@/components/properties/property-status-card";
 import { PropertyDocsCard } from "@/components/properties/property-docs-card";
+import { Can } from "@/components/auth/can";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useHasPermission } from "@/hooks/use-current-permissions";
 import {
   usePropertyById,
   useAdminPropertyDocs,
@@ -26,7 +28,8 @@ export default function PropertyDetailPage({
   const { id } = use(params);
   const t = useTranslations("properties");
   const { data: property, isLoading, isError } = usePropertyById(id);
-  const { data: docsBundle } = useAdminPropertyDocs(id);
+  const canReadDocs = useHasPermission("property:doc:read_any");
+  const { data: docsBundle } = useAdminPropertyDocs(id, canReadDocs);
   const { mutate: approve, isPending: isApproving } = useApprovePropertyDocs();
   const { mutate: reject, isPending: isRejecting } = useRejectPropertyDocs();
   const { mutate: reset, isPending: isResetting } = useResetPropertyDocs();
@@ -69,16 +72,18 @@ export default function PropertyDetailPage({
         <div className="flex flex-col gap-6">
           <PropertyStatusCard property={property} />
           {docsBundle && (
-            <PropertyDocsCard
-              propertyId={id}
-              bundle={docsBundle}
-              onApprove={() => approve(id)}
-              onReject={(reason) => reject({ propertyId: id, reason })}
-              onReset={(reason) => reset({ propertyId: id, reason })}
-              isApproving={isApproving}
-              isRejecting={isRejecting}
-              isResetting={isResetting}
-            />
+            <Can permission="property:doc:read_any">
+              <PropertyDocsCard
+                propertyId={id}
+                bundle={docsBundle}
+                onApprove={() => approve(id)}
+                onReject={(reason) => reject({ propertyId: id, reason })}
+                onReset={(reason) => reset({ propertyId: id, reason })}
+                isApproving={isApproving}
+                isRejecting={isRejecting}
+                isResetting={isResetting}
+              />
+            </Can>
           )}
           <PropertyOwnerCard property={property} />
         </div>

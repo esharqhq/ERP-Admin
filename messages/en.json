@@ -76,6 +76,9 @@
     "docApprove": "Approve Document",
     "docReject": "Reject Document",
     "docNotFound": "No documents found.",
+    "docFileName": "File Name",
+    "docTypeLabel": "Type",
+    "docUploadDate": "Upload Date",
     "tableView": "Table View",
     "calendarView": "Calendar View",
     "tabs": {

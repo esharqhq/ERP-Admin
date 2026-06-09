@@ -3,11 +3,16 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { workerDocService } from "@/lib/services/worker-doc.service";
 
-export function useWorkerDocs(workerId: string) {
+/**
+ * Worker documents list. `enabled` should be gated on `worker:doc:read_any` so an
+ * admin on a custom-override role without it doesn't trigger a 403 on page load
+ * (mirrors `useWorkerRating`'s defensive gating on the same detail page).
+ */
+export function useWorkerDocs(workerId: string, enabled = true) {
   return useQuery({
     queryKey: ["worker-docs", workerId],
     queryFn: () => workerDocService.getDocs(workerId),
-    enabled: !!workerId,
+    enabled: !!workerId && enabled,
   });
 }
 

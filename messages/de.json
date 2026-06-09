@@ -76,6 +76,9 @@
     "docApprove": "Dokument genehmigen",
     "docReject": "Dokument ablehnen",
     "docNotFound": "Keine Dokumente gefunden.",
+    "docFileName": "Dateiname",
+    "docTypeLabel": "Typ",
+    "docUploadDate": "Hochladedatum",
     "tableView": "Tabellenansicht",
     "calendarView": "Kalenderansicht",
     "tabs": {
