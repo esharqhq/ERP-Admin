@@ -56,7 +56,7 @@ export default function AdminDetailPage({
   }
 
   const BackLink = (
-    <Button variant="ghost" size="sm" className="gap-1.5" render={<Link href="/dashboard/admins" />}>
+    <Button variant="ghost" size="sm" nativeButton={false} className="gap-1.5" render={<Link href="/dashboard/admins" />}>
       <ArrowLeft className="size-4" />
       {tCommon("back")}
     </Button>
