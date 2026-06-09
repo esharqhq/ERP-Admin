@@ -924,5 +924,29 @@
       "role_not_found": "Rolle nicht gefunden.",
       "generic": "Rolle konnte nicht gespeichert werden."
     }
+  },
+  "profile": {
+    "title": "Profil",
+    "subtitle": "Ihre Kontodaten und Sicherheitseinstellungen.",
+    "verified": "Verifiziert",
+    "managedNote": "Ihr Name, Ihre E-Mail-Adresse und Ihr Avatar werden von einem Systemadministrator verwaltet. Wenden Sie sich an einen Administrator, um sie zu ändern.",
+    "loadError": "Ihr Profil konnte nicht geladen werden.",
+    "password": {
+      "title": "Passwort ändern",
+      "subtitle": "Ändern Sie das Passwort, mit dem Sie sich anmelden.",
+      "current": "Aktuelles Passwort",
+      "new": "Neues Passwort",
+      "confirm": "Neues Passwort bestätigen",
+      "minLength": "Muss mindestens {min} Zeichen lang sein.",
+      "show": "Passwort anzeigen",
+      "hide": "Passwort verbergen",
+      "submit": "Passwort aktualisieren",
+      "success": "Ihr Passwort wurde geändert.",
+      "errors": {
+        "invalidCurrent": "Ihr aktuelles Passwort ist falsch.",
+        "mismatch": "Passwörter stimmen nicht überein.",
+        "generic": "Passwort konnte nicht geändert werden. Bitte versuchen Sie es erneut."
+      }
+    }
   }
 }

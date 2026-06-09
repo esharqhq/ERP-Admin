@@ -29,7 +29,7 @@ import { navGroups } from "@/lib/nav-items"
 import { logoutAction } from "@/app/[locale]/login/actions"
 import { useAuthStore } from "@/store/auth.store"
 import { useCurrentPermissions } from "@/hooks/use-current-permissions"
-import { ChevronsUpDown, LogOut } from "lucide-react"
+import { ChevronsUpDown, LogOut, UserCircle } from "lucide-react"
 import { useTranslations, useLocale } from "next-intl"
 
 const menuButtonClass =
@@ -162,6 +162,15 @@ export function AppSidebar() {
                 <DropdownMenuLabel className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/70">
                   {t('auth.account')}
                 </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  nativeButton={false}
+                  render={<Link href="/dashboard/profile" />}
+                >
+                  <UserCircle />
+                  {t('profile.title')}
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <form action={logoutAction}>
                   <DropdownMenuItem

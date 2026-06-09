@@ -7,6 +7,16 @@ export interface RefreshTokenDto {
   refreshToken: string;
 }
 
+/**
+ * Body for POST /api/profile/password (ChangePasswordDto). Both fields are
+ * `[Required, MinLength(6)]` on the backend; works for any authenticated user
+ * type including Admin (AuthService.ChangePasswordAsync has an Admin branch).
+ */
+export interface ChangePasswordDto {
+  currentPassword: string;
+  newPassword: string;
+}
+
 export interface AuthResultDto {
   accessToken: string;
   refreshToken: string;

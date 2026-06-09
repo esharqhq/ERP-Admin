@@ -924,5 +924,29 @@
       "role_not_found": "Role not found.",
       "generic": "Could not save the role."
     }
+  },
+  "profile": {
+    "title": "Profile",
+    "subtitle": "Your account details and security settings.",
+    "verified": "Verified",
+    "managedNote": "Your name, email, and avatar are managed by a system administrator. Contact an administrator to change them.",
+    "loadError": "Could not load your profile.",
+    "password": {
+      "title": "Change password",
+      "subtitle": "Update the password you use to sign in.",
+      "current": "Current password",
+      "new": "New password",
+      "confirm": "Confirm new password",
+      "minLength": "Must be at least {min} characters.",
+      "show": "Show password",
+      "hide": "Hide password",
+      "submit": "Update password",
+      "success": "Your password has been changed.",
+      "errors": {
+        "invalidCurrent": "Your current password is incorrect.",
+        "mismatch": "Passwords do not match.",
+        "generic": "Could not change your password. Please try again."
+      }
+    }
   }
 }
