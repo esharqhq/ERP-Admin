@@ -2,8 +2,8 @@
 import { apiClient } from "@/lib/http/client";
 import type {
   RoleDto,
-  CreateCustomRoleRequest,
-  UpdateRolePermissionsRequest,
+  CreateRoleRequest,
+  UpdateRoleRequest,
 } from "@/lib/types/admin-user.types";
 
 export const roleService = {
@@ -12,17 +12,14 @@ export const roleService = {
     return data;
   },
 
-  createRole: async (body: CreateCustomRoleRequest): Promise<RoleDto> => {
+  createRole: async (body: CreateRoleRequest): Promise<RoleDto> => {
     const { data } = await apiClient.post<RoleDto>("/api/admin/roles", body, {
       headers: { "X-Idempotency-Key": crypto.randomUUID() },
     });
     return data;
   },
 
-  updateRolePermissions: async (
-    roleId: string,
-    body: UpdateRolePermissionsRequest,
-  ): Promise<RoleDto> => {
+  updateRole: async (roleId: string, body: UpdateRoleRequest): Promise<RoleDto> => {
     const { data } = await apiClient.patch<RoleDto>(`/api/admin/roles/${roleId}`, body);
     return data;
   },

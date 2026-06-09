@@ -13,6 +13,7 @@ import {
   FileText,
   CalendarOff,
   Briefcase,
+  KeyRound,
 } from "lucide-react"
 import { type LucideIcon } from "lucide-react"
 
@@ -73,6 +74,7 @@ export const navGroups: NavGroup[] = [
       { title: "Tickets",   labelKey: "nav.tickets",  url: "/dashboard/support",  icon: TicketCheck, permission: "support_ticket:list_any" },
       { title: "Audit Log", labelKey: "nav.auditLog", url: "/dashboard/audit",    icon: ShieldCheck, permission: "system:audit:read" },
       { title: "Admins",    labelKey: "nav.admins",   url: "/dashboard/admins",   icon: UserCog,     permission: "admin:list" },
+      { title: "Roles",     labelKey: "nav.roles",    url: "/dashboard/roles",    icon: KeyRound,    permission: "system:permission:read" },
       { title: "Settings",  labelKey: "nav.settings", url: "/dashboard/settings", icon: Settings,    permission: "system:settings:read" },
     ],
   },

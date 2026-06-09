@@ -49,7 +49,8 @@
     "chat": "Chat",
     "auditLog": "Audit Log",
     "admins": "Admins",
-    "settings": "Settings"
+    "settings": "Settings",
+    "roles": "Roles"
   },
   "auth": {
     "logout": "Logout",
@@ -288,22 +289,64 @@
       "emailPlaceholder": "john@erp.com",
       "password": "Password",
       "passwordPlaceholder": "At least 8 characters",
-      "permissions": "Permissions"
+      "permissions": "Permissions",
+      "role": "Role",
+      "selectRole": "Select a role",
+      "accessMode": "Access",
+      "modeShared": "Assign role",
+      "modeSharedHint": "Use a shared named role",
+      "modeCustom": "Custom access",
+      "modeCustomHint": "Pick individual permissions",
+      "create": "Create"
     },
     "roles": {
       "superAdmin": "Super Admin",
       "moderator": "Moderator",
-      "subAdmin": "Sub Admin"
+      "subAdmin": "Sub Admin",
+      "custom": "Custom"
     },
     "deactivate": {
       "title": "Deactivate Admin",
       "reasonLabel": "Reason (optional)",
       "reasonPlaceholder": "Deactivation reason...",
       "confirm": "Deactivate",
-      "you": "(you)"
+      "you": "(you)",
+      "cannotSelf": "You cannot deactivate yourself."
     },
     "errors": {
       "emailTaken": "This email is already taken."
+    },
+    "viewDetails": "View details",
+    "verified": "Verified",
+    "edit": {
+      "title": "Edit Admin",
+      "changeAvatar": "Change photo",
+      "uploadFailed": "Upload failed.",
+      "errors": {
+        "generic": "Could not save changes."
+      }
+    },
+    "detail": {
+      "created": "Created {date}",
+      "updated": "Updated {date}"
+    },
+    "assign": {
+      "title": "Reassign role",
+      "modeShared": "Shared role",
+      "modeSharedHint": "Assign an existing named role",
+      "modeCustom": "Custom access",
+      "modeCustomHint": "Create a one-off permission set",
+      "modeCustomEditHint": "Edit this admin’s custom permissions",
+      "roleLabel": "Role",
+      "confirm": "Apply",
+      "errors": {
+        "invalid_admin_role": "That role is not assignable to admins.",
+        "admin_not_found": "Admin not found.",
+        "role_code_exists": "A role with that code already exists.",
+        "system_role_immutable": "System roles cannot be edited.",
+        "role_not_found": "Role not found.",
+        "generic": "Could not update the role."
+      }
     }
   },
   "layout": {
@@ -744,66 +787,51 @@
     "save": "Save"
   },
   "permissions": {
-    "groups": {
-      "workers": "Workers",
-      "owners": "Owners",
-      "kyc": "KYC",
-      "properties": "Properties",
-      "tasks": "Tasks",
-      "support": "Support",
-      "system": "System"
+    "catalogError": "Could not load the permission catalog.",
+    "searchPlaceholder": "Search permissions...",
+    "noMatches": "No matching permissions.",
+    "selectAll": "Select all",
+    "clearAll": "Clear all"
+  },
+  "roles": {
+    "title": "Roles & Permissions",
+    "subtitle": "Manage shared admin roles and their permissions.",
+    "new": "New Role",
+    "empty": "No roles found.",
+    "showCustom": "Show custom roles",
+    "permCount": "{count} permissions",
+    "systemImmutable": "System roles cannot be edited",
+    "columns": {
+      "name": "Role",
+      "code": "Code",
+      "type": "Type",
+      "permissions": "Permissions"
     },
-    "perms": {
-      "worker_list": "View list",
-      "worker_detail": "View details",
-      "worker_approve": "Approve",
-      "worker_reject": "Reject",
-      "worker_delete": "Delete",
-      "worker_documents": "View documents",
-      "worker_restore": "Restore",
-      "owner_list": "View list",
-      "owner_detail": "View details",
-      "owner_approve": "Approve",
-      "owner_reject": "Reject",
-      "owner_delete": "Delete",
-      "owner_documents": "View documents",
-      "kyc_list": "View list",
-      "kyc_detail": "View details",
-      "kyc_approve": "Approve",
-      "kyc_reject": "Reject",
-      "property_list": "View list",
-      "property_detail": "View details",
-      "property_approve": "Approve",
-      "property_reject": "Reject",
-      "property_delete": "Delete",
-      "property_documents": "View documents",
-      "group_list": "View groups",
-      "group_detail": "Group details",
-      "group_cancel": "Cancel group",
-      "task_list": "View tasks",
-      "task_detail": "Task details",
-      "task_assign": "Assign worker",
-      "task_media": "View media",
-      "ticket_list": "View tickets",
-      "ticket_detail": "Ticket details",
-      "ticket_assign": "Assign ticket",
-      "ticket_resolve": "Resolve ticket",
-      "ticket_close": "Close ticket",
-      "chat_list": "View chats",
-      "chat_send": "Send message",
-      "audit_log": "View audit log",
-      "settings_view": "View settings",
-      "settings_edit": "Edit settings",
-      "admin_create": "Create admin",
-      "admin_list": "View admins",
-      "admin_detail": "Admin details",
-      "admin_edit": "Edit admin",
-      "admin_deactivate": "Deactivate admin",
-      "role_create": "Create role",
-      "role_edit": "Edit role",
-      "profession_create": "Create profession",
-      "profession_edit": "Edit profession",
-      "profession_delete": "Delete profession"
+    "type": {
+      "system": "System",
+      "shared": "Shared",
+      "custom": "Custom"
+    },
+    "form": {
+      "createTitle": "Create Role",
+      "editTitle": "Edit Role",
+      "code": "Code",
+      "codePlaceholder": "e.g. SUPPORT_LEAD",
+      "codeImmutable": "Code cannot be changed.",
+      "codeHint": "Uppercase identifier, e.g. SUPPORT_LEAD.",
+      "name": "Name",
+      "namePlaceholder": "Support Lead",
+      "description": "Description",
+      "descriptionPlaceholder": "What this role is for...",
+      "permissions": "Permissions",
+      "create": "Create"
+    },
+    "errors": {
+      "role_code_exists": "A role with that code already exists.",
+      "invalid_applies_to": "Invalid role scope.",
+      "system_role_immutable": "System roles cannot be edited.",
+      "role_not_found": "Role not found.",
+      "generic": "Could not save the role."
     }
   }
 }

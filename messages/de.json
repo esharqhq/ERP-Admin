@@ -49,7 +49,8 @@
     "chat": "Chat",
     "auditLog": "Prüfprotokoll",
     "admins": "Administratoren",
-    "settings": "Einstellungen"
+    "settings": "Einstellungen",
+    "roles": "Rollen"
   },
   "auth": {
     "logout": "Abmelden",
@@ -288,22 +289,64 @@
       "emailPlaceholder": "max@erp.com",
       "password": "Passwort",
       "passwordPlaceholder": "Mindestens 8 Zeichen",
-      "permissions": "Berechtigungen"
+      "permissions": "Berechtigungen",
+      "role": "Rolle",
+      "selectRole": "Rolle auswählen",
+      "accessMode": "Zugriff",
+      "modeShared": "Rolle zuweisen",
+      "modeSharedHint": "Eine gemeinsame benannte Rolle verwenden",
+      "modeCustom": "Benutzerdefinierter Zugriff",
+      "modeCustomHint": "Einzelne Berechtigungen wählen",
+      "create": "Erstellen"
     },
     "roles": {
       "superAdmin": "Super Admin",
       "moderator": "Moderator",
-      "subAdmin": "Sub Admin"
+      "subAdmin": "Sub Admin",
+      "custom": "Benutzerdefiniert"
     },
     "deactivate": {
       "title": "Admin deaktivieren",
       "reasonLabel": "Grund (optional)",
       "reasonPlaceholder": "Deaktivierungsgrund...",
       "confirm": "Deaktivieren",
-      "you": "(Sie)"
+      "you": "(Sie)",
+      "cannotSelf": "Sie können sich nicht selbst deaktivieren."
     },
     "errors": {
       "emailTaken": "Diese E-Mail-Adresse ist bereits vergeben."
+    },
+    "viewDetails": "Details anzeigen",
+    "verified": "Verifiziert",
+    "edit": {
+      "title": "Admin bearbeiten",
+      "changeAvatar": "Foto ändern",
+      "uploadFailed": "Upload fehlgeschlagen.",
+      "errors": {
+        "generic": "Änderungen konnten nicht gespeichert werden."
+      }
+    },
+    "detail": {
+      "created": "Erstellt {date}",
+      "updated": "Aktualisiert {date}"
+    },
+    "assign": {
+      "title": "Rolle neu zuweisen",
+      "modeShared": "Gemeinsame Rolle",
+      "modeSharedHint": "Eine vorhandene benannte Rolle zuweisen",
+      "modeCustom": "Benutzerdefinierter Zugriff",
+      "modeCustomHint": "Einen einmaligen Berechtigungssatz erstellen",
+      "modeCustomEditHint": "Benutzerdefinierte Berechtigungen dieses Admins bearbeiten",
+      "roleLabel": "Rolle",
+      "confirm": "Anwenden",
+      "errors": {
+        "invalid_admin_role": "Diese Rolle ist Admins nicht zuweisbar.",
+        "admin_not_found": "Admin nicht gefunden.",
+        "role_code_exists": "Eine Rolle mit diesem Code existiert bereits.",
+        "system_role_immutable": "Systemrollen können nicht bearbeitet werden.",
+        "role_not_found": "Rolle nicht gefunden.",
+        "generic": "Rolle konnte nicht aktualisiert werden."
+      }
     }
   },
   "layout": {
@@ -744,66 +787,51 @@
     "save": "Speichern"
   },
   "permissions": {
-    "groups": {
-      "workers": "Mitarbeiter",
-      "owners": "Eigentümer",
-      "kyc": "KYC",
-      "properties": "Objekte",
-      "tasks": "Aufgaben",
-      "support": "Support",
-      "system": "System"
+    "catalogError": "Berechtigungskatalog konnte nicht geladen werden.",
+    "searchPlaceholder": "Berechtigungen suchen...",
+    "noMatches": "Keine passenden Berechtigungen.",
+    "selectAll": "Alle auswählen",
+    "clearAll": "Alle abwählen"
+  },
+  "roles": {
+    "title": "Rollen & Berechtigungen",
+    "subtitle": "Gemeinsame Admin-Rollen und ihre Berechtigungen verwalten.",
+    "new": "Neue Rolle",
+    "empty": "Keine Rollen gefunden.",
+    "showCustom": "Benutzerdefinierte Rollen anzeigen",
+    "permCount": "{count} Berechtigungen",
+    "systemImmutable": "Systemrollen können nicht bearbeitet werden",
+    "columns": {
+      "name": "Rolle",
+      "code": "Code",
+      "type": "Typ",
+      "permissions": "Berechtigungen"
     },
-    "perms": {
-      "worker_list": "Liste anzeigen",
-      "worker_detail": "Details anzeigen",
-      "worker_approve": "Genehmigen",
-      "worker_reject": "Ablehnen",
-      "worker_delete": "Löschen",
-      "worker_documents": "Dokumente anzeigen",
-      "worker_restore": "Wiederherstellen",
-      "owner_list": "Liste anzeigen",
-      "owner_detail": "Details anzeigen",
-      "owner_approve": "Genehmigen",
-      "owner_reject": "Ablehnen",
-      "owner_delete": "Löschen",
-      "owner_documents": "Dokumente anzeigen",
-      "kyc_list": "Liste anzeigen",
-      "kyc_detail": "Details anzeigen",
-      "kyc_approve": "Genehmigen",
-      "kyc_reject": "Ablehnen",
-      "property_list": "Liste anzeigen",
-      "property_detail": "Details anzeigen",
-      "property_approve": "Genehmigen",
-      "property_reject": "Ablehnen",
-      "property_delete": "Löschen",
-      "property_documents": "Dokumente anzeigen",
-      "group_list": "Gruppen anzeigen",
-      "group_detail": "Gruppendetails",
-      "group_cancel": "Gruppe abbrechen",
-      "task_list": "Aufgaben anzeigen",
-      "task_detail": "Aufgabendetails",
-      "task_assign": "Mitarbeiter zuweisen",
-      "task_media": "Medien anzeigen",
-      "ticket_list": "Tickets anzeigen",
-      "ticket_detail": "Ticketdetails",
-      "ticket_assign": "Ticket zuweisen",
-      "ticket_resolve": "Ticket lösen",
-      "ticket_close": "Ticket schließen",
-      "chat_list": "Chats anzeigen",
-      "chat_send": "Nachricht senden",
-      "audit_log": "Prüfprotokoll anzeigen",
-      "settings_view": "Einstellungen anzeigen",
-      "settings_edit": "Einstellungen bearbeiten",
-      "admin_create": "Admin erstellen",
-      "admin_list": "Admins anzeigen",
-      "admin_detail": "Admin-Details",
-      "admin_edit": "Admin bearbeiten",
-      "admin_deactivate": "Admin deaktivieren",
-      "role_create": "Rolle erstellen",
-      "role_edit": "Rolle bearbeiten",
-      "profession_create": "Beruf erstellen",
-      "profession_edit": "Beruf bearbeiten",
-      "profession_delete": "Beruf löschen"
+    "type": {
+      "system": "System",
+      "shared": "Gemeinsam",
+      "custom": "Benutzerdefiniert"
+    },
+    "form": {
+      "createTitle": "Rolle erstellen",
+      "editTitle": "Rolle bearbeiten",
+      "code": "Code",
+      "codePlaceholder": "z.B. SUPPORT_LEAD",
+      "codeImmutable": "Code kann nicht geändert werden.",
+      "codeHint": "Großbuchstaben-Bezeichner, z.B. SUPPORT_LEAD.",
+      "name": "Name",
+      "namePlaceholder": "Support-Leitung",
+      "description": "Beschreibung",
+      "descriptionPlaceholder": "Wofür diese Rolle gedacht ist...",
+      "permissions": "Berechtigungen",
+      "create": "Erstellen"
+    },
+    "errors": {
+      "role_code_exists": "Eine Rolle mit diesem Code existiert bereits.",
+      "invalid_applies_to": "Ungültiger Rollenbereich.",
+      "system_role_immutable": "Systemrollen können nicht bearbeitet werden.",
+      "role_not_found": "Rolle nicht gefunden.",
+      "generic": "Rolle konnte nicht gespeichert werden."
     }
   }
 }
