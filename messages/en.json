@@ -137,6 +137,24 @@
       "sendMessage": "Send message",
       "edit": "Edit",
       "more": "More"
+    },
+    "rating": {
+      "title": "Rating snapshot",
+      "calculatedAt": "Calculated {date}",
+      "score": "Score",
+      "completionRate": "Completion rate",
+      "tasks": "Tasks done",
+      "new": "New",
+      "label": "Performance"
+    },
+    "delete": {
+      "action": "Delete worker",
+      "title": "Delete worker",
+      "description": "This deactivates {name}'s account. They will no longer appear in lists or be assignable. This cannot be undone here.",
+      "errors": {
+        "notFound": "This worker no longer exists.",
+        "generic": "Could not delete this worker. Please try again."
+      }
     }
   },
   "owners": {

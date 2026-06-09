@@ -137,6 +137,24 @@
       "sendMessage": "Nachricht senden",
       "edit": "Bearbeiten",
       "more": "Mehr"
+    },
+    "rating": {
+      "title": "Bewertungsübersicht",
+      "calculatedAt": "Berechnet am {date}",
+      "score": "Bewertung",
+      "completionRate": "Abschlussquote",
+      "tasks": "Erledigte Aufgaben",
+      "new": "Neu",
+      "label": "Leistung"
+    },
+    "delete": {
+      "action": "Mitarbeiter löschen",
+      "title": "Mitarbeiter löschen",
+      "description": "Dadurch wird das Konto von {name} deaktiviert. Der Mitarbeiter erscheint nicht mehr in Listen und ist nicht mehr zuweisbar. Dies kann hier nicht rückgängig gemacht werden.",
+      "errors": {
+        "notFound": "Dieser Mitarbeiter existiert nicht mehr.",
+        "generic": "Mitarbeiter konnte nicht gelöscht werden. Bitte versuchen Sie es erneut."
+      }
     }
   },
   "owners": {
