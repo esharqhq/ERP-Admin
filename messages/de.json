@@ -40,6 +40,8 @@
     "attendance": "Anwesenheit",
     "tasks": "Aufgaben",
     "dispatching": "Disposition",
+    "leave": "Urlaubsanträge",
+    "contracts": "Verträge",
     "support": "Support",
     "tickets": "Tickets",
     "chat": "Chat",
@@ -106,7 +108,16 @@
       "selectOneTask": "Eine Aufgabe auswählen",
       "selected": "ausgewählt",
       "assign": "Zuweisen",
-      "cancel": "Abbrechen"
+      "cancel": "Abbrechen",
+      "noTasksThatDay": "An diesem Tag sind keine offenen Aufgaben geplant.",
+      "assignFailed": "Mitarbeiter konnte nicht zugewiesen werden. Bitte erneut versuchen."
+    },
+    "assignErrors": {
+      "worker_not_approved": "Dieser Mitarbeiter ist nicht freigegeben.",
+      "worker_below_rating_floor": "Dieser Mitarbeiter liegt unter der Mindestbewertung der Aufgabe.",
+      "worker_profession_not_eligible": "Der Beruf dieses Mitarbeiters ist für diese Aufgabe nicht zugelassen.",
+      "worker_limit_reached": "Diese Aufgabe ist bereits vollständig besetzt.",
+      "worker_has_overlapping_assignment": "Dieser Mitarbeiter hat zu dieser Zeit eine überschneidende Zuweisung."
     },
     "activity": {
       "title": "Letzte Aktivität",
@@ -412,6 +423,43 @@
       "worker": "Mitarbeiter",
       "owner": "Eigentümer",
       "admin": "Administrator"
+    },
+    "actions": {
+      "assignToMe": "Mir zuweisen",
+      "assignedToMe": "Ihnen zugewiesen",
+      "resolve": "Lösen",
+      "close": "Schließen",
+      "failed": "Die Aktion konnte nicht abgeschlossen werden. Bitte erneut versuchen.",
+      "failedWithCode": "Die Aktion konnte nicht abgeschlossen werden ({code})."
+    },
+    "detail": {
+      "back": "Zurück zu den Tickets",
+      "archived": "Archiviert",
+      "from": "Von {who}",
+      "infoTitle": "Ticketdetails",
+      "you": "Sie",
+      "unassigned": "Nicht zugewiesen",
+      "info": {
+        "category": "Kategorie",
+        "priority": "Priorität",
+        "requester": "Ersteller",
+        "assignedAdmin": "Zugewiesener Administrator",
+        "created": "Erstellt",
+        "resolved": "Gelöst",
+        "closed": "Geschlossen",
+        "relatedProperty": "Zugehöriges Objekt",
+        "relatedTaskGroup": "Zugehörige Aufgabengruppe"
+      }
+    },
+    "thread": {
+      "title": "Konversation",
+      "live": "Live",
+      "empty": "Noch keine Nachrichten",
+      "readOnly": "Diese Konversation ist geschlossen.",
+      "composerPlaceholder": "Nachricht eingeben…",
+      "send": "Senden",
+      "sendFailed": "Nachricht konnte nicht gesendet werden. Bitte erneut versuchen.",
+      "participant": "Teilnehmer"
     }
   },
   "tasks": {
@@ -498,17 +546,119 @@
     },
     "emptyColumn": "Keine Aufgaben"
   },
+  "leave": {
+    "title": "Urlaubsanträge",
+    "subtitle": "Urlaubsanträge von Mitarbeitern prüfen und entscheiden",
+    "empty": "Keine Urlaubsanträge gefunden",
+    "viewTicket": "Verknüpftes Ticket öffnen",
+    "tabs": {
+      "all": "Alle",
+      "pending": "Ausstehend",
+      "approved": "Genehmigt",
+      "rejected": "Abgelehnt",
+      "cancelled": "Storniert"
+    },
+    "columns": {
+      "worker": "Mitarbeiter",
+      "target": "Ziel",
+      "reason": "Grund",
+      "status": "Status",
+      "created": "Erstellt"
+    },
+    "decide": {
+      "approve": "Genehmigen",
+      "reject": "Ablehnen",
+      "approveTitle": "Urlaubsantrag genehmigen?",
+      "rejectTitle": "Urlaubsantrag ablehnen?",
+      "approveDesc": "Bei Genehmigung wird {name} aus den betroffenen Aufgaben entfernt und das verknüpfte Support-Ticket gelöst.",
+      "rejectDesc": "Bei Ablehnung bleibt {name} zugewiesen und das verknüpfte Support-Ticket wird gelöst. Es ändern sich keine Zuweisungen.",
+      "note": "Entscheidungsnotiz (optional)",
+      "notePlaceholder": "Optionale Notiz für das Audit-Protokoll hinzufügen…"
+    },
+    "errors": {
+      "generic": "Die Entscheidung konnte nicht gespeichert werden. Bitte erneut versuchen.",
+      "leave_request_not_pending": "Dieser Antrag ist nicht mehr ausstehend.",
+      "task_already_started": "Die Aufgabe hat bereits begonnen — Urlaub kann nicht mehr genehmigt werden.",
+      "worker_already_checked_in": "Der Mitarbeiter hat bereits eingecheckt — Urlaub kann nicht mehr genehmigt werden.",
+      "no_active_enrolment": "Der Mitarbeiter hat keine aktive Zuordnung für diese Aufgabe mehr.",
+      "leave_request_not_found": "Urlaubsantrag nicht gefunden."
+    }
+  },
+  "contracts": {
+    "title": "Verträge",
+    "subtitle": "Eigentümer- und Mitarbeiterverträge verwalten",
+    "new": "Neuer Vertrag",
+    "empty": "Keine Verträge gefunden",
+    "active": "Aktiv",
+    "inactive": "Inaktiv",
+    "viewFile": "PDF anzeigen",
+    "deactivate": "Deaktivieren",
+    "deactivateTitle": "Vertrag deaktivieren?",
+    "deactivateConfirm": "Den aktiven Vertrag für {name} zwangsweise deaktivieren? Dies wird protokolliert.",
+    "tabs": {
+      "owner": "Eigentümerverträge",
+      "worker": "Mitarbeiterverträge"
+    },
+    "columns": {
+      "party": "Partei",
+      "period": "Zeitraum",
+      "status": "Status",
+      "file": "Datei",
+      "created": "Erstellt"
+    },
+    "form": {
+      "createTitle": "Neuer Vertrag",
+      "renewTitle": "Vertrag verlängern",
+      "party": "Partei",
+      "selectParty": "Partei auswählen…",
+      "from": "Gültig ab",
+      "to": "Gültig bis",
+      "dateOrder": "Das Enddatum muss am oder nach dem Startdatum liegen.",
+      "file": "Vertrags-PDF",
+      "choosePdf": "PDF-Datei auswählen…",
+      "uploadFailed": "Datei-Upload fehlgeschlagen. Bitte erneut versuchen.",
+      "create": "Erstellen",
+      "renew": "Verlängern"
+    },
+    "errors": {
+      "generic": "Der Vertrag konnte nicht gespeichert werden. Bitte erneut versuchen.",
+      "no_active_contract_to_renew": "Es gibt keinen aktiven Vertrag zum Verlängern — erstellen Sie zuerst einen.",
+      "owner_profile_not_found": "Für diesen Eigentümer ist kein Profil hinterlegt.",
+      "worker_not_found": "Mitarbeiter nicht gefunden.",
+      "contract_not_found": "Vertrag nicht gefunden.",
+      "contract_already_inactive": "Dieser Vertrag ist bereits inaktiv."
+    }
+  },
   "dispatch": {
     "title": "Disposition",
-    "subtitle": "Aufgaben an verfügbare Mitarbeiter zuweisen",
-    "pendingTasks": "Ausstehende Aufgaben",
-    "pendingTasksDesc": "Aufgaben, die zugewiesen werden müssen",
-    "availableWorkers": "Verfügbare Mitarbeiter",
-    "availableWorkersDesc": "Mitarbeiter bereit zur Zuweisung",
+    "subtitle": "Unterbesetzte Aufgaben durch Zuweisung verfügbarer Mitarbeiter besetzen",
     "assign": "Zuweisen",
-    "statuses": {
-      "available": "Verfügbar",
-      "onTask": "Im Einsatz"
+    "unassign": "Entfernen",
+    "viewGroup": "Gruppe anzeigen",
+    "needsWorker": "Mitarbeiter benötigt",
+    "assignedCount": "{count} zugewiesen",
+    "searchPlaceholder": "Nach Objekt, Datum oder Aufgabe suchen...",
+    "empty": "Keine Aufgaben entsprechen diesem Filter",
+    "capNotice": "Es werden die {count} neuesten Aufgaben angezeigt",
+    "unassignTitle": "Mitarbeiter entfernen?",
+    "unassignConfirm": "{name} von dieser Aufgabe entfernen?",
+    "stats": {
+      "needsWorkers": "Benötigen Mitarbeiter",
+      "open": "Offene Aufgaben",
+      "total": "Angezeigt gesamt"
+    },
+    "tabs": {
+      "needsWorkers": "Benötigen Mitarbeiter",
+      "open": "Offen",
+      "all": "Alle"
+    },
+    "errors": {
+      "generic": "Mitarbeiter konnte nicht zugewiesen werden. Bitte erneut versuchen.",
+      "worker_not_approved": "Dieser Mitarbeiter ist nicht freigegeben.",
+      "worker_below_rating_floor": "Dieser Mitarbeiter liegt unter der Mindestbewertung der Aufgabe.",
+      "worker_profession_not_eligible": "Der Beruf dieses Mitarbeiters ist für diese Aufgabe nicht zugelassen.",
+      "worker_limit_reached": "Diese Aufgabe ist bereits vollständig besetzt.",
+      "worker_has_overlapping_assignment": "Dieser Mitarbeiter hat zu dieser Zeit eine überschneidende Zuweisung."
     }
   },
   "audit": {

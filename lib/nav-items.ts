@@ -10,6 +10,8 @@ import {
   ShieldCheck,
   UserCog,
   TicketCheck,
+  FileText,
+  CalendarOff,
 } from "lucide-react"
 import { type LucideIcon } from "lucide-react"
 
@@ -46,6 +48,7 @@ export const navGroups: NavGroup[] = [
       { title: "Owners",     labelKey: "nav.owners",     url: "/dashboard/owners",          icon: Building2,  permission: "owner:list" },
       { title: "Properties", labelKey: "nav.properties", url: "/dashboard/properties",      icon: Home,       permission: "property:list" },
       { title: "Documents",  labelKey: "nav.documents",  url: "/dashboard/owner-documents", icon: FolderOpen, permission: "kyc:read" },
+      { title: "Contracts",  labelKey: "nav.contracts",  url: "/dashboard/contracts",       icon: FileText,   permission: "owner_contract:read_any" },
     ],
   },
   {
@@ -56,6 +59,7 @@ export const navGroups: NavGroup[] = [
       { title: "Workers",     labelKey: "nav.workers",     url: "/dashboard/workers",          icon: Users,         permission: "worker:list" },
       { title: "Tasks",       labelKey: "nav.tasks",       url: "/dashboard/tasks",            icon: ClipboardList, permission: "task:list_any" },
       { title: "Dispatching", labelKey: "nav.dispatching", url: "/dashboard/dispatch",         icon: Truck,         permission: "task:assign_worker_any" },
+      { title: "Leave",       labelKey: "nav.leave",       url: "/dashboard/leave",            icon: CalendarOff,   permission: "worker_leave_request:list_any" },
       { title: "Documents",   labelKey: "nav.documents",   url: "/dashboard/worker-documents", icon: FolderOpen,    permission: "worker:list" },
     ],
   },

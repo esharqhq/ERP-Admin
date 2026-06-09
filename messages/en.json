@@ -40,6 +40,8 @@
     "attendance": "Attendance",
     "tasks": "Tasks",
     "dispatching": "Dispatching",
+    "leave": "Leave Requests",
+    "contracts": "Contracts",
     "support": "Support",
     "tickets": "Tickets",
     "chat": "Chat",
@@ -106,7 +108,16 @@
       "selectOneTask": "Select one task",
       "selected": "selected",
       "assign": "Assign",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "noTasksThatDay": "No open tasks scheduled that day.",
+      "assignFailed": "Could not assign this worker. Please try again."
+    },
+    "assignErrors": {
+      "worker_not_approved": "This worker is not approved.",
+      "worker_below_rating_floor": "This worker is below the task's rating floor.",
+      "worker_profession_not_eligible": "This worker's profession is not eligible for this task.",
+      "worker_limit_reached": "This task is already fully staffed.",
+      "worker_has_overlapping_assignment": "This worker has an overlapping assignment at this time."
     },
     "activity": {
       "title": "Recent Activity",
@@ -412,6 +423,43 @@
       "worker": "Worker",
       "owner": "Owner",
       "admin": "Admin"
+    },
+    "actions": {
+      "assignToMe": "Assign to me",
+      "assignedToMe": "Assigned to you",
+      "resolve": "Resolve",
+      "close": "Close",
+      "failed": "The action could not be completed. Please try again.",
+      "failedWithCode": "The action could not be completed ({code})."
+    },
+    "detail": {
+      "back": "Back to tickets",
+      "archived": "Archived",
+      "from": "From {who}",
+      "infoTitle": "Ticket details",
+      "you": "You",
+      "unassigned": "Unassigned",
+      "info": {
+        "category": "Category",
+        "priority": "Priority",
+        "requester": "Requester",
+        "assignedAdmin": "Assigned admin",
+        "created": "Created",
+        "resolved": "Resolved",
+        "closed": "Closed",
+        "relatedProperty": "Related property",
+        "relatedTaskGroup": "Related task group"
+      }
+    },
+    "thread": {
+      "title": "Conversation",
+      "live": "Live",
+      "empty": "No messages yet",
+      "readOnly": "This conversation is closed.",
+      "composerPlaceholder": "Type a message…",
+      "send": "Send",
+      "sendFailed": "Message could not be sent. Please try again.",
+      "participant": "Participant"
     }
   },
   "tasks": {
@@ -498,17 +546,119 @@
     },
     "emptyColumn": "No tasks"
   },
+  "leave": {
+    "title": "Leave Requests",
+    "subtitle": "Review and decide worker leave requests",
+    "empty": "No leave requests found",
+    "viewTicket": "Open linked ticket",
+    "tabs": {
+      "all": "All",
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "cancelled": "Cancelled"
+    },
+    "columns": {
+      "worker": "Worker",
+      "target": "Target",
+      "reason": "Reason",
+      "status": "Status",
+      "created": "Created"
+    },
+    "decide": {
+      "approve": "Approve",
+      "reject": "Reject",
+      "approveTitle": "Approve leave request?",
+      "rejectTitle": "Reject leave request?",
+      "approveDesc": "Approving removes {name} from the affected task(s) and resolves the linked support ticket.",
+      "rejectDesc": "Rejecting keeps {name} assigned and resolves the linked support ticket. No assignments change.",
+      "note": "Decision note (optional)",
+      "notePlaceholder": "Add an optional note for the audit log…"
+    },
+    "errors": {
+      "generic": "The decision could not be saved. Please try again.",
+      "leave_request_not_pending": "This request is no longer pending.",
+      "task_already_started": "The task has already started — leave can no longer be approved.",
+      "worker_already_checked_in": "The worker has already checked in — leave can no longer be approved.",
+      "no_active_enrolment": "The worker no longer has an active enrolment for this task.",
+      "leave_request_not_found": "Leave request not found."
+    }
+  },
+  "contracts": {
+    "title": "Contracts",
+    "subtitle": "Manage owner and worker contracts",
+    "new": "New contract",
+    "empty": "No contracts found",
+    "active": "Active",
+    "inactive": "Inactive",
+    "viewFile": "View PDF",
+    "deactivate": "Deactivate",
+    "deactivateTitle": "Deactivate contract?",
+    "deactivateConfirm": "Force-deactivate the active contract for {name}? This is audited.",
+    "tabs": {
+      "owner": "Owner contracts",
+      "worker": "Worker contracts"
+    },
+    "columns": {
+      "party": "Party",
+      "period": "Period",
+      "status": "Status",
+      "file": "File",
+      "created": "Created"
+    },
+    "form": {
+      "createTitle": "New contract",
+      "renewTitle": "Renew contract",
+      "party": "Party",
+      "selectParty": "Select a party…",
+      "from": "Eligible from",
+      "to": "Eligible to",
+      "dateOrder": "The end date must be on or after the start date.",
+      "file": "Contract PDF",
+      "choosePdf": "Choose a PDF file…",
+      "uploadFailed": "File upload failed. Please try again.",
+      "create": "Create",
+      "renew": "Renew"
+    },
+    "errors": {
+      "generic": "The contract could not be saved. Please try again.",
+      "no_active_contract_to_renew": "There is no active contract to renew — create one first.",
+      "owner_profile_not_found": "This owner has no profile on record.",
+      "worker_not_found": "Worker not found.",
+      "contract_not_found": "Contract not found.",
+      "contract_already_inactive": "This contract is already inactive."
+    }
+  },
   "dispatch": {
     "title": "Dispatch",
-    "subtitle": "Assign tasks to available workers",
-    "pendingTasks": "Pending Tasks",
-    "pendingTasksDesc": "Tasks waiting to be assigned",
-    "availableWorkers": "Available Workers",
-    "availableWorkersDesc": "Workers ready for assignment",
+    "subtitle": "Fill under-staffed tasks by assigning available workers",
     "assign": "Assign",
-    "statuses": {
-      "available": "Available",
-      "onTask": "On Task"
+    "unassign": "Unassign",
+    "viewGroup": "View group",
+    "needsWorker": "Needs worker",
+    "assignedCount": "{count} assigned",
+    "searchPlaceholder": "Search by property, date or task...",
+    "empty": "No tasks match this filter",
+    "capNotice": "Showing the {count} most recent tasks",
+    "unassignTitle": "Remove worker?",
+    "unassignConfirm": "Remove {name} from this task?",
+    "stats": {
+      "needsWorkers": "Need workers",
+      "open": "Open tasks",
+      "total": "Total shown"
+    },
+    "tabs": {
+      "needsWorkers": "Needs workers",
+      "open": "Open",
+      "all": "All"
+    },
+    "errors": {
+      "generic": "Could not assign this worker. Please try again.",
+      "worker_not_approved": "This worker is not approved.",
+      "worker_below_rating_floor": "This worker is below the task's rating floor.",
+      "worker_profession_not_eligible": "This worker's profession is not eligible for this task.",
+      "worker_limit_reached": "This task is already fully staffed.",
+      "worker_has_overlapping_assignment": "This worker has an overlapping assignment at this time."
     }
   },
   "audit": {

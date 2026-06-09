@@ -1,0 +1,74 @@
+// ── Support ticket + conversation types (mirror GermanyERP.Domain/Models/DTOs/Support/SupportDtos.cs) ──
+// Enums serialize as their PascalCase string NAME (global JsonStringEnumConverter). Compare
+// case-insensitively via normalizeStatus() from task.types (re-exported below for convenience).
+
+export type SupportTicketStatusName =
+  | "Open"
+  | "InProgress"
+  | "Resolved"
+  | "Closed";
+
+// Category / Priority are rendered as raw enum names (Payment | Task | Property | Technical
+// | Account | Other ; Low | Normal | High | Urgent) — kept as string so new backend values
+// never crash the UI.
+
+export interface SupportTicketDto {
+  id: string;
+  subject: string;
+  status: string; // SupportTicketStatusName
+  category: string;
+  priority: string;
+  requesterUserId: string;
+  requesterUserType: string; // "Owner" | "Worker" | "Admin"
+  assignedAdminId: string | null;
+  relatedPropertyId: string | null;
+  relatedTaskGroupId: string | null;
+  relatedTaskId: string | null;
+  conversationId: string;
+  conversationArchived: boolean;
+  resolvedAt: string | null;
+  closedAt: string | null;
+  createdAt: string;
+}
+
+export interface MessageAttachmentDto {
+  id: string;
+  conversationMessageId: string;
+  type: string; // AttachmentType name: Voice | Image | Video | File
+  url: string;
+  mimeType: string;
+  sizeBytes: number;
+  durationSeconds: number | null;
+  fileName: string;
+}
+
+export interface ConversationMessageDto {
+  id: string;
+  conversationId: string;
+  senderUserType: string; // "Admin" | "Owner" | "Worker"
+  senderUserId: string | null;
+  messageType: string; // MessageType name: User | System
+  body: string | null;
+  attachments: MessageAttachmentDto[];
+  createdAt: string;
+}
+
+export interface SendMessageRequest {
+  body?: string | null;
+  // Outbound attachments (presign→confirm) deferred from v1; text-only for now.
+  attachments?: null;
+}
+
+export interface AssignTicketRequest {
+  adminId: string;
+}
+
+/** Filterable ticket statuses for the admin list (plus "all"). */
+export const SUPPORT_STATUS_FILTERS = [
+  "all",
+  "Open",
+  "InProgress",
+  "Resolved",
+  "Closed",
+] as const;
+export type SupportStatusFilter = (typeof SUPPORT_STATUS_FILTERS)[number];

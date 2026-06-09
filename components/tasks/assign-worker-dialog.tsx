@@ -19,6 +19,12 @@ interface Props {
   onClose: () => void;
   onAssign: (workerId: string) => void;
   isPending: boolean;
+  /**
+   * Optional localized error to surface inline (the admin-assign endpoint rejects
+   * threshold/eligibility violations with a 400). Omitted by callers that don't
+   * surface it, so the worker picker is unchanged where unused.
+   */
+  error?: string | null;
 }
 
 /** Pick an approved worker to admin-assign to a single understaffed task. */
@@ -27,6 +33,7 @@ export function AssignWorkerDialog({
   onClose,
   onAssign,
   isPending,
+  error,
 }: Props) {
   const t = useTranslations("tasks");
   const tCommon = useTranslations("common");
@@ -48,6 +55,11 @@ export function AssignWorkerDialog({
         <DialogHeader>
           <DialogTitle>{t("actions.assignTitle")}</DialogTitle>
         </DialogHeader>
+        {error ? (
+          <p className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            {error}
+          </p>
+        ) : null}
         <div className="relative">
           <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
           <Input
