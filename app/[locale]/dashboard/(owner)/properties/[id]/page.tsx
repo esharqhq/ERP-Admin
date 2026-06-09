@@ -3,6 +3,7 @@
 import { use } from "react";
 import { useTranslations } from "next-intl";
 import { ActionBar } from "@/components/properties/action-bar";
+import { PropertyActions } from "@/components/properties/property-actions";
 import { PropertyHero } from "@/components/properties/property-hero";
 import { PropertyInfo } from "@/components/properties/property-info";
 import { PropertyOwnerCard } from "@/components/properties/property-owner-card";
@@ -59,7 +60,7 @@ export default function PropertyDetailPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <ActionBar />
+      <ActionBar actions={<PropertyActions property={property} />} />
       <PropertyHero property={property} />
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">

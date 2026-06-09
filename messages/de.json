@@ -285,6 +285,43 @@
       "resetPlaceholder": "Grund für erneute Prüfung...",
       "resetReasonMin": "Mindestens {min} Zeichen eingeben."
     },
+    "form": {
+      "name": "Name",
+      "namePlaceholder": "Objektname",
+      "address": "Adresse",
+      "addressPlaceholder": "Straße, Stadt, Postleitzahl",
+      "type": "Typ",
+      "types": {
+        "Villa": "Villa",
+        "Hotel": "Hotel",
+        "Office": "Büro",
+        "Other": "Sonstiges"
+      },
+      "floorCount": "Anzahl Etagen",
+      "floorRange": "Geben Sie eine ganze Zahl zwischen {min} und {max} ein.",
+      "lat": "Breitengrad",
+      "long": "Längengrad",
+      "entryInstructions": "Zutrittshinweise",
+      "entryInstructionsPlaceholder": "Wie das Objekt betreten wird..."
+    },
+    "edit": {
+      "action": "Bearbeiten",
+      "title": "Objekt bearbeiten",
+      "errors": {
+        "notFound": "Dieses Objekt existiert nicht mehr.",
+        "generic": "Änderungen konnten nicht gespeichert werden. Bitte erneut versuchen."
+      }
+    },
+    "delete": {
+      "action": "Löschen",
+      "title": "Objekt löschen?",
+      "description": "„{name}“ wird deaktiviert und seine aktiven Mitgliedschaften werden widerrufen. Dies kann nur durch eine Backend-Wiederherstellung rückgängig gemacht werden.",
+      "confirm": "Objekt löschen",
+      "errors": {
+        "notFound": "Dieses Objekt existiert nicht mehr.",
+        "generic": "Objekt konnte nicht gelöscht werden. Bitte erneut versuchen."
+      }
+    },
     "actions": {
       "backToList": "Zurück zur Objektliste",
       "more": "Mehr"

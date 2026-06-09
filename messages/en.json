@@ -285,6 +285,43 @@
       "resetPlaceholder": "Reset reason...",
       "resetReasonMin": "Enter at least {min} characters."
     },
+    "form": {
+      "name": "Name",
+      "namePlaceholder": "Property name",
+      "address": "Address",
+      "addressPlaceholder": "Street, city, postal code",
+      "type": "Type",
+      "types": {
+        "Villa": "Villa",
+        "Hotel": "Hotel",
+        "Office": "Office",
+        "Other": "Other"
+      },
+      "floorCount": "Floor count",
+      "floorRange": "Enter a whole number between {min} and {max}.",
+      "lat": "Latitude",
+      "long": "Longitude",
+      "entryInstructions": "Entry instructions",
+      "entryInstructionsPlaceholder": "How to access the property..."
+    },
+    "edit": {
+      "action": "Edit",
+      "title": "Edit Property",
+      "errors": {
+        "notFound": "This property no longer exists.",
+        "generic": "Could not save changes. Please try again."
+      }
+    },
+    "delete": {
+      "action": "Delete",
+      "title": "Delete property?",
+      "description": "\"{name}\" will be deactivated and its active memberships revoked. This can only be reversed by a backend restore.",
+      "confirm": "Delete property",
+      "errors": {
+        "notFound": "This property no longer exists.",
+        "generic": "Could not delete the property. Please try again."
+      }
+    },
     "actions": {
       "backToList": "Back to Properties list",
       "more": "More"

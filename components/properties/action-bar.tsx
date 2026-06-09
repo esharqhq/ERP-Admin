@@ -1,9 +1,10 @@
+import type {ReactNode} from "react"
 import Link from "next/link"
-import {ArrowLeft, MoreHorizontal} from "lucide-react"
+import {ArrowLeft} from "lucide-react"
 import {Button} from "@/components/ui/button"
 import {useTranslations} from "next-intl"
 
-export function ActionBar() {
+export function ActionBar({actions}: {actions?: ReactNode}) {
     const t = useTranslations("properties.actions")
 
     return (
@@ -18,12 +19,7 @@ export function ActionBar() {
                 <ArrowLeft className="size-4"/>
                 {t("backToList")}
             </Button>
-            <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon-sm">
-                    <MoreHorizontal className="size-4"/>
-                    <span className="sr-only">{t("more")}</span>
-                </Button>
-            </div>
+            {actions ? <div className="flex items-center gap-2">{actions}</div> : null}
         </div>
     )
 }

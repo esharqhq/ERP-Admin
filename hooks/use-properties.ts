@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { propertyService } from "@/lib/services/property.service";
+import type { UpdatePropertyRequest } from "@/lib/types/property.types";
 
 export function useProperties() {
   return useQuery({
@@ -15,6 +16,33 @@ export function usePropertyById(id: string) {
     queryKey: ["property", id],
     queryFn: () => propertyService.getPropertyById(id),
     enabled: !!id,
+  });
+}
+
+export function useUpdateProperty(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: UpdatePropertyRequest) => propertyService.updateProperty(id, body),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["property", id] });
+      qc.invalidateQueries({ queryKey: ["properties"] });
+    },
+  });
+}
+
+/**
+ * Soft-delete a property. The caller navigates away on success — so we ONLY
+ * invalidate the list. Do NOT invalidate/remove ["property", id]: its observer
+ * is still mounted on the detail page being deleted from, and would 404-refetch
+ * the now-deleted id (see [[erp-admin-build-state]] delete-then-navigate gotcha).
+ */
+export function useSoftDeleteProperty() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => propertyService.softDeleteProperty(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["properties"] });
+    },
   });
 }
 
