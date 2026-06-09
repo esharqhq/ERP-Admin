@@ -50,7 +50,8 @@
     "auditLog": "Prüfprotokoll",
     "admins": "Administratoren",
     "settings": "Einstellungen",
-    "roles": "Rollen"
+    "roles": "Rollen",
+    "kyc": "KYC"
   },
   "auth": {
     "logout": "Abmelden",
@@ -225,6 +226,41 @@
       "rejectPlaceholder": "Ablehnungsgrund...",
       "approved": "Genehmigt",
       "reReview": "Erneut prüfen"
+    },
+    "directory": {
+      "subtitle": "Eigentümerverzeichnis — alle registrierten Eigentümer und Unterkonten.",
+      "search": "Nach Name, E-Mail oder Telefon suchen...",
+      "columns": {
+        "phone": "Telefon",
+        "role": "Rolle",
+        "status": "Status"
+      }
+    },
+    "account": {
+      "back": "Zurück zu Eigentümern",
+      "email": "E-Mail",
+      "phone": "Telefon",
+      "joined": "Beigetreten",
+      "verified": "Verifiziert",
+      "unverified": "Nicht verifiziert",
+      "verifiedHint": "Konto verifiziert",
+      "unverifiedHint": "Noch nicht verifiziert",
+      "joinedHint": "Registrierungsdatum",
+      "roleHint": "Kontorolle",
+      "propertiesHint": "Eigene Objekte"
+    },
+    "delete": {
+      "action": "Eigentümer löschen",
+      "title": "Diesen Eigentümer löschen?",
+      "description": "{name} wird soft-gelöscht und ein Audit-Eintrag wird erstellt. Dies kann von einem Entwickler rückgängig gemacht werden.",
+      "confirm": "Eigentümer löschen",
+      "reasonLabel": "Grund (optional)",
+      "reasonPlaceholder": "Warum wird dieser Eigentümer entfernt?",
+      "errors": {
+        "notFound": "Eigentümer nicht gefunden.",
+        "hasActiveProperties": "Dieser Eigentümer hat noch aktive Objekte und kann nicht gelöscht werden.",
+        "generic": "Eigentümer konnte nicht gelöscht werden. Bitte erneut versuchen."
+      }
     }
   },
   "properties": {

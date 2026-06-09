@@ -1,28 +1,14 @@
-import { Mail } from "lucide-react";
+import { Mail, BadgeCheck, ShieldAlert } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useTranslations } from "next-intl";
-import type { KycProfileSummaryDto } from "@/lib/types/kyc.types";
+import type { OwnerSummaryDto } from "@/lib/types/owner.types";
 
-export function HeroCard({ owner }: { owner: KycProfileSummaryDto }) {
-  const tStatus = useTranslations("status");
-  const tCommon = useTranslations("common");
-
-  const kycStatusConfig: Record<
-    string,
-    { label: string; variant: "default" | "secondary" | "destructive" | "outline" }
-  > = {
-    "1": { label: tStatus("pending"), variant: "secondary" },
-    "2": { label: tStatus("approved"), variant: "default" },
-    "3": { label: tStatus("rejected"), variant: "destructive" },
-  };
-
-  const initials = (owner.ownerName ?? "??").slice(0, 2).toUpperCase();
-  const status = owner.kycStatus
-    ? (kycStatusConfig[owner.kycStatus] ?? { label: owner.kycStatus, variant: "outline" as const })
-    : { label: tCommon("unknown"), variant: "outline" as const };
+export function HeroCard({ owner }: { owner: OwnerSummaryDto }) {
+  const t = useTranslations("owners");
+  const initials = (owner.fullName || "??").slice(0, 2).toUpperCase();
 
   return (
     <Card className="overflow-hidden">
@@ -45,28 +31,37 @@ export function HeroCard({ owner }: { owner: KycProfileSummaryDto }) {
             </Avatar>
             <div className="flex flex-col gap-1.5 pb-1">
               <h1 className="font-heading text-2xl font-bold tracking-tight leading-tight sm:text-[28px]">
-                {owner.ownerName ?? "—"}
+                {owner.fullName || "—"}
               </h1>
               <div className="flex flex-wrap items-center gap-2">
-                <Badge variant={status.variant}>{status.label}</Badge>
+                {owner.roleCode && <Badge variant="secondary">{owner.roleCode}</Badge>}
+                {owner.isVerified ? (
+                  <Badge variant="default" className="gap-1">
+                    <BadgeCheck className="size-3.5" />
+                    {t("account.verified")}
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="gap-1 text-muted-foreground">
+                    <ShieldAlert className="size-3.5" />
+                    {t("account.unverified")}
+                  </Badge>
+                )}
               </div>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            {owner.ownerEmail && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-1.5"
-                nativeButton={false}
-                render={<a href={`mailto:${owner.ownerEmail}`} />}
-              >
-                <Mail className="size-4" />
-                Email
-              </Button>
-            )}
-          </div>
+          {owner.email && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              nativeButton={false}
+              render={<a href={`mailto:${owner.email}`} />}
+            >
+              <Mail className="size-4" />
+              {t("account.email")}
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>

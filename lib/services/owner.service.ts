@@ -1,13 +1,15 @@
 import { apiClient } from "@/lib/http/client";
 import type {
   KycProfileSummaryDto,
-  KycProfileDto,
   KycApprovalDto,
 } from "@/lib/types/kyc.types";
+import type { OwnerSummaryDto } from "@/lib/types/owner.types";
 import type { PropertyDto } from "@/lib/types/property.types";
 import type { AdminTaskGroupSummaryDto } from "@/lib/types/task.types";
 
 export const ownerService = {
+  // ── KYC verification queue (GET /api/admin/kyc) — used by the Contracts owner picker ──
+
   getOwnerList: async (status?: string): Promise<KycProfileSummaryDto[]> => {
     const params = status !== undefined ? { status } : {};
     const { data } = await apiClient.get<KycProfileSummaryDto[]>("/api/admin/kyc", { params });
@@ -29,16 +31,26 @@ export const ownerService = {
     return data;
   },
 
-  deleteOwner: async (ownerUserId: string): Promise<void> => {
-    await apiClient.delete(`/api/owners/${ownerUserId}`);
-  },
+  // ── Owner-account directory (GET /api/owners) — distinct from the KYC queue ──
 
-  getOwnerByUserId: async (ownerUserId: string): Promise<KycProfileDto> => {
-    const { data } = await apiClient.get<KycProfileDto>(
-      `/api/admin/kyc/owner/${ownerUserId}`,
-    );
+  listOwners: async (search?: string): Promise<OwnerSummaryDto[]> => {
+    const params = search ? { search } : {};
+    const { data } = await apiClient.get<OwnerSummaryDto[]>("/api/owners", { params });
     return data;
   },
+
+  getOwner: async (ownerUserId: string): Promise<OwnerSummaryDto> => {
+    const { data } = await apiClient.get<OwnerSummaryDto>(`/api/owners/${ownerUserId}`);
+    return data;
+  },
+
+  /** Soft-delete an owner. `reason` is recorded in the OWNER_DEACTIVATED audit entry. */
+  deleteOwner: async (ownerUserId: string, reason?: string): Promise<void> => {
+    const params = reason ? { reason } : {};
+    await apiClient.delete(`/api/owners/${ownerUserId}`, { params });
+  },
+
+  // ── Cross-domain reads used on the owner-account detail page (keyed on OwnerUser id) ──
 
   getOwnerProperties: async (ownerUserId: string): Promise<PropertyDto[]> => {
     const { data } = await apiClient.get<PropertyDto[]>("/api/properties", {

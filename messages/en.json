@@ -50,7 +50,8 @@
     "auditLog": "Audit Log",
     "admins": "Admins",
     "settings": "Settings",
-    "roles": "Roles"
+    "roles": "Roles",
+    "kyc": "KYC"
   },
   "auth": {
     "logout": "Logout",
@@ -225,6 +226,41 @@
       "rejectPlaceholder": "Rejection reason...",
       "approved": "Approved",
       "reReview": "Re-review"
+    },
+    "directory": {
+      "subtitle": "Owner accounts directory — every registered owner and sub-account.",
+      "search": "Search by name, email or phone...",
+      "columns": {
+        "phone": "Phone",
+        "role": "Role",
+        "status": "Status"
+      }
+    },
+    "account": {
+      "back": "Back to Owners",
+      "email": "Email",
+      "phone": "Phone",
+      "joined": "Joined",
+      "verified": "Verified",
+      "unverified": "Unverified",
+      "verifiedHint": "Account verified",
+      "unverifiedHint": "Not yet verified",
+      "joinedHint": "Registration date",
+      "roleHint": "Account role",
+      "propertiesHint": "Owned properties"
+    },
+    "delete": {
+      "action": "Delete owner",
+      "title": "Delete this owner?",
+      "description": "{name} will be soft-deleted and an audit entry recorded. This can be reversed by a developer.",
+      "confirm": "Delete owner",
+      "reasonLabel": "Reason (optional)",
+      "reasonPlaceholder": "Why is this owner being removed?",
+      "errors": {
+        "notFound": "Owner not found.",
+        "hasActiveProperties": "This owner still has active properties and cannot be deleted.",
+        "generic": "Could not delete this owner. Please try again."
+      }
     }
   },
   "properties": {

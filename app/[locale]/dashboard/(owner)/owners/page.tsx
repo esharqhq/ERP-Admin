@@ -1,53 +1,60 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
+import { BadgeCheck, ShieldAlert } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { DataTableCard } from "@/components/ui/data-table-card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useOwnerList } from "@/hooks/use-owners";
-import type { KycProfileSummaryDto } from "@/lib/types/kyc.types";
-import { useTranslations } from "next-intl";
+import { useOwnerDirectory } from "@/hooks/use-owners";
+import type { OwnerSummaryDto } from "@/lib/types/owner.types";
+import { useLocale, useTranslations } from "next-intl";
+
+function formatJoined(iso: string, locale: string): string {
+  return new Date(iso).toLocaleDateString(locale, {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
 
 export default function OwnersPage() {
   const t = useTranslations("owners");
-  const tStatus = useTranslations("status");
   const tCommon = useTranslations("common");
+  const locale = useLocale();
+  const [search, setSearch] = useState("");
 
-  const kycStatusConfig: Record<
-    string,
-    { label: string; variant: "default" | "secondary" | "destructive" | "outline" }
-  > = {
-    "1": { label: tStatus("pending"), variant: "secondary" },
-    "2": { label: tStatus("approved"), variant: "default" },
-    "3": { label: tStatus("rejected"), variant: "destructive" },
-  };
-
-  function getStatusConfig(kycStatus: string | null) {
-    if (!kycStatus) return { label: tCommon("unknown"), variant: "outline" as const };
-    return kycStatusConfig[kycStatus] ?? { label: kycStatus, variant: "outline" as const };
-  }
+  const { data: owners = [], isLoading, isError, error } = useOwnerDirectory();
 
   const columns = [
     { label: t("columns.owner") },
-    { label: tCommon("email") },
-    { label: t("columns.kycStatus") },
-    { label: t("columns.documents"), className: "text-center" },
+    { label: t("account.email") },
+    { label: t("directory.columns.phone") },
+    { label: t("directory.columns.role") },
+    { label: t("directory.columns.status") },
+    { label: t("account.joined") },
     { label: t("columns.actions"), className: "text-right" },
   ];
 
-  const { data: owners = [], isLoading, isError, error } = useOwnerList();
+  const q = search.trim().toLowerCase();
+  const filtered = q
+    ? owners.filter(
+        (o) =>
+          o.fullName.toLowerCase().includes(q) ||
+          o.email.toLowerCase().includes(q) ||
+          o.phoneNumber.toLowerCase().includes(q),
+      )
+    : owners;
 
   if (isLoading) {
     return (
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-1">
           <h1 className="font-heading text-3xl font-bold tracking-tight leading-tight">{t("title")}</h1>
-          <p className="text-sm text-muted-foreground">
-            {t("subtitle")}
-          </p>
+          <p className="text-sm text-muted-foreground">{t("directory.subtitle")}</p>
         </div>
         <div className="flex flex-col gap-2 rounded-xl border border-border p-4">
           {Array.from({ length: 5 }).map((_, i) => (
@@ -81,60 +88,75 @@ export default function OwnersPage() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
         <h1 className="font-heading text-3xl font-bold tracking-tight leading-tight">{t("title")}</h1>
-        <p className="text-sm text-muted-foreground">
-          {t("subtitle")}
-        </p>
+        <p className="text-sm text-muted-foreground">{t("directory.subtitle")}</p>
       </div>
 
       <DataTableCard
         title={t("list")}
-        count={owners.length}
-        searchPlaceholder={t("searchPlaceholder")}
+        count={filtered.length}
+        searchPlaceholder={t("directory.search")}
+        searchValue={search}
+        onSearchChange={setSearch}
         columns={columns}
-        data={owners}
-        renderRow={(o: KycProfileSummaryDto) => {
-          const status = getStatusConfig(o.kycStatus);
-          return (
-            <TableRow
-              key={o.ownerProfileId}
-              className="group/row transition-colors duration-150 hover:bg-accent/40"
-            >
-              <TableCell className="py-3">
-                <div className="flex items-center gap-3">
-                  <Avatar className="size-9 ring-1 ring-border">
-                    <AvatarFallback className="bg-muted text-[11px] font-semibold">
-                      {(o.ownerName ?? "??").slice(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="text-sm font-medium leading-tight">
-                    {o.ownerName ?? "—"}
-                  </span>
-                </div>
-              </TableCell>
-              <TableCell>
-                <span className="text-sm text-muted-foreground">{o.ownerEmail ?? "—"}</span>
-              </TableCell>
-              <TableCell>
-                <Badge variant={status.variant}>{status.label}</Badge>
-              </TableCell>
-              <TableCell className="text-center">
-                <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-muted px-2 text-xs font-semibold tabular-nums">
-                  {o.documentCount}
-                </span>
-              </TableCell>
-              <TableCell className="text-right">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  nativeButton={false}
-                  render={<Link href={`/dashboard/owners/${o.ownerProfileId}`} />}
-                >
-                  {tCommon("view")}
-                </Button>
-              </TableCell>
-            </TableRow>
-          );
-        }}
+        data={filtered}
+        renderRow={(o: OwnerSummaryDto) => (
+          <TableRow
+            key={o.id}
+            className="group/row transition-colors duration-150 hover:bg-accent/40"
+          >
+            <TableCell className="py-3">
+              <div className="flex items-center gap-3">
+                <Avatar className="size-9 ring-1 ring-border">
+                  <AvatarFallback className="bg-muted text-[11px] font-semibold">
+                    {(o.fullName || "??").slice(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-sm font-medium leading-tight">{o.fullName || "—"}</span>
+              </div>
+            </TableCell>
+            <TableCell>
+              <span className="text-sm text-muted-foreground">{o.email || "—"}</span>
+            </TableCell>
+            <TableCell>
+              <span className="text-sm text-muted-foreground tabular-nums">{o.phoneNumber || "—"}</span>
+            </TableCell>
+            <TableCell>
+              {o.roleCode ? (
+                <Badge variant="secondary">{o.roleCode}</Badge>
+              ) : (
+                <span className="text-sm text-muted-foreground">—</span>
+              )}
+            </TableCell>
+            <TableCell>
+              {o.isVerified ? (
+                <Badge variant="default" className="gap-1">
+                  <BadgeCheck className="size-3.5" />
+                  {t("account.verified")}
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="gap-1 text-muted-foreground">
+                  <ShieldAlert className="size-3.5" />
+                  {t("account.unverified")}
+                </Badge>
+              )}
+            </TableCell>
+            <TableCell>
+              <span className="text-sm text-muted-foreground tabular-nums">
+                {formatJoined(o.createdAt, locale)}
+              </span>
+            </TableCell>
+            <TableCell className="text-right">
+              <Button
+                variant="ghost"
+                size="sm"
+                nativeButton={false}
+                render={<Link href={`/dashboard/owners/${o.id}`} />}
+              >
+                {tCommon("view")}
+              </Button>
+            </TableCell>
+          </TableRow>
+        )}
       />
     </div>
   );
