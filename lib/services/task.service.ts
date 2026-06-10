@@ -19,12 +19,23 @@ export const taskService = {
     return data;
   },
 
-  /** Full task group with dates, tasks and eligibility. */
+  /**
+   * Full task group with dates, tasks and workers.
+   *
+   * The backend exposes no single-group admin read endpoint — the owner route
+   * `/api/tasks/groups/{id}` is PROPERTY-scoped (task_group:read) and 403s for
+   * an admin, and no `/api/tasks/admin/groups/{id}` exists (verified 2026-06-10).
+   * The admin list already returns each group fully nested (dates, tasks,
+   * workers), so we derive the detail from it. See BACKEND-ASKS.md.
+   *
+   * NOTE: assumes the admin groups list is unpaginated/uncapped. If the backend
+   * ever caps that list, deep-linking to a group beyond the cap will 404 here.
+   */
   getTaskGroup: async (id: string): Promise<TaskGroupDto> => {
-    const { data } = await apiClient.get<TaskGroupDto>(
-      `/api/tasks/groups/${id}`,
-    );
-    return data;
+    const groups = await taskService.getAdminTaskGroups();
+    const group = groups.find((g) => g.id === id);
+    if (!group) throw new Error(`Task group ${id} not found`);
+    return group;
   },
 
   /** Admin: flat list of all tasks (capped server-side); optionally per owner. */
