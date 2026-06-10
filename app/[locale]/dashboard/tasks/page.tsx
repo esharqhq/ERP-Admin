@@ -1,218 +1,203 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useTranslations } from "next-intl"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Plus, Search, Clock, MapPin } from "lucide-react"
+import { useState } from "react";
+import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
-  DndContext,
-  DragOverlay,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  closestCenter,
-  type DragStartEvent,
-  type DragEndEvent,
-  type DragOverEvent,
-} from "@dnd-kit/core"
-import { useDroppable } from "@dnd-kit/core"
-import { useDraggable } from "@dnd-kit/core"
-import { CSS } from "@dnd-kit/utilities"
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Search, Eye } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useAdminTaskGroups } from "@/hooks/use-tasks";
+import {
+  normalizeStatus,
+  TASK_GROUP_STATUS_FILTERS,
+  type TaskGroupStatusFilter,
+  type TaskGroupDto,
+} from "@/lib/types/task.types";
 
-type TaskStatus = "To Do" | "In Progress" | "Review" | "Done" | "Rejected"
-
-type Task = {
-  id: string
-  title: string
-  status: TaskStatus
-  priority: "High" | "Medium" | "Low"
-  property: string
-  deadline: string
+function GroupStatusBadge({ status }: { status: string }) {
+  const s = normalizeStatus(status);
+  const variant =
+    s === "active"
+      ? "default"
+      : s === "done"
+        ? "secondary"
+        : s === "cancelled"
+          ? "destructive"
+          : "outline";
+  return <Badge variant={variant}>{status || "—"}</Badge>;
 }
 
-const COLUMNS: { status: TaskStatus; color: string; dot: string }[] = [
-  { status: "To Do",       color: "text-slate-500",  dot: "bg-slate-400"  },
-  { status: "In Progress", color: "text-blue-500",   dot: "bg-blue-500"   },
-  { status: "Review",      color: "text-yellow-500", dot: "bg-yellow-500" },
-  { status: "Done",        color: "text-green-500",  dot: "bg-green-500"  },
-  { status: "Rejected",    color: "text-red-500",    dot: "bg-red-500"    },
-]
-
-const INITIAL_TASKS: Task[] = [
-  { id: "T-001", title: "HVAC Repair",       status: "In Progress", priority: "High",   property: "Sunrise Villa",   deadline: "Today 14:00" },
-  { id: "T-002", title: "Deep Cleaning",     status: "To Do",       priority: "Medium", property: "Hotel Grand 3F",  deadline: "Tomorrow"    },
-  { id: "T-003", title: "Security Audit",    status: "Review",      priority: "High",   property: "Empire Business Center", deadline: "May 7"       },
-  { id: "T-004", title: "Plumbing Fix",      status: "Done",        priority: "Low",    property: "Office Block B",  deadline: "Completed"   },
-  { id: "T-005", title: "Window Replace",    status: "Rejected",    priority: "Medium", property: "Sunrise Villa",   deadline: "—"           },
-  { id: "T-006", title: "Electrical Check",  status: "To Do",       priority: "High",   property: "Residence North", deadline: "May 6"       },
-  { id: "T-007", title: "Paint Interior",    status: "In Progress", priority: "Low",    property: "Office Block A",  deadline: "May 8"       },
-]
-
-const priorityVariant: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-  High:   "destructive",
-  Medium: "secondary",
-  Low:    "outline",
+function dateRange(group: TaskGroupDto): string {
+  const dates = (group.dates ?? [])
+    .map((d) => d.scheduledDate)
+    .filter(Boolean)
+    .sort();
+  if (dates.length === 0) return "—";
+  if (dates.length === 1) return dates[0];
+  return `${dates[0]} → ${dates[dates.length - 1]}`;
 }
 
-function TaskCard({ task, isDragging = false }: { task: Task; isDragging?: boolean }) {
-  return (
-    <Card className={`cursor-grab active:cursor-grabbing transition-all ${isDragging ? "shadow-xl rotate-1 opacity-90" : "hover:shadow-md"}`}>
-      <CardContent className="p-3 space-y-2">
-        <div className="flex items-start justify-between gap-1">
-          <p className="text-xs font-medium leading-snug">{task.title}</p>
-          <Badge variant={priorityVariant[task.priority]} className="text-[10px] shrink-0">
-            {task.priority}
-          </Badge>
-        </div>
-        <p className="text-[11px] text-muted-foreground flex items-center gap-1">
-          <MapPin className="size-3 shrink-0" /> {task.property}
-        </p>
-        <p className="text-[11px] text-muted-foreground flex items-center gap-1">
-          <Clock className="size-3 shrink-0" /> {task.deadline}
-        </p>
-      </CardContent>
-    </Card>
-  )
-}
-
-function DraggableCard({ task }: { task: Task }) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: task.id })
-  const style = { transform: CSS.Translate.toString(transform), opacity: isDragging ? 0 : 1 }
-  return (
-    <div ref={setNodeRef} style={style} {...listeners} {...attributes}>
-      <TaskCard task={task} />
-    </div>
-  )
-}
-
-function DroppableColumn({
-  status,
-  label,
-  color,
-  dot,
-  tasks,
-  isOver,
-  emptyColumnText,
-}: {
-  status: TaskStatus
-  label: string
-  color: string
-  dot: string
-  tasks: Task[]
-  isOver: boolean
-  emptyColumnText: string
-}) {
-  const { setNodeRef } = useDroppable({ id: status })
-  return (
-    <div className="flex flex-col gap-2 min-w-0">
-      <div className="flex items-center gap-2 mb-1">
-        <span className={`size-2 rounded-full shrink-0 ${dot}`} />
-        <h3 className={`text-sm font-semibold flex-1 truncate ${color}`}>{label}</h3>
-        <Badge variant="outline" className="text-xs shrink-0">{tasks.length}</Badge>
-      </div>
-      <div
-        ref={setNodeRef}
-        className={`flex flex-col gap-2 min-h-24 rounded-lg p-1.5 transition-colors ${isOver ? "bg-muted/60 ring-1 ring-border" : "bg-transparent"}`}
-      >
-        {tasks.map((task) => (
-          <DraggableCard key={task.id} task={task} />
-        ))}
-        {tasks.length === 0 && (
-          <div className="flex h-16 items-center justify-center rounded-md border border-dashed border-border/50">
-            <p className="text-[11px] text-muted-foreground/50">{emptyColumnText}</p>
-          </div>
-        )}
-      </div>
-    </div>
-  )
+function distinctWorkers(group: TaskGroupDto): number {
+  const ids = new Set<string>();
+  for (const task of group.tasks ?? []) {
+    for (const tw of task.workers ?? []) ids.add(tw.workerId);
+  }
+  return ids.size;
 }
 
 export default function TasksPage() {
-  const t = useTranslations("tasks")
-  const [tasks, setTasks] = useState<Task[]>(INITIAL_TASKS)
-  const [activeTask, setActiveTask] = useState<Task | null>(null)
-  const [overId, setOverId] = useState<string | null>(null)
+  const t = useTranslations("tasks");
+  const tCommon = useTranslations("common");
+  const [tab, setTab] = useState<TaskGroupStatusFilter>("all");
+  const [search, setSearch] = useState("");
 
-  const statusLabels: Record<TaskStatus, string> = {
-    "To Do": t("statuses.todo"),
-    "In Progress": t("statuses.inProgress"),
-    "Review": t("statuses.review"),
-    "Done": t("statuses.done"),
-    "Rejected": t("statuses.rejected"),
-  }
+  const { data: groups = [], isLoading, isError } = useAdminTaskGroups();
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
-  )
-
-  function handleDragStart(event: DragStartEvent) {
-    const task = tasks.find((task) => task.id === event.active.id)
-    setActiveTask(task ?? null)
-  }
-
-  function handleDragOver(event: DragOverEvent) {
-    setOverId(event.over?.id ? String(event.over.id) : null)
-  }
-
-  function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event
-    setActiveTask(null)
-    setOverId(null)
-    if (!over) return
-    const newStatus = String(over.id) as TaskStatus
-    if (!COLUMNS.find((c) => c.status === newStatus)) return
-    setTasks((prev) =>
-      prev.map((task) => (task.id === active.id ? { ...task, status: newStatus } : task))
-    )
-  }
+  const filtered = groups.filter((g) => {
+    if (tab !== "all" && normalizeStatus(g.status) !== normalizeStatus(tab)) {
+      return false;
+    }
+    if (!search) return true;
+    return (g.title ?? "").toLowerCase().includes(search.toLowerCase());
+  });
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
-          <p className="text-muted-foreground">{t("subtitle")}</p>
-        </div>
-        <Button>
-          <Plus className="mr-2 size-4" />
-          {t("newTask")}
-        </Button>
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-1">
+        <h1 className="font-heading text-3xl font-bold tracking-tight leading-tight">
+          {t("title")}
+        </h1>
+        <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
       </div>
 
-      <div className="relative max-w-sm">
-        <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
-        <Input placeholder={t("searchPlaceholder")} className="pl-8" />
-      </div>
-
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragStart={handleDragStart}
-        onDragOver={handleDragOver}
-        onDragEnd={handleDragEnd}
-      >
-        <div className="grid gap-3 grid-cols-2 lg:grid-cols-5">
-          {COLUMNS.map((col) => (
-            <DroppableColumn
-              key={col.status}
-              status={col.status}
-              label={statusLabels[col.status]}
-              color={col.color}
-              dot={col.dot}
-              tasks={tasks.filter((task) => task.status === col.status)}
-              isOver={overId === col.status}
-              emptyColumnText={t("emptyColumn")}
-            />
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex rounded-lg border border-border bg-muted/50 p-0.5">
+          {TASK_GROUP_STATUS_FILTERS.map((key) => (
+            <button
+              key={key}
+              onClick={() => setTab(key)}
+              className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                tab === key
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {t(`list.tabs.${key}`)}
+            </button>
           ))}
         </div>
+        <div className="relative flex-1 min-w-[200px] max-w-sm">
+          <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
+          <Input
+            placeholder={t("searchPlaceholder")}
+            className="pl-8"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+      </div>
 
-        <DragOverlay>
-          {activeTask && <TaskCard task={activeTask} isDragging />}
-        </DragOverlay>
-      </DndContext>
+      <Card>
+        <CardHeader className="pb-3">
+          <p className="text-xs text-muted-foreground">
+            {isLoading
+              ? tCommon("loading")
+              : tCommon("resultsFound", { count: filtered.length })}
+          </p>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t("list.columns.title")}</TableHead>
+                <TableHead>{t("list.columns.status")}</TableHead>
+                <TableHead>{t("list.columns.dates")}</TableHead>
+                <TableHead className="text-center">
+                  {t("list.columns.tasks")}
+                </TableHead>
+                <TableHead className="text-center">
+                  {t("list.columns.workers")}
+                </TableHead>
+                <TableHead className="text-right">
+                  {t("list.columns.actions")}
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell colSpan={6}>
+                      <Skeleton className="h-8 w-full rounded-md" />
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : isError ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={6}
+                    className="py-10 text-center text-sm text-destructive"
+                  >
+                    {tCommon("error")}
+                  </TableCell>
+                </TableRow>
+              ) : filtered.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={6}
+                    className="py-10 text-center text-sm text-muted-foreground"
+                  >
+                    {t("list.empty")}
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filtered.map((group) => (
+                  <TableRow key={group.id} className="hover:bg-accent/40">
+                    <TableCell className="py-3 font-medium">
+                      {group.title ?? "—"}
+                    </TableCell>
+                    <TableCell>
+                      <GroupStatusBadge status={group.status} />
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {dateRange(group)}
+                    </TableCell>
+                    <TableCell className="text-center text-sm">
+                      {(group.tasks ?? []).length}
+                    </TableCell>
+                    <TableCell className="text-center text-sm">
+                      {distinctWorkers(group)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        nativeButton={false}
+                        className="gap-1.5 text-muted-foreground"
+                        render={<Link href={`/dashboard/tasks/${group.id}`} />}
+                      >
+                        <Eye className="size-3.5" />
+                        {tCommon("view")}
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
-  )
+  );
 }

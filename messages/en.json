@@ -4,6 +4,7 @@
     "confirm": "Confirm",
     "save": "Save",
     "delete": "Delete",
+    "edit": "Edit",
     "view": "View",
     "approve": "Approve",
     "reject": "Reject",
@@ -17,7 +18,9 @@
     "back": "Back",
     "unknown": "Unknown",
     "filter": "Filter",
-    "resultsFound": "{count} results found"
+    "resultsFound": "{count} results found",
+    "yes": "Yes",
+    "no": "No"
   },
   "status": {
     "pending": "Pending",
@@ -38,12 +41,17 @@
     "attendance": "Attendance",
     "tasks": "Tasks",
     "dispatching": "Dispatching",
+    "leave": "Leave Requests",
+    "contracts": "Contracts",
+    "professions": "Professions",
     "support": "Support",
     "tickets": "Tickets",
     "chat": "Chat",
     "auditLog": "Audit Log",
     "admins": "Admins",
-    "settings": "Settings"
+    "settings": "Settings",
+    "roles": "Roles",
+    "kyc": "KYC"
   },
   "auth": {
     "logout": "Logout",
@@ -68,6 +76,9 @@
     "docApprove": "Approve Document",
     "docReject": "Reject Document",
     "docNotFound": "No documents found.",
+    "docFileName": "File Name",
+    "docTypeLabel": "Type",
+    "docUploadDate": "Upload Date",
     "tableView": "Table View",
     "calendarView": "Calendar View",
     "tabs": {
@@ -104,7 +115,16 @@
       "selectOneTask": "Select one task",
       "selected": "selected",
       "assign": "Assign",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "noTasksThatDay": "No open tasks scheduled that day.",
+      "assignFailed": "Could not assign this worker. Please try again."
+    },
+    "assignErrors": {
+      "worker_not_approved": "This worker is not approved.",
+      "worker_below_rating_floor": "This worker is below the task's rating floor.",
+      "worker_profession_not_eligible": "This worker's profession is not eligible for this task.",
+      "worker_limit_reached": "This task is already fully staffed.",
+      "worker_has_overlapping_assignment": "This worker has an overlapping assignment at this time."
     },
     "activity": {
       "title": "Recent Activity",
@@ -121,6 +141,24 @@
       "sendMessage": "Send message",
       "edit": "Edit",
       "more": "More"
+    },
+    "rating": {
+      "title": "Rating snapshot",
+      "calculatedAt": "Calculated {date}",
+      "score": "Score",
+      "completionRate": "Completion rate",
+      "tasks": "Tasks done",
+      "new": "New",
+      "label": "Performance"
+    },
+    "delete": {
+      "action": "Delete worker",
+      "title": "Delete worker",
+      "description": "This deactivates {name}'s account. They will no longer appear in lists or be assignable. This cannot be undone here.",
+      "errors": {
+        "notFound": "This worker no longer exists.",
+        "generic": "Could not delete this worker. Please try again."
+      }
     }
   },
   "owners": {
@@ -191,6 +229,41 @@
       "rejectPlaceholder": "Rejection reason...",
       "approved": "Approved",
       "reReview": "Re-review"
+    },
+    "directory": {
+      "subtitle": "Owner accounts directory — every registered owner and sub-account.",
+      "search": "Search by name, email or phone...",
+      "columns": {
+        "phone": "Phone",
+        "role": "Role",
+        "status": "Status"
+      }
+    },
+    "account": {
+      "back": "Back to Owners",
+      "email": "Email",
+      "phone": "Phone",
+      "joined": "Joined",
+      "verified": "Verified",
+      "unverified": "Unverified",
+      "verifiedHint": "Account verified",
+      "unverifiedHint": "Not yet verified",
+      "joinedHint": "Registration date",
+      "roleHint": "Account role",
+      "propertiesHint": "Owned properties"
+    },
+    "delete": {
+      "action": "Delete owner",
+      "title": "Delete this owner?",
+      "description": "{name} will be soft-deleted and an audit entry recorded. This can be reversed by a developer.",
+      "confirm": "Delete owner",
+      "reasonLabel": "Reason (optional)",
+      "reasonPlaceholder": "Why is this owner being removed?",
+      "errors": {
+        "notFound": "Owner not found.",
+        "hasActiveProperties": "This owner still has active properties and cannot be deleted.",
+        "generic": "Could not delete this owner. Please try again."
+      }
     }
   },
   "properties": {
@@ -251,6 +324,43 @@
       "resetPlaceholder": "Reset reason...",
       "resetReasonMin": "Enter at least {min} characters."
     },
+    "form": {
+      "name": "Name",
+      "namePlaceholder": "Property name",
+      "address": "Address",
+      "addressPlaceholder": "Street, city, postal code",
+      "type": "Type",
+      "types": {
+        "Villa": "Villa",
+        "Hotel": "Hotel",
+        "Office": "Office",
+        "Other": "Other"
+      },
+      "floorCount": "Floor count",
+      "floorRange": "Enter a whole number between {min} and {max}.",
+      "lat": "Latitude",
+      "long": "Longitude",
+      "entryInstructions": "Entry instructions",
+      "entryInstructionsPlaceholder": "How to access the property..."
+    },
+    "edit": {
+      "action": "Edit",
+      "title": "Edit Property",
+      "errors": {
+        "notFound": "This property no longer exists.",
+        "generic": "Could not save changes. Please try again."
+      }
+    },
+    "delete": {
+      "action": "Delete",
+      "title": "Delete property?",
+      "description": "\"{name}\" will be deactivated and its active memberships revoked. This can only be reversed by a backend restore.",
+      "confirm": "Delete property",
+      "errors": {
+        "notFound": "This property no longer exists.",
+        "generic": "Could not delete the property. Please try again."
+      }
+    },
     "actions": {
       "backToList": "Back to Properties list",
       "more": "More"
@@ -273,22 +383,64 @@
       "emailPlaceholder": "john@erp.com",
       "password": "Password",
       "passwordPlaceholder": "At least 8 characters",
-      "permissions": "Permissions"
+      "permissions": "Permissions",
+      "role": "Role",
+      "selectRole": "Select a role",
+      "accessMode": "Access",
+      "modeShared": "Assign role",
+      "modeSharedHint": "Use a shared named role",
+      "modeCustom": "Custom access",
+      "modeCustomHint": "Pick individual permissions",
+      "create": "Create"
     },
     "roles": {
       "superAdmin": "Super Admin",
       "moderator": "Moderator",
-      "subAdmin": "Sub Admin"
+      "subAdmin": "Sub Admin",
+      "custom": "Custom"
     },
     "deactivate": {
       "title": "Deactivate Admin",
       "reasonLabel": "Reason (optional)",
       "reasonPlaceholder": "Deactivation reason...",
       "confirm": "Deactivate",
-      "you": "(you)"
+      "you": "(you)",
+      "cannotSelf": "You cannot deactivate yourself."
     },
     "errors": {
       "emailTaken": "This email is already taken."
+    },
+    "viewDetails": "View details",
+    "verified": "Verified",
+    "edit": {
+      "title": "Edit Admin",
+      "changeAvatar": "Change photo",
+      "uploadFailed": "Upload failed.",
+      "errors": {
+        "generic": "Could not save changes."
+      }
+    },
+    "detail": {
+      "created": "Created {date}",
+      "updated": "Updated {date}"
+    },
+    "assign": {
+      "title": "Reassign role",
+      "modeShared": "Shared role",
+      "modeSharedHint": "Assign an existing named role",
+      "modeCustom": "Custom access",
+      "modeCustomHint": "Create a one-off permission set",
+      "modeCustomEditHint": "Edit this admin’s custom permissions",
+      "roleLabel": "Role",
+      "confirm": "Apply",
+      "errors": {
+        "invalid_admin_role": "That role is not assignable to admins.",
+        "admin_not_found": "Admin not found.",
+        "role_code_exists": "A role with that code already exists.",
+        "system_role_immutable": "System roles cannot be edited.",
+        "role_not_found": "Role not found.",
+        "generic": "Could not update the role."
+      }
     }
   },
   "layout": {
@@ -410,6 +562,43 @@
       "worker": "Worker",
       "owner": "Owner",
       "admin": "Admin"
+    },
+    "actions": {
+      "assignToMe": "Assign to me",
+      "assignedToMe": "Assigned to you",
+      "resolve": "Resolve",
+      "close": "Close",
+      "failed": "The action could not be completed. Please try again.",
+      "failedWithCode": "The action could not be completed ({code})."
+    },
+    "detail": {
+      "back": "Back to tickets",
+      "archived": "Archived",
+      "from": "From {who}",
+      "infoTitle": "Ticket details",
+      "you": "You",
+      "unassigned": "Unassigned",
+      "info": {
+        "category": "Category",
+        "priority": "Priority",
+        "requester": "Requester",
+        "assignedAdmin": "Assigned admin",
+        "created": "Created",
+        "resolved": "Resolved",
+        "closed": "Closed",
+        "relatedProperty": "Related property",
+        "relatedTaskGroup": "Related task group"
+      }
+    },
+    "thread": {
+      "title": "Conversation",
+      "live": "Live",
+      "empty": "No messages yet",
+      "readOnly": "This conversation is closed.",
+      "composerPlaceholder": "Type a message…",
+      "send": "Send",
+      "sendFailed": "Message could not be sent. Please try again.",
+      "participant": "Participant"
     }
   },
   "tasks": {
@@ -418,6 +607,70 @@
     "newTask": "New Task",
     "searchPlaceholder": "Search tasks...",
     "empty": "Empty",
+    "list": {
+      "empty": "No task groups found",
+      "tabs": {
+        "all": "All",
+        "Pending": "Pending",
+        "Active": "Active",
+        "Done": "Done",
+        "Cancelled": "Cancelled"
+      },
+      "columns": {
+        "title": "Title",
+        "status": "Status",
+        "dates": "Dates",
+        "tasks": "Tasks",
+        "workers": "Workers",
+        "actions": "Actions"
+      }
+    },
+    "detail": {
+      "backToList": "Back to Tasks",
+      "infoTitle": "Group Information",
+      "tasksTitle": "Tasks",
+      "noTasks": "No tasks in this group",
+      "noWorkers": "No workers assigned",
+      "info": {
+        "propertyId": "Property ID",
+        "ownerId": "Owner ID",
+        "startTime": "Start Time",
+        "deadline": "Deadline",
+        "ratingFloor": "Rating Floor",
+        "allowNewWorkers": "Allow New Workers",
+        "createdAt": "Created",
+        "dates": "Dates",
+        "instructions": "Instructions"
+      },
+      "taskColumns": {
+        "started": "Started",
+        "completed": "Completed"
+      },
+      "workerColumns": {
+        "worker": "Worker",
+        "outcome": "Outcome",
+        "rating": "Rating",
+        "checkIn": "Check-In",
+        "checkOut": "Check-Out",
+        "actions": "Actions"
+      }
+    },
+    "actions": {
+      "cancelGroup": "Cancel Group",
+      "cancelGroupTitle": "Cancel Task Group",
+      "cancelGroupConfirm": "This cancels the group and all its non-completed tasks and archives their conversations. This cannot be undone.",
+      "assign": "Assign Worker",
+      "assignTitle": "Assign Worker",
+      "assignSearch": "Search workers...",
+      "noWorkers": "No workers found",
+      "rate": "Rate",
+      "rateTitle": "Rate Worker",
+      "outcome": "Outcome",
+      "outcomeTitle": "Override Outcome",
+      "unassign": "Unassign",
+      "unassignTitle": "Unassign Worker",
+      "unassignConfirm": "Remove {name} from this task?"
+    },
     "statuses": {
       "todo": "To Do",
       "inProgress": "In Progress",
@@ -432,17 +685,152 @@
     },
     "emptyColumn": "No tasks"
   },
+  "leave": {
+    "title": "Leave Requests",
+    "subtitle": "Review and decide worker leave requests",
+    "empty": "No leave requests found",
+    "viewTicket": "Open linked ticket",
+    "tabs": {
+      "all": "All",
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "cancelled": "Cancelled"
+    },
+    "columns": {
+      "worker": "Worker",
+      "target": "Target",
+      "reason": "Reason",
+      "status": "Status",
+      "created": "Created"
+    },
+    "decide": {
+      "approve": "Approve",
+      "reject": "Reject",
+      "approveTitle": "Approve leave request?",
+      "rejectTitle": "Reject leave request?",
+      "approveDesc": "Approving removes {name} from the affected task(s) and resolves the linked support ticket.",
+      "rejectDesc": "Rejecting keeps {name} assigned and resolves the linked support ticket. No assignments change.",
+      "note": "Decision note (optional)",
+      "notePlaceholder": "Add an optional note for the audit log…"
+    },
+    "errors": {
+      "generic": "The decision could not be saved. Please try again.",
+      "leave_request_not_pending": "This request is no longer pending.",
+      "task_already_started": "The task has already started — leave can no longer be approved.",
+      "worker_already_checked_in": "The worker has already checked in — leave can no longer be approved.",
+      "no_active_enrolment": "The worker no longer has an active enrolment for this task.",
+      "leave_request_not_found": "Leave request not found."
+    }
+  },
+  "contracts": {
+    "title": "Contracts",
+    "subtitle": "Manage owner and worker contracts",
+    "new": "New contract",
+    "empty": "No contracts found",
+    "active": "Active",
+    "inactive": "Inactive",
+    "viewFile": "View PDF",
+    "deactivate": "Deactivate",
+    "deactivateTitle": "Deactivate contract?",
+    "deactivateConfirm": "Force-deactivate the active contract for {name}? This is audited.",
+    "tabs": {
+      "owner": "Owner contracts",
+      "worker": "Worker contracts"
+    },
+    "columns": {
+      "party": "Party",
+      "period": "Period",
+      "status": "Status",
+      "file": "File",
+      "created": "Created"
+    },
+    "form": {
+      "createTitle": "New contract",
+      "renewTitle": "Renew contract",
+      "party": "Party",
+      "selectParty": "Select a party…",
+      "from": "Eligible from",
+      "to": "Eligible to",
+      "dateOrder": "The end date must be on or after the start date.",
+      "file": "Contract PDF",
+      "choosePdf": "Choose a PDF file…",
+      "uploadFailed": "File upload failed. Please try again.",
+      "create": "Create",
+      "renew": "Renew"
+    },
+    "errors": {
+      "generic": "The contract could not be saved. Please try again.",
+      "no_active_contract_to_renew": "There is no active contract to renew — create one first.",
+      "owner_profile_not_found": "This owner has no profile on record.",
+      "worker_not_found": "Worker not found.",
+      "contract_not_found": "Contract not found.",
+      "contract_already_inactive": "This contract is already inactive."
+    }
+  },
+  "professions": {
+    "title": "Professions",
+    "subtitle": "Manage the trades workers can specialise in",
+    "new": "New profession",
+    "empty": "No professions found",
+    "columns": {
+      "code": "Code",
+      "name": "Name",
+      "description": "Description"
+    },
+    "form": {
+      "createTitle": "New profession",
+      "editTitle": "Edit profession",
+      "code": "Code",
+      "codePlaceholder": "e.g. PLUMBER",
+      "codeImmutable": "The code cannot be changed after creation.",
+      "name": "Name",
+      "namePlaceholder": "Display name",
+      "description": "Description",
+      "descriptionPlaceholder": "Optional description…",
+      "create": "Create"
+    },
+    "delete": {
+      "title": "Delete profession?",
+      "confirm": "Permanently delete the “{name}” profession? This cannot be undone."
+    },
+    "errors": {
+      "generic": "The profession could not be saved. Please try again.",
+      "code_exists": "A profession with this code already exists.",
+      "deleteGeneric": "The profession could not be deleted. Please try again.",
+      "profession_in_use": "This profession is assigned to workers or task groups and cannot be deleted."
+    }
+  },
   "dispatch": {
     "title": "Dispatch",
-    "subtitle": "Assign tasks to available workers",
-    "pendingTasks": "Pending Tasks",
-    "pendingTasksDesc": "Tasks waiting to be assigned",
-    "availableWorkers": "Available Workers",
-    "availableWorkersDesc": "Workers ready for assignment",
+    "subtitle": "Fill under-staffed tasks by assigning available workers",
     "assign": "Assign",
-    "statuses": {
-      "available": "Available",
-      "onTask": "On Task"
+    "unassign": "Unassign",
+    "viewGroup": "View group",
+    "needsWorker": "Needs worker",
+    "assignedCount": "{count} assigned",
+    "searchPlaceholder": "Search by property, date or task...",
+    "empty": "No tasks match this filter",
+    "capNotice": "Showing the {count} most recent tasks",
+    "unassignTitle": "Remove worker?",
+    "unassignConfirm": "Remove {name} from this task?",
+    "stats": {
+      "needsWorkers": "Need workers",
+      "open": "Open tasks",
+      "total": "Total shown"
+    },
+    "tabs": {
+      "needsWorkers": "Needs workers",
+      "open": "Open",
+      "all": "All"
+    },
+    "errors": {
+      "generic": "Could not assign this worker. Please try again.",
+      "worker_not_approved": "This worker is not approved.",
+      "worker_below_rating_floor": "This worker is below the task's rating floor.",
+      "worker_profession_not_eligible": "This worker's profession is not eligible for this task.",
+      "worker_limit_reached": "This task is already fully staffed.",
+      "worker_has_overlapping_assignment": "This worker has an overlapping assignment at this time."
     }
   },
   "audit": {
@@ -493,66 +881,75 @@
     "save": "Save"
   },
   "permissions": {
-    "groups": {
-      "workers": "Workers",
-      "owners": "Owners",
-      "kyc": "KYC",
-      "properties": "Properties",
-      "tasks": "Tasks",
-      "support": "Support",
-      "system": "System"
+    "catalogError": "Could not load the permission catalog.",
+    "searchPlaceholder": "Search permissions...",
+    "noMatches": "No matching permissions.",
+    "selectAll": "Select all",
+    "clearAll": "Clear all"
+  },
+  "roles": {
+    "title": "Roles & Permissions",
+    "subtitle": "Manage shared admin roles and their permissions.",
+    "new": "New Role",
+    "empty": "No roles found.",
+    "showCustom": "Show custom roles",
+    "permCount": "{count} permissions",
+    "systemImmutable": "System roles cannot be edited",
+    "columns": {
+      "name": "Role",
+      "code": "Code",
+      "type": "Type",
+      "permissions": "Permissions"
     },
-    "perms": {
-      "worker_list": "View list",
-      "worker_detail": "View details",
-      "worker_approve": "Approve",
-      "worker_reject": "Reject",
-      "worker_delete": "Delete",
-      "worker_documents": "View documents",
-      "worker_restore": "Restore",
-      "owner_list": "View list",
-      "owner_detail": "View details",
-      "owner_approve": "Approve",
-      "owner_reject": "Reject",
-      "owner_delete": "Delete",
-      "owner_documents": "View documents",
-      "kyc_list": "View list",
-      "kyc_detail": "View details",
-      "kyc_approve": "Approve",
-      "kyc_reject": "Reject",
-      "property_list": "View list",
-      "property_detail": "View details",
-      "property_approve": "Approve",
-      "property_reject": "Reject",
-      "property_delete": "Delete",
-      "property_documents": "View documents",
-      "group_list": "View groups",
-      "group_detail": "Group details",
-      "group_cancel": "Cancel group",
-      "task_list": "View tasks",
-      "task_detail": "Task details",
-      "task_assign": "Assign worker",
-      "task_media": "View media",
-      "ticket_list": "View tickets",
-      "ticket_detail": "Ticket details",
-      "ticket_assign": "Assign ticket",
-      "ticket_resolve": "Resolve ticket",
-      "ticket_close": "Close ticket",
-      "chat_list": "View chats",
-      "chat_send": "Send message",
-      "audit_log": "View audit log",
-      "settings_view": "View settings",
-      "settings_edit": "Edit settings",
-      "admin_create": "Create admin",
-      "admin_list": "View admins",
-      "admin_detail": "Admin details",
-      "admin_edit": "Edit admin",
-      "admin_deactivate": "Deactivate admin",
-      "role_create": "Create role",
-      "role_edit": "Edit role",
-      "profession_create": "Create profession",
-      "profession_edit": "Edit profession",
-      "profession_delete": "Delete profession"
+    "type": {
+      "system": "System",
+      "shared": "Shared",
+      "custom": "Custom"
+    },
+    "form": {
+      "createTitle": "Create Role",
+      "editTitle": "Edit Role",
+      "code": "Code",
+      "codePlaceholder": "e.g. SUPPORT_LEAD",
+      "codeImmutable": "Code cannot be changed.",
+      "codeHint": "Uppercase identifier, e.g. SUPPORT_LEAD.",
+      "name": "Name",
+      "namePlaceholder": "Support Lead",
+      "description": "Description",
+      "descriptionPlaceholder": "What this role is for...",
+      "permissions": "Permissions",
+      "create": "Create"
+    },
+    "errors": {
+      "role_code_exists": "A role with that code already exists.",
+      "invalid_applies_to": "Invalid role scope.",
+      "system_role_immutable": "System roles cannot be edited.",
+      "role_not_found": "Role not found.",
+      "generic": "Could not save the role."
+    }
+  },
+  "profile": {
+    "title": "Profile",
+    "subtitle": "Your account details and security settings.",
+    "verified": "Verified",
+    "managedNote": "Your name, email, and avatar are managed by a system administrator. Contact an administrator to change them.",
+    "loadError": "Could not load your profile.",
+    "password": {
+      "title": "Change password",
+      "subtitle": "Update the password you use to sign in.",
+      "current": "Current password",
+      "new": "New password",
+      "confirm": "Confirm new password",
+      "minLength": "Must be at least {min} characters.",
+      "show": "Show password",
+      "hide": "Hide password",
+      "submit": "Update password",
+      "success": "Your password has been changed.",
+      "errors": {
+        "invalidCurrent": "Your current password is incorrect.",
+        "mismatch": "Passwords do not match.",
+        "generic": "Could not change your password. Please try again."
+      }
     }
   }
 }

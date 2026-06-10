@@ -56,8 +56,9 @@ export default function AuditPage() {
   const filtered = search.trim()
     ? logs.filter(
         (l) =>
-          (l.actorFullName ?? "").toLowerCase().includes(search.toLowerCase()) ||
-          (l.targetEntity ?? "").toLowerCase().includes(search.toLowerCase()) ||
+          l.actorType.toLowerCase().includes(search.toLowerCase()) ||
+          l.actorId.toLowerCase().includes(search.toLowerCase()) ||
+          l.targetEntity.toLowerCase().includes(search.toLowerCase()) ||
           l.action.toLowerCase().includes(search.toLowerCase()),
       )
     : logs;
@@ -144,7 +145,12 @@ export default function AuditPage() {
                 {filtered.map((log) => (
                   <TableRow key={log.id} className="hover:bg-accent/40">
                     <TableCell className="py-2.5 text-sm font-medium">
-                      {log.actorFullName ?? "—"}
+                      <div className="flex flex-col leading-tight">
+                        <span>{log.actorType}</span>
+                        <span className="font-mono text-[11px] font-normal text-muted-foreground">
+                          {shortId(log.actorId)}
+                        </span>
+                      </div>
                     </TableCell>
                     <TableCell className="py-2.5">
                       <Badge variant={getActionVariant(log.action)} className="text-[11px]">

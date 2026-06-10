@@ -2,15 +2,25 @@ import { Clock, PlayCircle, CheckCircle2, XCircle } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useLocale, useTranslations } from "next-intl";
-import type { AdminTaskGroupSummaryDto } from "@/lib/types/task.types";
+import type { TaskGroupDto } from "@/lib/types/task.types";
 
 interface ActivityTimelineProps {
-  taskGroups: AdminTaskGroupSummaryDto[];
+  taskGroups: TaskGroupDto[];
+  /** propertyId → property name (the endpoint returns propertyId only). */
+  propertyNames: Record<string, string>;
 }
 
 function formatDate(iso: string, locale: string): string {
   const d = new Date(iso);
   return d.toLocaleDateString(locale, { day: "2-digit", month: "short", year: "numeric" });
+}
+
+/** Earliest scheduled date (yyyy-MM-dd sorts lexicographically); falls back to createdAt. */
+function firstScheduledDate(group: TaskGroupDto): string {
+  if (group.dates && group.dates.length > 0) {
+    return [...group.dates].map((d) => d.scheduledDate).sort()[0];
+  }
+  return group.createdAt;
 }
 
 function StatusIcon({ status }: { status: string }) {
@@ -26,7 +36,7 @@ function statusVariant(status: string): "default" | "secondary" | "destructive" 
   return "secondary";
 }
 
-export function ActivityTimeline({ taskGroups }: ActivityTimelineProps) {
+export function ActivityTimeline({ taskGroups, propertyNames }: ActivityTimelineProps) {
   const t = useTranslations("owners");
   const locale = useLocale();
 
@@ -59,12 +69,12 @@ export function ActivityTimeline({ taskGroups }: ActivityTimelineProps) {
                   {group.title ?? t("activity.unnamed")}
                 </span>
                 <span className="truncate text-[11px] text-muted-foreground">
-                  {group.propertyName}
+                  {propertyNames[group.propertyId] ?? "—"}
                 </span>
               </div>
               <div className="flex shrink-0 flex-col items-end gap-1">
                 <span className="text-[11px] tabular-nums text-muted-foreground">
-                  {formatDate(group.firstDate, locale)}
+                  {formatDate(firstScheduledDate(group), locale)}
                 </span>
                 <Badge variant={statusVariant(group.status)} className="text-[10px]">
                   {group.status}

@@ -1,17 +1,20 @@
-import { Mail, Hash, CalendarDays, MessageSquare } from "lucide-react";
+import { Mail, Phone, Hash, CalendarDays } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { InfoRow } from "./info-row";
 import { useLocale, useTranslations } from "next-intl";
-import type { KycProfileSummaryDto } from "@/lib/types/kyc.types";
+import type { OwnerSummaryDto } from "@/lib/types/owner.types";
 
-function formatDate(iso: string | null, locale: string): string {
+function formatDateTime(iso: string | null, locale: string): string {
   if (!iso) return "—";
-  const d = new Date(iso);
-  return d.toLocaleDateString(locale, { day: "2-digit", month: "short", year: "numeric" });
+  return new Date(iso).toLocaleDateString(locale, {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
 }
 
-export function ContactCard({ owner }: { owner: KycProfileSummaryDto }) {
+export function ContactCard({ owner }: { owner: OwnerSummaryDto }) {
   const t = useTranslations("owners");
   const locale = useLocale();
 
@@ -25,28 +28,26 @@ export function ContactCard({ owner }: { owner: KycProfileSummaryDto }) {
       <CardContent className="flex flex-col gap-3.5">
         <InfoRow
           icon={<Mail className="size-3.5" />}
-          label="Email"
-          value={owner.ownerEmail ?? "—"}
+          label={t("account.email")}
+          value={owner.email || "—"}
+        />
+        <InfoRow
+          icon={<Phone className="size-3.5" />}
+          label={t("account.phone")}
+          value={owner.phoneNumber || "—"}
         />
         <Separator />
         <InfoRow
           icon={<Hash className="size-3.5" />}
           label={t("contact.userId")}
-          value={owner.ownerUserId}
+          value={owner.id}
           mono
         />
         <InfoRow
           icon={<CalendarDays className="size-3.5" />}
-          label={t("contact.reviewedAt")}
-          value={formatDate(owner.kycReviewedAt, locale)}
+          label={t("account.joined")}
+          value={formatDateTime(owner.createdAt, locale)}
         />
-        {owner.kycRejectReason && (
-          <InfoRow
-            icon={<MessageSquare className="size-3.5" />}
-            label={t("detail.rejectReason")}
-            value={owner.kycRejectReason}
-          />
-        )}
       </CardContent>
     </Card>
   );

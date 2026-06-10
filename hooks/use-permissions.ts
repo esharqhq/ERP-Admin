@@ -3,9 +3,10 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { roleService } from "@/lib/services/role.service";
+import { permissionService } from "@/lib/services/permission.service";
 import type {
-  CreateCustomRoleRequest,
-  UpdateRolePermissionsRequest,
+  CreateRoleRequest,
+  UpdateRoleRequest,
 } from "@/lib/types/admin-user.types";
 
 export function useAllRoles() {
@@ -16,20 +17,32 @@ export function useAllRoles() {
   });
 }
 
-export function useCreateRole() {
-  return useMutation({
-    mutationFn: (data: CreateCustomRoleRequest) => roleService.createRole(data),
+/** Full permission registry (GET /api/admin/permissions). Requires system:permission:read. */
+export function usePermissionCatalog() {
+  return useQuery({
+    queryKey: ["permission-catalog"],
+    queryFn: permissionService.getCatalog,
+    staleTime: 10 * 60_000,
   });
 }
 
-export function useUpdateRolePermissions() {
+export function useCreateRole() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ roleId, body }: { roleId: string; body: UpdateRolePermissionsRequest }) =>
-      roleService.updateRolePermissions(roleId, body),
+    mutationFn: (data: CreateRoleRequest) => roleService.createRole(data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["roles"] }),
+  });
+}
+
+export function useUpdateRole() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ roleId, body }: { roleId: string; body: UpdateRoleRequest }) =>
+      roleService.updateRole(roleId, body),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admins"] });
       qc.invalidateQueries({ queryKey: ["roles"] });
+      qc.invalidateQueries({ queryKey: ["current-permissions"] });
     },
   });
 }

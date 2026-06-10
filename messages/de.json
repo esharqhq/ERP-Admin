@@ -4,6 +4,7 @@
     "confirm": "Bestätigen",
     "save": "Speichern",
     "delete": "Löschen",
+    "edit": "Bearbeiten",
     "view": "Ansehen",
     "approve": "Genehmigen",
     "reject": "Ablehnen",
@@ -17,7 +18,9 @@
     "back": "Zurück",
     "unknown": "Unbekannt",
     "filter": "Filter",
-    "resultsFound": "{count} Ergebnisse gefunden"
+    "resultsFound": "{count} Ergebnisse gefunden",
+    "yes": "Ja",
+    "no": "Nein"
   },
   "status": {
     "pending": "Ausstehend",
@@ -38,12 +41,17 @@
     "attendance": "Anwesenheit",
     "tasks": "Aufgaben",
     "dispatching": "Disposition",
+    "leave": "Urlaubsanträge",
+    "contracts": "Verträge",
+    "professions": "Berufe",
     "support": "Support",
     "tickets": "Tickets",
     "chat": "Chat",
     "auditLog": "Prüfprotokoll",
     "admins": "Administratoren",
-    "settings": "Einstellungen"
+    "settings": "Einstellungen",
+    "roles": "Rollen",
+    "kyc": "KYC"
   },
   "auth": {
     "logout": "Abmelden",
@@ -68,6 +76,9 @@
     "docApprove": "Dokument genehmigen",
     "docReject": "Dokument ablehnen",
     "docNotFound": "Keine Dokumente gefunden.",
+    "docFileName": "Dateiname",
+    "docTypeLabel": "Typ",
+    "docUploadDate": "Hochladedatum",
     "tableView": "Tabellenansicht",
     "calendarView": "Kalenderansicht",
     "tabs": {
@@ -104,7 +115,16 @@
       "selectOneTask": "Eine Aufgabe auswählen",
       "selected": "ausgewählt",
       "assign": "Zuweisen",
-      "cancel": "Abbrechen"
+      "cancel": "Abbrechen",
+      "noTasksThatDay": "An diesem Tag sind keine offenen Aufgaben geplant.",
+      "assignFailed": "Mitarbeiter konnte nicht zugewiesen werden. Bitte erneut versuchen."
+    },
+    "assignErrors": {
+      "worker_not_approved": "Dieser Mitarbeiter ist nicht freigegeben.",
+      "worker_below_rating_floor": "Dieser Mitarbeiter liegt unter der Mindestbewertung der Aufgabe.",
+      "worker_profession_not_eligible": "Der Beruf dieses Mitarbeiters ist für diese Aufgabe nicht zugelassen.",
+      "worker_limit_reached": "Diese Aufgabe ist bereits vollständig besetzt.",
+      "worker_has_overlapping_assignment": "Dieser Mitarbeiter hat zu dieser Zeit eine überschneidende Zuweisung."
     },
     "activity": {
       "title": "Letzte Aktivität",
@@ -121,6 +141,24 @@
       "sendMessage": "Nachricht senden",
       "edit": "Bearbeiten",
       "more": "Mehr"
+    },
+    "rating": {
+      "title": "Bewertungsübersicht",
+      "calculatedAt": "Berechnet am {date}",
+      "score": "Bewertung",
+      "completionRate": "Abschlussquote",
+      "tasks": "Erledigte Aufgaben",
+      "new": "Neu",
+      "label": "Leistung"
+    },
+    "delete": {
+      "action": "Mitarbeiter löschen",
+      "title": "Mitarbeiter löschen",
+      "description": "Dadurch wird das Konto von {name} deaktiviert. Der Mitarbeiter erscheint nicht mehr in Listen und ist nicht mehr zuweisbar. Dies kann hier nicht rückgängig gemacht werden.",
+      "errors": {
+        "notFound": "Dieser Mitarbeiter existiert nicht mehr.",
+        "generic": "Mitarbeiter konnte nicht gelöscht werden. Bitte versuchen Sie es erneut."
+      }
     }
   },
   "owners": {
@@ -191,6 +229,41 @@
       "rejectPlaceholder": "Ablehnungsgrund...",
       "approved": "Genehmigt",
       "reReview": "Erneut prüfen"
+    },
+    "directory": {
+      "subtitle": "Eigentümerverzeichnis — alle registrierten Eigentümer und Unterkonten.",
+      "search": "Nach Name, E-Mail oder Telefon suchen...",
+      "columns": {
+        "phone": "Telefon",
+        "role": "Rolle",
+        "status": "Status"
+      }
+    },
+    "account": {
+      "back": "Zurück zu Eigentümern",
+      "email": "E-Mail",
+      "phone": "Telefon",
+      "joined": "Beigetreten",
+      "verified": "Verifiziert",
+      "unverified": "Nicht verifiziert",
+      "verifiedHint": "Konto verifiziert",
+      "unverifiedHint": "Noch nicht verifiziert",
+      "joinedHint": "Registrierungsdatum",
+      "roleHint": "Kontorolle",
+      "propertiesHint": "Eigene Objekte"
+    },
+    "delete": {
+      "action": "Eigentümer löschen",
+      "title": "Diesen Eigentümer löschen?",
+      "description": "{name} wird soft-gelöscht und ein Audit-Eintrag wird erstellt. Dies kann von einem Entwickler rückgängig gemacht werden.",
+      "confirm": "Eigentümer löschen",
+      "reasonLabel": "Grund (optional)",
+      "reasonPlaceholder": "Warum wird dieser Eigentümer entfernt?",
+      "errors": {
+        "notFound": "Eigentümer nicht gefunden.",
+        "hasActiveProperties": "Dieser Eigentümer hat noch aktive Objekte und kann nicht gelöscht werden.",
+        "generic": "Eigentümer konnte nicht gelöscht werden. Bitte erneut versuchen."
+      }
     }
   },
   "properties": {
@@ -251,6 +324,43 @@
       "resetPlaceholder": "Grund für erneute Prüfung...",
       "resetReasonMin": "Mindestens {min} Zeichen eingeben."
     },
+    "form": {
+      "name": "Name",
+      "namePlaceholder": "Objektname",
+      "address": "Adresse",
+      "addressPlaceholder": "Straße, Stadt, Postleitzahl",
+      "type": "Typ",
+      "types": {
+        "Villa": "Villa",
+        "Hotel": "Hotel",
+        "Office": "Büro",
+        "Other": "Sonstiges"
+      },
+      "floorCount": "Anzahl Etagen",
+      "floorRange": "Geben Sie eine ganze Zahl zwischen {min} und {max} ein.",
+      "lat": "Breitengrad",
+      "long": "Längengrad",
+      "entryInstructions": "Zutrittshinweise",
+      "entryInstructionsPlaceholder": "Wie das Objekt betreten wird..."
+    },
+    "edit": {
+      "action": "Bearbeiten",
+      "title": "Objekt bearbeiten",
+      "errors": {
+        "notFound": "Dieses Objekt existiert nicht mehr.",
+        "generic": "Änderungen konnten nicht gespeichert werden. Bitte erneut versuchen."
+      }
+    },
+    "delete": {
+      "action": "Löschen",
+      "title": "Objekt löschen?",
+      "description": "„{name}“ wird deaktiviert und seine aktiven Mitgliedschaften werden widerrufen. Dies kann nur durch eine Backend-Wiederherstellung rückgängig gemacht werden.",
+      "confirm": "Objekt löschen",
+      "errors": {
+        "notFound": "Dieses Objekt existiert nicht mehr.",
+        "generic": "Objekt konnte nicht gelöscht werden. Bitte erneut versuchen."
+      }
+    },
     "actions": {
       "backToList": "Zurück zur Objektliste",
       "more": "Mehr"
@@ -273,22 +383,64 @@
       "emailPlaceholder": "max@erp.com",
       "password": "Passwort",
       "passwordPlaceholder": "Mindestens 8 Zeichen",
-      "permissions": "Berechtigungen"
+      "permissions": "Berechtigungen",
+      "role": "Rolle",
+      "selectRole": "Rolle auswählen",
+      "accessMode": "Zugriff",
+      "modeShared": "Rolle zuweisen",
+      "modeSharedHint": "Eine gemeinsame benannte Rolle verwenden",
+      "modeCustom": "Benutzerdefinierter Zugriff",
+      "modeCustomHint": "Einzelne Berechtigungen wählen",
+      "create": "Erstellen"
     },
     "roles": {
       "superAdmin": "Super Admin",
       "moderator": "Moderator",
-      "subAdmin": "Sub Admin"
+      "subAdmin": "Sub Admin",
+      "custom": "Benutzerdefiniert"
     },
     "deactivate": {
       "title": "Admin deaktivieren",
       "reasonLabel": "Grund (optional)",
       "reasonPlaceholder": "Deaktivierungsgrund...",
       "confirm": "Deaktivieren",
-      "you": "(Sie)"
+      "you": "(Sie)",
+      "cannotSelf": "Sie können sich nicht selbst deaktivieren."
     },
     "errors": {
       "emailTaken": "Diese E-Mail-Adresse ist bereits vergeben."
+    },
+    "viewDetails": "Details anzeigen",
+    "verified": "Verifiziert",
+    "edit": {
+      "title": "Admin bearbeiten",
+      "changeAvatar": "Foto ändern",
+      "uploadFailed": "Upload fehlgeschlagen.",
+      "errors": {
+        "generic": "Änderungen konnten nicht gespeichert werden."
+      }
+    },
+    "detail": {
+      "created": "Erstellt {date}",
+      "updated": "Aktualisiert {date}"
+    },
+    "assign": {
+      "title": "Rolle neu zuweisen",
+      "modeShared": "Gemeinsame Rolle",
+      "modeSharedHint": "Eine vorhandene benannte Rolle zuweisen",
+      "modeCustom": "Benutzerdefinierter Zugriff",
+      "modeCustomHint": "Einen einmaligen Berechtigungssatz erstellen",
+      "modeCustomEditHint": "Benutzerdefinierte Berechtigungen dieses Admins bearbeiten",
+      "roleLabel": "Rolle",
+      "confirm": "Anwenden",
+      "errors": {
+        "invalid_admin_role": "Diese Rolle ist Admins nicht zuweisbar.",
+        "admin_not_found": "Admin nicht gefunden.",
+        "role_code_exists": "Eine Rolle mit diesem Code existiert bereits.",
+        "system_role_immutable": "Systemrollen können nicht bearbeitet werden.",
+        "role_not_found": "Rolle nicht gefunden.",
+        "generic": "Rolle konnte nicht aktualisiert werden."
+      }
     }
   },
   "layout": {
@@ -410,6 +562,43 @@
       "worker": "Mitarbeiter",
       "owner": "Eigentümer",
       "admin": "Administrator"
+    },
+    "actions": {
+      "assignToMe": "Mir zuweisen",
+      "assignedToMe": "Ihnen zugewiesen",
+      "resolve": "Lösen",
+      "close": "Schließen",
+      "failed": "Die Aktion konnte nicht abgeschlossen werden. Bitte erneut versuchen.",
+      "failedWithCode": "Die Aktion konnte nicht abgeschlossen werden ({code})."
+    },
+    "detail": {
+      "back": "Zurück zu den Tickets",
+      "archived": "Archiviert",
+      "from": "Von {who}",
+      "infoTitle": "Ticketdetails",
+      "you": "Sie",
+      "unassigned": "Nicht zugewiesen",
+      "info": {
+        "category": "Kategorie",
+        "priority": "Priorität",
+        "requester": "Ersteller",
+        "assignedAdmin": "Zugewiesener Administrator",
+        "created": "Erstellt",
+        "resolved": "Gelöst",
+        "closed": "Geschlossen",
+        "relatedProperty": "Zugehöriges Objekt",
+        "relatedTaskGroup": "Zugehörige Aufgabengruppe"
+      }
+    },
+    "thread": {
+      "title": "Konversation",
+      "live": "Live",
+      "empty": "Noch keine Nachrichten",
+      "readOnly": "Diese Konversation ist geschlossen.",
+      "composerPlaceholder": "Nachricht eingeben…",
+      "send": "Senden",
+      "sendFailed": "Nachricht konnte nicht gesendet werden. Bitte erneut versuchen.",
+      "participant": "Teilnehmer"
     }
   },
   "tasks": {
@@ -418,6 +607,70 @@
     "newTask": "Neue Aufgabe",
     "searchPlaceholder": "Aufgaben suchen...",
     "empty": "Leer",
+    "list": {
+      "empty": "Keine Aufgabengruppen gefunden",
+      "tabs": {
+        "all": "Alle",
+        "Pending": "Ausstehend",
+        "Active": "Aktiv",
+        "Done": "Erledigt",
+        "Cancelled": "Abgebrochen"
+      },
+      "columns": {
+        "title": "Titel",
+        "status": "Status",
+        "dates": "Termine",
+        "tasks": "Aufgaben",
+        "workers": "Mitarbeiter",
+        "actions": "Aktionen"
+      }
+    },
+    "detail": {
+      "backToList": "Zurück zu Aufgaben",
+      "infoTitle": "Gruppeninformationen",
+      "tasksTitle": "Aufgaben",
+      "noTasks": "Keine Aufgaben in dieser Gruppe",
+      "noWorkers": "Keine Mitarbeiter zugewiesen",
+      "info": {
+        "propertyId": "Objekt-ID",
+        "ownerId": "Eigentümer-ID",
+        "startTime": "Startzeit",
+        "deadline": "Frist",
+        "ratingFloor": "Mindestbewertung",
+        "allowNewWorkers": "Neue Mitarbeiter zulassen",
+        "createdAt": "Erstellt",
+        "dates": "Termine",
+        "instructions": "Anweisungen"
+      },
+      "taskColumns": {
+        "started": "Begonnen",
+        "completed": "Abgeschlossen"
+      },
+      "workerColumns": {
+        "worker": "Mitarbeiter",
+        "outcome": "Ergebnis",
+        "rating": "Bewertung",
+        "checkIn": "Einchecken",
+        "checkOut": "Auschecken",
+        "actions": "Aktionen"
+      }
+    },
+    "actions": {
+      "cancelGroup": "Gruppe abbrechen",
+      "cancelGroupTitle": "Aufgabengruppe abbrechen",
+      "cancelGroupConfirm": "Dies bricht die Gruppe und alle nicht abgeschlossenen Aufgaben ab und archiviert deren Konversationen. Dies kann nicht rückgängig gemacht werden.",
+      "assign": "Mitarbeiter zuweisen",
+      "assignTitle": "Mitarbeiter zuweisen",
+      "assignSearch": "Mitarbeiter suchen...",
+      "noWorkers": "Keine Mitarbeiter gefunden",
+      "rate": "Bewerten",
+      "rateTitle": "Mitarbeiter bewerten",
+      "outcome": "Ergebnis",
+      "outcomeTitle": "Ergebnis überschreiben",
+      "unassign": "Entfernen",
+      "unassignTitle": "Mitarbeiter entfernen",
+      "unassignConfirm": "{name} aus dieser Aufgabe entfernen?"
+    },
     "statuses": {
       "todo": "Zu erledigen",
       "inProgress": "In Bearbeitung",
@@ -432,17 +685,152 @@
     },
     "emptyColumn": "Keine Aufgaben"
   },
+  "leave": {
+    "title": "Urlaubsanträge",
+    "subtitle": "Urlaubsanträge von Mitarbeitern prüfen und entscheiden",
+    "empty": "Keine Urlaubsanträge gefunden",
+    "viewTicket": "Verknüpftes Ticket öffnen",
+    "tabs": {
+      "all": "Alle",
+      "pending": "Ausstehend",
+      "approved": "Genehmigt",
+      "rejected": "Abgelehnt",
+      "cancelled": "Storniert"
+    },
+    "columns": {
+      "worker": "Mitarbeiter",
+      "target": "Ziel",
+      "reason": "Grund",
+      "status": "Status",
+      "created": "Erstellt"
+    },
+    "decide": {
+      "approve": "Genehmigen",
+      "reject": "Ablehnen",
+      "approveTitle": "Urlaubsantrag genehmigen?",
+      "rejectTitle": "Urlaubsantrag ablehnen?",
+      "approveDesc": "Bei Genehmigung wird {name} aus den betroffenen Aufgaben entfernt und das verknüpfte Support-Ticket gelöst.",
+      "rejectDesc": "Bei Ablehnung bleibt {name} zugewiesen und das verknüpfte Support-Ticket wird gelöst. Es ändern sich keine Zuweisungen.",
+      "note": "Entscheidungsnotiz (optional)",
+      "notePlaceholder": "Optionale Notiz für das Audit-Protokoll hinzufügen…"
+    },
+    "errors": {
+      "generic": "Die Entscheidung konnte nicht gespeichert werden. Bitte erneut versuchen.",
+      "leave_request_not_pending": "Dieser Antrag ist nicht mehr ausstehend.",
+      "task_already_started": "Die Aufgabe hat bereits begonnen — Urlaub kann nicht mehr genehmigt werden.",
+      "worker_already_checked_in": "Der Mitarbeiter hat bereits eingecheckt — Urlaub kann nicht mehr genehmigt werden.",
+      "no_active_enrolment": "Der Mitarbeiter hat keine aktive Zuordnung für diese Aufgabe mehr.",
+      "leave_request_not_found": "Urlaubsantrag nicht gefunden."
+    }
+  },
+  "contracts": {
+    "title": "Verträge",
+    "subtitle": "Eigentümer- und Mitarbeiterverträge verwalten",
+    "new": "Neuer Vertrag",
+    "empty": "Keine Verträge gefunden",
+    "active": "Aktiv",
+    "inactive": "Inaktiv",
+    "viewFile": "PDF anzeigen",
+    "deactivate": "Deaktivieren",
+    "deactivateTitle": "Vertrag deaktivieren?",
+    "deactivateConfirm": "Den aktiven Vertrag für {name} zwangsweise deaktivieren? Dies wird protokolliert.",
+    "tabs": {
+      "owner": "Eigentümerverträge",
+      "worker": "Mitarbeiterverträge"
+    },
+    "columns": {
+      "party": "Partei",
+      "period": "Zeitraum",
+      "status": "Status",
+      "file": "Datei",
+      "created": "Erstellt"
+    },
+    "form": {
+      "createTitle": "Neuer Vertrag",
+      "renewTitle": "Vertrag verlängern",
+      "party": "Partei",
+      "selectParty": "Partei auswählen…",
+      "from": "Gültig ab",
+      "to": "Gültig bis",
+      "dateOrder": "Das Enddatum muss am oder nach dem Startdatum liegen.",
+      "file": "Vertrags-PDF",
+      "choosePdf": "PDF-Datei auswählen…",
+      "uploadFailed": "Datei-Upload fehlgeschlagen. Bitte erneut versuchen.",
+      "create": "Erstellen",
+      "renew": "Verlängern"
+    },
+    "errors": {
+      "generic": "Der Vertrag konnte nicht gespeichert werden. Bitte erneut versuchen.",
+      "no_active_contract_to_renew": "Es gibt keinen aktiven Vertrag zum Verlängern — erstellen Sie zuerst einen.",
+      "owner_profile_not_found": "Für diesen Eigentümer ist kein Profil hinterlegt.",
+      "worker_not_found": "Mitarbeiter nicht gefunden.",
+      "contract_not_found": "Vertrag nicht gefunden.",
+      "contract_already_inactive": "Dieser Vertrag ist bereits inaktiv."
+    }
+  },
+  "professions": {
+    "title": "Berufe",
+    "subtitle": "Gewerke verwalten, auf die sich Mitarbeiter spezialisieren können",
+    "new": "Neuer Beruf",
+    "empty": "Keine Berufe gefunden",
+    "columns": {
+      "code": "Code",
+      "name": "Name",
+      "description": "Beschreibung"
+    },
+    "form": {
+      "createTitle": "Neuer Beruf",
+      "editTitle": "Beruf bearbeiten",
+      "code": "Code",
+      "codePlaceholder": "z. B. PLUMBER",
+      "codeImmutable": "Der Code kann nach dem Erstellen nicht geändert werden.",
+      "name": "Name",
+      "namePlaceholder": "Anzeigename",
+      "description": "Beschreibung",
+      "descriptionPlaceholder": "Optionale Beschreibung…",
+      "create": "Erstellen"
+    },
+    "delete": {
+      "title": "Beruf löschen?",
+      "confirm": "Den Beruf „{name}“ dauerhaft löschen? Dies kann nicht rückgängig gemacht werden."
+    },
+    "errors": {
+      "generic": "Der Beruf konnte nicht gespeichert werden. Bitte erneut versuchen.",
+      "code_exists": "Ein Beruf mit diesem Code existiert bereits.",
+      "deleteGeneric": "Der Beruf konnte nicht gelöscht werden. Bitte erneut versuchen.",
+      "profession_in_use": "Dieser Beruf ist Mitarbeitern oder Aufgabengruppen zugewiesen und kann nicht gelöscht werden."
+    }
+  },
   "dispatch": {
     "title": "Disposition",
-    "subtitle": "Aufgaben an verfügbare Mitarbeiter zuweisen",
-    "pendingTasks": "Ausstehende Aufgaben",
-    "pendingTasksDesc": "Aufgaben, die zugewiesen werden müssen",
-    "availableWorkers": "Verfügbare Mitarbeiter",
-    "availableWorkersDesc": "Mitarbeiter bereit zur Zuweisung",
+    "subtitle": "Unterbesetzte Aufgaben durch Zuweisung verfügbarer Mitarbeiter besetzen",
     "assign": "Zuweisen",
-    "statuses": {
-      "available": "Verfügbar",
-      "onTask": "Im Einsatz"
+    "unassign": "Entfernen",
+    "viewGroup": "Gruppe anzeigen",
+    "needsWorker": "Mitarbeiter benötigt",
+    "assignedCount": "{count} zugewiesen",
+    "searchPlaceholder": "Nach Objekt, Datum oder Aufgabe suchen...",
+    "empty": "Keine Aufgaben entsprechen diesem Filter",
+    "capNotice": "Es werden die {count} neuesten Aufgaben angezeigt",
+    "unassignTitle": "Mitarbeiter entfernen?",
+    "unassignConfirm": "{name} von dieser Aufgabe entfernen?",
+    "stats": {
+      "needsWorkers": "Benötigen Mitarbeiter",
+      "open": "Offene Aufgaben",
+      "total": "Angezeigt gesamt"
+    },
+    "tabs": {
+      "needsWorkers": "Benötigen Mitarbeiter",
+      "open": "Offen",
+      "all": "Alle"
+    },
+    "errors": {
+      "generic": "Mitarbeiter konnte nicht zugewiesen werden. Bitte erneut versuchen.",
+      "worker_not_approved": "Dieser Mitarbeiter ist nicht freigegeben.",
+      "worker_below_rating_floor": "Dieser Mitarbeiter liegt unter der Mindestbewertung der Aufgabe.",
+      "worker_profession_not_eligible": "Der Beruf dieses Mitarbeiters ist für diese Aufgabe nicht zugelassen.",
+      "worker_limit_reached": "Diese Aufgabe ist bereits vollständig besetzt.",
+      "worker_has_overlapping_assignment": "Dieser Mitarbeiter hat zu dieser Zeit eine überschneidende Zuweisung."
     }
   },
   "audit": {
@@ -493,66 +881,75 @@
     "save": "Speichern"
   },
   "permissions": {
-    "groups": {
-      "workers": "Mitarbeiter",
-      "owners": "Eigentümer",
-      "kyc": "KYC",
-      "properties": "Objekte",
-      "tasks": "Aufgaben",
-      "support": "Support",
-      "system": "System"
+    "catalogError": "Berechtigungskatalog konnte nicht geladen werden.",
+    "searchPlaceholder": "Berechtigungen suchen...",
+    "noMatches": "Keine passenden Berechtigungen.",
+    "selectAll": "Alle auswählen",
+    "clearAll": "Alle abwählen"
+  },
+  "roles": {
+    "title": "Rollen & Berechtigungen",
+    "subtitle": "Gemeinsame Admin-Rollen und ihre Berechtigungen verwalten.",
+    "new": "Neue Rolle",
+    "empty": "Keine Rollen gefunden.",
+    "showCustom": "Benutzerdefinierte Rollen anzeigen",
+    "permCount": "{count} Berechtigungen",
+    "systemImmutable": "Systemrollen können nicht bearbeitet werden",
+    "columns": {
+      "name": "Rolle",
+      "code": "Code",
+      "type": "Typ",
+      "permissions": "Berechtigungen"
     },
-    "perms": {
-      "worker_list": "Liste anzeigen",
-      "worker_detail": "Details anzeigen",
-      "worker_approve": "Genehmigen",
-      "worker_reject": "Ablehnen",
-      "worker_delete": "Löschen",
-      "worker_documents": "Dokumente anzeigen",
-      "worker_restore": "Wiederherstellen",
-      "owner_list": "Liste anzeigen",
-      "owner_detail": "Details anzeigen",
-      "owner_approve": "Genehmigen",
-      "owner_reject": "Ablehnen",
-      "owner_delete": "Löschen",
-      "owner_documents": "Dokumente anzeigen",
-      "kyc_list": "Liste anzeigen",
-      "kyc_detail": "Details anzeigen",
-      "kyc_approve": "Genehmigen",
-      "kyc_reject": "Ablehnen",
-      "property_list": "Liste anzeigen",
-      "property_detail": "Details anzeigen",
-      "property_approve": "Genehmigen",
-      "property_reject": "Ablehnen",
-      "property_delete": "Löschen",
-      "property_documents": "Dokumente anzeigen",
-      "group_list": "Gruppen anzeigen",
-      "group_detail": "Gruppendetails",
-      "group_cancel": "Gruppe abbrechen",
-      "task_list": "Aufgaben anzeigen",
-      "task_detail": "Aufgabendetails",
-      "task_assign": "Mitarbeiter zuweisen",
-      "task_media": "Medien anzeigen",
-      "ticket_list": "Tickets anzeigen",
-      "ticket_detail": "Ticketdetails",
-      "ticket_assign": "Ticket zuweisen",
-      "ticket_resolve": "Ticket lösen",
-      "ticket_close": "Ticket schließen",
-      "chat_list": "Chats anzeigen",
-      "chat_send": "Nachricht senden",
-      "audit_log": "Prüfprotokoll anzeigen",
-      "settings_view": "Einstellungen anzeigen",
-      "settings_edit": "Einstellungen bearbeiten",
-      "admin_create": "Admin erstellen",
-      "admin_list": "Admins anzeigen",
-      "admin_detail": "Admin-Details",
-      "admin_edit": "Admin bearbeiten",
-      "admin_deactivate": "Admin deaktivieren",
-      "role_create": "Rolle erstellen",
-      "role_edit": "Rolle bearbeiten",
-      "profession_create": "Beruf erstellen",
-      "profession_edit": "Beruf bearbeiten",
-      "profession_delete": "Beruf löschen"
+    "type": {
+      "system": "System",
+      "shared": "Gemeinsam",
+      "custom": "Benutzerdefiniert"
+    },
+    "form": {
+      "createTitle": "Rolle erstellen",
+      "editTitle": "Rolle bearbeiten",
+      "code": "Code",
+      "codePlaceholder": "z.B. SUPPORT_LEAD",
+      "codeImmutable": "Code kann nicht geändert werden.",
+      "codeHint": "Großbuchstaben-Bezeichner, z.B. SUPPORT_LEAD.",
+      "name": "Name",
+      "namePlaceholder": "Support-Leitung",
+      "description": "Beschreibung",
+      "descriptionPlaceholder": "Wofür diese Rolle gedacht ist...",
+      "permissions": "Berechtigungen",
+      "create": "Erstellen"
+    },
+    "errors": {
+      "role_code_exists": "Eine Rolle mit diesem Code existiert bereits.",
+      "invalid_applies_to": "Ungültiger Rollenbereich.",
+      "system_role_immutable": "Systemrollen können nicht bearbeitet werden.",
+      "role_not_found": "Rolle nicht gefunden.",
+      "generic": "Rolle konnte nicht gespeichert werden."
+    }
+  },
+  "profile": {
+    "title": "Profil",
+    "subtitle": "Ihre Kontodaten und Sicherheitseinstellungen.",
+    "verified": "Verifiziert",
+    "managedNote": "Ihr Name, Ihre E-Mail-Adresse und Ihr Avatar werden von einem Systemadministrator verwaltet. Wenden Sie sich an einen Administrator, um sie zu ändern.",
+    "loadError": "Ihr Profil konnte nicht geladen werden.",
+    "password": {
+      "title": "Passwort ändern",
+      "subtitle": "Ändern Sie das Passwort, mit dem Sie sich anmelden.",
+      "current": "Aktuelles Passwort",
+      "new": "Neues Passwort",
+      "confirm": "Neues Passwort bestätigen",
+      "minLength": "Muss mindestens {min} Zeichen lang sein.",
+      "show": "Passwort anzeigen",
+      "hide": "Passwort verbergen",
+      "submit": "Passwort aktualisieren",
+      "success": "Ihr Passwort wurde geändert.",
+      "errors": {
+        "invalidCurrent": "Ihr aktuelles Passwort ist falsch.",
+        "mismatch": "Passwörter stimmen nicht überein.",
+        "generic": "Passwort konnte nicht geändert werden. Bitte versuchen Sie es erneut."
+      }
     }
   }
 }

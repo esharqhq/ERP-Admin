@@ -1,8 +1,9 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 import { ownerService } from "@/lib/services/owner.service";
+
+// ── KYC verification queue (GET /api/admin/kyc) — used by the Contracts owner picker ──
 
 export function useOwnerList(status?: string) {
   return useQuery({
@@ -11,55 +12,38 @@ export function useOwnerList(status?: string) {
   });
 }
 
-export function useOwnerFromList(ownerProfileId: string) {
+// ── Owner-account directory (GET /api/owners) — distinct from the KYC queue ──
+
+export function useOwnerDirectory(search?: string) {
   return useQuery({
-    queryKey: ["owners"],
-    queryFn: () => ownerService.getOwnerList(),
-    select: (data) => data.find((o) => o.ownerProfileId === ownerProfileId),
-    enabled: !!ownerProfileId,
+    queryKey: ["owner-directory", search ?? ""],
+    queryFn: () => ownerService.listOwners(search),
   });
 }
 
-export function useApproveOwnerKyc() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (ownerProfileId: string) => ownerService.approveKyc(ownerProfileId),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["owners"] });
-    },
-  });
-}
-
-export function useRejectOwnerKyc() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: ({ ownerProfileId, reason }: { ownerProfileId: string; reason: string }) =>
-      ownerService.rejectKyc(ownerProfileId, reason),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["owners"] });
-    },
-  });
-}
-
-export function useDeleteOwner() {
-  const qc = useQueryClient();
-  const router = useRouter();
-  return useMutation({
-    mutationFn: (ownerUserId: string) => ownerService.deleteOwner(ownerUserId),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["owners"] });
-      router.push("/dashboard/owners");
-    },
-  });
-}
-
-export function useOwnerByUserId(ownerUserId: string) {
+export function useOwner(ownerUserId: string) {
   return useQuery({
-    queryKey: ["owner-by-user", ownerUserId],
-    queryFn: () => ownerService.getOwnerByUserId(ownerUserId),
+    queryKey: ["owner", ownerUserId],
+    queryFn: () => ownerService.getOwner(ownerUserId),
     enabled: !!ownerUserId,
   });
 }
+
+export function useSoftDeleteOwner() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ ownerUserId, reason }: { ownerUserId: string; reason?: string }) =>
+      ownerService.deleteOwner(ownerUserId, reason),
+    // Invalidate the list only — never the still-mounted ["owner", id] detail observer
+    // (delete-then-navigate: removing/invalidating it would refetch the now-deleted id → 404).
+    // The caller router.push()es back to the list; the detail query GCs on unmount.
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["owner-directory"] });
+    },
+  });
+}
+
+// ── Cross-domain reads on the owner-account detail page (keyed on OwnerUser id) ──
 
 export function useOwnerProperties(ownerUserId: string) {
   return useQuery({

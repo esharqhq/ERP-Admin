@@ -1,168 +1,391 @@
-import { getTranslations } from "next-intl/server";
+"use client";
+
+import { useMemo, useState } from "react";
+import Link from "next/link";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  MapPin,
+  Clock,
+  UserPlus,
+  UserMinus,
+  Eye,
+  AlertTriangle,
+  Search,
+} from "lucide-react";
+import { useTranslations, useLocale } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Plus, MapPin, Clock } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Can } from "@/components/auth/can";
+import { AssignWorkerDialog } from "@/components/tasks/assign-worker-dialog";
+import { ConfirmDialog } from "@/components/tasks/confirm-dialog";
+import { useAdminTasks, useAssignWorker, useUnassignWorker } from "@/hooks/use-tasks";
+import { useProperties } from "@/hooks/use-properties";
+import { getApiErrorCode } from "@/lib/http/api-error";
+import {
+  normalizeStatus,
+  type TaskItemDto,
+  type TaskWorkerDto,
+} from "@/lib/types/task.types";
 
-const pendingTasks = [
-  {
-    id: "T-001",
-    title: "HVAC Repair",
-    property: "Sunrise Villa, #12",
-    priority: "High",
-    time: "2h",
-  },
-  {
-    id: "T-002",
-    title: "Plumbing Fix",
-    property: "Empire Business Center",
-    priority: "Medium",
-    time: "4h",
-  },
-  {
-    id: "T-003",
-    title: "Electrical Check",
-    property: "Hotel Grand, floor 3",
-    priority: "Low",
-    time: "1h",
-  },
-  {
-    id: "T-004",
-    title: "Window Replacement",
-    property: "Office Block B",
-    priority: "High",
-    time: "3h",
-  },
-];
+// Backend caps /api/tasks/admin at the 500 most-recent tasks.
+const ADMIN_TASKS_CAP = 500;
 
-const availableWorkers = [
-  { id: 1, name: "John S.", role: "Senior", status: "Available" },
-  { id: 2, name: "Emma S.", role: "Professional", status: "Available" },
-  { id: 3, name: "Michael K.", role: "Junior", status: "On Task" },
-  { id: 4, name: "Anna W.", role: "Junior", status: "Available" },
-];
+// A worker whose outcome is one of these no longer occupies a slot — the task is
+// effectively short that body even though the row still exists.
+const VACATED_OUTCOMES = new Set(["removed", "cancelled", "noshow"]);
 
-const priorityVariant: Record<
-  string,
-  "default" | "secondary" | "destructive" | "outline"
-> = {
-  High: "destructive",
-  Medium: "secondary",
-  Low: "outline",
-};
+// Only PENDING / ACTIVE tasks can still take a worker. REVIEW (work submitted) and the
+// terminal DONE / CANCELLED states are not dispatch targets.
+const OPEN_STATUSES = new Set(["pending", "active"]);
 
-export default async function DispatchPage() {
-  const t = await getTranslations("dispatch");
+// admin-assign rejection codes we have tailored copy for (TaskService.AdminAssignWorkerAsync).
+const KNOWN_ASSIGN_ERRORS = new Set([
+  "worker_not_approved",
+  "worker_below_rating_floor",
+  "worker_profession_not_eligible",
+  "worker_limit_reached",
+  "worker_has_overlapping_assignment",
+]);
+
+type DispatchFilter = "needsWorkers" | "open" | "all";
+const DISPATCH_FILTERS: DispatchFilter[] = ["needsWorkers", "open", "all"];
+
+type ModalState =
+  | { type: "assign"; taskId: string }
+  | { type: "unassign"; taskId: string; tw: TaskWorkerDto }
+  | null;
+
+function activeWorkers(task: TaskItemDto): TaskWorkerDto[] {
+  return (task.workers ?? []).filter(
+    (w) => !VACATED_OUTCOMES.has(normalizeStatus(w.outcome)),
+  );
+}
+
+function isOpen(task: TaskItemDto): boolean {
+  return OPEN_STATUSES.has(normalizeStatus(task.status));
+}
+
+function needsWorkers(task: TaskItemDto): boolean {
+  return isOpen(task) && activeWorkers(task).length === 0;
+}
+
+function fmtDate(dateStr: string, locale: string): string {
+  // scheduledDate is "yyyy-MM-dd"; render in the active locale.
+  const d = new Date(`${dateStr}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return dateStr;
+  return d.toLocaleDateString(locale, { dateStyle: "medium" });
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const s = normalizeStatus(status);
+  const variant =
+    s === "active"
+      ? "default"
+      : s === "done"
+        ? "secondary"
+        : s === "cancelled"
+          ? "destructive"
+          : "outline";
+  return <Badge variant={variant}>{status || "—"}</Badge>;
+}
+
+function StatCard({ label, value }: { label: string; value: number }) {
+  return (
+    <Card>
+      <CardContent className="flex flex-col gap-1 py-4">
+        <span className="text-2xl font-bold tabular-nums">{value}</span>
+        <span className="text-xs text-muted-foreground">{label}</span>
+      </CardContent>
+    </Card>
+  );
+}
+
+interface TaskRowProps {
+  task: TaskItemDto;
+  propertyName: string;
+  locale: string;
+  onAssign: (taskId: string) => void;
+  onUnassign: (taskId: string, tw: TaskWorkerDto) => void;
+}
+
+function DispatchTaskCard({
+  task,
+  propertyName,
+  locale,
+  onAssign,
+  onUnassign,
+}: TaskRowProps) {
+  const t = useTranslations("dispatch");
+  const active = activeWorkers(task);
+  const understaffed = needsWorkers(task);
+  const time = (task.scheduledAt ?? "").slice(11, 16);
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
-          <p className="text-muted-foreground">
-            {t("subtitle")}
-          </p>
+    <Card className={understaffed ? "border-amber-500/50" : undefined}>
+      <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-3 pb-3">
+        <div className="flex flex-col gap-1.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-medium">{propertyName}</span>
+            <StatusBadge status={task.status} />
+            {understaffed ? (
+              <Badge
+                variant="outline"
+                className="gap-1 border-amber-500/50 text-amber-600 dark:text-amber-400"
+              >
+                <AlertTriangle className="size-3" />
+                {t("needsWorker")}
+              </Badge>
+            ) : null}
+          </div>
+          <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <Clock className="size-3" />
+              {fmtDate(task.scheduledDate, locale)}
+              {time ? ` · ${time}` : ""}
+            </span>
+            <span className="flex items-center gap-1">
+              <MapPin className="size-3" />
+              {t("assignedCount", { count: active.length })}
+            </span>
+          </div>
         </div>
-        <Button>
-          <Plus className="mr-2 size-4" />
-          New Task
-        </Button>
+        <div className="flex items-center gap-1.5">
+          <Can permission="task:assign_worker_any">
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              onClick={() => onAssign(task.id)}
+            >
+              <UserPlus className="size-3.5" />
+              {t("assign")}
+            </Button>
+          </Can>
+          <Button
+            variant="ghost"
+            size="sm"
+            nativeButton={false}
+            className="gap-1.5 text-muted-foreground"
+            render={<Link href={`/dashboard/tasks/${task.groupId}`} />}
+          >
+            <Eye className="size-3.5" />
+            {t("viewGroup")}
+          </Button>
+        </div>
+      </CardHeader>
+      {active.length > 0 ? (
+        <CardContent className="flex flex-wrap gap-2 pt-0">
+          {active.map((tw) => (
+            <div
+              key={tw.id}
+              className="flex items-center gap-2 rounded-full border border-border bg-muted/40 py-1 pl-3 pr-1 text-sm"
+            >
+              <span className="font-medium">
+                {tw.workerName ?? tw.workerId.slice(0, 8)}
+              </span>
+              <Can permission="task:unassign_worker_any">
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  className="size-6 text-destructive"
+                  title={t("unassign")}
+                  onClick={() => onUnassign(task.id, tw)}
+                >
+                  <UserMinus className="size-3.5" />
+                </Button>
+              </Can>
+            </div>
+          ))}
+        </CardContent>
+      ) : null}
+    </Card>
+  );
+}
+
+export default function DispatchPage() {
+  const t = useTranslations("dispatch");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
+  const [filter, setFilter] = useState<DispatchFilter>("needsWorkers");
+  const [search, setSearch] = useState("");
+  const [modal, setModal] = useState<ModalState>(null);
+
+  const { data: tasks = [], isLoading, isError } = useAdminTasks();
+  const { data: properties = [] } = useProperties();
+
+  const propertyName = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const p of properties) {
+      if (p.name) map.set(p.id, p.name);
+    }
+    return (id: string) => map.get(id) ?? id.slice(0, 8);
+  }, [properties]);
+
+  const assignWorker = useAssignWorker();
+  const unassignWorker = useUnassignWorker();
+
+  const counts = useMemo(
+    () => ({
+      needsWorkers: tasks.filter(needsWorkers).length,
+      open: tasks.filter(isOpen).length,
+      total: tasks.length,
+    }),
+    [tasks],
+  );
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return tasks
+      .filter((task) => {
+        if (filter === "needsWorkers" && !needsWorkers(task)) return false;
+        if (filter === "open" && !isOpen(task)) return false;
+        if (!q) return true;
+        return (
+          propertyName(task.propertyId).toLowerCase().includes(q) ||
+          task.scheduledDate.includes(q) ||
+          task.id.toLowerCase().includes(q)
+        );
+      })
+      .sort((a, b) => a.scheduledDate.localeCompare(b.scheduledDate));
+  }, [tasks, filter, search, propertyName]);
+
+  const close = () => {
+    setModal(null);
+    assignWorker.reset();
+  };
+
+  const assignError =
+    modal?.type === "assign" && assignWorker.isError
+      ? (() => {
+          const code = getApiErrorCode(assignWorker.error);
+          return code && KNOWN_ASSIGN_ERRORS.has(code)
+            ? t(`errors.${code}`)
+            : t("errors.generic");
+        })()
+      : null;
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-1">
+        <h1 className="font-heading text-3xl font-bold tracking-tight leading-tight">
+          {t("title")}
+        </h1>
+        <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>{t("pendingTasks")}</CardTitle>
-            <CardDescription>{t("pendingTasksDesc")}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-105 pr-3">
-              <div className="flex flex-col gap-3">
-                {pendingTasks.map((task) => (
-                  <div
-                    key={task.id}
-                    className="rounded-lg border p-3 space-y-2 hover:bg-muted/50 cursor-grab transition-colors"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-semibold">
-                        {task.title}
-                      </span>
-                      <Badge variant={priorityVariant[task.priority]}>
-                        {task.priority}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <MapPin className="size-3" /> {task.property}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="size-3" /> {task.time}
-                      </span>
-                    </div>
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      className="h-7 text-xs w-full"
-                    >
-                      {t("assign")}
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>{t("availableWorkers")}</CardTitle>
-            <CardDescription>{t("availableWorkersDesc")}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-[420px] pr-3">
-              <div className="flex flex-col gap-3">
-                {availableWorkers.map((worker) => (
-                  <div
-                    key={worker.id}
-                    className="flex items-center justify-between rounded-lg border p-3"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Avatar className="size-9">
-                        <AvatarFallback>
-                          {worker.name.slice(0, 2).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="text-sm font-medium">{worker.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {worker.role}
-                        </p>
-                      </div>
-                    </div>
-                    <Badge
-                      variant={
-                        worker.status === "Available" ? "default" : "secondary"
-                      }
-                    >
-                      {worker.status === "Available"
-                        ? t("statuses.available")
-                        : t("statuses.onTask")}
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-3 gap-3">
+        <StatCard label={t("stats.needsWorkers")} value={counts.needsWorkers} />
+        <StatCard label={t("stats.open")} value={counts.open} />
+        <StatCard label={t("stats.total")} value={counts.total} />
       </div>
+
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex rounded-lg border border-border bg-muted/50 p-0.5">
+          {DISPATCH_FILTERS.map((key) => (
+            <button
+              key={key}
+              onClick={() => setFilter(key)}
+              className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                filter === key
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {t(`tabs.${key}`)}
+            </button>
+          ))}
+        </div>
+        <div className="relative flex-1 min-w-[200px] max-w-sm">
+          <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
+          <Input
+            placeholder={t("searchPlaceholder")}
+            className="pl-8"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+      </div>
+
+      {!isLoading && !isError && tasks.length >= ADMIN_TASKS_CAP ? (
+        <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <AlertTriangle className="size-3.5" />
+          {t("capNotice", { count: ADMIN_TASKS_CAP })}
+        </p>
+      ) : null}
+
+      {isLoading ? (
+        <div className="flex flex-col gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-28 w-full rounded-xl" />
+          ))}
+        </div>
+      ) : isError ? (
+        <p className="py-10 text-center text-sm text-destructive">
+          {tCommon("error")}
+        </p>
+      ) : filtered.length === 0 ? (
+        <p className="py-10 text-center text-sm text-muted-foreground">
+          {t("empty")}
+        </p>
+      ) : (
+        <div className="flex flex-col gap-4">
+          <p className="text-xs text-muted-foreground">
+            {tCommon("resultsFound", { count: filtered.length })}
+          </p>
+          {filtered.map((task) => (
+            <DispatchTaskCard
+              key={task.id}
+              task={task}
+              propertyName={propertyName(task.propertyId)}
+              locale={locale}
+              onAssign={(taskId) => {
+                assignWorker.reset();
+                setModal({ type: "assign", taskId });
+              }}
+              onUnassign={(taskId, tw) =>
+                setModal({ type: "unassign", taskId, tw })
+              }
+            />
+          ))}
+        </div>
+      )}
+
+      {modal?.type === "assign" && (
+        <AssignWorkerDialog
+          open
+          onClose={close}
+          isPending={assignWorker.isPending}
+          error={assignError}
+          onAssign={(workerId) =>
+            assignWorker.mutate(
+              { taskId: modal.taskId, workerId },
+              { onSuccess: close },
+            )
+          }
+        />
+      )}
+
+      {modal?.type === "unassign" && (
+        <ConfirmDialog
+          open
+          onClose={close}
+          isPending={unassignWorker.isPending}
+          title={t("unassignTitle")}
+          description={t("unassignConfirm", {
+            name: modal.tw.workerName ?? modal.tw.workerId.slice(0, 8),
+          })}
+          confirmLabel={t("unassign")}
+          destructive
+          onConfirm={() =>
+            unassignWorker.mutate(
+              { taskId: modal.taskId, workerId: modal.tw.workerId },
+              { onSuccess: close },
+            )
+          }
+        />
+      )}
     </div>
   );
 }

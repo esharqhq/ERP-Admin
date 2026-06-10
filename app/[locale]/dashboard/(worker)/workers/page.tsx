@@ -17,6 +17,7 @@ import {
   CalendarDays,
   Star,
   Plus,
+  Loader2,
 } from "lucide-react";
 import {
   Dialog,
@@ -28,9 +29,24 @@ import { MapPin, CalendarClock, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useWorkers } from "@/hooks/use-workers";
-import { useAdminTaskGroups } from "@/hooks/use-tasks";
+import { useAdminTaskGroups, useAssignWorker } from "@/hooks/use-tasks";
+import { useProperties } from "@/hooks/use-properties";
+import { getApiErrorCode } from "@/lib/http/api-error";
+import { normalizeStatus } from "@/lib/types/task.types";
 import type { WorkerSummaryDto } from "@/lib/types/worker.types";
 import { useTranslations, useLocale } from "next-intl";
+
+// admin-assign rejection codes with tailored copy (TaskService.AdminAssignWorkerAsync).
+const KNOWN_ASSIGN_ERRORS = new Set([
+  "worker_not_approved",
+  "worker_below_rating_floor",
+  "worker_profession_not_eligible",
+  "worker_limit_reached",
+  "worker_has_overlapping_assignment",
+]);
+
+// A worker whose outcome is one of these no longer occupies the task slot.
+const VACATED_OUTCOMES = new Set(["removed", "cancelled", "noshow"]);
 
 
 const workerHues: Record<number, { chip: string; dot: string }> = {
@@ -49,23 +65,12 @@ function dateKey(d: Date) {
   return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
 }
 
-// 0=Mon 1=Tue 2=Wed 3=Thu 4=Fri 5=Sat 6=Sun
-function isWorkerDayOff(workerIdx: number, dayOfWeek: number): boolean {
-  if (dayOfWeek >= 5) return true; // weekends are always days off
-  // Mock: some workers have an extra day off
-  const extraDayOff = [2, 0, -1, -1, 4, -1]; // idx%6 → extra off weekday
-  return extraDayOff[workerIdx % 6] === dayOfWeek;
+/** A real task on a given day that `worker` could be admin-assigned to fill. */
+interface AssignableTask {
+  taskId: string;
+  label: string;
+  propertyName: string;
 }
-
-const MOCK_ASSIGNABLE_TASKS = [
-  { id: "t1", label: "HVAC Repair",              property: "Villa Sunrise #12"    },
-  { id: "t2", label: "Plumbing Work",            property: "Empire Business Center" },
-  { id: "t3", label: "Electrical Inspection",    property: "GrandBuild Tower B"   },
-  { id: "t4", label: "Cleaning",                 property: "Hotel Grand, 3rd floor" },
-  { id: "t5", label: "Window Replacement",       property: "Office Block B"       },
-  { id: "t6", label: "Wall Painting",            property: "Residence North"      },
-  { id: "t7", label: "AC Installation",          property: "Frieda Apartments"    },
-];
 
 type StatusTab = "all" | "pending" | "approved";
 
@@ -228,13 +233,17 @@ function WorkersCalendar() {
     return d;
   });
   useEffect(() => {
+    // Intentional post-hydration clock sync: SSR renders the stable epoch placeholder
+    // above, then we swap to the real "today" on the client to avoid a hydration mismatch.
     const d = new Date();
     d.setHours(0, 0, 0, 0);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setToday(d);
   }, []);
 
   const [weekOffset, setWeekOffset] = useState(0);
   const [selectedCell, setSelectedCell] = useState<{
+    workerId: string;
     workerName: string;
     workerInitials: string;
     displayDate: string;
@@ -245,7 +254,51 @@ function WorkersCalendar() {
 
   const { data: allWorkers = [], isLoading: isLoadingWorkers } = useWorkers(true);
   const { data: taskGroups = [], isLoading: isLoadingTasks } = useAdminTaskGroups();
+  const { data: properties = [] } = useProperties();
+  const assignWorker = useAssignWorker();
   const isLoading = isLoadingWorkers || isLoadingTasks;
+
+  const propertyName = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const p of properties) if (p.name) map.set(p.id, p.name);
+    return (id: string) => map.get(id) ?? id.slice(0, 8);
+  }, [properties]);
+
+  // Real tasks scheduled on the selected day that the worker can still fill:
+  // open (pending/active) tasks where the worker has no active assignment yet.
+  const assignableTasks = useMemo<AssignableTask[]>(() => {
+    if (!selectedCell) return [];
+    const out: AssignableTask[] = [];
+    for (const group of taskGroups) {
+      for (const task of group.tasks ?? []) {
+        if (task.scheduledDate !== selectedCell.isoDate) continue;
+        const status = normalizeStatus(task.status);
+        if (status !== "pending" && status !== "active") continue;
+        const alreadyOn = (task.workers ?? []).some(
+          (w) =>
+            w.workerId === selectedCell.workerId &&
+            !VACATED_OUTCOMES.has(normalizeStatus(w.outcome)),
+        );
+        if (alreadyOn) continue;
+        out.push({
+          taskId: task.id,
+          label: group.title ?? task.id.slice(0, 8),
+          propertyName: propertyName(group.propertyId),
+        });
+      }
+    }
+    return out;
+  }, [selectedCell, taskGroups, propertyName]);
+
+  const assignError =
+    selectedCell && assignWorker.isError
+      ? (() => {
+          const code = getApiErrorCode(assignWorker.error);
+          return code && KNOWN_ASSIGN_ERRORS.has(code)
+            ? t(`assignErrors.${code}`)
+            : t("calendar.assignFailed");
+        })()
+      : null;
 
   const weekDays = useMemo(() => {
     const mon = new Date(today);
@@ -307,9 +360,16 @@ function WorkersCalendar() {
     return `${monStr} – ${sunStr}`;
   })();
 
-  function openAssignDialog(workerName: string, d: Date, isoDate: string) {
+  function openAssignDialog(
+    workerId: string,
+    workerName: string,
+    d: Date,
+    isoDate: string,
+  ) {
     const displayDate = `${d.toLocaleDateString(locale, { weekday: "long" })}, ${d.toLocaleDateString(locale, { day: "numeric", month: "long" })}`;
+    assignWorker.reset();
     setSelectedCell({
+      workerId,
       workerName,
       workerInitials: workerName.slice(0, 2).toUpperCase(),
       displayDate,
@@ -454,8 +514,6 @@ function WorkersCalendar() {
                       </div>
                     </td>
                     {weekDays.map((d) => {
-                      const wd = (d.getDay() + 6) % 7;
-                      const isDayOff = isWorkerDayOff(idx, wd);
                       const isToday = dateKey(d) === dateKey(today);
                       const y = d.getFullYear();
                       const mo = String(d.getMonth() + 1).padStart(2, "0");
@@ -464,25 +522,10 @@ function WorkersCalendar() {
                       const titles = dayMap?.get(isoDate) ?? [];
                       const isEmpty = titles.length === 0;
 
-                      if (isDayOff) {
-                        return (
-                          <td
-                            key={dateKey(d)}
-                            className="min-w-[120px] border-b border-r border-border last:border-r-0 bg-muted/20 px-2 py-2 select-none"
-                          >
-                            <div className="flex h-7 items-center justify-center">
-                              <span className="text-[10px] font-medium text-muted-foreground/35">
-                                {t("calendar.dayOff")}
-                              </span>
-                            </div>
-                          </td>
-                        );
-                      }
-
                       return (
                         <td
                           key={dateKey(d)}
-                          onClick={isEmpty ? () => openAssignDialog(w.fullName ?? "Worker", d, isoDate) : undefined}
+                          onClick={isEmpty ? () => openAssignDialog(w.id, w.fullName ?? "Worker", d, isoDate) : undefined}
                           className={cn(
                             "min-w-[120px] border-b border-r border-border px-2 py-2 last:border-r-0 transition-colors duration-150 group/cell",
                             isToday
@@ -571,10 +614,18 @@ function WorkersCalendar() {
           {/* Task radio cards */}
           <div className="flex flex-col gap-1 px-5 pb-4 max-h-64 overflow-y-auto">
             {(() => {
-              const results = MOCK_ASSIGNABLE_TASKS.filter((t) =>
-                taskSearch === "" ||
-                t.label.toLowerCase().includes(taskSearch.toLowerCase()) ||
-                t.property.toLowerCase().includes(taskSearch.toLowerCase())
+              if (assignableTasks.length === 0) {
+                return (
+                  <p className="py-4 text-center text-sm text-muted-foreground">
+                    {t("calendar.noTasksThatDay")}
+                  </p>
+                );
+              }
+              const results = assignableTasks.filter(
+                (task) =>
+                  taskSearch === "" ||
+                  task.label.toLowerCase().includes(taskSearch.toLowerCase()) ||
+                  task.propertyName.toLowerCase().includes(taskSearch.toLowerCase()),
               );
               if (results.length === 0) {
                 return (
@@ -583,13 +634,13 @@ function WorkersCalendar() {
                   </p>
                 );
               }
-              return results.map((t) => {
-                const isSelected = selectedTaskId === t.id;
+              return results.map((task) => {
+                const isSelected = selectedTaskId === task.taskId;
                 return (
                   <button
-                    key={t.id}
+                    key={task.taskId}
                     type="button"
-                    onClick={() => setSelectedTaskId(t.id)}
+                    onClick={() => setSelectedTaskId(task.taskId)}
                     className={cn(
                       "flex items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-all duration-150",
                       isSelected
@@ -607,11 +658,11 @@ function WorkersCalendar() {
                     </span>
                     <div className="flex min-w-0 flex-col gap-0.5">
                       <span className={cn("text-sm font-medium leading-tight", isSelected && "text-primary")}>
-                        {t.label}
+                        {task.label}
                       </span>
                       <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
                         <MapPin className="size-3 shrink-0" />
-                        {t.property}
+                        {task.propertyName}
                       </span>
                     </div>
                   </button>
@@ -620,25 +671,42 @@ function WorkersCalendar() {
             })()}
           </div>
 
+          {assignError ? (
+            <p className="mx-5 mb-3 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+              {assignError}
+            </p>
+          ) : null}
+
           {/* Footer */}
           <div className="-mx-0 border-t border-border bg-muted/40 px-5 py-3 flex items-center justify-end gap-2">
             <DialogDescription className="mr-auto text-xs text-muted-foreground">
               {selectedTaskId
-                ? `${t("calendar.selected")}: ${MOCK_ASSIGNABLE_TASKS.find((task) => task.id === selectedTaskId)?.label}`
+                ? `${t("calendar.selected")}: ${assignableTasks.find((task) => task.taskId === selectedTaskId)?.label}`
                 : t("calendar.selectOneTask")}
             </DialogDescription>
             <Button
               variant="outline"
               size="sm"
+              disabled={assignWorker.isPending}
               onClick={() => setSelectedCell(null)}
             >
               {t("calendar.cancel")}
             </Button>
             <Button
               size="sm"
-              disabled={!selectedTaskId}
-              onClick={() => setSelectedCell(null)}
+              disabled={!selectedTaskId || assignWorker.isPending}
+              onClick={() =>
+                selectedCell &&
+                selectedTaskId &&
+                assignWorker.mutate(
+                  { taskId: selectedTaskId, workerId: selectedCell.workerId },
+                  { onSuccess: () => setSelectedCell(null) },
+                )
+              }
             >
+              {assignWorker.isPending && (
+                <Loader2 className="mr-1.5 size-3.5 animate-spin" />
+              )}
               {t("calendar.assign")}
             </Button>
           </div>

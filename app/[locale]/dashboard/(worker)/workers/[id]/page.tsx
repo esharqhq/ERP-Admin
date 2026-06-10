@@ -7,22 +7,33 @@ import {
   User,
   CheckCircle,
   XCircle,
+  Trash2,
 } from "lucide-react";
-import { useWorkerDetail } from "@/hooks/use-worker-detail";
-import { useApproveWorker, useRejectWorker } from "@/hooks/use-worker-actions";
+import { useRouter } from "@/i18n/navigation";
+import { useWorkerDetail, useWorkerRating } from "@/hooks/use-worker-detail";
+import {
+  useApproveWorker,
+  useRejectWorker,
+  useSoftDeleteWorker,
+} from "@/hooks/use-worker-actions";
 import {
   useWorkerDocs,
   useApproveWorkerDoc,
   useRejectWorkerDoc,
 } from "@/hooks/use-worker-docs";
+import { useHasPermission } from "@/hooks/use-current-permissions";
 import { ActionBar } from "@/components/workers/action-bar";
 import { HeroCard } from "@/components/workers/hero-card";
 import { StatCard } from "@/components/workers/stat-card";
+import { RatingSnapshotCard } from "@/components/workers/rating-snapshot-card";
 import { ApproveWorkerModal } from "@/components/workers/approve-modal";
 import { RejectWorkerModal } from "@/components/workers/reject-modal";
+import { ConfirmDialog } from "@/components/tasks/confirm-dialog";
 import { DocTable } from "@/components/workers/doc-table";
+import { Can } from "@/components/auth/can";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getApiErrorCode } from "@/lib/http/api-error";
 import { useTranslations } from "next-intl";
 
 export default function WorkerDetailPage({
@@ -33,16 +44,34 @@ export default function WorkerDetailPage({
   const t = useTranslations("workers");
   const tStatus = useTranslations("status");
   const { id } = use(params);
+  const router = useRouter();
   const { data: worker, isLoading, isError } = useWorkerDetail(id);
   const [showApprove, setShowApprove] = useState(false);
   const [showReject, setShowReject] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
   const { mutate: approve, isPending: isApproving } = useApproveWorker(id);
   const { mutate: reject, isPending: isRejecting } = useRejectWorker(id);
-  const { data: docs = [], isLoading: isLoadingDocs } = useWorkerDocs(id);
+  const canViewDocs = useHasPermission("worker:doc:read_any");
+  const { data: docs = [], isLoading: isLoadingDocs } = useWorkerDocs(
+    id,
+    canViewDocs,
+  );
   const { mutate: approveDoc, isPending: isApprovingDoc } =
     useApproveWorkerDoc(id);
   const { mutate: rejectDoc, isPending: isRejectingDoc } =
     useRejectWorkerDoc(id);
+
+  const canViewRating = useHasPermission("worker_rating:read_any");
+  const { data: rating, isLoading: isLoadingRating } = useWorkerRating(
+    id,
+    canViewRating,
+  );
+  const softDelete = useSoftDeleteWorker(id);
+  const deleteError = softDelete.isError
+    ? getApiErrorCode(softDelete.error) === "worker_not_found"
+      ? t("delete.errors.notFound")
+      : t("delete.errors.generic")
+    : null;
 
   if (isLoading) {
     return (
@@ -74,22 +103,38 @@ export default function WorkerDetailPage({
       <ActionBar />
       <HeroCard worker={worker} />
 
-      {!worker.isApproved && (
-        <div className="flex gap-2">
-          <Button className="gap-1.5" onClick={() => setShowApprove(true)}>
-            <CheckCircle className="size-4" />
-            {t("approve")}
-          </Button>
+      <div className="flex flex-wrap gap-2">
+        {!worker.isApproved && (
+          <>
+            <Button className="gap-1.5" onClick={() => setShowApprove(true)}>
+              <CheckCircle className="size-4" />
+              {t("approve")}
+            </Button>
+            <Button
+              variant="destructive"
+              className="gap-1.5"
+              onClick={() => setShowReject(true)}
+            >
+              <XCircle className="size-4" />
+              {t("reject")}
+            </Button>
+          </>
+        )}
+        <Can permission="worker:soft_delete">
           <Button
-            variant="destructive"
-            className="gap-1.5"
-            onClick={() => setShowReject(true)}
+            variant="outline"
+            className="gap-1.5 text-destructive hover:text-destructive"
+            onClick={() => setShowDelete(true)}
           >
-            <XCircle className="size-4" />
-            {t("reject")}
+            <Trash2 className="size-4" />
+            {t("delete.action")}
           </Button>
-        </div>
-      )}
+        </Can>
+      </div>
+
+      <Can permission="worker_rating:read_any">
+        <RatingSnapshotCard rating={rating} isLoading={isLoadingRating} />
+      </Can>
 
       <ApproveWorkerModal
         open={showApprove}
@@ -112,14 +157,38 @@ export default function WorkerDetailPage({
         workerName={worker.fullName ?? "—"}
       />
 
-      <DocTable
-        docs={docs}
-        isLoading={isLoadingDocs}
-        onApprove={(docId) => approveDoc(docId)}
-        onReject={(docId, reason) => rejectDoc({ docId, reason })}
-        isApproving={isApprovingDoc}
-        isRejecting={isRejectingDoc}
+      <ConfirmDialog
+        open={showDelete}
+        onClose={() => {
+          setShowDelete(false);
+          softDelete.reset();
+        }}
+        onConfirm={() =>
+          softDelete.mutate(undefined, {
+            onSuccess: () => {
+              setShowDelete(false);
+              router.push("/dashboard/workers");
+            },
+          })
+        }
+        isPending={softDelete.isPending}
+        destructive
+        title={t("delete.title")}
+        description={t("delete.description", { name: worker.fullName ?? "—" })}
+        confirmLabel={t("delete.action")}
+        error={deleteError}
       />
+
+      <Can permission="worker:doc:read_any">
+        <DocTable
+          docs={docs}
+          isLoading={isLoadingDocs}
+          onApprove={(docId) => approveDoc(docId)}
+          onReject={(docId, reason) => rejectDoc({ docId, reason })}
+          isApproving={isApprovingDoc}
+          isRejecting={isRejectingDoc}
+        />
+      </Can>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
         <StatCard

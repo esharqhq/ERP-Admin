@@ -13,6 +13,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { useTranslations } from "next-intl";
+import { Can } from "@/components/auth/can";
 import type { PropertyDocsBundleDto } from "@/lib/types/property.types";
 
 const docsStatusVariant: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
@@ -139,55 +140,63 @@ export function PropertyDocsCard({
             </div>
           )}
 
-          {/* Action buttons */}
-          <div className="flex flex-wrap gap-2">
+          {/* Action buttons — each gated on its own backend permission. MODERATOR
+              has property:doc:read_any+review but NOT approve/reject/reset_to_pending,
+              so a moderator sees the bundle read-only with no action buttons. */}
+          <div className="flex flex-wrap gap-2 empty:hidden">
             {status === "Pending" && (
               <>
-                <Button
-                  size="sm"
-                  className="gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white"
-                  onClick={onApprove}
-                  disabled={isApproving || isRejecting}
-                >
-                  {isApproving ? (
-                    <Loader2 className="size-3.5 animate-spin" />
-                  ) : (
-                    <CheckCircle className="size-3.5" />
-                  )}
-                  {t("docs.approveBtn")}
-                </Button>
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  className="gap-1.5"
-                  onClick={() => setShowRejectDialog(true)}
-                  disabled={isApproving || isRejecting}
-                >
-                  {isRejecting ? (
-                    <Loader2 className="size-3.5 animate-spin" />
-                  ) : (
-                    <XCircle className="size-3.5" />
-                  )}
-                  {t("docs.rejectBtn")}
-                </Button>
+                <Can permission="property:doc:approve">
+                  <Button
+                    size="sm"
+                    className="gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white"
+                    onClick={onApprove}
+                    disabled={isApproving || isRejecting}
+                  >
+                    {isApproving ? (
+                      <Loader2 className="size-3.5 animate-spin" />
+                    ) : (
+                      <CheckCircle className="size-3.5" />
+                    )}
+                    {t("docs.approveBtn")}
+                  </Button>
+                </Can>
+                <Can permission="property:doc:reject">
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    className="gap-1.5"
+                    onClick={() => setShowRejectDialog(true)}
+                    disabled={isApproving || isRejecting}
+                  >
+                    {isRejecting ? (
+                      <Loader2 className="size-3.5 animate-spin" />
+                    ) : (
+                      <XCircle className="size-3.5" />
+                    )}
+                    {t("docs.rejectBtn")}
+                  </Button>
+                </Can>
               </>
             )}
 
             {(status === "Approved" || status === "Rejected") && (
-              <Button
-                size="sm"
-                variant="outline"
-                className="gap-1.5"
-                onClick={() => setShowResetDialog(true)}
-                disabled={isResetting}
-              >
-                {isResetting ? (
-                  <Loader2 className="size-3.5 animate-spin" />
-                ) : (
-                  <RotateCcw className="size-3.5" />
-                )}
-                {t("docs.resetBtn")}
-              </Button>
+              <Can permission="property:doc:reset_to_pending">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-1.5"
+                  onClick={() => setShowResetDialog(true)}
+                  disabled={isResetting}
+                >
+                  {isResetting ? (
+                    <Loader2 className="size-3.5 animate-spin" />
+                  ) : (
+                    <RotateCcw className="size-3.5" />
+                  )}
+                  {t("docs.resetBtn")}
+                </Button>
+              </Can>
             )}
           </div>
         </CardContent>

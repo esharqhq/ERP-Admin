@@ -28,6 +28,7 @@ export interface WorkerDetailDto {
   fullName: string | null;
   email: string | null;
   phoneNumber: string | null;
+  employeeType: string | null;
   age: number | null;
   address: string | null;
   gender: string | null;
@@ -38,6 +39,22 @@ export interface WorkerDetailDto {
   profilePictureUrl: string | null;
   professions: WorkerProfessionDto[] | null;
   documents: WorkerDocumentDto[] | null;
+}
+
+/**
+ * WorkerRating snapshot (`GET /api/admin/workers/{id}/rating`). `displayRating`
+ * is null when `isNew` (fewer than the spec threshold of completed tasks) — the
+ * UI shows a "New" badge instead of a number. `completionRate` is a 0..1 fraction.
+ */
+export interface WorkerRatingDto {
+  workerId: string;
+  displayRating: number | null;
+  isNew: boolean;
+  completionRate: number;
+  totalTasks: number;
+  completedTasks: number;
+  label: string;
+  calculatedAt: string;
 }
 
 export interface WorkerApprovalDto {

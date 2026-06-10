@@ -9,7 +9,8 @@ import { useTranslations } from "next-intl";
 import { useAdmins, useCreateAdmin, useDeactivateAdmin } from "@/hooks/use-admins";
 import { useCreateRole } from "@/hooks/use-permissions";
 import { AdminRow } from "@/components/admins/admin-row";
-import { AdminDrawer } from "@/components/admins/admin-drawer";
+import { AdminDrawer, type AdminFormData } from "@/components/admins/admin-drawer";
+import { Can } from "@/components/auth/can";
 import { useAuthStore } from "@/store/auth.store";
 
 export default function AdminsPage() {
@@ -22,45 +23,51 @@ export default function AdminsPage() {
   const { mutate: createRole, isPending: isCreatingRole } = useCreateRole();
   const { mutate: deactivateAdmin, isPending: isDeactivating } = useDeactivateAdmin();
 
-  const currentAdminId = useAuthStore((s) => s.adminMe?.sub);
+  const currentAdminId = useAuthStore((s) => s.adminMe?.id);
   const isPending = isCreatingRole || isCreatingAdmin;
 
-  function handleCreate(data: {
-    fullName: string;
-    email: string;
-    password: string;
-    permissionNames: string[];
-  }) {
+  function finishCreateAdmin(
+    data: { fullName: string; email: string; password: string },
+    roleCode: string,
+  ) {
+    createAdmin(
+      {
+        fullName: data.fullName,
+        email: data.email,
+        password: data.password,
+        roleCode,
+      },
+      {
+        onSuccess: () => setShowCreate(false),
+        onError: (err: unknown) => {
+          const error = err as { response?: { data?: { error?: string } } };
+          if (error?.response?.data?.error === "admin_email_exists") {
+            setEmailError(t("errors.emailTaken"));
+          }
+        },
+      },
+    );
+  }
+
+  function handleCreate(data: AdminFormData) {
     setEmailError(undefined);
 
+    if (data.mode === "shared") {
+      finishCreateAdmin(data, data.roleCode ?? "");
+      return;
+    }
+
+    // Custom override: mint a per-admin custom_<uuid> role, then create the admin on it.
     createRole(
       {
         code: `custom_${crypto.randomUUID()}`,
         name: data.fullName,
         appliesTo: "ADMIN",
         isDefault: false,
-        permissionNames: data.permissionNames,
+        permissionNames: data.permissionNames ?? [],
       },
       {
-        onSuccess: (createdRole) => {
-          createAdmin(
-            {
-              fullName: data.fullName,
-              email: data.email,
-              password: data.password,
-              roleCode: createdRole.code ?? "",
-            },
-            {
-              onSuccess: () => setShowCreate(false),
-              onError: (err: unknown) => {
-                const error = err as { response?: { data?: { error?: string } } };
-                if (error?.response?.data?.error === "admin_email_exists") {
-                  setEmailError(t("errors.emailTaken"));
-                }
-              },
-            },
-          );
-        },
+        onSuccess: (createdRole) => finishCreateAdmin(data, createdRole.code ?? ""),
       },
     );
   }
@@ -97,10 +104,12 @@ export default function AdminsPage() {
           ]}
           data={admins}
           action={
-            <Button size="sm" className="gap-2" onClick={() => setShowCreate(true)}>
-              <UserPlus className="size-4" />
-              <span>{t("newAdmin")}</span>
-            </Button>
+            <Can permission="admin:create">
+              <Button size="sm" className="gap-2" onClick={() => setShowCreate(true)}>
+                <UserPlus className="size-4" />
+                <span>{t("newAdmin")}</span>
+              </Button>
+            </Can>
           }
           renderRow={(admin) => (
             <AdminRow

@@ -3,6 +3,7 @@ import type {
   PropertyDto,
   PropertyDocsBundleDto,
   PropertyDocsApprovalDto,
+  UpdatePropertyRequest,
 } from "@/lib/types/property.types";
 
 export const propertyService = {
@@ -14,6 +15,19 @@ export const propertyService = {
   getPropertyById: async (id: string): Promise<PropertyDto> => {
     const { data } = await apiClient.get<PropertyDto>(`/api/properties/${id}`);
     return data;
+  },
+
+  // Edit/soft-delete: no admin role holds property:update / property:soft_delete
+  // (those are owner-scoped BOSS perms). Admins are authorized via the
+  // controller's `Admin → property:list` branch of CanAccessPropertyAsync — so
+  // gate the UI on property:list, not the nominal endpoint permission.
+  updateProperty: async (id: string, body: UpdatePropertyRequest): Promise<PropertyDto> => {
+    const { data } = await apiClient.put<PropertyDto>(`/api/properties/${id}`, body);
+    return data;
+  },
+
+  softDeleteProperty: async (id: string): Promise<void> => {
+    await apiClient.delete(`/api/properties/${id}`);
   },
 
   getAdminPropertyDocs: async (propertyId: string): Promise<PropertyDocsBundleDto> => {
