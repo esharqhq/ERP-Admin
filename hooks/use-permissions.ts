@@ -46,3 +46,11 @@ export function useUpdateRole() {
     },
   });
 }
+
+export function useDeleteRole() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (roleId: string) => roleService.deleteRole(roleId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["roles"] }),
+  });
+}

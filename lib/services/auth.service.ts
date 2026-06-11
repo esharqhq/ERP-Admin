@@ -5,6 +5,7 @@ import type {
   ChangePasswordDto,
   LoginDto,
   RefreshTokenDto,
+  UpdateProfileRequest,
 } from "@/lib/types/auth.types";
 
 export const authService = {
@@ -27,6 +28,14 @@ export const authService = {
   getProfile: async (): Promise<AdminProfileDto> => {
     const { data } = await apiClient.get<AdminProfileDto>("/api/profile");
     return data;
+  },
+
+  /**
+   * Update the current admin's own profile (PUT /api/profile). For admins only
+   * fullName + profilePictureUrl take effect. Returns { message: "profile_updated" }.
+   */
+  updateProfile: async (body: UpdateProfileRequest): Promise<void> => {
+    await apiClient.put("/api/profile", body);
   },
 
   /**

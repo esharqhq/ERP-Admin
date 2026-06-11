@@ -102,10 +102,12 @@ export function ConversationThread({ conversationId, disabled }: Props) {
   const [draft, setDraft] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  const { data: messages = [], isLoading, isError } =
-    useConversationMessages(conversationId);
-  const sendMessage = useSendMessage(conversationId);
+  // Hub first: when it's live we retire the 15s message poll (the hub pushes
+  // ReceiveMessage); the poll resumes automatically if the connection drops.
   const { isLive } = useConversationHub(disabled ? undefined : conversationId);
+  const { data: messages = [], isLoading, isError } =
+    useConversationMessages(conversationId, isLive);
+  const sendMessage = useSendMessage(conversationId);
 
   // Stick to bottom as messages arrive.
   useEffect(() => {

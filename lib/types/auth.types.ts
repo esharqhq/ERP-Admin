@@ -17,6 +17,17 @@ export interface ChangePasswordDto {
   newPassword: string;
 }
 
+/**
+ * Body for PUT /api/profile (UpdateProfileRequest). Multi-type shape, but for an
+ * ADMIN only `fullName` + `profilePictureUrl` take effect — all other fields are
+ * ignored, and email is immutable here (changing it is reserved for admin:update).
+ * Returns 200 { message: "profile_updated" }. See backend ask (d).
+ */
+export interface UpdateProfileRequest {
+  fullName: string;
+  profilePictureUrl?: string | null;
+}
+
 export interface AuthResultDto {
   accessToken: string;
   refreshToken: string;

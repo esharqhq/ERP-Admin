@@ -1,14 +1,18 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { DataTableCard } from "@/components/ui/data-table-card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MapPin } from "lucide-react";
-import { useProperties } from "@/hooks/use-properties";
+import { MapPin, Trash2, Plus } from "lucide-react";
+import { useProperties, useCreateAdminProperty } from "@/hooks/use-properties";
 import { useLocale, useTranslations } from "next-intl";
+import { Can } from "@/components/auth/can";
+import { PropertyCreateDialog } from "@/components/properties/property-create-dialog";
+import { getApiErrorCode } from "@/lib/http/api-error";
 import type { PropertyDto } from "@/lib/types/property.types";
 
 const docsStatusConfig: Record<
@@ -32,6 +36,19 @@ export default function PropertiesPage() {
   const t = useTranslations("properties");
   const locale = useLocale();
   const { data: properties = [], isLoading, isError, error } = useProperties();
+
+  const [createOpen, setCreateOpen] = useState(false);
+  const create = useCreateAdminProperty();
+  // Picker pre-filters to approved BOSS owners, so a 400 here is an edge case;
+  // surface a single generic message (getApiErrorCode keeps the door open to
+  // map specific codes later if the backend documents them).
+  const createError =
+    create.isError && getApiErrorCode(create.error) ? t("create.errors.generic") : null;
+
+  const closeCreate = () => {
+    setCreateOpen(false);
+    create.reset();
+  };
 
   const columns = [
     { label: "#", className: "w-10 text-center" },
@@ -95,13 +112,35 @@ export default function PropertiesPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="font-heading text-3xl font-bold tracking-tight leading-tight">
-          {t("title")}
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          {t("subtitle")}
-        </p>
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex flex-col gap-1">
+          <h1 className="font-heading text-3xl font-bold tracking-tight leading-tight">
+            {t("title")}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {t("subtitle")}
+          </p>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <Can permission="property:restore">
+            <Button
+              variant="outline"
+              size="sm"
+              nativeButton={false}
+              className="gap-1.5"
+              render={<Link href="/dashboard/properties/deleted" />}
+            >
+              <Trash2 className="size-4" />
+              {t("deleted.viewDeleted")}
+            </Button>
+          </Can>
+          <Can permission="property:create_any">
+            <Button size="sm" className="gap-1.5" onClick={() => setCreateOpen(true)}>
+              <Plus className="size-4" />
+              {t("create.new")}
+            </Button>
+          </Can>
+        </div>
       </div>
 
       <DataTableCard
@@ -148,6 +187,16 @@ export default function PropertiesPage() {
           );
         }}
       />
+
+      {createOpen && (
+        <PropertyCreateDialog
+          open
+          onClose={closeCreate}
+          pending={create.isPending}
+          error={createError}
+          onSubmit={(body) => create.mutate(body, { onSuccess: closeCreate })}
+        />
+      )}
     </div>
   );
 }

@@ -1,163 +1,263 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { useMemo, useState } from "react";
+import Link from "next/link";
+import { useTranslations, useLocale } from "next-intl";
+import { Users, UserCheck, UserX, MapPin } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from "@/components/ui/table"
-import { Search, MapPin, Camera, CheckCircle2, XCircle, Clock as ClockIcon } from "lucide-react"
-import { useState, useEffect } from "react"
-import { useTranslations, useLocale } from "next-intl"
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { useAttendance } from "@/hooks/use-attendance";
+import { useHasPermission } from "@/hooks/use-current-permissions";
+import { normalizeStatus } from "@/lib/types/task.types";
+import type { AttendanceRowDto } from "@/lib/types/attendance.types";
 
-type Status = "On Time" | "Late" | "Absent" | "Checked Out"
+/** UTC today — matches the backend's UTC-today default; stable across SSR/hydration. */
+const todayUtc = () => new Date().toISOString().slice(0, 10);
 
-const records: {
-  id: number
-  name: string
-  role: string
-  checkIn: string
-  checkOut: string
-  location: string
-  geofence: boolean
-  selfie: boolean
-  status: Status
-  reason?: string
-}[] = [
-  { id: 1, name: "John Schmidt",   role: "Senior",       checkIn: "08:02", checkOut: "—",     location: "Sunrise Villa",       geofence: true,  selfie: true,  status: "On Time" },
-  { id: 2, name: "Emma Schulz",    role: "Professional", checkIn: "08:45", checkOut: "—",     location: "GrandBuild Tower B",  geofence: true,  selfie: true,  status: "Late",      reason: "Transport delay" },
-  { id: 3, name: "Michael Kaiser",     role: "Junior",       checkIn: "—",     checkOut: "—",     location: "—",                   geofence: false, selfie: false, status: "Absent" },
-  { id: 4, name: "Anna Wagner",  role: "Junior",       checkIn: "07:55", checkOut: "17:10", location: "Sunrise Hotel",       geofence: true,  selfie: true,  status: "Checked Out" },
-  { id: 5, name: "Robert Weber",    role: "Professional", checkIn: "09:25", checkOut: "—",     location: "Office Block B",      geofence: false, selfie: true,  status: "Late",      reason: "Outside geofence" },
-  { id: 6, name: "Laura Becker",   role: "Senior",       checkIn: "07:58", checkOut: "—",     location: "Frieda Apartments",   geofence: true,  selfie: true,  status: "On Time" },
-  { id: 7, name: "Thomas Hoffmann",    role: "Junior",       checkIn: "—",     checkOut: "—",     location: "—",                   geofence: false, selfie: false, status: "Absent" },
-]
+function fmtTime(iso: string | null, locale: string): string {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime())
+    ? "—"
+    : d.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
+}
 
-const statusVariant: Record<Status, "default" | "secondary" | "destructive" | "outline"> = {
-  "On Time":     "default",
-  "Late":        "secondary",
-  "Absent":      "destructive",
-  "Checked Out": "outline",
+function OutcomeBadge({ value }: { value: string }) {
+  const s = normalizeStatus(value);
+  const variant =
+    s === "completed" || s === "done"
+      ? "default"
+      : s === "pending"
+        ? "secondary"
+        : s === "rejected" || s === "cancelled"
+          ? "destructive"
+          : "outline";
+  return <Badge variant={variant}>{value || "—"}</Badge>;
 }
 
 export default function AttendancePage() {
-  const t = useTranslations("attendance")
-  const locale = useLocale()
+  const t = useTranslations("attendance");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
 
-  const stats = [
-    { label: t("stats.arrivedToday"),   value: 18, accent: "text-emerald-600" },
-    { label: t("stats.absent"),         value: 3,  accent: "text-rose-600"    },
-    { label: t("stats.late"),           value: 4,  accent: "text-amber-600"   },
-    { label: t("stats.notYetArrived"), value: 7,  accent: "text-muted-foreground" },
-  ]
+  const canRead = useHasPermission("system:attendance:read");
+  const [date, setDate] = useState(todayUtc);
+  const [search, setSearch] = useState("");
 
-  const [todayLabel, setTodayLabel] = useState("")
-  useEffect(() => {
-    setTodayLabel(new Date().toLocaleDateString(locale, { weekday: "long", month: "long", day: "numeric" }))
-  }, [locale])
+  const { data: rows = [], isLoading, isError } = useAttendance(date, canRead);
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return rows;
+    return rows.filter((r) => r.workerName.toLowerCase().includes(q));
+  }, [rows, search]);
+
+  const stats = useMemo(() => {
+    const present = rows.filter((r) => r.present).length;
+    return { assigned: rows.length, present, absent: rows.length - present };
+  }, [rows]);
+
+  if (!canRead) {
+    return (
+      <div className="flex flex-col gap-6">
+        <Header t={t} />
+        <Card>
+          <CardContent className="py-16 text-center text-sm text-muted-foreground">
+            {t("noAccess")}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const statCards = [
+    { key: "assigned", value: stats.assigned, icon: Users, color: "text-blue-500" },
+    { key: "present", value: stats.present, icon: UserCheck, color: "text-emerald-500" },
+    { key: "absent", value: stats.absent, icon: UserX, color: "text-destructive" },
+  ] as const;
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
-          <p className="text-muted-foreground">{t("subtitle")}</p>
-        </div>
-        <Button variant="outline">
-          <ClockIcon className="mr-2 size-4" />
-          {todayLabel}
-        </Button>
+    <div className="flex flex-col gap-6">
+      <Header t={t} />
+
+      <div className="flex flex-wrap items-end gap-3">
+        <label className="flex flex-col gap-1 text-sm">
+          <span className="text-xs font-medium text-muted-foreground">
+            {t("dateLabel")}
+          </span>
+          <Input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value || todayUtc())}
+            className="w-44"
+          />
+        </label>
+        <label className="flex flex-1 flex-col gap-1 text-sm">
+          <span className="text-xs font-medium text-muted-foreground">
+            {tCommon("search")}
+          </span>
+          <Input
+            type="search"
+            placeholder={t("searchPlaceholder")}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="max-w-xs"
+          />
+        </label>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-4">
-        {stats.map((s) => (
-          <Card key={s.label}>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{s.label}</CardTitle>
+      <div className="grid gap-4 sm:grid-cols-3">
+        {statCards.map(({ key, value, icon: Icon, color }) => (
+          <Card key={key}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                {t(`stats.${key}`)}
+              </CardTitle>
+              <Icon className={`size-4 ${color}`} />
             </CardHeader>
             <CardContent>
-              <div className={`text-2xl font-bold ${s.accent}`}>{s.value}</div>
+              {isLoading ? (
+                <Skeleton className="h-8 w-12 rounded-md" />
+              ) : (
+                <div className="text-3xl font-bold tracking-tight">{value}</div>
+              )}
             </CardContent>
           </Card>
         ))}
       </div>
 
       <Card>
-        <CardHeader className="pb-4">
-          <div className="relative max-w-sm">
-            <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
-            <Input placeholder={t("searchPlaceholder")} className="pl-8" />
-          </div>
+        <CardHeader className="pb-3">
+          <p className="text-xs text-muted-foreground">
+            {isLoading
+              ? tCommon("loading")
+              : tCommon("resultsFound", { count: filtered.length })}
+          </p>
         </CardHeader>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>{t("columns.worker")}</TableHead>
+                <TableHead>{t("columns.task")}</TableHead>
+                <TableHead>{t("columns.property")}</TableHead>
+                <TableHead>{t("columns.scheduled")}</TableHead>
+                <TableHead>{t("columns.present")}</TableHead>
                 <TableHead>{t("columns.checkIn")}</TableHead>
                 <TableHead>{t("columns.checkOut")}</TableHead>
-                <TableHead>{t("columns.location")}</TableHead>
-                <TableHead className="text-center">{t("columns.geofence")}</TableHead>
-                <TableHead className="text-center">{t("columns.selfie")}</TableHead>
-                <TableHead>{t("columns.status")}</TableHead>
-                <TableHead className="text-right">{t("columns.actions")}</TableHead>
+                <TableHead>{t("columns.outcome")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {records.map((r) => (
-                <TableRow key={r.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Avatar className="size-8">
-                        <AvatarFallback>{r.name.slice(0, 2).toUpperCase()}</AvatarFallback>
-                      </Avatar>
-                      <div className="flex flex-col">
-                        <span className="font-medium">{r.name}</span>
-                        <span className="text-xs text-muted-foreground">{r.role}</span>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="font-mono text-sm">{r.checkIn}</TableCell>
-                  <TableCell className="font-mono text-sm">{r.checkOut}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                      <MapPin className="size-3.5" />
-                      {r.location}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-center">
-                    {r.geofence ? (
-                      <CheckCircle2 className="mx-auto size-4 text-emerald-600" />
-                    ) : (
-                      <XCircle className="mx-auto size-4 text-rose-600" />
-                    )}
-                  </TableCell>
-                  <TableCell className="text-center">
-                    {r.selfie ? (
-                      <Camera className="mx-auto size-4 text-emerald-600" />
-                    ) : (
-                      <XCircle className="mx-auto size-4 text-muted-foreground/50" />
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col gap-0.5">
-                      <Badge variant={statusVariant[r.status]} className="w-fit">{r.status}</Badge>
-                      {r.reason && (
-                        <span className="text-xs text-muted-foreground">{r.reason}</span>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="sm">{t("view")}</Button>
+              {isLoading ? (
+                Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell colSpan={8}>
+                      <Skeleton className="h-8 w-full rounded-md" />
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : isError ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="py-10 text-center text-sm text-destructive">
+                    {tCommon("error")}
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : filtered.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="py-10 text-center text-sm text-muted-foreground">
+                    {t("empty")}
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filtered.map((r) => <AttendanceRow key={r.taskId} row={r} locale={locale} t={t} />)
+              )}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
     </div>
-  )
+  );
+}
+
+function AttendanceRow({
+  row,
+  locale,
+  t,
+}: {
+  row: AttendanceRowDto;
+  locale: string;
+  t: ReturnType<typeof useTranslations>;
+}) {
+  const hasCoords = row.checkinLat != null && row.checkinLng != null;
+  return (
+    <TableRow className="hover:bg-accent/40">
+      <TableCell className="py-3 font-medium">{row.workerName}</TableCell>
+      <TableCell className="text-sm">
+        <Link
+          href={`/dashboard/tasks/${row.taskGroupId}`}
+          className="text-muted-foreground underline-offset-2 hover:underline"
+        >
+          {row.taskGroupTitle || row.taskId.slice(0, 8)}
+        </Link>
+      </TableCell>
+      <TableCell className="text-sm text-muted-foreground">{row.propertyName}</TableCell>
+      <TableCell className="text-sm text-muted-foreground">
+        {fmtTime(row.scheduledAt, locale)}
+      </TableCell>
+      <TableCell>
+        <Badge variant={row.present ? "default" : "destructive"}>
+          {row.present ? t("present.yes") : t("present.no")}
+        </Badge>
+      </TableCell>
+      <TableCell className="text-sm text-muted-foreground">
+        <span className="flex items-center gap-1">
+          {fmtTime(row.checkinAt, locale)}
+          {hasCoords && (
+            <a
+              href={`https://www.google.com/maps?q=${row.checkinLat},${row.checkinLng}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              title={`${row.checkinLat}, ${row.checkinLng}`}
+              className="text-primary hover:opacity-80"
+            >
+              <MapPin className="size-3.5" />
+            </a>
+          )}
+        </span>
+      </TableCell>
+      <TableCell className="text-sm text-muted-foreground">
+        {fmtTime(row.checkoutAt, locale)}
+      </TableCell>
+      <TableCell>
+        <OutcomeBadge value={row.outcome} />
+      </TableCell>
+    </TableRow>
+  );
+}
+
+function Header({ t }: { t: ReturnType<typeof useTranslations> }) {
+  return (
+    <div className="flex flex-col gap-1">
+      <h1 className="font-heading text-3xl font-bold tracking-tight leading-tight">
+        {t("title")}
+      </h1>
+      <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
+    </div>
+  );
 }

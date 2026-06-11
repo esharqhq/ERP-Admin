@@ -2,7 +2,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { Search } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
@@ -24,13 +24,19 @@ function humanizeDomain(domain: string): string {
 
 /**
  * Permission selector driven by the live backend registry (GET /api/admin/permissions),
- * grouped by domain. Covers all 143 permissions (the old hardcoded list covered ~50).
- * Labels use the backend `description` (English-only — see permissions backend ask).
+ * grouped by domain. Covers all permissions (the old hardcoded list covered ~50).
+ * Labels use the locale-appropriate backend description (EN `description` /
+ * DE `descriptionDe`, ask (a)), falling back to the raw code.
  */
 export function PermissionCatalogGrid({ selected, onChange, disabled }: Props) {
   const t = useTranslations("permissions");
+  const locale = useLocale();
   const { data: catalog, isLoading, isError } = usePermissionCatalog();
   const [query, setQuery] = useState("");
+
+  /** Locale-appropriate description; falls back to EN, then nothing. */
+  const describe = (p: PermissionCatalogDto): string | null =>
+    (locale.startsWith("de") ? p.descriptionDe || p.description : p.description) ?? null;
 
   const groups = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -39,6 +45,7 @@ export function PermissionCatalogGrid({ selected, onChange, disabled }: Props) {
       return (
         p.name.toLowerCase().includes(q) ||
         (p.description?.toLowerCase().includes(q) ?? false) ||
+        (p.descriptionDe?.toLowerCase().includes(q) ?? false) ||
         p.domain.toLowerCase().includes(q)
       );
     });
@@ -119,7 +126,7 @@ export function PermissionCatalogGrid({ selected, onChange, disabled }: Props) {
                 {perms.map((perm) => (
                   <div key={perm.id} className="flex items-center justify-between gap-3 py-2">
                     <div className="flex min-w-0 flex-col">
-                      <span className="truncate text-sm">{perm.description || perm.name}</span>
+                      <span className="truncate text-sm">{describe(perm) || perm.name}</span>
                       <span className="truncate font-mono text-[10px] text-muted-foreground">
                         {perm.name}
                       </span>

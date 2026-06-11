@@ -44,6 +44,18 @@ export interface UpdatePropertyRequest {
   floorCount: number;
 }
 
+/**
+ * Body for `POST /api/admin/properties` (backend ask (c)) — admin creates a
+ * property on behalf of a BOSS owner. `ownerUserId` is the target BOSS (the
+ * property is created under them, not the admin). Requires `property:create_any`.
+ * Prereq: the owner must be a BOSS with approved KYC, else 400.
+ */
+export interface CreateAdminPropertyRequest extends UpdatePropertyRequest {
+  ownerUserId: string;
+  /** Optional new-doc objects; text-only create sends null. */
+  docs?: null;
+}
+
 export interface PropertyDto {
   id: string;
   bossOwnerUserId: string;
@@ -58,4 +70,10 @@ export interface PropertyDto {
   docsRejectReason: string | null;
   docsReviewedAt: string | null;
   createdAt: string;
+  /**
+   * Soft-delete flag. Exposed on the wire for the restore view; only returned
+   * as `true` when listing with `?includeDeleted=true` (honored solely for
+   * callers holding `property:restore`). See backend ask #4.
+   */
+  isDeleted: boolean;
 }

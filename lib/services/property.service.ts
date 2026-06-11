@@ -4,11 +4,45 @@ import type {
   PropertyDocsBundleDto,
   PropertyDocsApprovalDto,
   UpdatePropertyRequest,
+  CreateAdminPropertyRequest,
 } from "@/lib/types/property.types";
 
 export const propertyService = {
-  getProperties: async (): Promise<PropertyDto[]> => {
-    const { data } = await apiClient.get<PropertyDto[]>("/api/properties");
+  /**
+   * `includeDeleted` is honored only if the caller also holds `property:restore`
+   * (otherwise the backend forces it false — non-privileged callers never see
+   * deleted rows). Pass `ownerUserId` to scope to one BOSS owner.
+   */
+  getProperties: async (opts?: {
+    includeDeleted?: boolean;
+    ownerUserId?: string;
+  }): Promise<PropertyDto[]> => {
+    const params: Record<string, string | boolean> = {};
+    if (opts?.includeDeleted) params.includeDeleted = true;
+    if (opts?.ownerUserId) params.ownerUserId = opts.ownerUserId;
+    const { data } = await apiClient.get<PropertyDto[]>("/api/properties", {
+      params,
+    });
+    return data;
+  },
+
+  /** Restore a soft-deleted property. Requires `property:restore`. */
+  restoreProperty: async (id: string): Promise<void> => {
+    await apiClient.post(`/api/properties/${id}/restore`);
+  },
+
+  /**
+   * Admin create-on-behalf-of-owner (`property:create_any`). Idempotent — sends
+   * X-Idempotency-Key so a retried submit replays the cached 201.
+   */
+  createAdminProperty: async (
+    body: CreateAdminPropertyRequest,
+  ): Promise<PropertyDto> => {
+    const { data } = await apiClient.post<PropertyDto>(
+      "/api/admin/properties",
+      body,
+      { headers: { "X-Idempotency-Key": crypto.randomUUID() } },
+    );
     return data;
   },
 

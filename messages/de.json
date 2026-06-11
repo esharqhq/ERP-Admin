@@ -46,6 +46,7 @@
     "professions": "Berufe",
     "support": "Support",
     "tickets": "Tickets",
+    "conversations": "Konversationen",
     "chat": "Chat",
     "auditLog": "Prüfprotokoll",
     "admins": "Administratoren",
@@ -78,7 +79,9 @@
     "docNotFound": "Keine Dokumente gefunden.",
     "docFileName": "Dateiname",
     "docTypeLabel": "Typ",
+    "docStatusLabel": "Status",
     "docUploadDate": "Hochladedatum",
+    "docReviewed": "Geprüft {date}",
     "tableView": "Tabellenansicht",
     "calendarView": "Kalenderansicht",
     "tabs": {
@@ -282,6 +285,32 @@
       "createdAt": "Erstellt",
       "actions": "Aktionen"
     },
+    "deleted": {
+      "title": "Gelöschte Immobilien",
+      "subtitle": "Soft-gelöschte Immobilien, die Sie wiederherstellen können.",
+      "viewDeleted": "Gelöscht",
+      "backToList": "Alle Immobilien",
+      "empty": "Keine gelöschten Immobilien.",
+      "restore": "Wiederherstellen",
+      "confirmTitle": "Immobilie wiederherstellen?",
+      "confirmDesc": "„{name}“ wird wiederhergestellt und wieder sichtbar.",
+      "noAccess": "Sie haben keine Berechtigung, Immobilien wiederherzustellen.",
+      "errors": {
+        "property_not_found": "Immobilie nicht gefunden.",
+        "generic": "Immobilie konnte nicht wiederhergestellt werden."
+      }
+    },
+    "create": {
+      "new": "Neue Immobilie",
+      "title": "Immobilie erstellen",
+      "ownerLabel": "Eigentümer (BOSS)",
+      "ownerPlaceholder": "Eigentümer auswählen…",
+      "noEligibleOwners": "Keine Eigentümer mit genehmigter KYC verfügbar.",
+      "submit": "Erstellen",
+      "errors": {
+        "generic": "Immobilie konnte nicht erstellt werden. Der Eigentümer muss ein BOSS mit genehmigter KYC sein."
+      }
+    },
     "info": {
       "title": "Allgemeine Informationen",
       "address": "Adresse",
@@ -472,48 +501,83 @@
   "dashboard": {
     "title": "Dashboard",
     "subtitle": "Übersicht der wichtigsten Kennzahlen",
+    "noAccess": "Sie haben keine Berechtigung, Analysen anzuzeigen.",
     "kpi": {
-      "totalWorkers": "Mitarbeiter gesamt",
-      "activeOwners": "Aktive Eigentümer",
-      "openTickets": "Offene Tickets",
-      "pendingKyc": "Ausstehende KYC"
+      "workers": "Mitarbeiter",
+      "owners": "Eigentümer",
+      "properties": "Immobilien",
+      "activeTasks": "Aktive Aufgaben"
     },
-    "change": {
-      "fromLastMonth": "gegenüber letztem Monat"
+    "trend": {
+      "title": "Aufgaben-Trend",
+      "desc": "Erstellt vs. abgeschlossen — letzte 30 Tage",
+      "created": "Erstellt",
+      "completed": "Abgeschlossen"
     },
-    "charts": {
-      "workerActivity": "Mitarbeiteraktivität",
-      "workerActivityDesc": "Täglich aktive Mitarbeiter der letzten Woche",
-      "ticketStatus": "Ticket-Status",
-      "ticketStatusDesc": "Verteilung der Support-Tickets nach Status"
+    "statusBreakdown": {
+      "title": "Aufgabenstatus",
+      "desc": "Verteilung der Aufgabengruppen nach Status",
+      "empty": "Noch keine Aufgabengruppen"
+    },
+    "topWorkers": {
+      "title": "Top-Mitarbeiter",
+      "desc": "Am besten bewertete Mitarbeiter",
+      "new": "Neu",
+      "empty": "Noch keine Mitarbeiter"
+    },
+    "revenue": {
+      "title": "Umsatz",
+      "desc": "Monatliche Umsatzübersicht",
+      "comingSoon": "Demnächst verfügbar"
     }
   },
   "attendance": {
     "title": "Anwesenheit",
     "subtitle": "Anwesenheit der Mitarbeiter verfolgen",
     "searchPlaceholder": "Nach Mitarbeiternamen suchen...",
-    "view": "Ansehen",
-    "todayDate": "Heutiges Datum",
+    "dateLabel": "Datum",
+    "noAccess": "Sie haben keine Berechtigung, Anwesenheitsdaten anzuzeigen.",
+    "empty": "Für dieses Datum sind keine Einsätze geplant.",
     "stats": {
-      "arrivedToday": "Heute anwesend",
-      "absent": "Abwesend",
-      "late": "Verspätet",
-      "notYetArrived": "Noch nicht eingetroffen"
+      "assigned": "Zugewiesen",
+      "present": "Anwesend",
+      "absent": "Abwesend"
     },
     "columns": {
       "worker": "Mitarbeiter",
+      "task": "Aufgabe",
+      "property": "Immobilie",
+      "scheduled": "Geplant",
+      "present": "Anwesend",
       "checkIn": "Einchecken",
       "checkOut": "Auschecken",
-      "location": "Standort",
-      "geofence": "Geofence",
-      "selfie": "Selfie",
-      "status": "Status",
-      "actions": "Aktionen"
+      "outcome": "Ergebnis"
     },
-    "reasons": {
-      "transportDelay": "Transportverzögerung",
-      "outsideGeofence": "Außerhalb des Geofence",
-      "noSelfie": "Kein Selfie eingereicht"
+    "present": {
+      "yes": "Anwesend",
+      "no": "Abwesend"
+    }
+  },
+  "conversations": {
+    "title": "Konversationen",
+    "subtitle": "Alle Support-Konversationen im System",
+    "assignedToMe": "Mir zugewiesen",
+    "count": "{count} Konversationen",
+    "empty": "Keine Konversationen gefunden.",
+    "noMessages": "Noch keine Nachrichten",
+    "tabs": {
+      "all": "Alle",
+      "open": "Offen",
+      "inProgress": "In Bearbeitung",
+      "resolved": "Gelöst",
+      "closed": "Geschlossen"
+    },
+    "columns": {
+      "requester": "Anfragesteller",
+      "priority": "Priorität",
+      "status": "Status",
+      "lastActivity": "Letzte Aktivität",
+      "created": "Erstellt"
     }
   },
   "support": {
@@ -920,10 +984,16 @@
       "permissions": "Berechtigungen",
       "create": "Erstellen"
     },
+    "delete": {
+      "action": "Löschen",
+      "title": "Rolle löschen?",
+      "description": "„{name}“ wird gelöscht. Dies kann nicht rückgängig gemacht werden."
+    },
     "errors": {
       "role_code_exists": "Eine Rolle mit diesem Code existiert bereits.",
       "invalid_applies_to": "Ungültiger Rollenbereich.",
-      "system_role_immutable": "Systemrollen können nicht bearbeitet werden.",
+      "system_role_immutable": "Systemrollen können nicht geändert werden.",
+      "role_in_use": "Diese Rolle ist noch zugewiesen. Bitte zuerst neu zuweisen oder entfernen.",
       "role_not_found": "Rolle nicht gefunden.",
       "generic": "Rolle konnte nicht gespeichert werden."
     }
@@ -932,8 +1002,18 @@
     "title": "Profil",
     "subtitle": "Ihre Kontodaten und Sicherheitseinstellungen.",
     "verified": "Verifiziert",
-    "managedNote": "Ihr Name, Ihre E-Mail-Adresse und Ihr Avatar werden von einem Systemadministrator verwaltet. Wenden Sie sich an einen Administrator, um sie zu ändern.",
+    "managedNote": "Ihre E-Mail-Adresse und Ihre Rolle werden von einem Systemadministrator verwaltet. Wenden Sie sich an einen Administrator, um sie zu ändern.",
     "loadError": "Ihr Profil konnte nicht geladen werden.",
+    "edit": {
+      "button": "Bearbeiten",
+      "title": "Profil bearbeiten",
+      "fullName": "Vollständiger Name",
+      "email": "E-Mail",
+      "emailImmutable": "Die E-Mail-Adresse wird zentral verwaltet und kann hier nicht geändert werden.",
+      "changeAvatar": "Avatar ändern",
+      "uploadFailed": "Avatar-Upload fehlgeschlagen. Bitte erneut versuchen.",
+      "error": "Profil konnte nicht aktualisiert werden. Bitte erneut versuchen."
+    },
     "password": {
       "title": "Passwort ändern",
       "subtitle": "Ändern Sie das Passwort, mit dem Sie sich anmelden.",

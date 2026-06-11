@@ -2,10 +2,31 @@ import { apiClient } from "@/lib/http/client";
 import type {
   SupportTicketDto,
   ConversationMessageDto,
+  ConversationSummaryDto,
   SendMessageRequest,
 } from "@/lib/types/support.types";
 
 export const supportService = {
+  // ── Conversations inbox (standalone) ───────────────────────────────────────
+  /**
+   * Admin conversations inbox; ordered by lastMessageAt ?? createdAt desc.
+   * Requires `conversation:list_any`. Both filters optional (status =
+   * Open|InProgress|Resolved|Closed PascalCase name).
+   */
+  listConversations: async (
+    status?: string,
+    assignedAdminId?: string,
+  ): Promise<ConversationSummaryDto[]> => {
+    const params: Record<string, string> = {};
+    if (status) params.status = status;
+    if (assignedAdminId) params.assignedAdminId = assignedAdminId;
+    const { data } = await apiClient.get<ConversationSummaryDto[]>(
+      "/api/admin/conversations",
+      { params },
+    );
+    return data;
+  },
+
   // ── Tickets ──────────────────────────────────────────────────────────────
   /** Admin: all tickets across the system; optional status filter (PascalCase enum name). */
   listAll: async (status?: string): Promise<SupportTicketDto[]> => {

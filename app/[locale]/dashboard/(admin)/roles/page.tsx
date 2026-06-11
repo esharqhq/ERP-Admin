@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Pencil, Plus, ShieldCheck } from "lucide-react";
+import { Pencil, Plus, ShieldCheck, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -13,12 +13,23 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Can } from "@/components/auth/can";
 import { RoleFormDialog, type RoleFormValues } from "@/components/roles/role-form-dialog";
-import { useAllRoles, useCreateRole, useUpdateRole } from "@/hooks/use-permissions";
+import { ConfirmDialog } from "@/components/tasks/confirm-dialog";
+import {
+  useAllRoles,
+  useCreateRole,
+  useUpdateRole,
+  useDeleteRole,
+} from "@/hooks/use-permissions";
 import { getApiErrorCode } from "@/lib/http/api-error";
 import { isCustomRoleCode, type RoleDto } from "@/lib/types/admin-user.types";
 
 const CREATE_ERRORS = new Set(["role_code_exists", "invalid_applies_to"]);
 const UPDATE_ERRORS = new Set(["system_role_immutable", "role_not_found"]);
+const DELETE_ERRORS = new Set([
+  "system_role_immutable",
+  "role_in_use",
+  "role_not_found",
+]);
 
 type FormState = { mode: "create" } | { mode: "edit"; role: RoleDto } | null;
 
@@ -29,9 +40,26 @@ export default function RolesPage() {
   const { data: roles = [], isLoading, isError } = useAllRoles();
   const create = useCreateRole();
   const update = useUpdateRole();
+  const remove = useDeleteRole();
 
   const [form, setForm] = useState<FormState>(null);
+  const [deleteTarget, setDeleteTarget] = useState<RoleDto | null>(null);
   const [showCustom, setShowCustom] = useState(false);
+
+  const deleteError =
+    deleteTarget && remove.isError
+      ? (() => {
+          const code = getApiErrorCode(remove.error);
+          return code && DELETE_ERRORS.has(code)
+            ? t(`errors.${code}`)
+            : t("errors.generic");
+        })()
+      : null;
+
+  const closeDelete = () => {
+    setDeleteTarget(null);
+    remove.reset();
+  };
 
   const adminRoles = useMemo(
     () =>
@@ -170,18 +198,32 @@ export default function RolesPage() {
                       {t("permCount", { count: role.permissions.length })}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Can permission="system:role:update">
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          title={role.isSystem ? t("systemImmutable") : tCommon("edit")}
-                          className="text-muted-foreground"
-                          disabled={role.isSystem}
-                          onClick={() => setForm({ mode: "edit", role })}
-                        >
-                          <Pencil className="size-4" />
-                        </Button>
-                      </Can>
+                      <div className="flex items-center justify-end gap-0.5">
+                        <Can permission="system:role:update">
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            title={role.isSystem ? t("systemImmutable") : tCommon("edit")}
+                            className="text-muted-foreground"
+                            disabled={role.isSystem}
+                            onClick={() => setForm({ mode: "edit", role })}
+                          >
+                            <Pencil className="size-4" />
+                          </Button>
+                        </Can>
+                        <Can permission="system:role:delete">
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            title={role.isSystem ? t("systemImmutable") : t("delete.action")}
+                            className="text-destructive"
+                            disabled={role.isSystem}
+                            onClick={() => setDeleteTarget(role)}
+                          >
+                            <Trash2 className="size-4" />
+                          </Button>
+                        </Can>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))
@@ -199,6 +241,20 @@ export default function RolesPage() {
           error={formError}
           onClose={closeForm}
           onSubmit={handleSubmit}
+        />
+      )}
+
+      {deleteTarget && (
+        <ConfirmDialog
+          open
+          onClose={closeDelete}
+          onConfirm={() => remove.mutate(deleteTarget.id, { onSuccess: closeDelete })}
+          isPending={remove.isPending}
+          title={t("delete.title")}
+          description={t("delete.description", { name: deleteTarget.name })}
+          confirmLabel={t("delete.action")}
+          destructive
+          error={deleteError}
         />
       )}
     </div>

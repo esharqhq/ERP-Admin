@@ -31,6 +31,28 @@ export interface SupportTicketDto {
   createdAt: string;
 }
 
+/**
+ * Standalone conversations inbox row (backend ask #3: GET /api/admin/conversations).
+ * Wire shape verified against the live API 2026-06-11. NOTE the field is
+ * `requesterUserId` (NOT `requesterId` as the handoff doc wrote), and
+ * `requesterUserType` comes back as the backend enum CODE ("OWNER_USER",
+ * "WORKER", …), not a friendly label — kept as string, prettified in the UI.
+ * Conversations are currently support-ticket-scoped 1:1 (`scope: "Support"`).
+ */
+export interface ConversationSummaryDto {
+  id: string;
+  ticketId: string;
+  scope: string;
+  requesterUserType: string;
+  requesterUserId: string;
+  assignedAdminId: string | null;
+  ticketStatus: string;
+  ticketPriority: string;
+  /** Max non-deleted message time; null if no messages yet. */
+  lastMessageAt: string | null;
+  createdAt: string;
+}
+
 export interface MessageAttachmentDto {
   id: string;
   conversationMessageId: string;
