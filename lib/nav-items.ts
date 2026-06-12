@@ -17,6 +17,7 @@ import {
   Briefcase,
   KeyRound,
   BadgeCheck,
+  Clock,
 } from "lucide-react"
 import { type LucideIcon } from "lucide-react"
 
@@ -67,6 +68,7 @@ export const navGroups: NavGroup[] = [
       { title: "Dispatching", labelKey: "nav.dispatching", url: "/dashboard/dispatch",         icon: Truck,         permission: "task:assign_worker_any" },
       { title: "Leave",       labelKey: "nav.leave",       url: "/dashboard/leave",            icon: CalendarOff,   permission: "worker_leave_request:list_any" },
       { title: "Attendance",  labelKey: "nav.attendance",  url: "/dashboard/attendance",       icon: CalendarCheck, permission: "system:attendance:read" },
+      { title: "Working Hours", labelKey: "nav.workerHours", url: "/dashboard/worker-hours",   icon: Clock,         permission: "system:analytics:read" },
       { title: "Professions", labelKey: "nav.professions", url: "/dashboard/professions",      icon: Briefcase,     permission: "profession:create" },
       { title: "Documents",   labelKey: "nav.documents",   url: "/dashboard/worker-documents", icon: FolderOpen,    permission: "worker:list" },
     ],
