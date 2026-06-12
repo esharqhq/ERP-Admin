@@ -48,7 +48,17 @@ export function PropertyCreateDialog({ open, onClose, pending, error, onSubmit }
 
   // KYC-profile owners are the BOSS owners; approved ⇒ eligible to own a property.
   const { data: ownerRows = [], isLoading: ownersLoading } = useOwnerList();
-  const eligibleOwners = ownerRows.filter((o) => o.isApproved);
+  // `items` lets <SelectValue> render the owner's NAME in the trigger instead of the raw id.
+  const ownerItems = ownerRows
+    .filter((o) => o.isApproved)
+    .map((o) => ({
+      value: o.ownerUserId,
+      label: o.ownerName ?? o.ownerEmail ?? o.ownerUserId.slice(0, 8),
+    }));
+  const typeItems = PROPERTY_TYPES.map((pt) => ({
+    value: pt,
+    label: t(`form.types.${pt}` as Parameters<typeof t>[0]),
+  }));
 
   const [ownerUserId, setOwnerUserId] = useState("");
   const [name, setName] = useState("");
@@ -106,19 +116,23 @@ export function PropertyCreateDialog({ open, onClose, pending, error, onSubmit }
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium">{t("create.ownerLabel")}</label>
-            <Select value={ownerUserId} onValueChange={(v) => setOwnerUserId(v ?? "")}>
+            <Select
+              value={ownerUserId}
+              onValueChange={(v) => setOwnerUserId(v ?? "")}
+              items={ownerItems}
+            >
               <SelectTrigger>
                 <SelectValue placeholder={t("create.ownerPlaceholder")} />
               </SelectTrigger>
               <SelectContent>
-                {eligibleOwners.map((o) => (
-                  <SelectItem key={o.ownerUserId} value={o.ownerUserId}>
-                    {o.ownerName ?? o.ownerEmail ?? o.ownerUserId.slice(0, 8)}
+                {ownerItems.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>
+                    {o.label}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            {!ownersLoading && eligibleOwners.length === 0 ? (
+            {!ownersLoading && ownerItems.length === 0 ? (
               <p className="text-xs text-muted-foreground">
                 {t("create.noEligibleOwners")}
               </p>
@@ -148,14 +162,18 @@ export function PropertyCreateDialog({ open, onClose, pending, error, onSubmit }
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1">
               <label className="text-sm font-medium">{t("form.type")}</label>
-              <Select value={type} onValueChange={(v) => v && isType(v) && setType(v)}>
+              <Select
+                value={type}
+                onValueChange={(v) => v && isType(v) && setType(v)}
+                items={typeItems}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {PROPERTY_TYPES.map((pt) => (
-                    <SelectItem key={pt} value={pt}>
-                      {t(`form.types.${pt}` as Parameters<typeof t>[0])}
+                  {typeItems.map((it) => (
+                    <SelectItem key={it.value} value={it.value}>
+                      {it.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
