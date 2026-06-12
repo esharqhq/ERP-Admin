@@ -7,10 +7,17 @@ import type {
   CreateAdminPropertyRequest,
 } from "@/lib/types/property.types";
 
-export function useProperties() {
+/**
+ * Property list. `enabled` should be gated on `property:list` when used as a
+ * filter picker on a page gated by a *different* permission (e.g. working-hours,
+ * gated `system:analytics:read`), so a custom-override admin lacking
+ * `property:list` doesn't 403 on the picker (fail-open class).
+ */
+export function useProperties(enabled = true) {
   return useQuery({
     queryKey: ["properties"],
     queryFn: () => propertyService.getProperties(),
+    enabled,
   });
 }
 

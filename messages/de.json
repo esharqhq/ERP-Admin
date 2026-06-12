@@ -39,6 +39,7 @@
     "worker": "Mitarbeiter",
     "workers": "Mitarbeiter",
     "attendance": "Anwesenheit",
+    "workerHours": "Arbeitszeiten",
     "tasks": "Aufgaben",
     "dispatching": "Disposition",
     "leave": "Urlaubsanträge",
@@ -556,6 +557,50 @@
     "present": {
       "yes": "Anwesend",
       "no": "Abwesend"
+    }
+  },
+  "workerHours": {
+    "title": "Arbeitszeiten",
+    "subtitle": "Systemweite Vor-Ort-Zeit der Mitarbeiter, abgeleitet aus Check-in und Check-out der Aufgaben.",
+    "timeOnSiteBadge": "Vor-Ort-Zeit",
+    "timeOnSiteNote": "Diese Werte sind die Vor-Ort-Zeit (Check-out minus Check-in), keine abrechenbaren Stunden. Der Check-out wird für alle Mitarbeiter einer Aufgabe gesetzt, wenn der Eigentümer sie abnimmt – ein früher fertiger Mitarbeiter wird daher bis zum Abschluss der Aufgabe angerechnet.",
+    "noAccess": "Sie haben keine Berechtigung, die Arbeitszeit-Auswertung anzusehen.",
+    "empty": "Keine abgeschlossenen Schichten für die gewählten Filter.",
+    "filters": {
+      "granularity": "Gruppieren nach",
+      "from": "Von",
+      "to": "Bis",
+      "worker": "Mitarbeiter",
+      "property": "Objekt",
+      "allWorkers": "Alle Mitarbeiter",
+      "allProperties": "Alle Objekte"
+    },
+    "granularity": {
+      "week": "Woche",
+      "month": "Monat"
+    },
+    "stats": {
+      "total": "Gesamte Vor-Ort-Zeit",
+      "shifts": "Gezählte Schichten",
+      "workers": "Mitarbeiter"
+    },
+    "byPeriod": {
+      "title": "Vor-Ort-Zeit nach Zeitraum",
+      "seriesLabel": "Vor-Ort-Zeit"
+    },
+    "byWorker": {
+      "title": "Nach Mitarbeiter",
+      "worker": "Mitarbeiter",
+      "shifts": "Schichten",
+      "hours": "Vor-Ort-Zeit"
+    },
+    "byProperty": {
+      "title": "Nach Objekt",
+      "property": "Objekt",
+      "hours": "Vor-Ort-Zeit"
+    },
+    "errors": {
+      "invalidRange": "Das \"Von\"-Datum muss vor oder gleich dem \"Bis\"-Datum liegen."
     }
   },
   "conversations": {
