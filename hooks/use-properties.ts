@@ -2,12 +2,50 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { propertyService } from "@/lib/services/property.service";
-import type { UpdatePropertyRequest } from "@/lib/types/property.types";
+import type {
+  UpdatePropertyRequest,
+  CreateAdminPropertyRequest,
+} from "@/lib/types/property.types";
 
 export function useProperties() {
   return useQuery({
     queryKey: ["properties"],
     queryFn: () => propertyService.getProperties(),
+  });
+}
+
+/**
+ * Soft-deleted properties for the restore view. `enabled` should be gated on
+ * `property:restore` — the backend only honors `includeDeleted` for callers
+ * holding it, so a non-privileged admin would just get the live list back.
+ */
+export function useDeletedProperties(enabled = true) {
+  return useQuery({
+    queryKey: ["properties", "deleted"],
+    queryFn: () => propertyService.getProperties({ includeDeleted: true }),
+    enabled,
+    select: (rows) => rows.filter((p) => p.isDeleted),
+  });
+}
+
+export function useCreateAdminProperty() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: CreateAdminPropertyRequest) =>
+      propertyService.createAdminProperty(body),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["properties"] });
+    },
+  });
+}
+
+export function useRestoreProperty() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => propertyService.restoreProperty(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["properties"] });
+    },
   });
 }
 

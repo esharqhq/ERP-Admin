@@ -4,11 +4,20 @@ export interface WorkerProfessionDto {
   name: string | null;
 }
 
+/**
+ * Per-doc decision now persists (backend ask (e), verified live 2026-06-11):
+ * `status` is `Pending` | `Approved` | `Rejected`. Drive button state off it —
+ * hide Approve/Reject (or show the decision) once `status != "Pending"`.
+ */
 export interface WorkerDocumentDto {
   id: string;
   type: string | null;
   fileName: string | null;
   fileUrl: string | null;
+  status: string;
+  rejectReason: string | null;
+  reviewedAt: string | null;
+  reviewedByAdminId: string | null;
   createdAt: string;
 }
 

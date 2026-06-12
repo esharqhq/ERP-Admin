@@ -12,6 +12,14 @@ import type {
   SendMessageRequest,
 } from "@/lib/types/support.types";
 
+// ── Conversations inbox ────────────────────────────────────────────────────────
+export function useConversations(status?: string, assignedAdminId?: string) {
+  return useQuery({
+    queryKey: ["conversations", status ?? "all", assignedAdminId ?? "any"],
+    queryFn: () => supportService.listConversations(status, assignedAdminId),
+  });
+}
+
 // ── Tickets ──────────────────────────────────────────────────────────────────
 export function useTickets(status?: string) {
   return useQuery({
@@ -87,16 +95,19 @@ export function appendMessageToCache(
 
 /**
  * Loads the latest 50 messages. Server returns newest-first; we sort ascending for
- * chat display via `select`. Light polling (15s, foreground only) is the real liveness
- * mechanism since the SignalR hub currently rejects admin JoinConversation (casing bug,
- * see backend asks) — live push is best-effort garnish on top.
+ * chat display via `select`.
+ *
+ * Liveness is now SignalR-first (ask #6: the hub authenticates admins over WS and
+ * accepts admin JoinConversation). When the hub is connected (`isLive`), the 15s
+ * poll is retired; if the connection drops, the poll resumes as a fallback so the
+ * thread never goes stale.
  */
-export function useConversationMessages(conversationId: string) {
+export function useConversationMessages(conversationId: string, isLive = false) {
   return useQuery({
     queryKey: conversationMessagesKey(conversationId),
     queryFn: () => supportService.getMessages(conversationId),
     enabled: !!conversationId,
-    refetchInterval: 15000,
+    refetchInterval: isLive ? false : 15000,
     select: (msgs) =>
       [...msgs].sort((a, b) => a.createdAt.localeCompare(b.createdAt)),
   });

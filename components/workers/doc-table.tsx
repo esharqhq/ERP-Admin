@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { FileText, ExternalLink, CheckCircle, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -13,9 +14,17 @@ import {
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLocale, useTranslations } from "next-intl";
+import { normalizeStatus } from "@/lib/types/task.types";
 import { DocApproveModal } from "./doc-approve-modal";
 import { DocRejectModal } from "./doc-reject-modal";
 import type { WorkerDocumentDto } from "@/lib/types/worker.types";
+
+function DocStatusBadge({ status }: { status: string }) {
+  const s = normalizeStatus(status);
+  const variant =
+    s === "approved" ? "default" : s === "rejected" ? "destructive" : "secondary";
+  return <Badge variant={variant}>{status || "—"}</Badge>;
+}
 
 interface Props {
   docs: WorkerDocumentDto[];
@@ -45,6 +54,7 @@ function DocRow({
   const [showApprove, setShowApprove] = useState(false);
   const [showReject, setShowReject] = useState(false);
   const fileName = doc.fileName ?? doc.type ?? "Document";
+  const isPending = normalizeStatus(doc.status) === "pending";
 
   return (
     <>
@@ -54,11 +64,19 @@ function DocRow({
             <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
               <FileText className="size-3.5" />
             </div>
-            <span className="text-sm font-medium">{fileName}</span>
+            <div className="flex flex-col">
+              <span className="text-sm font-medium">{fileName}</span>
+              {doc.rejectReason ? (
+                <span className="text-xs text-destructive">{doc.rejectReason}</span>
+              ) : null}
+            </div>
           </div>
         </TableCell>
         <TableCell className="text-sm text-muted-foreground">
           {doc.type ?? "—"}
+        </TableCell>
+        <TableCell>
+          <DocStatusBadge status={doc.status} />
         </TableCell>
         <TableCell className="text-sm text-muted-foreground">
           {new Date(doc.createdAt).toLocaleDateString(locale, {
@@ -83,26 +101,40 @@ function DocRow({
                 {tCommon("view")}
               </Button>
             )}
-            <Button
-              size="sm"
-              variant="outline"
-              className="gap-1"
-              onClick={() => setShowApprove(true)}
-              disabled={isApproving}
-            >
-              <CheckCircle className="size-3.5" />
-              {t("approve")}
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              className="gap-1 text-destructive hover:bg-destructive/10"
-              onClick={() => setShowReject(true)}
-              disabled={isRejecting}
-            >
-              <XCircle className="size-3.5" />
-              {t("reject")}
-            </Button>
+            {isPending ? (
+              <>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-1"
+                  onClick={() => setShowApprove(true)}
+                  disabled={isApproving}
+                >
+                  <CheckCircle className="size-3.5" />
+                  {t("approve")}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="gap-1 text-destructive hover:bg-destructive/10"
+                  onClick={() => setShowReject(true)}
+                  disabled={isRejecting}
+                >
+                  <XCircle className="size-3.5" />
+                  {t("reject")}
+                </Button>
+              </>
+            ) : doc.reviewedAt ? (
+              <span className="text-xs text-muted-foreground">
+                {t("docReviewed", {
+                  date: new Date(doc.reviewedAt).toLocaleDateString(locale, {
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                  }),
+                })}
+              </span>
+            ) : null}
           </div>
         </TableCell>
       </TableRow>
@@ -156,6 +188,7 @@ export function DocTable({
           <TableRow>
             <TableHead>{t("docFileName")}</TableHead>
             <TableHead>{t("docTypeLabel")}</TableHead>
+            <TableHead>{t("docStatusLabel")}</TableHead>
             <TableHead>{t("docUploadDate")}</TableHead>
             <TableHead className="text-right">{tCommon("actions")}</TableHead>
           </TableRow>
@@ -164,7 +197,7 @@ export function DocTable({
           {isLoading ? (
             Array.from({ length: 3 }).map((_, i) => (
               <TableRow key={i}>
-                <TableCell colSpan={4}>
+                <TableCell colSpan={5}>
                   <Skeleton className="h-8 w-full rounded-md" />
                 </TableCell>
               </TableRow>
@@ -172,7 +205,7 @@ export function DocTable({
           ) : docs.length === 0 ? (
             <TableRow>
               <TableCell
-                colSpan={4}
+                colSpan={5}
                 className="py-8 text-center text-sm text-muted-foreground"
               >
                 {t("docNotFound")}

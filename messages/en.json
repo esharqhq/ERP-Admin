@@ -46,6 +46,7 @@
     "professions": "Professions",
     "support": "Support",
     "tickets": "Tickets",
+    "conversations": "Conversations",
     "chat": "Chat",
     "auditLog": "Audit Log",
     "admins": "Admins",
@@ -78,7 +79,9 @@
     "docNotFound": "No documents found.",
     "docFileName": "File Name",
     "docTypeLabel": "Type",
+    "docStatusLabel": "Status",
     "docUploadDate": "Upload Date",
+    "docReviewed": "Reviewed {date}",
     "tableView": "Table View",
     "calendarView": "Calendar View",
     "tabs": {
@@ -282,6 +285,32 @@
       "createdAt": "Created",
       "actions": "Actions"
     },
+    "deleted": {
+      "title": "Deleted Properties",
+      "subtitle": "Soft-deleted properties you can restore.",
+      "viewDeleted": "Deleted",
+      "backToList": "All properties",
+      "empty": "No deleted properties.",
+      "restore": "Restore",
+      "confirmTitle": "Restore property?",
+      "confirmDesc": "“{name}” will be restored and visible again.",
+      "noAccess": "You don't have permission to restore properties.",
+      "errors": {
+        "property_not_found": "Property not found.",
+        "generic": "Couldn't restore the property."
+      }
+    },
+    "create": {
+      "new": "New Property",
+      "title": "Create Property",
+      "ownerLabel": "Owner (BOSS)",
+      "ownerPlaceholder": "Select an owner…",
+      "noEligibleOwners": "No owners with approved KYC available.",
+      "submit": "Create",
+      "errors": {
+        "generic": "Couldn't create the property. The owner must be a BOSS with approved KYC."
+      }
+    },
     "info": {
       "title": "General Information",
       "address": "Address",
@@ -472,48 +501,83 @@
   "dashboard": {
     "title": "Dashboard",
     "subtitle": "Overview of key metrics",
+    "noAccess": "You don't have permission to view analytics.",
     "kpi": {
-      "totalWorkers": "Total Workers",
-      "activeOwners": "Active Owners",
-      "openTickets": "Open Tickets",
-      "pendingKyc": "Pending KYC"
+      "workers": "Workers",
+      "owners": "Owners",
+      "properties": "Properties",
+      "activeTasks": "Active Tasks"
     },
-    "change": {
-      "fromLastMonth": "from last month"
+    "trend": {
+      "title": "Task Trend",
+      "desc": "Created vs completed — last 30 days",
+      "created": "Created",
+      "completed": "Completed"
     },
-    "charts": {
-      "workerActivity": "Worker Activity",
-      "workerActivityDesc": "Daily active workers over the past week",
-      "ticketStatus": "Ticket Status",
-      "ticketStatusDesc": "Distribution of support tickets by status"
+    "statusBreakdown": {
+      "title": "Task Status",
+      "desc": "Distribution of task groups by status",
+      "empty": "No task groups yet"
+    },
+    "topWorkers": {
+      "title": "Top Workers",
+      "desc": "Highest-rated workers",
+      "new": "New",
+      "empty": "No workers yet"
+    },
+    "revenue": {
+      "title": "Revenue",
+      "desc": "Monthly revenue overview",
+      "comingSoon": "Coming soon"
     }
   },
   "attendance": {
     "title": "Attendance",
     "subtitle": "Track and monitor worker attendance records",
     "searchPlaceholder": "Search by worker name...",
-    "view": "View",
-    "todayDate": "Today's date",
+    "dateLabel": "Date",
+    "noAccess": "You don't have permission to view attendance.",
+    "empty": "No assignments scheduled for this date.",
     "stats": {
-      "arrivedToday": "Arrived Today",
-      "absent": "Absent",
-      "late": "Late",
-      "notYetArrived": "Not Yet Arrived"
+      "assigned": "Assigned",
+      "present": "Present",
+      "absent": "Absent"
     },
     "columns": {
       "worker": "Worker",
+      "task": "Task",
+      "property": "Property",
+      "scheduled": "Scheduled",
+      "present": "Present",
       "checkIn": "Check-In",
       "checkOut": "Check-Out",
-      "location": "Location",
-      "geofence": "Geofence",
-      "selfie": "Selfie",
-      "status": "Status",
-      "actions": "Actions"
+      "outcome": "Outcome"
     },
-    "reasons": {
-      "transportDelay": "Transport delay",
-      "outsideGeofence": "Outside geofence",
-      "noSelfie": "No selfie submitted"
+    "present": {
+      "yes": "Present",
+      "no": "Absent"
+    }
+  },
+  "conversations": {
+    "title": "Conversations",
+    "subtitle": "All support conversations across the system",
+    "assignedToMe": "Assigned to me",
+    "count": "{count} conversations",
+    "empty": "No conversations found.",
+    "noMessages": "No messages yet",
+    "tabs": {
+      "all": "All",
+      "open": "Open",
+      "inProgress": "In Progress",
+      "resolved": "Resolved",
+      "closed": "Closed"
+    },
+    "columns": {
+      "requester": "Requester",
+      "priority": "Priority",
+      "status": "Status",
+      "lastActivity": "Last Activity",
+      "created": "Created"
     }
   },
   "support": {
@@ -920,10 +984,16 @@
       "permissions": "Permissions",
       "create": "Create"
     },
+    "delete": {
+      "action": "Delete",
+      "title": "Delete role?",
+      "description": "“{name}” will be deleted. This can't be undone."
+    },
     "errors": {
       "role_code_exists": "A role with that code already exists.",
       "invalid_applies_to": "Invalid role scope.",
-      "system_role_immutable": "System roles cannot be edited.",
+      "system_role_immutable": "System roles cannot be modified.",
+      "role_in_use": "This role is still assigned. Reassign or remove it first.",
       "role_not_found": "Role not found.",
       "generic": "Could not save the role."
     }
@@ -932,8 +1002,18 @@
     "title": "Profile",
     "subtitle": "Your account details and security settings.",
     "verified": "Verified",
-    "managedNote": "Your name, email, and avatar are managed by a system administrator. Contact an administrator to change them.",
+    "managedNote": "Your email and role are managed by a system administrator. Contact an administrator to change them.",
     "loadError": "Could not load your profile.",
+    "edit": {
+      "button": "Edit",
+      "title": "Edit profile",
+      "fullName": "Full name",
+      "email": "Email",
+      "emailImmutable": "Email is managed centrally and can't be changed here.",
+      "changeAvatar": "Change avatar",
+      "uploadFailed": "Avatar upload failed. Try again.",
+      "error": "Could not update your profile. Please try again."
+    },
     "password": {
       "title": "Change password",
       "subtitle": "Update the password you use to sign in.",

@@ -1,9 +1,13 @@
 "use client";
 
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { authService } from "@/lib/services/auth.service";
 import { useAuthStore } from "@/store/auth.store";
-import type { AdminProfileDto, ChangePasswordDto } from "@/lib/types/auth.types";
+import type {
+  AdminProfileDto,
+  ChangePasswordDto,
+  UpdateProfileRequest,
+} from "@/lib/types/auth.types";
 
 /**
  * The current admin's own profile (GET /api/profile → AdminProfileDto).
@@ -37,5 +41,29 @@ export function useMyProfile() {
 export function useChangePassword() {
   return useMutation({
     mutationFn: (dto: ChangePasswordDto) => authService.changePassword(dto),
+  });
+}
+
+/**
+ * Update the current admin's own name + avatar (PUT /api/profile). On success we
+ * both refetch ["profile"] and write the new values back into the auth store so
+ * the sidebar/header chip (which read `adminMe`) update immediately.
+ */
+export function useUpdateProfile() {
+  const qc = useQueryClient();
+  const setAdminMe = useAuthStore((s) => s.setAdminMe);
+  return useMutation({
+    mutationFn: (body: UpdateProfileRequest) => authService.updateProfile(body),
+    onSuccess: (_d, body) => {
+      const current = useAuthStore.getState().adminMe;
+      if (current) {
+        setAdminMe({
+          ...current,
+          fullName: body.fullName,
+          profilePictureUrl: body.profilePictureUrl ?? null,
+        });
+      }
+      qc.invalidateQueries({ queryKey: ["profile"] });
+    },
   });
 }

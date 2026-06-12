@@ -62,6 +62,9 @@ Admins **cannot create properties**: `POST /api/properties` requires `property:c
 ### (d) Admin self-edit profile
 `PUT /api/profile` hard-returns `400 admin_profile_update_not_supported` for Admin (only Worker/Owner have update logic). Admins can't change their own name/email/avatar. The FE profile page only offers **change-password** (which does work). Needs an Admin branch in `ProfileService.UpdateProfileAsync`.
 
+### (f) Admin single-task-group read endpoint
+There is **no admin endpoint to read one task group by id**. The owner route `GET /api/tasks/groups/{id}` is PROPERTY-scoped (`task_group:read`) and **403s for admins** (verified live 2026-06-10 — the Tasks detail page errored on every "View"). No `GET /api/tasks/admin/groups/{id}` exists. **FE workaround shipped:** the detail page now derives the group from `GET /api/tasks/admin/groups` (the list returns each group fully nested — dates/tasks/workers). This assumes that list stays **unpaginated**; if it ever caps, deep-linking to a group beyond the cap will 404 in-app. Needs a real `GET /api/tasks/admin/groups/{id}` (gated by `task_group:read_any`, 110031).
+
 ### (e) Per-doc worker-document status
 `WorkerDocument` has **no status field**; `AdminWorkerDocsController` approve/reject are **audit-log-only** and the list DTO returns identical data after a decision. So the admin UI can't show which docs were already approved/rejected (a reviewer re-sees the same Approve/Reject buttons after deciding). Needs a status/decision column on `WorkerDocument` surfaced in `WorkerDocumentDto`. *(Note: property-docs already persist `DocsStatus` correctly — this gap is worker-docs only.)*
 
