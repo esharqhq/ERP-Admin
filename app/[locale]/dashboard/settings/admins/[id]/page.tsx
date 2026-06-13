@@ -56,7 +56,7 @@ export default function AdminDetailPage({
   }
 
   const BackLink = (
-    <Button variant="ghost" size="sm" nativeButton={false} className="gap-1.5" render={<Link href="/dashboard/admins" />}>
+    <Button variant="ghost" size="sm" nativeButton={false} className="gap-1.5" render={<Link href="/dashboard/settings/admins" />}>
       <ArrowLeft className="size-4" />
       {tCommon("back")}
     </Button>
@@ -189,7 +189,7 @@ export default function AdminDetailPage({
         onConfirm={(reason) =>
           deactivate.mutate(
             { id: admin.id, body: { reason } },
-            { onSuccess: () => router.push("/dashboard/admins") },
+            { onSuccess: () => router.push("/dashboard/settings/admins") },
           )
         }
         isPending={deactivate.isPending}

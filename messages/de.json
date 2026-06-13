@@ -53,7 +53,8 @@
     "admins": "Administratoren",
     "settings": "Einstellungen",
     "roles": "Rollen",
-    "kyc": "KYC"
+    "kyc": "KYC",
+    "general": "Allgemein"
   },
   "auth": {
     "logout": "Abmelden",

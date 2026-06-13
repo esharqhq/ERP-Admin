@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useLocale } from "next-intl";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -10,6 +10,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Pencil, Check, X, Plus } from "lucide-react";
 import { useSettings, useUpsertSetting } from "@/hooks/use-settings";
+import { useRouter } from "@/i18n/navigation";
+import { useCurrentPermissions } from "@/hooks/use-current-permissions";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
@@ -29,6 +31,22 @@ interface NewSetting {
 export default function SettingsPage() {
   const t = useTranslations("settings");
   const locale = useLocale();
+  const router = useRouter()
+  const { permissions } = useCurrentPermissions()
+  const canViewGeneral = permissions === null || permissions.has("system:settings:read")
+
+  useEffect(() => {
+    if (permissions === null || permissions.has("system:settings:read")) return
+    const fallback = permissions.has("admin:list")
+      ? "/dashboard/settings/admins"
+      : permissions.has("system:permission:read")
+        ? "/dashboard/settings/roles"
+        : permissions.has("system:audit:read")
+          ? "/dashboard/settings/audit"
+          : null
+    if (fallback) router.replace(fallback)
+  }, [permissions, router])
+
   const { data: settings = [], isLoading } = useSettings();
   const { mutate: upsert, isPending } = useUpsertSetting();
 
@@ -70,6 +88,8 @@ export default function SettingsPage() {
       hour: "2-digit", minute: "2-digit",
     });
   }
+
+  if (!canViewGeneral) return null
 
   return (
     <div className="flex flex-col gap-6">

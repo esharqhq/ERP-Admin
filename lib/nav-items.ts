@@ -7,15 +7,12 @@ import {
   ClipboardList,
   FolderOpen,
   Settings,
-  ShieldCheck,
-  UserCog,
   TicketCheck,
   MessagesSquare,
   FileText,
   CalendarOff,
   CalendarCheck,
   Briefcase,
-  KeyRound,
   BadgeCheck,
   Clock,
 } from "lucide-react"
@@ -28,6 +25,8 @@ export type NavItem = {
   icon: LucideIcon
   /** Backend [RequirePermission] code gating this section; omit for always-visible. */
   permission?: string
+  /** Visible if the admin holds ANY of these codes (use instead of `permission` for grouped entry points). */
+  anyOf?: string[]
 }
 
 export type NavGroup = {
@@ -80,10 +79,8 @@ export const navGroups: NavGroup[] = [
     items: [
       { title: "Tickets",       labelKey: "nav.tickets",       url: "/dashboard/support",       icon: TicketCheck,    permission: "support_ticket:list_any" },
       { title: "Conversations", labelKey: "nav.conversations", url: "/dashboard/conversations", icon: MessagesSquare, permission: "conversation:list_any" },
-      { title: "Audit Log", labelKey: "nav.auditLog", url: "/dashboard/audit",    icon: ShieldCheck, permission: "system:audit:read" },
-      { title: "Admins",    labelKey: "nav.admins",   url: "/dashboard/admins",   icon: UserCog,     permission: "admin:list" },
-      { title: "Roles",     labelKey: "nav.roles",    url: "/dashboard/roles",    icon: KeyRound,    permission: "system:permission:read" },
-      { title: "Settings",  labelKey: "nav.settings", url: "/dashboard/settings", icon: Settings,    permission: "system:settings:read" },
+      { title: "Settings",      labelKey: "nav.settings",      url: "/dashboard/settings",      icon: Settings,
+        anyOf: ["system:settings:read", "admin:list", "system:permission:read", "system:audit:read"] },
     ],
   },
 ]

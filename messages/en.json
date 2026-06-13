@@ -53,7 +53,8 @@
     "admins": "Admins",
     "settings": "Settings",
     "roles": "Roles",
-    "kyc": "KYC"
+    "kyc": "KYC",
+    "general": "General"
   },
   "auth": {
     "logout": "Logout",
