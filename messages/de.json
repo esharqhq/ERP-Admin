@@ -682,6 +682,7 @@
     "searchPlaceholder": "Aufgaben suchen...",
     "empty": "Leer",
     "list": {
+      "label": "Liste",
       "empty": "Keine Aufgabengruppen gefunden",
       "tabs": {
         "all": "Alle",
@@ -698,6 +699,11 @@
         "workers": "Mitarbeiter",
         "actions": "Aktionen"
       }
+    },
+    "calendar": {
+      "label": "Kalender",
+      "noTasksThisWeek": "Keine Aufgaben diese Woche",
+      "workers": "Mitarbeiter"
     },
     "detail": {
       "backToList": "Zurück zu Aufgaben",

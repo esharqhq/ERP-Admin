@@ -682,6 +682,7 @@
     "searchPlaceholder": "Search tasks...",
     "empty": "Empty",
     "list": {
+      "label": "List",
       "empty": "No task groups found",
       "tabs": {
         "all": "All",
@@ -698,6 +699,11 @@
         "workers": "Workers",
         "actions": "Actions"
       }
+    },
+    "calendar": {
+      "label": "Calendar",
+      "noTasksThisWeek": "No tasks this week",
+      "workers": "workers"
     },
     "detail": {
       "backToList": "Back to Tasks",
