@@ -35,6 +35,14 @@ export function KycRow({ kyc, onApprove, onReject, isApproving, isRejecting }: P
       <TableRow
         className="cursor-pointer hover:bg-accent/40"
         onClick={() => setExpanded((v) => !v)}
+        tabIndex={0}
+        aria-expanded={expanded}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setExpanded((v) => !v);
+          }
+        }}
       >
         <TableCell className="py-3">
           <div className="flex items-center gap-3">
@@ -73,7 +81,7 @@ export function KycRow({ kyc, onApprove, onReject, isApproving, isRejecting }: P
         </TableCell>
 
         {/* Empty cell where the action buttons used to be — keeps the 5-column grid aligned. */}
-        <TableCell aria-hidden />
+        <TableCell />
       </TableRow>
 
       {expanded && (
