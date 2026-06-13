@@ -21,6 +21,7 @@ import { ConfirmDialog } from "@/components/tasks/confirm-dialog";
 import { AssignWorkerDialog } from "@/components/tasks/assign-worker-dialog";
 import { RateWorkerDialog } from "@/components/tasks/rate-worker-dialog";
 import { OutcomeDialog } from "@/components/tasks/outcome-dialog";
+import { TaskStatusBadge } from "@/components/tasks/task-status-badge";
 import {
   useTaskGroup,
   useCancelTaskGroup,
@@ -49,19 +50,6 @@ type ModalState =
   | { type: "outcome"; taskId: string; tw: TaskWorkerDto }
   | { type: "unassign"; taskId: string; tw: TaskWorkerDto }
   | null;
-
-function StatusBadge({ status }: { status: string }) {
-  const s = normalizeStatus(status);
-  const variant =
-    s === "active"
-      ? "default"
-      : s === "done"
-        ? "secondary"
-        : s === "cancelled"
-          ? "destructive"
-          : "outline";
-  return <Badge variant={variant}>{status || "—"}</Badge>;
-}
 
 function OutcomeBadge({ outcome }: { outcome: string }) {
   const s = normalizeStatus(outcome);
@@ -210,7 +198,7 @@ function TaskCard({
       <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2 pb-2">
         <div className="flex items-center gap-3">
           <CardTitle className="text-base">{task.scheduledDate}</CardTitle>
-          <StatusBadge status={task.status} />
+          <TaskStatusBadge status={task.status} />
         </div>
         <div className="flex items-center gap-3">
           <div className="hidden gap-4 text-xs text-muted-foreground sm:flex">
@@ -318,7 +306,7 @@ export default function TaskGroupDetailPage({
           <h1 className="font-heading text-3xl font-bold tracking-tight leading-tight">
             {group.title ?? "—"}
           </h1>
-          <StatusBadge status={group.status} />
+          <TaskStatusBadge status={group.status} />
         </div>
         {groupCancellable && (
           <Can permission="task_group:cancel_any">

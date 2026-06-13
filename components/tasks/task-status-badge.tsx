@@ -1,8 +1,7 @@
-"use client";
 import { Badge } from "@/components/ui/badge";
 import { normalizeStatus } from "@/lib/types/task.types";
 
-export function TaskStatusBadge({ status }: { status: string }) {
+export function TaskStatusBadge({ status }: { status: string | null | undefined }) {
   const s = normalizeStatus(status);
   const variant =
     s === "active"
