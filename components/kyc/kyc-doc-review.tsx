@@ -154,6 +154,7 @@ export function KycDocReview({
                     value={mark?.note ?? ""}
                     onChange={(e) => setNote(doc.id, e.target.value)}
                     placeholder={t("kyc.markWrongNote")}
+                    aria-label={t("kyc.markWrongNote")}
                     className="w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                   />
                 )}
@@ -188,27 +189,31 @@ export function KycDocReview({
         </div>
       )}
 
-      <KycApproveModal
-        open={showApprove}
-        onClose={() => setShowApprove(false)}
-        onConfirm={() => {
-          onApprove(ownerProfileId);
-          setShowApprove(false);
-        }}
-        isPending={isApproving}
-        ownerName={ownerName}
-      />
-      <KycRejectModal
-        open={showReject}
-        onClose={() => setShowReject(false)}
-        onConfirm={(reason) => {
-          onReject(ownerProfileId, reason);
-          setShowReject(false);
-        }}
-        isPending={isRejecting}
-        ownerName={ownerName}
-        initialReason={composedReason(docs)}
-      />
+      {canAct && (
+        <>
+          <KycApproveModal
+            open={showApprove}
+            onClose={() => setShowApprove(false)}
+            onConfirm={() => {
+              onApprove(ownerProfileId);
+              setShowApprove(false);
+            }}
+            isPending={isApproving}
+            ownerName={ownerName}
+          />
+          <KycRejectModal
+            open={showReject}
+            onClose={() => setShowReject(false)}
+            onConfirm={(reason) => {
+              onReject(ownerProfileId, reason);
+              setShowReject(false);
+            }}
+            isPending={isRejecting}
+            ownerName={ownerName}
+            initialReason={composedReason(docs)}
+          />
+        </>
+      )}
     </div>
   );
 }
