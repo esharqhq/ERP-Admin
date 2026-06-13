@@ -8,7 +8,6 @@ export const KYC_STATUS_LABELS: Record<KycStatus, string> = {
 
 export interface KycDocDto {
   id: string;
-  category: string | null;
   type: string | null;
   fileName: string | null;
   fileUrl: string | null;
@@ -28,8 +27,14 @@ export interface KycProfileSummaryDto {
   documentCount: number;
 }
 
-export interface KycProfileDto extends KycProfileSummaryDto {
-  documents: KycDocDto[];
+export interface KycProfileDto {
+  ownerProfileId: string;
+  ownerUserId: string;
+  isApproved: boolean;
+  kycStatus: string | null;
+  kycRejectReason: string | null;
+  kycReviewedAt: string | null;
+  documents: KycDocDto[] | null;
 }
 
 export interface KycApprovalDto {
