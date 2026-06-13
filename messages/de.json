@@ -18,6 +18,7 @@
     "back": "Zurück",
     "unknown": "Unbekannt",
     "filter": "Filter",
+    "all": "Alle",
     "resultsFound": "{count} Ergebnisse gefunden",
     "yes": "Ja",
     "no": "Nein"
@@ -190,7 +191,11 @@
       "rejectPlaceholder": "Ablehnungsgrund...",
       "rejectReasonMin": "Mindestens {min} Zeichen eingeben.",
       "reviewedAt": "Geprüft am",
-      "rejectReasonLabel": "Ablehnungsgrund"
+      "rejectReasonLabel": "Ablehnungsgrund",
+      "submittedDocuments": "Eingereichte Dokumente",
+      "docLoadError": "Dokumente konnten nicht geladen werden.",
+      "markWrong": "Als falsch markieren",
+      "markWrongNote": "Warum ist dieses Dokument falsch?"
     },
     "detail": {
       "documents": "Dokumente",
@@ -319,6 +324,10 @@
       "floors": "Stockwerkanzahl",
       "floorUnit": "Stockwerke",
       "entryInstructions": "Zugangsanweisungen"
+    },
+    "map": {
+      "title": "Standort",
+      "viewLarger": "Größere Karte anzeigen"
     },
     "owner": {
       "title": "Eigentümer",

@@ -18,6 +18,7 @@
     "back": "Back",
     "unknown": "Unknown",
     "filter": "Filter",
+    "all": "All",
     "resultsFound": "{count} results found",
     "yes": "Yes",
     "no": "No"
@@ -190,7 +191,11 @@
       "rejectPlaceholder": "Rejection reason...",
       "rejectReasonMin": "Enter at least {min} characters.",
       "reviewedAt": "Reviewed At",
-      "rejectReasonLabel": "Rejection Reason"
+      "rejectReasonLabel": "Rejection Reason",
+      "submittedDocuments": "Submitted documents",
+      "docLoadError": "Couldn't load documents.",
+      "markWrong": "Mark wrong",
+      "markWrongNote": "Why is this document wrong?"
     },
     "detail": {
       "documents": "Documents",
@@ -319,6 +324,10 @@
       "floors": "Floor Count",
       "floorUnit": "floors",
       "entryInstructions": "Entry Instructions"
+    },
+    "map": {
+      "title": "Location",
+      "viewLarger": "View larger map"
     },
     "owner": {
       "title": "Owner",
