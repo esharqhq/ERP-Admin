@@ -12,7 +12,6 @@ import {
   FileText,
   CalendarOff,
   CalendarCheck,
-  Briefcase,
   BadgeCheck,
 } from "lucide-react"
 import { type LucideIcon } from "lucide-react"
@@ -66,7 +65,6 @@ export const navGroups: NavGroup[] = [
       { title: "Dispatching", labelKey: "nav.dispatching", url: "/dashboard/dispatch",         icon: Truck,         permission: "task:assign_worker_any" },
       { title: "Leave",       labelKey: "nav.leave",       url: "/dashboard/leave",            icon: CalendarOff,   permission: "worker_leave_request:list_any" },
       { title: "Attendance",  labelKey: "nav.attendance",  url: "/dashboard/attendance",       icon: CalendarCheck, permission: "system:attendance:read" },
-      { title: "Professions", labelKey: "nav.professions", url: "/dashboard/professions",      icon: Briefcase,     permission: "profession:create" },
       { title: "Documents",   labelKey: "nav.documents",   url: "/dashboard/worker-documents", icon: FolderOpen,    permission: "worker:list" },
     ],
   },
@@ -78,7 +76,7 @@ export const navGroups: NavGroup[] = [
       { title: "Tickets",       labelKey: "nav.tickets",       url: "/dashboard/support",       icon: TicketCheck,    permission: "support_ticket:list_any" },
       { title: "Conversations", labelKey: "nav.conversations", url: "/dashboard/conversations", icon: MessagesSquare, permission: "conversation:list_any" },
       { title: "Settings",      labelKey: "nav.settings",      url: "/dashboard/settings",      icon: Settings,
-        anyOf: ["system:settings:read", "admin:list", "system:permission:read", "system:audit:read"] },
+        anyOf: ["system:settings:read", "admin:list", "system:permission:read", "system:audit:read", "profession:create"] },
     ],
   },
 ]
