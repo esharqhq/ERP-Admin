@@ -2,6 +2,7 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -53,139 +54,161 @@ function pad2(n: number): string {
 export function TasksCalendar({ groups, isLoading }: TasksCalendarProps) {
   const t = useTranslations("tasks");
   const nav = useWeekNavigation();
+  const todayKey = toLocalDateKey(new Date());
 
   const visibleGroups = groups.filter((g) =>
     nav.days.some((day) => getCellTasks(g, day).length > 0)
   );
 
   return (
-    <div className="flex flex-col gap-4">
+    <Card>
       {/* Week navigation */}
-      <div className="flex items-center gap-2">
-        <Button variant="outline" size="icon" onClick={nav.prev} aria-label="Previous week">
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
+        <Button variant="outline" size="icon-sm" onClick={nav.prev} aria-label="Previous week">
           <ChevronLeft className="size-4" />
         </Button>
         <span className="font-semibold text-sm min-w-[56px] text-center">{nav.label}</span>
-        <Button variant="outline" size="icon" onClick={nav.next} aria-label="Next week">
+        <Button variant="outline" size="icon-sm" onClick={nav.next} aria-label="Next week">
           <ChevronRight className="size-4" />
         </Button>
         <span className="text-sm text-muted-foreground">{nav.dateRangeLabel}</span>
       </div>
 
       {/* Grid */}
-      <div className="overflow-x-auto rounded-lg border border-border">
-        <table className="w-full min-w-[800px] text-sm border-collapse">
-          <thead>
-            <tr className="bg-muted/50">
-              <th className="text-left px-3 py-2 font-medium text-muted-foreground w-[200px] min-w-[160px] border-b border-border">
-                {t("list.columns.title")}
-              </th>
-              {nav.days.map((day, i) => (
-                <th
-                  key={i}
-                  className="px-2 py-2 font-medium text-muted-foreground text-center min-w-[110px] border-b border-border"
-                >
-                  {DAY_ABBR[i]} {pad2(day.getDate())}.{pad2(day.getMonth() + 1)}
+      <CardContent className="p-0">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[800px] text-sm border-collapse">
+            <thead>
+              <tr className="bg-muted/50">
+                <th className="text-left px-4 py-3 text-xs font-medium uppercase tracking-wide text-muted-foreground w-[200px] min-w-[160px] border-b border-border">
+                  {t("list.columns.title")}
                 </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {isLoading ? (
-              Array.from({ length: 4 }).map((_, i) => (
-                <tr key={i} className="border-t border-border">
-                  <td className="px-3 py-3">
-                    <Skeleton className="h-10 w-full rounded-md" />
-                  </td>
-                  {Array.from({ length: 7 }).map((_, j) => (
-                    <td key={j} className="px-2 py-3">
-                      <Skeleton className="h-10 w-full rounded-md" />
-                    </td>
-                  ))}
-                </tr>
-              ))
-            ) : visibleGroups.length === 0 ? (
-              <tr>
-                <td
-                  colSpan={8}
-                  className="py-12 text-center text-sm text-muted-foreground"
-                >
-                  {t("calendar.noTasksThisWeek")}
-                </td>
+                {nav.days.map((day, i) => {
+                  const isToday = toLocalDateKey(day) === todayKey;
+                  return (
+                    <th
+                      key={i}
+                      className={`px-2 py-2.5 text-xs font-medium text-center min-w-[110px] border-b border-border ${
+                        isToday ? "bg-primary/5" : ""
+                      }`}
+                    >
+                      <div className="flex flex-col items-center gap-1">
+                        <span className={`uppercase tracking-wide ${isToday ? "text-primary" : "text-muted-foreground"}`}>
+                          {DAY_ABBR[i]}
+                        </span>
+                        <span
+                          className={`tabular-nums text-sm font-semibold leading-none flex size-7 items-center justify-center rounded-full ${
+                            isToday
+                              ? "bg-primary text-primary-foreground"
+                              : "text-foreground"
+                          }`}
+                        >
+                          {pad2(day.getDate())}
+                        </span>
+                      </div>
+                    </th>
+                  );
+                })}
               </tr>
-            ) : (
-              visibleGroups.map((group) => (
-                <tr key={group.id} className="border-t border-border hover:bg-accent/20 transition-colors">
-                  {/* Row label */}
-                  <td className="px-3 py-3 align-top">
-                    <div className="flex flex-col gap-1.5">
-                      <span
-                        className="font-medium truncate max-w-[180px] block"
-                        title={group.title ?? undefined}
-                      >
-                        {group.title ?? "—"}
-                      </span>
-                      <TaskStatusBadge status={group.status} />
-                    </div>
+            </thead>
+            <tbody>
+              {isLoading ? (
+                Array.from({ length: 4 }).map((_, i) => (
+                  <tr key={i} className="border-t border-border">
+                    <td className="px-4 py-3">
+                      <Skeleton className="h-14 w-full rounded-md" />
+                    </td>
+                    {Array.from({ length: 7 }).map((_, j) => (
+                      <td key={j} className="px-2 py-3">
+                        <Skeleton className="h-14 w-full rounded-md" />
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              ) : visibleGroups.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={8}
+                    className="py-16 text-center text-sm text-muted-foreground"
+                  >
+                    {t("calendar.noTasksThisWeek")}
                   </td>
+                </tr>
+              ) : (
+                visibleGroups.map((group) => (
+                  <tr key={group.id} className="border-t border-border hover:bg-accent/40 transition-colors">
+                    {/* Row label */}
+                    <td className="px-4 py-3 align-top">
+                      <div className="flex flex-col gap-1.5">
+                        <span
+                          className="font-medium text-sm overflow-hidden truncate max-w-[180px] block"
+                          title={group.title ?? undefined}
+                        >
+                          {group.title ?? "—"}
+                        </span>
+                        <TaskStatusBadge status={group.status} />
+                      </div>
+                    </td>
 
-                  {/* Day cells */}
-                  {nav.days.map((day, i) => {
-                    const cellTasks = getCellTasks(group, day);
-                    if (cellTasks.length === 0) {
+                    {/* Day cells */}
+                    {nav.days.map((day, i) => {
+                      const isToday = toLocalDateKey(day) === todayKey;
+                      const cellTasks = getCellTasks(group, day);
+                      if (cellTasks.length === 0) {
+                        return (
+                          <td
+                            key={i}
+                            className={`px-2 py-3 text-center text-muted-foreground/30 align-middle text-base ${isToday ? "bg-primary/5" : ""}`}
+                          >
+                            –
+                          </td>
+                        );
+                      }
+                      const task = cellTasks[0];
+                      const extra = cellTasks.length - 1;
+                      const startTime = formatTime(task.scheduledAt);
+                      const endTime = task.deadline ? formatTime(task.deadline) : null;
+                      const workerCount = (task.workers ?? []).length;
+                      const firstWorkerName = task.workers?.[0]?.workerName ?? null;
+                      const workerLabel = firstWorkerName
+                        ? firstWorkerName.slice(0, 10)
+                        : "—";
+
                       return (
                         <td
                           key={i}
-                          className="px-2 py-3 text-center text-muted-foreground/40 align-middle"
+                          className={`px-2.5 py-2.5 align-top ${statusTintClasses(task.status)}`}
                         >
-                          —
+                          <div className="flex flex-col gap-1 text-xs">
+                            <span className="font-semibold tabular-nums text-foreground">
+                              {startTime}
+                              {endTime ? ` – ${endTime}` : ""}
+                            </span>
+                            <span className="text-muted-foreground">
+                              {workerCount} {t("calendar.workers")}
+                            </span>
+                            <span className="text-muted-foreground/80 truncate max-w-[90px]">
+                              {workerLabel}
+                            </span>
+                            {extra > 0 && (
+                              <Badge
+                                variant="outline"
+                                className="w-fit text-[10px] px-1 py-0 h-4 mt-0.5"
+                              >
+                                +{extra}
+                              </Badge>
+                            )}
+                          </div>
                         </td>
                       );
-                    }
-                    const task = cellTasks[0];
-                    const extra = cellTasks.length - 1;
-                    const startTime = formatTime(task.scheduledAt);
-                    const endTime = task.deadline ? formatTime(task.deadline) : null;
-                    const workerCount = (task.workers ?? []).length;
-                    const firstWorkerName = task.workers?.[0]?.workerName ?? null;
-                    const workerLabel = firstWorkerName
-                      ? firstWorkerName.slice(0, 10)
-                      : "—";
-
-                    return (
-                      <td
-                        key={i}
-                        className={`px-2 py-2 align-top ${statusTintClasses(task.status)}`}
-                      >
-                        <div className="flex flex-col gap-0.5 text-xs">
-                          <span className="font-medium tabular-nums">
-                            {startTime}
-                            {endTime ? ` – ${endTime}` : ""}
-                          </span>
-                          <span className="text-muted-foreground">
-                            {workerCount} {t("calendar.workers")}
-                          </span>
-                          <span className="text-muted-foreground truncate max-w-[90px]">
-                            {workerLabel}
-                          </span>
-                          {extra > 0 && (
-                            <Badge
-                              variant="outline"
-                              className="w-fit text-[10px] px-1 py-0 h-4"
-                            >
-                              +{extra}
-                            </Badge>
-                          )}
-                        </div>
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
+                    })}
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

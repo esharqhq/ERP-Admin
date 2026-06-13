@@ -14,7 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Search, Eye } from "lucide-react";
+import { Search, Eye, LayoutList, CalendarDays } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useAdminTaskGroups } from "@/hooks/use-tasks";
 import {
@@ -82,7 +82,17 @@ export default function TasksPage() {
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            {v === "list" ? t("list.label") : t("calendar.label")}
+            {v === "list" ? (
+              <span className="flex items-center gap-1.5">
+                <LayoutList className="size-3.5" />
+                {t("list.label")}
+              </span>
+            ) : (
+              <span className="flex items-center gap-1.5">
+                <CalendarDays className="size-3.5" />
+                {t("calendar.label")}
+              </span>
+            )}
           </button>
         ))}
       </div>
