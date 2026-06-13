@@ -39,7 +39,6 @@
     "worker": "Worker",
     "workers": "Workers",
     "attendance": "Attendance",
-    "workerHours": "Working Hours",
     "tasks": "Tasks",
     "dispatching": "Dispatching",
     "leave": "Leave Requests",
@@ -558,50 +557,6 @@
     "present": {
       "yes": "Present",
       "no": "Absent"
-    }
-  },
-  "workerHours": {
-    "title": "Working Hours",
-    "subtitle": "System-wide worker time on site, derived from task check-in and check-out.",
-    "timeOnSiteBadge": "Time on site",
-    "timeOnSiteNote": "These figures are time on site (check-out minus check-in), not billable hours. Check-out is stamped on all of a task's workers when the owner accepts it, so a worker who finished early is credited until the task closed.",
-    "noAccess": "You don't have permission to view working-hours analytics.",
-    "empty": "No completed shifts for the selected filters.",
-    "filters": {
-      "granularity": "Group by",
-      "from": "From",
-      "to": "To",
-      "worker": "Worker",
-      "property": "Property",
-      "allWorkers": "All workers",
-      "allProperties": "All properties"
-    },
-    "granularity": {
-      "week": "Week",
-      "month": "Month"
-    },
-    "stats": {
-      "total": "Total time on site",
-      "shifts": "Shifts counted",
-      "workers": "Workers"
-    },
-    "byPeriod": {
-      "title": "Time on site by period",
-      "seriesLabel": "Time on site"
-    },
-    "byWorker": {
-      "title": "By worker",
-      "worker": "Worker",
-      "shifts": "Shifts",
-      "hours": "Time on site"
-    },
-    "byProperty": {
-      "title": "By property",
-      "property": "Property",
-      "hours": "Time on site"
-    },
-    "errors": {
-      "invalidRange": "The \"from\" date must be on or before the \"to\" date."
     }
   },
   "conversations": {
