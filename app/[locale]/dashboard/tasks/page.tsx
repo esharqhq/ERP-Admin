@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -24,19 +23,7 @@ import {
   type TaskGroupStatusFilter,
   type TaskGroupDto,
 } from "@/lib/types/task.types";
-
-function GroupStatusBadge({ status }: { status: string }) {
-  const s = normalizeStatus(status);
-  const variant =
-    s === "active"
-      ? "default"
-      : s === "done"
-        ? "secondary"
-        : s === "cancelled"
-          ? "destructive"
-          : "outline";
-  return <Badge variant={variant}>{status || "—"}</Badge>;
-}
+import { TaskStatusBadge } from "@/components/tasks/task-status-badge";
 
 function dateRange(group: TaskGroupDto): string {
   const dates = (group.dates ?? [])
@@ -168,7 +155,7 @@ export default function TasksPage() {
                       {group.title ?? "—"}
                     </TableCell>
                     <TableCell>
-                      <GroupStatusBadge status={group.status} />
+                      <TaskStatusBadge status={group.status} />
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
                       {dateRange(group)}
