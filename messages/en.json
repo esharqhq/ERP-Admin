@@ -215,6 +215,10 @@
       "userId": "User ID",
       "reviewedAt": "Reviewed At"
     },
+    "subAccounts": {
+      "title": "Sub-accounts",
+      "empty": "No sub-accounts"
+    },
     "properties": {
       "title": "Properties",
       "list": "Properties list",

@@ -215,6 +215,10 @@
       "userId": "Benutzer-ID",
       "reviewedAt": "Geprüft am"
     },
+    "subAccounts": {
+      "title": "Unterkonten",
+      "empty": "Keine Unterkonten"
+    },
     "properties": {
       "title": "Objekte",
       "list": "Objektliste",
