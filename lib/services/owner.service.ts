@@ -44,6 +44,13 @@ export const ownerService = {
     return data;
   },
 
+  getOwnerSubAccounts: async (ownerUserId: string): Promise<OwnerSummaryDto[]> => {
+    const { data } = await apiClient.get<OwnerSummaryDto[]>(
+      `/api/owners/${ownerUserId}/sub-accounts`,
+    );
+    return data;
+  },
+
   /** Soft-delete an owner. `reason` is recorded in the OWNER_DEACTIVATED audit entry. */
   deleteOwner: async (ownerUserId: string, reason?: string): Promise<void> => {
     const params = reason ? { reason } : {};
