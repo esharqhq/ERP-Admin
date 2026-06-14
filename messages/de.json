@@ -122,7 +122,10 @@
       "assign": "Zuweisen",
       "cancel": "Abbrechen",
       "noTasksThatDay": "An diesem Tag sind keine offenen Aufgaben geplant.",
-      "assignFailed": "Mitarbeiter konnte nicht zugewiesen werden. Bitte erneut versuchen."
+      "assignFailed": "Mitarbeiter konnte nicht zugewiesen werden. Bitte erneut versuchen.",
+      "allProperties": "Alle Objekte",
+      "hideEmpty": "Leere Zeilen ausblenden",
+      "showEmpty": "Leere Zeilen anzeigen"
     },
     "assignErrors": {
       "worker_not_approved": "Dieser Mitarbeiter ist nicht freigegeben.",

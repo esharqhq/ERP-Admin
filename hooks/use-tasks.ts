@@ -7,10 +7,10 @@ import type {
   OverrideTaskWorkerOutcomeRequest,
 } from "@/lib/types/task.types";
 
-export function useAdminTaskGroups(ownerUserId?: string) {
+export function useAdminTaskGroups(ownerUserId?: string, propertyId?: string) {
   return useQuery({
-    queryKey: ["admin-task-groups", ownerUserId ?? null],
-    queryFn: () => taskService.getAdminTaskGroups(ownerUserId),
+    queryKey: ["admin-task-groups", ownerUserId ?? null, propertyId ?? null],
+    queryFn: () => taskService.getAdminTaskGroups(ownerUserId, propertyId),
   });
 }
 

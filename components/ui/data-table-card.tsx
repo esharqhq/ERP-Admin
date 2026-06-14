@@ -1,10 +1,9 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
   Table, TableBody, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table"
-import { Search, Filter } from "lucide-react"
+import { Search } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { cn } from "@/lib/utils"
 
@@ -22,6 +21,8 @@ type DataTableCardProps<T> = {
   columns: DataTableColumn[]
   data: T[]
   renderRow: (item: T, index: number) => React.ReactNode
+  /** Filter control slot (e.g. a `FilterMenu`); rendered between search and `action`. */
+  filter?: React.ReactNode
   action?: React.ReactNode
 }
 
@@ -34,6 +35,7 @@ export function DataTableCard<T>({
   columns,
   data,
   renderRow,
+  filter,
   action,
 }: DataTableCardProps<T>) {
   const t = useTranslations("common")
@@ -55,10 +57,7 @@ export function DataTableCard<T>({
                 onChange={(e) => onSearchChange?.(e.target.value)}
               />
             </div>
-            <Button variant="outline" size="sm" className="gap-2">
-              <Filter className="size-4" />
-              <span className="hidden sm:inline">{t("filter")}</span>
-            </Button>
+            {filter}
             {action}
           </div>
         </div>

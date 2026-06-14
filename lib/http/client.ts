@@ -1,4 +1,5 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
+import { useAuthStore } from "@/store/auth.store";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 
@@ -96,7 +97,7 @@ apiClient.interceptors.response.use(
       return apiClient(original);
     } catch (refreshError) {
       flushQueue(refreshError);
-      localStorage.removeItem("auth-storage");
+      useAuthStore.getState().clearAuth();
       window.location.href = "/login";
       return Promise.reject(refreshError);
     } finally {

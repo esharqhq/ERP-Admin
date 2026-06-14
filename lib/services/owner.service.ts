@@ -35,7 +35,7 @@ export const ownerService = {
 
   listOwners: async (search?: string): Promise<OwnerSummaryDto[]> => {
     const params = search ? { search } : {};
-    const { data } = await apiClient.get<OwnerSummaryDto[]>("/api/owners", { params });
+    const { data } = await apiClient.get<OwnerSummaryDto[]>("/api/admin/owners/bosses", { params });
     return data;
   },
 

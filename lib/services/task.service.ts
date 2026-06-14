@@ -9,9 +9,11 @@ import type {
 
 export const taskService = {
   // ── Reads ──────────────────────────────────────────────────────────────────
-  /** Admin: all task groups across the system; optionally scoped to one owner. */
-  getAdminTaskGroups: async (ownerUserId?: string): Promise<TaskGroupDto[]> => {
-    const params = ownerUserId ? { ownerUserId } : {};
+  /** Admin: all task groups across the system; optionally scoped to one owner or property. */
+  getAdminTaskGroups: async (ownerUserId?: string, propertyId?: string): Promise<TaskGroupDto[]> => {
+    const params: Record<string, string> = {};
+    if (ownerUserId) params.ownerUserId = ownerUserId;
+    if (propertyId) params.propertyId = propertyId;
     const { data } = await apiClient.get<TaskGroupDto[]>(
       "/api/tasks/admin/groups",
       { params },

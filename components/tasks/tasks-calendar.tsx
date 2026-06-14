@@ -1,21 +1,27 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ChevronLeft, ChevronRight, Building2, Eye, EyeOff } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useWeekNavigation } from "@/hooks/use-week-navigation";
+import { useAdminTaskGroups } from "@/hooks/use-tasks";
+import { useProperties } from "@/hooks/use-properties";
 import { normalizeStatus, type TaskGroupDto, type TaskItemDto } from "@/lib/types/task.types";
-import { TaskStatusBadge } from "@/components/tasks/task-status-badge";
+import { propertyPalette } from "@/lib/calendar-utils";
+import { cn } from "@/lib/utils";
 
-interface TasksCalendarProps {
-  groups: TaskGroupDto[];
-  isLoading: boolean;
-}
+const VACATED = new Set(["removed", "cancelled", "noshow"]);
 
-// Local-time yyyy-MM-dd key — matches TaskItemDto.scheduledDate format
 function toLocalDateKey(d: Date): string {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
@@ -23,192 +29,299 @@ function toLocalDateKey(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
-// Extract HH:mm from ISO date-time string
-function formatTime(dateStr: string | null | undefined): string {
-  if (!dateStr) return "—";
-  const timePart = dateStr.includes("T") ? dateStr.split("T")[1] : dateStr;
-  return timePart.slice(0, 5);
+function fmtTime(s: string | null | undefined): string {
+  if (!s) return "";
+  const t = s.includes("T") ? s.split("T")[1] : s;
+  return t.slice(0, 5);
 }
 
-function getCellTasks(group: TaskGroupDto, day: Date): TaskItemDto[] {
-  const key = toLocalDateKey(day);
-  return (group.tasks ?? []).filter((t) => t.scheduledDate === key);
+function activeWorkerCount(task: TaskItemDto): number {
+  return (task.workers ?? []).filter((w) => !VACATED.has(normalizeStatus(w.outcome))).length;
 }
 
-function statusTintClasses(status: string): string {
-  const s = normalizeStatus(status);
-  if (s === "active")    return "bg-green-50 dark:bg-green-950/40 border-l-2 border-l-green-400";
-  if (s === "pending")   return "bg-yellow-50 dark:bg-yellow-950/40 border-l-2 border-l-yellow-400";
-  if (s === "review")    return "bg-blue-50 dark:bg-blue-950/40 border-l-2 border-l-blue-400";
-  if (s === "done")      return "bg-muted/40 border-l-2 border-l-muted-foreground/30";
-  if (s === "cancelled") return "bg-destructive/5 border-l-2 border-l-destructive/40";
-  return "bg-muted/40 border-l-2 border-l-muted-foreground/30";
+function getCellTask(group: TaskGroupDto, isoDate: string): TaskItemDto | null {
+  return (group.tasks ?? []).find((t) => t.scheduledDate === isoDate) ?? null;
 }
 
-const DAY_ABBR = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"] as const;
-
-function pad2(n: number): string {
-  return String(n).padStart(2, "0");
-}
-
-export function TasksCalendar({ groups, isLoading }: TasksCalendarProps) {
+export function TasksCalendar() {
   const t = useTranslations("tasks");
+  const tW = useTranslations("workers");
   const nav = useWeekNavigation();
   const todayKey = toLocalDateKey(new Date());
 
-  const visibleGroups = groups.filter((g) =>
-    nav.days.some((day) => getCellTasks(g, day).length > 0)
+  const [propertyFilter, setPropertyFilter] = useState("");
+  const [hideEmpty, setHideEmpty] = useState(false);
+
+  const { data: groups = [], isLoading } = useAdminTaskGroups(
+    undefined,
+    propertyFilter || undefined,
+  );
+  const { data: properties = [] } = useProperties();
+
+  const weekDateKeys = useMemo(
+    () => nav.days.map(toLocalDateKey),
+    [nav.days],
   );
 
+  const visibleGroups = useMemo(() => {
+    if (!hideEmpty) return groups;
+    return groups.filter((g) =>
+      weekDateKeys.some((key) => getCellTask(g, key) !== null),
+    );
+  }, [groups, hideEmpty, weekDateKeys]);
+
   return (
-    <Card>
-      {/* Week navigation */}
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
-        <Button variant="outline" size="icon-sm" onClick={nav.prev} aria-label="Previous week">
-          <ChevronLeft className="size-4" />
-        </Button>
-        <span className="font-semibold text-sm min-w-[56px] text-center">{nav.label}</span>
-        <Button variant="outline" size="icon-sm" onClick={nav.next} aria-label="Next week">
-          <ChevronRight className="size-4" />
-        </Button>
-        <span className="text-sm text-muted-foreground">{nav.dateRangeLabel}</span>
-      </div>
+    <Card className="overflow-hidden">
+      {/* Header: week nav + filters */}
+      <CardHeader className="pb-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={nav.prev}
+              className="size-8 hover:bg-accent"
+              aria-label="Previous week"
+            >
+              <ChevronLeft className="size-4" />
+            </Button>
+            <span className="min-w-[56px] text-center text-sm font-bold tracking-tight">
+              {nav.label}
+            </span>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={nav.next}
+              className="size-8 hover:bg-accent"
+              aria-label="Next week"
+            >
+              <ChevronRight className="size-4" />
+            </Button>
+            <span className="ml-1 text-sm text-muted-foreground">{nav.dateRangeLabel}</span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Select
+              value={propertyFilter || undefined}
+              onValueChange={(v) => setPropertyFilter(v ?? "")}
+            >
+              <SelectTrigger size="sm" className="w-44">
+                <SelectValue placeholder={tW("calendar.allProperties")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">{tW("calendar.allProperties")}</SelectItem>
+                {properties.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.name ?? p.id.slice(0, 8)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Button
+              variant={hideEmpty ? "default" : "outline"}
+              size="sm"
+              className="h-7 gap-1.5 px-2.5"
+              onClick={() => setHideEmpty((v) => !v)}
+              title={hideEmpty ? tW("calendar.showEmpty") : tW("calendar.hideEmpty")}
+            >
+              {hideEmpty ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+              <span className="text-xs">
+                {hideEmpty ? tW("calendar.showEmpty") : tW("calendar.hideEmpty")}
+              </span>
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
 
       {/* Grid */}
-      <CardContent className="p-0">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[800px] text-sm border-collapse">
-            <thead>
-              <tr className="bg-muted/50">
-                <th className="text-left px-4 py-3 text-xs font-medium uppercase tracking-wide text-muted-foreground w-[200px] min-w-[160px] border-b border-border">
-                  {t("list.columns.title")}
-                </th>
-                {nav.days.map((day, i) => {
-                  const isToday = toLocalDateKey(day) === todayKey;
-                  return (
-                    <th
-                      key={i}
-                      className={`px-2 py-2.5 text-xs font-medium text-center min-w-[110px] border-b border-border ${
-                        isToday ? "bg-primary/5" : ""
-                      }`}
-                    >
-                      <div className="flex flex-col items-center gap-1">
-                        <span className={`uppercase tracking-wide ${isToday ? "text-primary" : "text-muted-foreground"}`}>
-                          {DAY_ABBR[i]}
-                        </span>
-                        <span
-                          className={`tabular-nums text-sm font-semibold leading-none flex size-7 items-center justify-center rounded-full ${
-                            isToday
-                              ? "bg-primary text-primary-foreground"
-                              : "text-foreground"
-                          }`}
-                        >
-                          {pad2(day.getDate())}
-                        </span>
-                      </div>
-                    </th>
-                  );
-                })}
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading ? (
-                Array.from({ length: 4 }).map((_, i) => (
-                  <tr key={i} className="border-t border-border">
-                    <td className="px-4 py-3">
-                      <Skeleton className="h-14 w-full rounded-md" />
-                    </td>
-                    {Array.from({ length: 7 }).map((_, j) => (
-                      <td key={j} className="px-2 py-3">
-                        <Skeleton className="h-14 w-full rounded-md" />
-                      </td>
-                    ))}
-                  </tr>
-                ))
-              ) : visibleGroups.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={8}
-                    className="py-16 text-center text-sm text-muted-foreground"
+      <div className="overflow-x-auto border-t border-border">
+        <table className="w-full border-collapse text-sm">
+          <thead>
+            <tr>
+              <th
+                scope="col"
+                className="sticky left-0 z-20 min-w-[200px] border-b border-r border-border bg-muted/50 px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground"
+              >
+                {t("list.columns.title")}
+              </th>
+              {nav.days.map((day, i) => {
+                const key = weekDateKeys[i];
+                const isToday = key === todayKey;
+                const wd = (day.getDay() + 6) % 7;
+                const isWeekend = wd >= 5;
+                return (
+                  <th
+                    key={key}
+                    scope="col"
+                    className={cn(
+                      "min-w-[150px] border-b border-r border-border px-3 py-2 text-center last:border-r-0",
+                      isToday ? "bg-primary/10" : isWeekend ? "bg-muted/25" : "bg-muted/50",
+                    )}
                   >
-                    {t("calendar.noTasksThisWeek")}
+                    <div
+                      className={cn(
+                        "text-[11px] font-medium uppercase tracking-[0.06em]",
+                        isWeekend ? "text-muted-foreground/40" : "text-muted-foreground",
+                      )}
+                    >
+                      {["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"][wd]}
+                    </div>
+                    <span
+                      className={cn(
+                        "mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold tabular-nums",
+                        isToday
+                          ? "bg-primary text-primary-foreground"
+                          : isWeekend
+                          ? "text-muted-foreground/40"
+                          : "text-foreground",
+                      )}
+                    >
+                      {day.getDate()}
+                    </span>
+                  </th>
+                );
+              })}
+            </tr>
+          </thead>
+          <tbody>
+            {isLoading ? (
+              Array.from({ length: 5 }).map((_, i) => (
+                <tr key={i} className="border-t border-border">
+                  <td className="px-4 py-3">
+                    <Skeleton className="h-16 w-full rounded-md" />
                   </td>
+                  {Array.from({ length: 7 }).map((_, j) => (
+                    <td key={j} className="px-2 py-2">
+                      <Skeleton className="h-16 w-full rounded-md" />
+                    </td>
+                  ))}
                 </tr>
-              ) : (
-                visibleGroups.map((group) => (
-                  <tr key={group.id} className="border-t border-border hover:bg-accent/40 transition-colors">
-                    {/* Row label */}
-                    <td className="px-4 py-3 align-top">
-                      <div className="flex flex-col gap-1.5">
+              ))
+            ) : visibleGroups.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={8}
+                  className="py-16 text-center text-sm text-muted-foreground"
+                >
+                  {t("calendar.noTasksThisWeek")}
+                </td>
+              </tr>
+            ) : (
+              visibleGroups.map((group) => {
+                const pal = propertyPalette(group.propertyId);
+                const startTime = fmtTime(group.defaultStartTime);
+                const endTime = fmtTime(group.defaultDeadline);
+
+                return (
+                  <tr key={group.id} className="group/row border-t border-border">
+                    {/* Left sticky label */}
+                    <td className="sticky left-0 z-10 min-w-[200px] border-r border-border bg-background px-4 py-2.5 align-top transition-colors duration-150 group-hover/row:bg-accent/30">
+                      <div className="flex flex-col gap-0.5">
                         <span
-                          className="font-medium text-sm overflow-hidden truncate max-w-[180px] block"
+                          className="truncate text-[13px] font-semibold leading-tight text-foreground"
                           title={group.title ?? undefined}
                         >
                           {group.title ?? "—"}
                         </span>
-                        <TaskStatusBadge status={group.status} />
+                        {(startTime || endTime) && (
+                          <span className="text-[11px] tabular-nums text-muted-foreground">
+                            {startTime}{endTime ? ` – ${endTime}` : ""}
+                          </span>
+                        )}
                       </div>
                     </td>
 
                     {/* Day cells */}
-                    {nav.days.map((day, i) => {
-                      const isToday = toLocalDateKey(day) === todayKey;
-                      const cellTasks = getCellTasks(group, day);
-                      if (cellTasks.length === 0) {
+                    {weekDateKeys.map((isoDate, i) => {
+                      const isToday = isoDate === todayKey;
+                      const wd = (nav.days[i].getDay() + 6) % 7;
+                      const isWeekend = wd >= 5;
+                      const task = getCellTask(group, isoDate);
+
+                      if (!task) {
                         return (
                           <td
-                            key={i}
-                            className={`px-2 py-3 text-center text-muted-foreground/30 align-middle text-base ${isToday ? "bg-primary/5" : ""}`}
+                            key={isoDate}
+                            className={cn(
+                              "min-w-[150px] border-r border-border px-1.5 py-1.5 last:border-r-0 align-middle text-center text-muted-foreground/25 transition-colors duration-150",
+                              isToday
+                                ? "bg-primary/5 group-hover/row:bg-primary/10"
+                                : isWeekend
+                                ? "bg-muted/10 group-hover/row:bg-accent/15"
+                                : "bg-background group-hover/row:bg-accent/20",
+                            )}
                           >
                             –
                           </td>
                         );
                       }
-                      const task = cellTasks[0];
-                      const extra = cellTasks.length - 1;
-                      const startTime = formatTime(task.scheduledAt);
-                      const endTime = task.deadline ? formatTime(task.deadline) : null;
-                      const workerCount = (task.workers ?? []).length;
-                      const firstWorkerName = task.workers?.[0]?.workerName ?? null;
-                      const workerLabel = firstWorkerName
-                        ? firstWorkerName.slice(0, 10)
-                        : "—";
+
+                      const assigned = activeWorkerCount(task);
+                      const required = task.requiredWorkerCount;
+                      const isFull = assigned >= required;
+                      const propName =
+                        task.propertyName ??
+                        properties.find((p) => p.id === group.propertyId)?.name ??
+                        group.propertyId.slice(0, 8);
 
                       return (
                         <td
-                          key={i}
-                          className={`px-2.5 py-2.5 align-top ${statusTintClasses(task.status)}`}
+                          key={isoDate}
+                          className={cn(
+                            "min-w-[150px] border-r border-border px-1.5 py-1.5 last:border-r-0 align-top transition-colors duration-150",
+                            isToday
+                              ? "bg-primary/5 group-hover/row:bg-primary/10"
+                              : isWeekend
+                              ? "bg-muted/10 group-hover/row:bg-accent/15"
+                              : "bg-background group-hover/row:bg-accent/20",
+                          )}
                         >
-                          <div className="flex flex-col gap-1 text-xs">
-                            <span className="font-semibold tabular-nums text-foreground">
-                              {startTime}
-                              {endTime ? ` – ${endTime}` : ""}
-                            </span>
-                            <span className="text-muted-foreground">
-                              {workerCount} {t("calendar.workers")}
-                            </span>
-                            <span className="text-muted-foreground/80 truncate max-w-[90px]">
-                              {workerLabel}
-                            </span>
-                            {extra > 0 && (
-                              <Badge
-                                variant="outline"
-                                className="w-fit text-[10px] px-1 py-0 h-4 mt-0.5"
+                          <div
+                            className={cn("rounded-md p-1.5 text-[11px] leading-tight", pal.bg, pal.text)}
+                            title={`${group.title} — ${propName}`}
+                          >
+                            {/* Time + fraction */}
+                            <div className="flex items-center justify-between gap-1 mb-0.5">
+                              <span className="font-semibold tabular-nums">
+                                {fmtTime(task.scheduledAt)}
+                                {task.deadline ? ` – ${fmtTime(task.deadline)}` : endTime ? ` – ${endTime}` : ""}
+                              </span>
+                              <span
+                                className={cn(
+                                  "rounded px-1 text-[10px] font-bold tabular-nums",
+                                  pal.sub,
+                                  !isFull && "opacity-60",
+                                )}
                               >
-                                +{extra}
-                              </Badge>
-                            )}
+                                {assigned}/{required}
+                              </span>
+                            </div>
+                            {/* Title */}
+                            <div className="truncate font-medium">{group.title ?? "—"}</div>
+                            {/* Property chip */}
+                            <div
+                              className={cn(
+                                "mt-1 flex w-fit max-w-full items-center gap-1 rounded px-1 py-0.5",
+                                pal.sub,
+                              )}
+                            >
+                              <Building2 className="size-2.5 shrink-0 opacity-70" />
+                              <span className="truncate text-[10px] font-medium opacity-90">
+                                {propName}
+                              </span>
+                            </div>
                           </div>
                         </td>
                       );
                     })}
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </CardContent>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
     </Card>
   );
 }

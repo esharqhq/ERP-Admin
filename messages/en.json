@@ -122,7 +122,10 @@
       "assign": "Assign",
       "cancel": "Cancel",
       "noTasksThatDay": "No open tasks scheduled that day.",
-      "assignFailed": "Could not assign this worker. Please try again."
+      "assignFailed": "Could not assign this worker. Please try again.",
+      "allProperties": "All properties",
+      "hideEmpty": "Hide empty rows",
+      "showEmpty": "Show empty rows"
     },
     "assignErrors": {
       "worker_not_approved": "This worker is not approved.",

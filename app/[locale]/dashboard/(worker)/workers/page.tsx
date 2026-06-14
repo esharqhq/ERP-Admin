@@ -1,13 +1,13 @@
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
-import Link from "next/link";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { DataTableCard } from "@/components/ui/data-table-card";
+import { RowLink } from "@/components/ui/row-link";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -18,14 +18,23 @@ import {
   Star,
   Plus,
   Loader2,
+  Eye,
+  EyeOff,
 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { MapPin, CalendarClock, Search } from "lucide-react";
+import { MapPin, CalendarClock, Search, Building2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useWorkers } from "@/hooks/use-workers";
@@ -49,14 +58,18 @@ const KNOWN_ASSIGN_ERRORS = new Set([
 const VACATED_OUTCOMES = new Set(["removed", "cancelled", "noshow"]);
 
 
-const workerHues: Record<number, { chip: string; dot: string }> = {
-  1: { chip: "bg-blue-500/12 text-blue-700 dark:text-blue-300 ring-blue-500/25",     dot: "bg-blue-500" },
-  2: { chip: "bg-emerald-500/12 text-emerald-700 dark:text-emerald-300 ring-emerald-500/25", dot: "bg-emerald-500" },
-  3: { chip: "bg-amber-500/12 text-amber-700 dark:text-amber-300 ring-amber-500/25", dot: "bg-amber-500" },
-  4: { chip: "bg-violet-500/12 text-violet-700 dark:text-violet-300 ring-violet-500/25", dot: "bg-violet-500" },
-  5: { chip: "bg-rose-500/12 text-rose-700 dark:text-rose-300 ring-rose-500/25",     dot: "bg-rose-500" },
-  6: { chip: "bg-cyan-500/12 text-cyan-700 dark:text-cyan-300 ring-cyan-500/25",     dot: "bg-cyan-500" },
-};
+import { propertyPalette } from "@/lib/calendar-utils";
+
+interface CalendarTaskChip {
+  taskId: string;
+  title: string;
+  startTime: string;
+  endTime: string | null;
+  assignedCount: number;
+  requiredCount: number;
+  propertyId: string;
+  propertyName: string;
+}
 
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -76,7 +89,7 @@ type StatusTab = "all" | "pending" | "approved";
 
 export default function WorkersPage() {
   const t = useTranslations("workers");
-  const [viewTab, setViewTab] = useState<"table" | "calendar">("table");
+  const [viewTab, setViewTab] = useState<"table" | "calendar">("calendar");
   const [statusTab, setStatusTab] = useState<StatusTab>("pending");
   const [search, setSearch] = useState("");
 
@@ -161,7 +174,6 @@ function WorkersTable({
     { label: t("columns.worker") },
     { label: t("columns.status") },
     { label: t("columns.rating"), className: "text-center" },
-    { label: t("columns.actions"), className: "text-right" },
   ];
   if (isLoading) {
     return (
@@ -183,8 +195,9 @@ function WorkersTable({
       columns={workerColumns}
       data={workers}
       renderRow={(w) => (
-        <TableRow key={w.id} className="group/row transition-colors duration-150 hover:bg-accent/40">
+        <TableRow key={w.id} className="group/row relative cursor-pointer transition-colors duration-150 hover:bg-accent/40">
           <TableCell className="py-3">
+            <RowLink href={`/dashboard/workers/${w.id}`} label={w.fullName || undefined} />
             <div className="flex items-center gap-3">
               <Avatar className="size-9 ring-1 ring-border">
                 <AvatarFallback className="bg-muted text-[11px] font-semibold">
@@ -207,16 +220,6 @@ function WorkersTable({
               <Star className="size-3.5 fill-amber-500 text-amber-500" />
               {w.rating.toFixed(1)}
             </div>
-          </TableCell>
-          <TableCell className="text-right">
-            <Button
-              variant="ghost"
-              size="sm"
-              nativeButton={false}
-              render={<Link href={`/dashboard/workers/${w.id}`} />}
-            >
-              {"View"}
-            </Button>
           </TableCell>
         </TableRow>
       )}
@@ -242,6 +245,8 @@ function WorkersCalendar() {
   }, []);
 
   const [weekOffset, setWeekOffset] = useState(0);
+  const [propertyFilter, setPropertyFilter] = useState("");
+  const [hideEmpty, setHideEmpty] = useState(false);
   const [selectedCell, setSelectedCell] = useState<{
     workerId: string;
     workerName: string;
@@ -253,7 +258,10 @@ function WorkersCalendar() {
   const [taskSearch, setTaskSearch] = useState("");
 
   const { data: allWorkers = [], isLoading: isLoadingWorkers } = useWorkers(true);
-  const { data: taskGroups = [], isLoading: isLoadingTasks } = useAdminTaskGroups();
+  const { data: taskGroups = [], isLoading: isLoadingTasks } = useAdminTaskGroups(
+    undefined,
+    propertyFilter || undefined,
+  );
   const { data: properties = [] } = useProperties();
   const assignWorker = useAssignWorker();
   const isLoading = isLoadingWorkers || isLoadingTasks;
@@ -311,23 +319,41 @@ function WorkersCalendar() {
     });
   }, [today, weekOffset]);
 
-  const workerDayMap = useMemo(() => {
-    const map = new Map<string, Map<string, string[]>>();
+  const workerTaskMap = useMemo(() => {
+    const map = new Map<string, Map<string, CalendarTaskChip[]>>();
     for (const group of taskGroups) {
       const title = group.title ?? "Task";
+      const startTime = group.defaultStartTime.slice(0, 5);
+      const endTime = group.defaultDeadline ? group.defaultDeadline.slice(0, 5) : null;
       for (const task of group.tasks ?? []) {
         if (!task.scheduledDate) continue;
+        const assignedCount = (task.workers ?? []).filter(
+          (tw) => !VACATED_OUTCOMES.has(normalizeStatus(tw.outcome)),
+        ).length;
+        const chip: CalendarTaskChip = {
+          taskId: task.id,
+          title,
+          startTime,
+          endTime,
+          assignedCount,
+          requiredCount: task.requiredWorkerCount,
+          propertyId: group.propertyId,
+          propertyName: task.propertyName ?? propertyName(group.propertyId),
+        };
         for (const tw of task.workers ?? []) {
           if (!tw.workerId) continue;
+          if (VACATED_OUTCOMES.has(normalizeStatus(tw.outcome))) continue;
           if (!map.has(tw.workerId)) map.set(tw.workerId, new Map());
           const dayMap = map.get(tw.workerId)!;
           const existing = dayMap.get(task.scheduledDate) ?? [];
-          dayMap.set(task.scheduledDate, [...existing, title]);
+          if (!existing.some((c) => c.taskId === task.id)) {
+            dayMap.set(task.scheduledDate, [...existing, chip]);
+          }
         }
       }
     }
     return map;
-  }, [taskGroups]);
+  }, [taskGroups, propertyName]);
 
   const calendarWorkers = useMemo(() => {
     const weekKeys = new Set(weekDays.map((d) => {
@@ -336,8 +362,8 @@ function WorkersCalendar() {
       const day = String(d.getDate()).padStart(2, "0");
       return `${y}-${m}-${day}`;
     }));
-    return allWorkers.map((w) => {
-      const dayMap = workerDayMap.get(w.id);
+    const rows = allWorkers.map((w) => {
+      const dayMap = workerTaskMap.get(w.id);
       const weekTaskCount = dayMap
         ? Array.from(dayMap.entries())
             .filter(([k]) => weekKeys.has(k))
@@ -345,7 +371,8 @@ function WorkersCalendar() {
         : 0;
       return { worker: w, weekTaskCount };
     });
-  }, [allWorkers, workerDayMap, weekDays]);
+    return hideEmpty ? rows.filter((r) => r.weekTaskCount > 0) : rows;
+  }, [allWorkers, workerTaskMap, weekDays, hideEmpty]);
 
   const weekLabel = (() => {
     const mon = weekDays[0];
@@ -393,7 +420,8 @@ function WorkersCalendar() {
     <>
       <Card className="overflow-hidden">
         <CardHeader className="pb-3">
-          <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            {/* Week navigation */}
             <div className="flex items-center gap-1">
               <Button
                 variant="ghost"
@@ -417,14 +445,43 @@ function WorkersCalendar() {
                 <ChevronRight className="size-4" />
               </Button>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setWeekOffset(0)}
-              className="h-8 transition-all duration-150 active:scale-[0.97]"
-            >
-              {t("calendar.today")}
-            </Button>
+
+            {/* Filters */}
+            <div className="flex items-center gap-2">
+              <Select value={propertyFilter || undefined} onValueChange={(v) => setPropertyFilter(v ?? "")}>
+                <SelectTrigger size="sm" className="w-44">
+                  <SelectValue placeholder={t("calendar.allProperties")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">{t("calendar.allProperties")}</SelectItem>
+                  {properties.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.name ?? p.id.slice(0, 8)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Button
+                variant={hideEmpty ? "default" : "outline"}
+                size="sm"
+                className="h-7 gap-1.5 px-2.5"
+                onClick={() => setHideEmpty((v) => !v)}
+                title={hideEmpty ? t("calendar.showEmpty") : t("calendar.hideEmpty")}
+              >
+                {hideEmpty ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+                <span className="text-xs">{hideEmpty ? t("calendar.showEmpty") : t("calendar.hideEmpty")}</span>
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setWeekOffset(0)}
+                className="h-7 transition-all duration-150 active:scale-[0.97]"
+              >
+                {t("calendar.today")}
+              </Button>
+            </div>
           </div>
         </CardHeader>
 
@@ -477,9 +534,8 @@ function WorkersCalendar() {
               </tr>
             </thead>
             <tbody>
-              {calendarWorkers.map(({ worker: w, weekTaskCount }, idx) => {
-                const hue = workerHues[(idx % 6) + 1];
-                const dayMap = workerDayMap.get(w.id);
+              {calendarWorkers.map(({ worker: w, weekTaskCount }) => {
+                const dayMap = workerTaskMap.get(w.id);
 
                 return (
                   <tr key={w.id} className="group/row">
@@ -519,15 +575,15 @@ function WorkersCalendar() {
                       const mo = String(d.getMonth() + 1).padStart(2, "0");
                       const dy = String(d.getDate()).padStart(2, "0");
                       const isoDate = `${y}-${mo}-${dy}`;
-                      const titles = dayMap?.get(isoDate) ?? [];
-                      const isEmpty = titles.length === 0;
+                      const chips = dayMap?.get(isoDate) ?? [];
+                      const isEmpty = chips.length === 0;
 
                       return (
                         <td
                           key={dateKey(d)}
                           onClick={isEmpty ? () => openAssignDialog(w.id, w.fullName ?? "Worker", d, isoDate) : undefined}
                           className={cn(
-                            "min-w-[120px] border-b border-r border-border px-2 py-2 last:border-r-0 transition-colors duration-150 group/cell",
+                            "min-w-[150px] border-b border-r border-border px-1.5 py-1.5 last:border-r-0 align-top transition-colors duration-150 group/cell",
                             isToday
                               ? "bg-primary/5 group-hover/row:bg-primary/10"
                               : "bg-background group-hover/row:bg-accent/20",
@@ -535,23 +591,48 @@ function WorkersCalendar() {
                           )}
                         >
                           {isEmpty ? (
-                            <div className="flex h-7 items-center justify-center opacity-0 group-hover/cell:opacity-50 transition-opacity duration-150">
+                            <div className="flex h-8 items-center justify-center opacity-0 group-hover/cell:opacity-50 transition-opacity duration-150">
                               <Plus className="size-3.5 text-muted-foreground" />
                             </div>
                           ) : (
                             <div className="flex flex-col gap-1">
-                              {titles.map((title, ti) => (
-                                <div
-                                  key={ti}
-                                  className={cn(
-                                    "truncate rounded-md px-2 py-1 text-[11px] font-medium ring-1 ring-inset leading-tight",
-                                    hue?.chip,
-                                  )}
-                                  title={title}
-                                >
-                                  {title}
-                                </div>
-                              ))}
+                              {chips.map((chip) => {
+                                const pal = propertyPalette(chip.propertyId);
+                                const isFull = chip.assignedCount >= chip.requiredCount;
+                                return (
+                                  <div
+                                    key={chip.taskId}
+                                    className={cn("rounded-md p-1.5 text-[11px] leading-tight", pal.bg, pal.text)}
+                                    title={`${chip.title} — ${chip.propertyName}`}
+                                  >
+                                    {/* Time + fraction */}
+                                    <div className="flex items-center justify-between gap-1 mb-0.5">
+                                      <span className="font-semibold tabular-nums">
+                                        {chip.startTime}{chip.endTime ? ` – ${chip.endTime}` : ""}
+                                      </span>
+                                      <span className={cn(
+                                        "rounded px-1 text-[10px] font-bold tabular-nums",
+                                        pal.sub,
+                                        isFull ? "opacity-100" : "opacity-70",
+                                      )}>
+                                        {chip.assignedCount}/{chip.requiredCount}
+                                      </span>
+                                    </div>
+                                    {/* Title */}
+                                    <div className="truncate font-medium">{chip.title}</div>
+                                    {/* Property chip */}
+                                    <div className={cn(
+                                      "mt-1 flex items-center gap-1 rounded px-1 py-0.5 w-fit max-w-full",
+                                      pal.sub,
+                                    )}>
+                                      <Building2 className="size-2.5 shrink-0 opacity-70" />
+                                      <span className="truncate text-[10px] font-medium opacity-90">
+                                        {chip.propertyName}
+                                      </span>
+                                    </div>
+                                  </div>
+                                );
+                              })}
                             </div>
                           )}
                         </td>

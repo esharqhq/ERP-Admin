@@ -49,7 +49,7 @@ export default function TasksPage() {
   const tCommon = useTranslations("common");
   const [tab, setTab] = useState<TaskGroupStatusFilter>("all");
   const [search, setSearch] = useState("");
-  const [view, setView] = useState<"list" | "calendar">("list");
+  const [view, setView] = useState<"list" | "calendar">("calendar");
 
   const { data: groups = [], isLoading, isError } = useAdminTaskGroups();
 
@@ -219,9 +219,7 @@ export default function TasksPage() {
         </>
       )}
 
-      {view === "calendar" && (
-        <TasksCalendar groups={groups} isLoading={isLoading} />
-      )}
+      {view === "calendar" && <TasksCalendar />}
     </div>
   );
 }
