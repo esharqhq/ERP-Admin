@@ -1,6 +1,7 @@
 import { apiClient } from "@/lib/http/client";
 import type {
   KycProfileSummaryDto,
+  KycProfileDto,
   KycApprovalDto,
   RejectKycRequest,
   KycStatus,
@@ -10,6 +11,13 @@ export const kycService = {
   getList: async (status?: KycStatus): Promise<KycProfileSummaryDto[]> => {
     const params = status !== undefined ? { status } : {};
     const { data } = await apiClient.get<KycProfileSummaryDto[]>("/api/admin/kyc", { params });
+    return data;
+  },
+
+  getProfile: async (ownerProfileId: string): Promise<KycProfileDto> => {
+    const { data } = await apiClient.get<KycProfileDto>(
+      `/api/admin/kyc/${ownerProfileId}`,
+    );
     return data;
   },
 

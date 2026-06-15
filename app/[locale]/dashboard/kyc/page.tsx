@@ -135,8 +135,14 @@ export default function KycPage() {
                     onReject={(id, reason) =>
                       rejectMutation.mutate({ ownerProfileId: id, reason })
                     }
-                    isApproving={approveMutation.isPending}
-                    isRejecting={rejectMutation.isPending}
+                    isApproving={
+                      approveMutation.isPending &&
+                      approveMutation.variables === kyc.ownerProfileId
+                    }
+                    isRejecting={
+                      rejectMutation.isPending &&
+                      rejectMutation.variables?.ownerProfileId === kyc.ownerProfileId
+                    }
                   />
                 ))
               )}

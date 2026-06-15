@@ -58,57 +58,59 @@ export function TrendChart({
   };
 
   return (
-    <ResponsiveContainer width="100%" height={260}>
-      <AreaChart data={data} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
-        <defs>
-          <linearGradient id="grad-created" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor={CREATED_COLOR} stopOpacity={0.35} />
-            <stop offset="95%" stopColor={CREATED_COLOR} stopOpacity={0} />
-          </linearGradient>
-          <linearGradient id="grad-completed" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor={COMPLETED_COLOR} stopOpacity={0.35} />
-            <stop offset="95%" stopColor={COMPLETED_COLOR} stopOpacity={0} />
-          </linearGradient>
-        </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-        <XAxis
-          dataKey="date"
-          tickFormatter={fmtTick}
-          tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
-          tickLine={false}
-          axisLine={false}
-          minTickGap={24}
-        />
-        <YAxis
-          allowDecimals={false}
-          tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
-          tickLine={false}
-          axisLine={false}
-          width={36}
-        />
-        <Tooltip
-          contentStyle={TOOLTIP_STYLE}
-          labelFormatter={(iso) => fmtTick(String(iso))}
-        />
-        <Legend wrapperStyle={{ fontSize: 12 }} />
-        <Area
-          type="monotone"
-          dataKey="created"
-          name={labels.created}
-          stroke={CREATED_COLOR}
-          strokeWidth={2}
-          fill="url(#grad-created)"
-        />
-        <Area
-          type="monotone"
-          dataKey="completed"
-          name={labels.completed}
-          stroke={COMPLETED_COLOR}
-          strokeWidth={2}
-          fill="url(#grad-completed)"
-        />
-      </AreaChart>
-    </ResponsiveContainer>
+    <div className="relative h-[260px] w-full">
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart data={data} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
+          <defs>
+            <linearGradient id="grad-created" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor={CREATED_COLOR} stopOpacity={0.35} />
+              <stop offset="95%" stopColor={CREATED_COLOR} stopOpacity={0} />
+            </linearGradient>
+            <linearGradient id="grad-completed" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor={COMPLETED_COLOR} stopOpacity={0.35} />
+              <stop offset="95%" stopColor={COMPLETED_COLOR} stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+          <XAxis
+            dataKey="date"
+            tickFormatter={fmtTick}
+            tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+            tickLine={false}
+            axisLine={false}
+            minTickGap={24}
+          />
+          <YAxis
+            allowDecimals={false}
+            tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+            tickLine={false}
+            axisLine={false}
+            width={36}
+          />
+          <Tooltip
+            contentStyle={TOOLTIP_STYLE}
+            labelFormatter={(iso) => fmtTick(String(iso))}
+          />
+          <Legend wrapperStyle={{ fontSize: 12 }} />
+          <Area
+            type="monotone"
+            dataKey="created"
+            name={labels.created}
+            stroke={CREATED_COLOR}
+            strokeWidth={2}
+            fill="url(#grad-created)"
+          />
+          <Area
+            type="monotone"
+            dataKey="completed"
+            name={labels.completed}
+            stroke={COMPLETED_COLOR}
+            strokeWidth={2}
+            fill="url(#grad-completed)"
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
   );
 }
 
@@ -119,30 +121,32 @@ export function StatusDonut({ data }: { data: StatusBreakdownItem[] }) {
   const slices = data.filter((d) => d.count > 0);
 
   return (
-    <ResponsiveContainer width="100%" height={260}>
-      <PieChart>
-        <Tooltip contentStyle={TOOLTIP_STYLE} />
-        <Legend wrapperStyle={{ fontSize: 12 }} />
-        <Pie
-          data={slices}
-          dataKey="count"
-          nameKey="status"
-          cx="50%"
-          cy="50%"
-          innerRadius={56}
-          outerRadius={92}
-          paddingAngle={2}
-          stroke="var(--background)"
-          strokeWidth={2}
-        >
-          {slices.map((d) => (
-            <Cell
-              key={d.status}
-              fill={STATUS_COLORS[normalizeStatus(d.status)] ?? STATUS_FALLBACK}
-            />
-          ))}
-        </Pie>
-      </PieChart>
-    </ResponsiveContainer>
+    <div className="relative h-[260px] w-full">
+      <ResponsiveContainer width="100%" height="100%">
+        <PieChart>
+          <Tooltip contentStyle={TOOLTIP_STYLE} />
+          <Legend wrapperStyle={{ fontSize: 12 }} />
+          <Pie
+            data={slices}
+            dataKey="count"
+            nameKey="status"
+            cx="50%"
+            cy="50%"
+            innerRadius={56}
+            outerRadius={92}
+            paddingAngle={2}
+            stroke="var(--background)"
+            strokeWidth={2}
+          >
+            {slices.map((d) => (
+              <Cell
+                key={d.status}
+                fill={STATUS_COLORS[normalizeStatus(d.status)] ?? STATUS_FALLBACK}
+              />
+            ))}
+          </Pie>
+        </PieChart>
+      </ResponsiveContainer>
+    </div>
   );
 }

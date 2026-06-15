@@ -43,7 +43,7 @@ export function AdminRow({ admin, isSelf, onDeactivate, isDeactivating }: Props)
   return (
     <TableRow className="hover:bg-accent/40">
       <TableCell className="py-3">
-        <Link href={`/dashboard/admins/${admin.id}`} className="flex items-center gap-3">
+        <Link href={`/dashboard/settings/admins/${admin.id}`} className="flex items-center gap-3">
           <Avatar className="size-9 ring-1 ring-border">
             <AvatarFallback className="bg-muted text-[11px] font-semibold">
               {admin.fullName.slice(0, 2).toUpperCase()}
@@ -73,7 +73,7 @@ export function AdminRow({ admin, isSelf, onDeactivate, isDeactivating }: Props)
             <MoreHorizontal className="size-4" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem render={<Link href={`/dashboard/admins/${admin.id}`} />}>
+            <DropdownMenuItem render={<Link href={`/dashboard/settings/admins/${admin.id}`} />}>
               <Eye className="mr-2 size-4" />
               {t("viewDetails")}
             </DropdownMenuItem>

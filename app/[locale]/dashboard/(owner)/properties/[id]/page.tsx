@@ -6,6 +6,7 @@ import { ActionBar } from "@/components/properties/action-bar";
 import { PropertyActions } from "@/components/properties/property-actions";
 import { PropertyHero } from "@/components/properties/property-hero";
 import { PropertyInfo } from "@/components/properties/property-info";
+import { PropertyMapCard } from "@/components/properties/property-map-card";
 import { PropertyOwnerCard } from "@/components/properties/property-owner-card";
 import { PropertyStatusCard } from "@/components/properties/property-status-card";
 import { PropertyDocsCard } from "@/components/properties/property-docs-card";
@@ -66,8 +67,9 @@ export default function PropertyDetailPage({
       <ActionBar actions={<PropertyActions property={property} />} />
       <PropertyHero property={property} />
       <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
+        <div className="flex flex-col gap-6 lg:col-span-2">
           <PropertyInfo property={property} />
+          <PropertyMapCard property={property} />
         </div>
         <div className="flex flex-col gap-6">
           <PropertyStatusCard property={property} />

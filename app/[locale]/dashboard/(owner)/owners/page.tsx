@@ -1,12 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { BadgeCheck, ShieldAlert } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { TableCell, TableRow } from "@/components/ui/table";
+import { RowLink } from "@/components/ui/row-link";
 import { DataTableCard } from "@/components/ui/data-table-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useOwnerDirectory } from "@/hooks/use-owners";
@@ -23,31 +22,20 @@ function formatJoined(iso: string, locale: string): string {
 
 export default function OwnersPage() {
   const t = useTranslations("owners");
-  const tCommon = useTranslations("common");
   const locale = useLocale();
   const [search, setSearch] = useState("");
 
-  const { data: owners = [], isLoading, isError, error } = useOwnerDirectory();
+  const { data: owners = [], isLoading, isError, error } = useOwnerDirectory(search || undefined);
 
   const columns = [
     { label: t("columns.owner") },
     { label: t("account.email") },
     { label: t("directory.columns.phone") },
-    { label: t("directory.columns.role") },
     { label: t("directory.columns.status") },
     { label: t("account.joined") },
-    { label: t("columns.actions"), className: "text-right" },
   ];
 
-  const q = search.trim().toLowerCase();
-  const filtered = q
-    ? owners.filter(
-        (o) =>
-          o.fullName.toLowerCase().includes(q) ||
-          o.email.toLowerCase().includes(q) ||
-          o.phoneNumber.toLowerCase().includes(q),
-      )
-    : owners;
+  const filtered = owners;
 
   if (isLoading) {
     return (
@@ -102,9 +90,10 @@ export default function OwnersPage() {
         renderRow={(o: OwnerSummaryDto) => (
           <TableRow
             key={o.id}
-            className="group/row transition-colors duration-150 hover:bg-accent/40"
+            className="group/row relative cursor-pointer transition-colors duration-150 hover:bg-accent/40"
           >
             <TableCell className="py-3">
+              <RowLink href={`/dashboard/owners/${o.id}`} label={o.fullName || undefined} />
               <div className="flex items-center gap-3">
                 <Avatar className="size-9 ring-1 ring-border">
                   <AvatarFallback className="bg-muted text-[11px] font-semibold">
@@ -119,13 +108,6 @@ export default function OwnersPage() {
             </TableCell>
             <TableCell>
               <span className="text-sm text-muted-foreground tabular-nums">{o.phoneNumber || "—"}</span>
-            </TableCell>
-            <TableCell>
-              {o.roleCode ? (
-                <Badge variant="secondary">{o.roleCode}</Badge>
-              ) : (
-                <span className="text-sm text-muted-foreground">—</span>
-              )}
             </TableCell>
             <TableCell>
               {o.isVerified ? (
@@ -144,16 +126,6 @@ export default function OwnersPage() {
               <span className="text-sm text-muted-foreground tabular-nums">
                 {formatJoined(o.createdAt, locale)}
               </span>
-            </TableCell>
-            <TableCell className="text-right">
-              <Button
-                variant="ghost"
-                size="sm"
-                nativeButton={false}
-                render={<Link href={`/dashboard/owners/${o.id}`} />}
-              >
-                {tCommon("view")}
-              </Button>
             </TableCell>
           </TableRow>
         )}

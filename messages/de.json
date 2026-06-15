@@ -18,6 +18,7 @@
     "back": "Zurück",
     "unknown": "Unbekannt",
     "filter": "Filter",
+    "all": "Alle",
     "resultsFound": "{count} Ergebnisse gefunden",
     "yes": "Ja",
     "no": "Nein"
@@ -39,7 +40,6 @@
     "worker": "Mitarbeiter",
     "workers": "Mitarbeiter",
     "attendance": "Anwesenheit",
-    "workerHours": "Arbeitszeiten",
     "tasks": "Aufgaben",
     "dispatching": "Disposition",
     "leave": "Urlaubsanträge",
@@ -53,7 +53,8 @@
     "admins": "Administratoren",
     "settings": "Einstellungen",
     "roles": "Rollen",
-    "kyc": "KYC"
+    "kyc": "KYC",
+    "general": "Allgemein"
   },
   "auth": {
     "logout": "Abmelden",
@@ -121,7 +122,10 @@
       "assign": "Zuweisen",
       "cancel": "Abbrechen",
       "noTasksThatDay": "An diesem Tag sind keine offenen Aufgaben geplant.",
-      "assignFailed": "Mitarbeiter konnte nicht zugewiesen werden. Bitte erneut versuchen."
+      "assignFailed": "Mitarbeiter konnte nicht zugewiesen werden. Bitte erneut versuchen.",
+      "allProperties": "Alle Objekte",
+      "hideEmpty": "Leere Zeilen ausblenden",
+      "showEmpty": "Leere Zeilen anzeigen"
     },
     "assignErrors": {
       "worker_not_approved": "Dieser Mitarbeiter ist nicht freigegeben.",
@@ -190,7 +194,11 @@
       "rejectPlaceholder": "Ablehnungsgrund...",
       "rejectReasonMin": "Mindestens {min} Zeichen eingeben.",
       "reviewedAt": "Geprüft am",
-      "rejectReasonLabel": "Ablehnungsgrund"
+      "rejectReasonLabel": "Ablehnungsgrund",
+      "submittedDocuments": "Eingereichte Dokumente",
+      "docLoadError": "Dokumente konnten nicht geladen werden.",
+      "markWrong": "Als falsch markieren",
+      "markWrongNote": "Warum ist dieses Dokument falsch?"
     },
     "detail": {
       "documents": "Dokumente",
@@ -209,6 +217,10 @@
       "title": "Kontaktinformationen",
       "userId": "Benutzer-ID",
       "reviewedAt": "Geprüft am"
+    },
+    "subAccounts": {
+      "title": "Unterkonten",
+      "empty": "Keine Unterkonten"
     },
     "properties": {
       "title": "Objekte",
@@ -319,6 +331,10 @@
       "floors": "Stockwerkanzahl",
       "floorUnit": "Stockwerke",
       "entryInstructions": "Zugangsanweisungen"
+    },
+    "map": {
+      "title": "Standort",
+      "viewLarger": "Größere Karte anzeigen"
     },
     "owner": {
       "title": "Eigentümer",
@@ -559,50 +575,6 @@
       "no": "Abwesend"
     }
   },
-  "workerHours": {
-    "title": "Arbeitszeiten",
-    "subtitle": "Systemweite Vor-Ort-Zeit der Mitarbeiter, abgeleitet aus Check-in und Check-out der Aufgaben.",
-    "timeOnSiteBadge": "Vor-Ort-Zeit",
-    "timeOnSiteNote": "Diese Werte sind die Vor-Ort-Zeit (Check-out minus Check-in), keine abrechenbaren Stunden. Der Check-out wird für alle Mitarbeiter einer Aufgabe gesetzt, wenn der Eigentümer sie abnimmt – ein früher fertiger Mitarbeiter wird daher bis zum Abschluss der Aufgabe angerechnet.",
-    "noAccess": "Sie haben keine Berechtigung, die Arbeitszeit-Auswertung anzusehen.",
-    "empty": "Keine abgeschlossenen Schichten für die gewählten Filter.",
-    "filters": {
-      "granularity": "Gruppieren nach",
-      "from": "Von",
-      "to": "Bis",
-      "worker": "Mitarbeiter",
-      "property": "Objekt",
-      "allWorkers": "Alle Mitarbeiter",
-      "allProperties": "Alle Objekte"
-    },
-    "granularity": {
-      "week": "Woche",
-      "month": "Monat"
-    },
-    "stats": {
-      "total": "Gesamte Vor-Ort-Zeit",
-      "shifts": "Gezählte Schichten",
-      "workers": "Mitarbeiter"
-    },
-    "byPeriod": {
-      "title": "Vor-Ort-Zeit nach Zeitraum",
-      "seriesLabel": "Vor-Ort-Zeit"
-    },
-    "byWorker": {
-      "title": "Nach Mitarbeiter",
-      "worker": "Mitarbeiter",
-      "shifts": "Schichten",
-      "hours": "Vor-Ort-Zeit"
-    },
-    "byProperty": {
-      "title": "Nach Objekt",
-      "property": "Objekt",
-      "hours": "Vor-Ort-Zeit"
-    },
-    "errors": {
-      "invalidRange": "Das \"Von\"-Datum muss vor oder gleich dem \"Bis\"-Datum liegen."
-    }
-  },
   "conversations": {
     "title": "Konversationen",
     "subtitle": "Alle Support-Konversationen im System",
@@ -717,6 +689,7 @@
     "searchPlaceholder": "Aufgaben suchen...",
     "empty": "Leer",
     "list": {
+      "label": "Liste",
       "empty": "Keine Aufgabengruppen gefunden",
       "tabs": {
         "all": "Alle",
@@ -733,6 +706,11 @@
         "workers": "Mitarbeiter",
         "actions": "Aktionen"
       }
+    },
+    "calendar": {
+      "label": "Kalender",
+      "noTasksThisWeek": "Keine Aufgaben diese Woche",
+      "workers": "Mitarbeiter"
     },
     "detail": {
       "backToList": "Zurück zu Aufgaben",

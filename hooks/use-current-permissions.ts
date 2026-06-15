@@ -50,6 +50,6 @@ export function useCurrentPermissions() {
 export function useHasPermission(code?: string): boolean {
   const { permissions } = useCurrentPermissions();
   if (!code) return true;
-  if (permissions === null) return true;
+  if (permissions === null) return false;
   return permissions.has(code);
 }

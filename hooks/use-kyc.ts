@@ -11,6 +11,14 @@ export function useKycList(status?: KycStatus) {
   });
 }
 
+export function useKycProfile(ownerProfileId: string, enabled: boolean) {
+  return useQuery({
+    queryKey: ["kyc", "profile", ownerProfileId],
+    queryFn: () => kycService.getProfile(ownerProfileId),
+    enabled,
+  });
+}
+
 export function useApproveKyc() {
   const qc = useQueryClient();
   return useMutation({

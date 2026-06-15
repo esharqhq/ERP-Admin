@@ -19,13 +19,23 @@ interface Props {
   onConfirm: (reason: string) => void;
   isPending: boolean;
   ownerName: string;
+  initialReason?: string;
 }
 
-export function KycRejectModal({ open, onClose, onConfirm, isPending, ownerName }: Props) {
+export function KycRejectModal({ open, onClose, onConfirm, isPending, ownerName, initialReason }: Props) {
   const t = useTranslations("owners");
   const tCommon = useTranslations("common");
   const [reason, setReason] = useState("");
   const isValid = reason.trim().length >= 3;
+
+  // Seed the textarea from the composed reason each time the modal opens.
+  // Track previous `open` as state so we can call setReason during render
+  // (React-endorsed derived-state pattern) without triggering effect lint rules.
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+    if (open) setReason(initialReason ?? "");
+  }
 
   function handleClose() {
     onClose();
@@ -45,6 +55,7 @@ export function KycRejectModal({ open, onClose, onConfirm, isPending, ownerName 
           value={reason}
           onChange={(e) => setReason(e.target.value)}
           placeholder={t("kyc.rejectPlaceholder")}
+          aria-label={t("kyc.rejectPlaceholder")}
           className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring min-h-[80px] resize-none"
         />
         {!isValid && reason.length > 0 && (

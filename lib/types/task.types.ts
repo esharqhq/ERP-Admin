@@ -54,10 +54,12 @@ export interface TaskItemDto {
   id: string;
   groupId: string;
   propertyId: string;
+  propertyName: string | null;
   scheduledDate: string; // "yyyy-MM-dd"
   scheduledAt: string;
   deadline: string | null;
   status: string; // TaskItemStatusName
+  requiredWorkerCount: number;
   startedAt: string | null;
   completedAt: string | null;
   workers: TaskWorkerDto[];

@@ -52,6 +52,11 @@ export function AppSidebar() {
   const canSee = (perm?: string) =>
     !perm || permissions === null || permissions.has(perm)
 
+  const canSeeItem = (item: { permission?: string; anyOf?: string[] }) =>
+    item.anyOf
+      ? permissions === null || item.anyOf.some((p) => permissions.has(p))
+      : canSee(item.permission)
+
   const email = adminMe?.email ?? "admin@erp.com"
   const displayName = adminMe?.role?.name ?? adminMe?.fullName ?? "Admin"
   const initials = email.slice(0, 2).toUpperCase()
@@ -91,7 +96,7 @@ export function AppSidebar() {
 
       <SidebarContent className="gap-4 px-1.5 py-2">
         {navGroups.map((group) => {
-          const items = group.items.filter((item) => canSee(item.permission))
+          const items = group.items.filter((item) => canSeeItem(item))
           if (items.length === 0) return null
           return (
           <SidebarGroup key={group.id} className="px-0 py-0">

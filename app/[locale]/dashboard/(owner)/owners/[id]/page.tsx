@@ -14,6 +14,7 @@ import { StatCard } from "@/components/owners/stat-card";
 import { PropertyList } from "@/components/owners/property-list";
 import { ActivityTimeline } from "@/components/owners/activity-timeline";
 import { ContactCard } from "@/components/owners/contact-card";
+import { SubAccountsCard } from "@/components/owners/sub-accounts-card";
 import { OwnerActions } from "@/components/owners/owner-actions";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -128,6 +129,7 @@ export default function OwnerDetailPage({
 
         <div className="flex flex-col gap-6">
           <ContactCard owner={owner} />
+          <SubAccountsCard ownerId={id} />
         </div>
       </div>
     </div>

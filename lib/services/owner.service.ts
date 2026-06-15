@@ -35,12 +35,19 @@ export const ownerService = {
 
   listOwners: async (search?: string): Promise<OwnerSummaryDto[]> => {
     const params = search ? { search } : {};
-    const { data } = await apiClient.get<OwnerSummaryDto[]>("/api/owners", { params });
+    const { data } = await apiClient.get<OwnerSummaryDto[]>("/api/admin/owners/bosses", { params });
     return data;
   },
 
   getOwner: async (ownerUserId: string): Promise<OwnerSummaryDto> => {
     const { data } = await apiClient.get<OwnerSummaryDto>(`/api/owners/${ownerUserId}`);
+    return data;
+  },
+
+  getOwnerSubAccounts: async (ownerUserId: string): Promise<OwnerSummaryDto[]> => {
+    const { data } = await apiClient.get<OwnerSummaryDto[]>(
+      `/api/owners/${ownerUserId}/sub-accounts`,
+    );
     return data;
   },
 

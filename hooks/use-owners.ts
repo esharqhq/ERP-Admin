@@ -60,3 +60,11 @@ export function useOwnerTaskGroups(ownerUserId: string) {
     enabled: !!ownerUserId,
   });
 }
+
+export function useOwnerSubAccounts(ownerUserId: string) {
+  return useQuery({
+    queryKey: ["owner-sub-accounts", ownerUserId],
+    queryFn: () => ownerService.getOwnerSubAccounts(ownerUserId),
+    enabled: !!ownerUserId,
+  });
+}

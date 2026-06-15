@@ -1,19 +1,21 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
+import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
+import { RowLink } from "@/components/ui/row-link";
 import { DataTableCard } from "@/components/ui/data-table-card";
+import { FilterMenu, type FilterGroup } from "@/components/ui/filter-menu";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MapPin, Trash2, Plus } from "lucide-react";
+import { MapPin, Plus } from "lucide-react";
 import { useProperties, useCreateAdminProperty } from "@/hooks/use-properties";
+import { useTableFilters, type TableFilterConfig } from "@/hooks/use-table-filters";
 import { useLocale, useTranslations } from "next-intl";
 import { Can } from "@/components/auth/can";
 import { PropertyCreateDialog } from "@/components/properties/property-create-dialog";
 import { getApiErrorCode } from "@/lib/http/api-error";
-import type { PropertyDto } from "@/lib/types/property.types";
+import { PROPERTY_TYPES, type PropertyDto } from "@/lib/types/property.types";
 
 const docsStatusConfig: Record<
   string,
@@ -32,10 +34,51 @@ function formatDate(iso: string, locale: string): string {
   });
 }
 
+// Docs-status values the backend returns, in the order shown in the filter menu.
+const DOCS_STATUSES = ["Pending", "Approved", "Rejected"] as const;
+
+// Pure selectors — defined once so `useTableFilters` doesn't recompute each render.
+const propertyFilterConfig: TableFilterConfig<PropertyDto>[] = [
+  { key: "docsStatus", selector: (p) => p.docsStatus },
+  { key: "type", selector: (p) => p.type },
+];
+
 export default function PropertiesPage() {
   const t = useTranslations("properties");
+  const tc = useTranslations("common");
   const locale = useLocale();
   const { data: properties = [], isLoading, isError, error } = useProperties();
+
+  const [search, setSearch] = useState("");
+  const { values, setFilter, filtered } = useTableFilters(properties, propertyFilterConfig);
+
+  const filterGroups = useMemo<FilterGroup[]>(
+    () => [
+      {
+        key: "docsStatus",
+        label: t("columns.docsStatus"),
+        options: DOCS_STATUSES.map((s) => ({
+          value: s,
+          label: t(`docsStatus.${s.toLowerCase()}` as Parameters<typeof t>[0]),
+        })),
+      },
+      {
+        key: "type",
+        label: t("columns.type"),
+        options: PROPERTY_TYPES.map((ty) => ({ value: ty, label: ty })),
+      },
+    ],
+    [t],
+  );
+
+  const visible = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return filtered;
+    return filtered.filter(
+      (p) =>
+        p.name?.toLowerCase().includes(q) || p.address?.toLowerCase().includes(q),
+    );
+  }, [filtered, search]);
 
   const [createOpen, setCreateOpen] = useState(false);
   const create = useCreateAdminProperty();
@@ -57,7 +100,6 @@ export default function PropertiesPage() {
     { label: t("columns.type") },
     { label: t("columns.docsStatus") },
     { label: t("columns.createdAt") },
-    { label: t("columns.actions"), className: "text-right" },
   ];
 
   function getDocsStatusConfig(status: string | null) {
@@ -122,18 +164,6 @@ export default function PropertiesPage() {
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <Can permission="property:restore">
-            <Button
-              variant="outline"
-              size="sm"
-              nativeButton={false}
-              className="gap-1.5"
-              render={<Link href="/dashboard/properties/deleted" />}
-            >
-              <Trash2 className="size-4" />
-              {t("deleted.viewDeleted")}
-            </Button>
-          </Can>
           <Can permission="property:create_any">
             <Button size="sm" className="gap-1.5" onClick={() => setCreateOpen(true)}>
               <Plus className="size-4" />
@@ -145,18 +175,29 @@ export default function PropertiesPage() {
 
       <DataTableCard
         title={t("list")}
-        count={properties.length}
+        count={visible.length}
         searchPlaceholder={t("searchPlaceholder")}
+        searchValue={search}
+        onSearchChange={setSearch}
+        filter={
+          <FilterMenu
+            groups={filterGroups}
+            values={values}
+            onChange={setFilter}
+            allLabel={tc("all")}
+          />
+        }
         columns={columns}
-        data={properties}
+        data={visible}
         renderRow={(p: PropertyDto, index: number) => {
           const docs = getDocsStatusConfig(p.docsStatus);
           return (
             <TableRow
               key={p.id}
-              className="group/row transition-colors duration-150 hover:bg-accent/40"
+              className="group/row relative cursor-pointer transition-colors duration-150 hover:bg-accent/40"
             >
               <TableCell className="py-3 text-center text-[13px] tabular-nums text-muted-foreground">
+                <RowLink href={`/dashboard/properties/${p.id}`} label={p.name ?? undefined} />
                 {index + 1}
               </TableCell>
               <TableCell className="py-3 font-medium">{p.name ?? "—"}</TableCell>
@@ -172,16 +213,6 @@ export default function PropertiesPage() {
               </TableCell>
               <TableCell className="text-sm text-muted-foreground">
                 {formatDate(p.createdAt, locale)}
-              </TableCell>
-              <TableCell className="text-right">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  nativeButton={false}
-                  render={<Link href={`/dashboard/properties/${p.id}`} />}
-                >
-                  {t("actions.more")}
-                </Button>
               </TableCell>
             </TableRow>
           );
