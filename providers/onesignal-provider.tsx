@@ -2,8 +2,11 @@
 
 import { useEffect } from "react";
 import OneSignal from "react-onesignal";
+import { useAuthStore } from "@/store/auth.store";
 
 export function OneSignalProvider() {
+  const adminMe = useAuthStore((s) => s.adminMe);
+
   useEffect(() => {
     OneSignal.init({
       appId: process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID!,
@@ -12,6 +15,14 @@ export function OneSignalProvider() {
       allowLocalhostAsSecureOrigin: true,
     });
   }, []);
+
+  useEffect(() => {
+    if (adminMe?.id) {
+      OneSignal.login(`ADMIN:${adminMe.id}`);
+    } else {
+      OneSignal.logout();
+    }
+  }, [adminMe?.id]);
 
   return null;
 }
