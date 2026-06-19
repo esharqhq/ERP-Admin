@@ -43,6 +43,7 @@ jobs:
           push: true
           build-args: |
             NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
+            NEXT_PUBLIC_ONESIGNAL_APP_ID=${{ secrets.NEXT_PUBLIC_ONESIGNAL_APP_ID }}
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/erp-admin:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/erp-admin:${{ github.sha }}
