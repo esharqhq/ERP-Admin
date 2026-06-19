@@ -12,8 +12,17 @@ export function OneSignalProvider() {
       appId: process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID!,
       serviceWorkerPath: "/onesignal/OneSignalSDKWorker.js",
       serviceWorkerParam: { scope: "/" },
-      allowLocalhostAsSecureOrigin: true,
-    });
+      allowLocalhostAsSecureOrigin: process.env.NODE_ENV === "development",
+    })
+      .then(() => {
+        OneSignal.Notifications.requestPermission();
+      })
+      .catch(() => {
+        // already initialized on SPA re-mount — request permission if not yet granted
+        if (Notification.permission === "default") {
+          OneSignal.Notifications.requestPermission();
+        }
+      });
   }, []);
 
   useEffect(() => {
