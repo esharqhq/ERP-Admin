@@ -18,6 +18,23 @@ export function OneSignalProvider() {
       .then(() => {
         setIsInitialized(true);
         OneSignal.Notifications.requestPermission();
+
+        OneSignal.Notifications.addEventListener("foregroundWillDisplay", (e) => {
+          console.log("[OneSignal] foregroundWillDisplay →", e.notification);
+          e.notification.display();
+        });
+
+        OneSignal.Notifications.addEventListener("click", (e) => {
+          console.log("[OneSignal] click →", e.notification);
+        });
+
+        OneSignal.Notifications.addEventListener("permissionChange", (granted) => {
+          console.log("[OneSignal] permissionChange →", granted);
+        });
+
+        OneSignal.Notifications.addEventListener("dismiss", (e) => {
+          console.log("[OneSignal] dismiss →", e.notification);
+        });
       })
       .catch(() => {
         // already initialized on SPA re-mount
