@@ -494,7 +494,9 @@
     "notifications": {
       "title": "Benachrichtigungen",
       "newCount": "{count} neue",
-      "viewAll": "Alle anzeigen"
+      "viewAll": "Alle anzeigen",
+      "empty": "Noch keine Benachrichtigungen",
+      "markAllRead": "Alle als gelesen markieren"
     }
   },
   "login": {

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import OneSignal from "react-onesignal";
 import { useAuthStore } from "@/store/auth.store";
+import { useNotificationStore } from "@/store/notification.store";
 
 export function OneSignalProvider() {
   const adminMe = useAuthStore((s) => s.adminMe);
@@ -21,6 +22,10 @@ export function OneSignalProvider() {
 
         OneSignal.Notifications.addEventListener("foregroundWillDisplay", (e) => {
           console.log("[OneSignal] foregroundWillDisplay →", e.notification);
+          useNotificationStore.getState().addNotification(
+            e.notification.title ?? "",
+            e.notification.body ?? "",
+          );
           e.notification.display();
         });
 

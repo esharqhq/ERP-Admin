@@ -494,7 +494,9 @@
     "notifications": {
       "title": "Notifications",
       "newCount": "{count} new",
-      "viewAll": "View all"
+      "viewAll": "View all",
+      "empty": "No notifications yet",
+      "markAllRead": "Mark all as read"
     }
   },
   "login": {
