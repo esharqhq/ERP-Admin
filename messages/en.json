@@ -496,7 +496,9 @@
       "newCount": "{count} new",
       "viewAll": "View all",
       "empty": "No notifications yet",
-      "markAllRead": "Mark all as read"
+      "markAllRead": "Mark all as read",
+      "loadMore": "Load more",
+      "loading": "Loading…"
     }
   },
   "login": {

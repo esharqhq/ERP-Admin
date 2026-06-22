@@ -496,7 +496,9 @@
       "newCount": "{count} neue",
       "viewAll": "Alle anzeigen",
       "empty": "Noch keine Benachrichtigungen",
-      "markAllRead": "Alle als gelesen markieren"
+      "markAllRead": "Alle als gelesen markieren",
+      "loadMore": "Mehr laden",
+      "loading": "Laden…"
     }
   },
   "login": {

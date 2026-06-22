@@ -20,14 +20,22 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {Skeleton} from "@/components/ui/skeleton"
 import {navItems} from "@/lib/nav-items"
 import {Bell} from "lucide-react"
 import {LanguageSwitcher} from "./language-switcher";
 import {useTranslations} from "next-intl";
-import {useNotificationStore} from "@/store/notification.store";
+import {useRouter} from "@/i18n/navigation";
+import {
+    useNotificationList,
+    useUnreadCount,
+    useMarkRead,
+    useMarkAllRead,
+} from "@/hooks/use-notifications";
+import type {NotificationEntityType} from "@/lib/types/notification.types";
 
-function relativeTime(ts: number): string {
-    const mins = Math.floor((Date.now() - ts) / 60000);
+function relativeTime(createdAt: string): string {
+    const mins = Math.floor((Date.now() - new Date(createdAt).getTime()) / 60000);
     if (mins < 1) return "Just now";
     if (mins < 60) return `${mins} min ago`;
     const hrs = Math.floor(mins / 60);
@@ -35,20 +43,31 @@ function relativeTime(ts: number): string {
     return `${Math.floor(hrs / 24)}d ago`;
 }
 
+function entityRoute(entityType: NotificationEntityType | null, entityId: string | null): string | null {
+    if (!entityType || !entityId) return null;
+    if (entityType === "Worker") return `/dashboard/workers/${entityId}`;
+    if (entityType === "OwnerProfile") return `/dashboard/kyc`;
+    if (entityType === "Property") return `/dashboard/properties/${entityId}`;
+    return null;
+}
+
 export function DashboardHeader() {
     const pathname = usePathname()
     const t = useTranslations()
-    const notifications = useNotificationStore((s) => s.notifications);
-    const markAllRead = useNotificationStore((s) => s.markAllRead);
-    const markRead = useNotificationStore((s) => s.markRead);
+    const router = useRouter()
+
+    const {data: infiniteData, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage} = useNotificationList();
+    const {data: unreadCount = 0} = useUnreadCount();
+    const markRead = useMarkRead();
+    const markAllRead = useMarkAllRead();
+
+    const notifications = infiniteData?.pages.flat() ?? [];
 
     const current = navItems.find(
         (item) =>
             pathname === item.url ||
             (item.url !== "/dashboard" && pathname.startsWith(item.url))
     ) ?? navItems[0]
-
-    const unreadCount = notifications.filter((n) => !n.isRead).length;
 
     return (
         <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
@@ -98,29 +117,59 @@ export function DashboardHeader() {
                         </DropdownMenuLabel>
                         <DropdownMenuSeparator className="my-0"/>
                         <div className="max-h-96 overflow-y-auto">
-                            {notifications.length === 0 ? (
+                            {isLoading ? (
+                                Array.from({length: 3}).map((_, i) => (
+                                    <div key={i} className="flex items-start gap-2.5 px-3 py-2.5">
+                                        <Skeleton className="mt-1.5 size-2 shrink-0 rounded-full"/>
+                                        <div className="flex flex-1 flex-col gap-1.5">
+                                            <Skeleton className="h-3 w-3/4"/>
+                                            <Skeleton className="h-2.5 w-full"/>
+                                            <Skeleton className="h-2 w-1/4"/>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : notifications.length === 0 ? (
                                 <p className="px-3 py-6 text-center text-xs text-muted-foreground">
                                     {t('layout.notifications.empty')}
                                 </p>
                             ) : (
-                                notifications.map((n) => (
-                                    <DropdownMenuItem
-                                        key={n.id}
-                                        className="flex cursor-pointer items-start gap-2.5 px-3 py-2.5"
-                                        onClick={() => markRead(n.id)}
-                                    >
-                                        <span
-                                            className={`mt-1.5 size-2 shrink-0 rounded-full ${
-                                                !n.isRead ? "bg-primary" : "bg-transparent"
-                                            }`}
-                                        />
-                                        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                                            <span className="text-[13px] font-medium leading-tight">{n.title}</span>
-                                            <span className="truncate text-xs text-muted-foreground">{n.body}</span>
-                                            <span className="text-[10px] text-muted-foreground/70">{relativeTime(n.receivedAt)}</span>
-                                        </div>
-                                    </DropdownMenuItem>
-                                ))
+                                <>
+                                    {notifications.map((n) => {
+                                        const route = entityRoute(n.entityType, n.entityId);
+                                        return (
+                                            <DropdownMenuItem
+                                                key={n.id}
+                                                className="flex cursor-pointer items-start gap-2.5 px-3 py-2.5"
+                                                onClick={() => {
+                                                    if (!n.isRead) markRead.mutate(n.id);
+                                                    if (route) router.push(route);
+                                                }}
+                                            >
+                                                <span
+                                                    className={`mt-1.5 size-2 shrink-0 rounded-full ${
+                                                        !n.isRead ? "bg-primary" : "bg-transparent"
+                                                    }`}
+                                                />
+                                                <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                                                    <span className="text-[13px] font-medium leading-tight">{n.title}</span>
+                                                    <span className="truncate text-xs text-muted-foreground">{n.body}</span>
+                                                    <span className="text-[10px] text-muted-foreground/70">{relativeTime(n.createdAt)}</span>
+                                                </div>
+                                            </DropdownMenuItem>
+                                        );
+                                    })}
+                                    {hasNextPage && (
+                                        <DropdownMenuItem
+                                            className="cursor-pointer justify-center py-2.5 text-xs font-medium text-muted-foreground"
+                                            onClick={() => fetchNextPage()}
+                                            disabled={isFetchingNextPage}
+                                        >
+                                            {isFetchingNextPage
+                                                ? t('layout.notifications.loading')
+                                                : t('layout.notifications.loadMore')}
+                                        </DropdownMenuItem>
+                                    )}
+                                </>
                             )}
                         </div>
                         {notifications.length > 0 && (
@@ -128,7 +177,7 @@ export function DashboardHeader() {
                                 <DropdownMenuSeparator className="my-0"/>
                                 <DropdownMenuItem
                                     className="cursor-pointer justify-center py-2.5 text-xs font-medium text-primary"
-                                    onClick={markAllRead}
+                                    onClick={() => markAllRead.mutate()}
                                 >
                                     {t('layout.notifications.markAllRead')}
                                 </DropdownMenuItem>
