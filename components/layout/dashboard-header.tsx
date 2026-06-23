@@ -23,6 +23,7 @@ import {
 import {Skeleton} from "@/components/ui/skeleton"
 import {navItems} from "@/lib/nav-items"
 import {Bell} from "lucide-react"
+import {Link} from "@/i18n/navigation"
 import {LanguageSwitcher} from "./language-switcher";
 import {useTranslations} from "next-intl";
 import {useRouter} from "@/i18n/navigation";
@@ -100,8 +101,8 @@ export function DashboardHeader() {
                         <Bell className="size-6 text-primary"/>
                         {unreadCount > 0 && (
                             <span
-                                className="absolute -right-1 top-5 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-semibold text-primary-foreground ring-2 ring-background">
-                                {unreadCount}
+                                className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-semibold text-primary-foreground ring-2 ring-background">
+                                {unreadCount > 99 ? "99+" : unreadCount}
                             </span>
                         )}
                         <span className="sr-only">Notifications</span>
@@ -172,17 +173,23 @@ export function DashboardHeader() {
                                 </>
                             )}
                         </div>
-                        {notifications.length > 0 && (
-                            <>
-                                <DropdownMenuSeparator className="my-0"/>
-                                <DropdownMenuItem
-                                    className="cursor-pointer justify-center py-2.5 text-xs font-medium text-primary"
+                        <DropdownMenuSeparator className="my-0"/>
+                        <div className="flex items-center justify-between px-3 py-2">
+                            <Link
+                                href="/dashboard/notifications"
+                                className="text-xs font-medium text-primary hover:underline"
+                            >
+                                {t('layout.notifications.viewAll')}
+                            </Link>
+                            {unreadCount > 0 && (
+                                <button
                                     onClick={() => markAllRead.mutate()}
+                                    className="text-xs font-medium text-muted-foreground hover:text-foreground"
                                 >
                                     {t('layout.notifications.markAllRead')}
-                                </DropdownMenuItem>
-                            </>
-                        )}
+                                </button>
+                            )}
+                        </div>
                     </DropdownMenuContent>
                 </DropdownMenu>
             </div>

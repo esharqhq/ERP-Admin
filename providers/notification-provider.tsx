@@ -10,6 +10,7 @@ import {
 import { useAuthStore } from "@/store/auth.store";
 import { prependNotificationToCache } from "@/hooks/use-notifications";
 import type { NotificationDto } from "@/lib/types/notification.types";
+import { toast } from "sonner";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 
@@ -34,6 +35,7 @@ export function NotificationProvider() {
 
     connection.on("ReceiveNotification", (dto: NotificationDto) => {
       prependNotificationToCache(qc, dto);
+      toast(dto.title, { description: dto.body });
     });
 
     connection.onreconnected(() => {
