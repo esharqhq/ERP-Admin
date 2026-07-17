@@ -1,15 +1,20 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { DataTableCard } from "@/components/ui/data-table-card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { UserPlus } from "lucide-react";
+import { KeyRound, UserPlus } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useAdmins, useCreateAdmin, useDeactivateAdmin } from "@/hooks/use-admins";
 import { useCreateRole } from "@/hooks/use-permissions";
 import { AdminRow } from "@/components/admins/admin-row";
-import { AdminDrawer, type AdminFormData } from "@/components/admins/admin-drawer";
+import {
+  AdminForm,
+  type AdminFormResult,
+  type AdminIdentityCreate,
+} from "@/components/admins/admin-form";
 import { Can } from "@/components/auth/can";
 import { useAuthStore } from "@/store/auth.store";
 
@@ -26,17 +31,9 @@ export default function AdminsPage() {
   const currentAdminId = useAuthStore((s) => s.adminMe?.id);
   const isPending = isCreatingRole || isCreatingAdmin;
 
-  function finishCreateAdmin(
-    data: { fullName: string; email: string; password: string },
-    roleCode: string,
-  ) {
+  function finishCreateAdmin(identity: AdminIdentityCreate, roleCode: string) {
     createAdmin(
-      {
-        fullName: data.fullName,
-        email: data.email,
-        password: data.password,
-        roleCode,
-      },
+      { ...identity, roleCode },
       {
         onSuccess: () => setShowCreate(false),
         onError: (err: unknown) => {
@@ -49,27 +46,31 @@ export default function AdminsPage() {
     );
   }
 
-  function handleCreate(data: AdminFormData) {
+  function handleCreate(result: AdminFormResult) {
     setEmailError(undefined);
+    // In create mode AdminForm never emits "identity-only" and identity is
+    // always the full create shape.
+    const identity = result.identity as AdminIdentityCreate;
 
-    if (data.mode === "shared") {
-      finishCreateAdmin(data, data.roleCode ?? "");
+    if (result.kind === "shared") {
+      finishCreateAdmin(identity, result.roleCode);
       return;
     }
-
-    // Custom override: mint a per-admin custom_<uuid> role, then create the admin on it.
-    createRole(
-      {
-        code: `custom_${crypto.randomUUID()}`,
-        name: data.fullName,
-        appliesTo: "ADMIN",
-        isDefault: false,
-        permissionNames: data.permissionNames ?? [],
-      },
-      {
-        onSuccess: (createdRole) => finishCreateAdmin(data, createdRole.code ?? ""),
-      },
-    );
+    if (result.kind === "custom") {
+      // Custom override: mint a per-admin custom_<uuid> role, then create the admin on it.
+      createRole(
+        {
+          code: `custom_${crypto.randomUUID()}`,
+          name: identity.fullName,
+          appliesTo: "ADMIN",
+          isDefault: false,
+          permissionNames: result.permissionNames,
+        },
+        {
+          onSuccess: (createdRole) => finishCreateAdmin(identity, createdRole.code ?? ""),
+        },
+      );
+    }
   }
 
   function handleDeactivate(id: string, reason?: string) {
@@ -78,13 +79,27 @@ export default function AdminsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="font-heading text-3xl font-bold tracking-tight leading-tight">
-          {t("title")}
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          {t("subtitle")}
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <h1 className="font-heading text-3xl font-bold tracking-tight leading-tight">
+            {t("title")}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {t("subtitle")}
+          </p>
+        </div>
+        <Can permission="system:permission:read">
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2"
+            nativeButton={false}
+            render={<Link href="/dashboard/settings/admins/presets" />}
+          >
+            <KeyRound className="size-4" />
+            <span>{t("managePresets")}</span>
+          </Button>
+        </Can>
       </div>
 
       {isLoading ? (
@@ -123,13 +138,16 @@ export default function AdminsPage() {
         />
       )}
 
-      <AdminDrawer
-        open={showCreate}
-        onClose={() => { setShowCreate(false); setEmailError(undefined); }}
-        onConfirm={handleCreate}
-        isPending={isPending}
-        emailError={emailError}
-      />
+      {showCreate && (
+        <AdminForm
+          mode="create"
+          open
+          isPending={isPending}
+          emailError={emailError}
+          onClose={() => { setShowCreate(false); setEmailError(undefined); }}
+          onSubmit={handleCreate}
+        />
+      )}
     </div>
   );
 }
