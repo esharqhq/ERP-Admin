@@ -13,6 +13,7 @@ import {
   CalendarOff,
   CalendarCheck,
   BadgeCheck,
+  Bell,
 } from "lucide-react"
 import { type LucideIcon } from "lucide-react"
 
@@ -40,7 +41,8 @@ export const navGroups: NavGroup[] = [
     label: "Dashboard",
     labelKey: "nav.dashboard",
     items: [
-      { title: "Overview", labelKey: "nav.overview", url: "/dashboard", icon: LayoutDashboard },
+      { title: "Overview",       labelKey: "nav.overview",       url: "/dashboard",               icon: LayoutDashboard },
+      { title: "Notifications",  labelKey: "nav.notifications",  url: "/dashboard/notifications", icon: Bell },
     ],
   },
   {

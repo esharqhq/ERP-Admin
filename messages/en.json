@@ -54,7 +54,8 @@
     "settings": "Settings",
     "roles": "Roles",
     "kyc": "KYC",
-    "general": "General"
+    "general": "General",
+    "notifications": "Notifications"
   },
   "auth": {
     "logout": "Logout",
@@ -494,7 +495,14 @@
     "notifications": {
       "title": "Notifications",
       "newCount": "{count} new",
-      "viewAll": "View all"
+      "viewAll": "View all",
+      "empty": "No notifications yet",
+      "markAllRead": "Mark all as read",
+      "loadMore": "Load more",
+      "loading": "Loading…",
+      "all": "All",
+      "unread": "Unread",
+      "noUnread": "No unread notifications"
     }
   },
   "login": {
