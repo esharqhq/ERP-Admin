@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { permissionService } from "@/lib/services/permission.service";
 import { useAuthStore } from "@/store/auth.store";
@@ -35,9 +36,13 @@ export function useCurrentPermissions() {
     retry: false,
   });
 
-  const permissions: Set<string> | null = query.data
-    ? new Set(query.data)
-    : null;
+  // Memoized so the Set reference is stable as long as query.data is the same
+  // array reference. Without this, every render creates a new Set, which breaks
+  // any useEffect dependency array that includes `permissions`.
+  const permissions: Set<string> | null = useMemo(
+    () => (query.data ? new Set(query.data) : null),
+    [query.data],
+  );
 
   return { permissions, isLoading: query.isLoading };
 }

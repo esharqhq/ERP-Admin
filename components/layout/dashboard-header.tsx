@@ -1,6 +1,7 @@
 "use client"
 
 import {usePathname} from "next/navigation"
+import {useLocale} from "next-intl"
 import {SidebarTrigger} from "@/components/ui/sidebar"
 import {Separator} from "@/components/ui/separator"
 import {
@@ -35,7 +36,9 @@ const notifications = [
 ]
 
 export function DashboardHeader() {
-    const pathname = usePathname()
+    const rawPathname = usePathname()
+    const locale = useLocale()
+    const pathname = rawPathname.replace(`/${locale}`, "") || "/"
     const t = useTranslations()
 
     const current = navItems.find(
