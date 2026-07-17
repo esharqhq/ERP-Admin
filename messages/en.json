@@ -1042,6 +1042,12 @@
     },
     "backToAdmins": "Back to Admins"
   },
+  "rolePermissions": {
+    "title": "{name}'s permissions",
+    "count": "{count} permissions",
+    "empty": "No permissions granted.",
+    "otherDomain": "Other"
+  },
   "profile": {
     "title": "Profile",
     "subtitle": "Your account details and security settings.",

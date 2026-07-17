@@ -1042,6 +1042,12 @@
     },
     "backToAdmins": "Zurück zu Admins"
   },
+  "rolePermissions": {
+    "title": "Berechtigungen von {name}",
+    "count": "{count} Berechtigungen",
+    "empty": "Keine Berechtigungen erteilt.",
+    "otherDomain": "Sonstige"
+  },
   "profile": {
     "title": "Profil",
     "subtitle": "Ihre Kontodaten und Sicherheitseinstellungen.",
