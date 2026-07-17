@@ -438,7 +438,18 @@
       "modeSharedHint": "Use a shared named role",
       "modeCustom": "Custom access",
       "modeCustomHint": "Pick individual permissions",
-      "create": "Create"
+      "create": "Create",
+      "identitySection": "Identity",
+      "accessSection": "Access preset",
+      "permCount": "{count} permissions",
+      "recommended": "Recommended",
+      "systemBadge": "System",
+      "customCard": "Custom",
+      "customCardHint": "Hand-pick individual permissions",
+      "customizeToggle": "Customize permissions ({count} selected)",
+      "detachNote": "Customizing gives {name} their own copy of the permissions, separate from the \"{preset}\" preset.",
+      "presetsError": "Could not load access presets.",
+      "noPreset": "Choose an access preset to continue."
     },
     "roles": {
       "superAdmin": "Super Admin",
@@ -469,7 +480,8 @@
     },
     "detail": {
       "created": "Created {date}",
-      "updated": "Updated {date}"
+      "updated": "Updated {date}",
+      "accessSection": "Access"
     },
     "assign": {
       "title": "Reassign role",
@@ -488,7 +500,8 @@
         "role_not_found": "Role not found.",
         "generic": "Could not update the role."
       }
-    }
+    },
+    "managePresets": "Manage presets"
   },
   "layout": {
     "appName": "Mond Control Center",
@@ -983,15 +996,14 @@
     "clearAll": "Clear all"
   },
   "roles": {
-    "title": "Roles & Permissions",
-    "subtitle": "Manage shared admin roles and their permissions.",
-    "new": "New Role",
-    "empty": "No roles found.",
-    "showCustom": "Show custom roles",
+    "title": "Access presets",
+    "subtitle": "Manage reusable permission presets for admins.",
+    "new": "New preset",
+    "empty": "No presets found.",
     "permCount": "{count} permissions",
     "systemImmutable": "System roles cannot be edited",
     "columns": {
-      "name": "Role",
+      "name": "Preset",
       "code": "Code",
       "type": "Type",
       "permissions": "Permissions"
@@ -1002,8 +1014,8 @@
       "custom": "Custom"
     },
     "form": {
-      "createTitle": "Create Role",
-      "editTitle": "Edit Role",
+      "createTitle": "Create preset",
+      "editTitle": "Edit preset",
       "code": "Code",
       "codePlaceholder": "e.g. SUPPORT_LEAD",
       "codeImmutable": "Code cannot be changed.",
@@ -1017,7 +1029,7 @@
     },
     "delete": {
       "action": "Delete",
-      "title": "Delete role?",
+      "title": "Delete preset?",
       "description": "“{name}” will be deleted. This can't be undone."
     },
     "errors": {
@@ -1027,7 +1039,8 @@
       "role_in_use": "This role is still assigned. Reassign or remove it first.",
       "role_not_found": "Role not found.",
       "generic": "Could not save the role."
-    }
+    },
+    "backToAdmins": "Back to Admins"
   },
   "profile": {
     "title": "Profile",
