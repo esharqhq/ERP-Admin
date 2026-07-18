@@ -85,3 +85,16 @@ export function useHasPermission(code?: string): boolean {
   if (permissions === null) return false;
   return permissions.has(code);
 }
+
+/**
+ * True when the current admin holds ANY of `codes` (grouped entry points).
+ * Empty list → true (nothing to gate). Unknown grant set (null, cold start) →
+ * false, so grouped UI stays hidden until permissions are known rather than
+ * flashing. Backend still enforces every code independently.
+ */
+export function useHasAnyPermission(codes: string[]): boolean {
+  const { permissions } = useCurrentPermissions();
+  if (codes.length === 0) return true;
+  if (permissions === null) return false;
+  return codes.some((c) => permissions.has(c));
+}
