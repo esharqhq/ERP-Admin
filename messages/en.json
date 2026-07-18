@@ -53,7 +53,6 @@
     "support": "Support",
     "tickets": "Tickets",
     "conversations": "Conversations",
-    "chat": "Chat",
     "auditLog": "Audit Log",
     "admins": "Admins",
     "settings": "Settings",
@@ -934,30 +933,45 @@
     }
   },
   "audit": {
-    "title": "Audit Log",
-    "subtitle": "Track all administrative actions",
-    "searchPlaceholder": "Search logs...",
-    "allActions": "All Actions",
-    "noLogs": "No audit logs found",
-    "columns": {
-      "actor": "Actor",
-      "action": "Action",
-      "entity": "Entity",
-      "targetId": "Target ID",
-      "time": "Time"
-    }
-  },
-  "chat": {
-    "title": "Chat",
-    "subtitle": "Communicate with workers and owners",
-    "searchPlaceholder": "Search conversations...",
-    "messagePlaceholder": "Type a message...",
-    "online": "Online",
-    "lastSeen": "Last seen: today",
-    "roles": {
-      "worker": "Worker",
-      "owner": "Owner",
-      "admin": "Admin"
+    "title": "Activity Log",
+    "subtitle": "A record of what admins have done",
+    "searchPlaceholder": "Search by admin or action...",
+    "allActions": "All activity",
+    "noLogs": "No activity yet",
+    "count": "{count} events",
+    "actorTypes": {
+      "SuperAdmin": "A Super Admin",
+      "Moderator": "A Moderator",
+      "Admin": "An Admin",
+      "Owner": "An owner",
+      "Worker": "A worker",
+      "System": "The system"
+    },
+    "actions": {
+      "ADMIN_CREATED": "added a new admin",
+      "ADMIN_MODIFIED": "updated an admin's details",
+      "ADMIN_DEACTIVATED": "deactivated an admin",
+      "ADMIN_ROLE_CHANGED": "changed an admin's access",
+      "KYC_APPROVED": "approved a KYC verification",
+      "KYC_REJECTED": "rejected a KYC verification",
+      "OWNER_KYC_RESET_TO_PENDING": "reset an owner's KYC to pending",
+      "OWNER_DEACTIVATED": "deactivated an owner",
+      "WORKER_APPROVED": "approved a worker",
+      "WORKER_REJECTED": "rejected a worker",
+      "WORKER_DEACTIVATED": "deactivated a worker",
+      "WORKER_DOC_APPROVED": "approved a worker's document",
+      "WORKER_DOC_REJECTED": "rejected a worker's document",
+      "PROPERTY_DEACTIVATED_BY_ADMIN": "deactivated a property",
+      "PROPERTY_RESTORED": "restored a property",
+      "PROPERTY_CREATED_BY_ADMIN": "added a property",
+      "PROPERTY_DOCS_APPROVED": "approved a property's documents",
+      "PROPERTY_DOCS_REJECTED": "rejected a property's documents",
+      "ROLE_PERMISSION_ADDED": "added a permission to an access preset",
+      "ROLE_PERMISSION_REMOVED": "removed a permission from an access preset",
+      "WORKER_CONTRACT_FORCE_DEACTIVATED": "force-ended a worker contract",
+      "WORKER_LEAVE_REQUEST_APPROVED": "approved a leave request",
+      "WORKER_LEAVE_REQUEST_REJECTED": "rejected a leave request",
+      "WORKER_TASK_RATED": "rated a worker's task"
     }
   },
   "settings": {
@@ -967,6 +981,14 @@
     "count": "{count} settings",
     "noSettings": "No settings configured",
     "loading": "Loading settings...",
+    "editValue": "Edit",
+    "lastUpdated": "Updated {date}",
+    "neverUpdated": "Not changed yet",
+    "categories": {
+      "attachment": "Attachments",
+      "task": "Tasks",
+      "other": "Other"
+    },
     "dialog": {
       "createTitle": "Create Setting",
       "editTitle": "Edit Setting",

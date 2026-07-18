@@ -53,7 +53,6 @@
     "support": "Support",
     "tickets": "Tickets",
     "conversations": "Konversationen",
-    "chat": "Chat",
     "auditLog": "Prüfprotokoll",
     "admins": "Administratoren",
     "settings": "Einstellungen",
@@ -934,30 +933,45 @@
     }
   },
   "audit": {
-    "title": "Prüfprotokoll",
-    "subtitle": "Alle administrativen Aktionen verfolgen",
-    "searchPlaceholder": "Protokolle suchen...",
-    "allActions": "Alle Aktionen",
-    "noLogs": "Keine Prüfprotokolle gefunden",
-    "columns": {
-      "actor": "Akteur",
-      "action": "Aktion",
-      "entity": "Entität",
-      "targetId": "Ziel-ID",
-      "time": "Zeit"
-    }
-  },
-  "chat": {
-    "title": "Chat",
-    "subtitle": "Mit Mitarbeitern und Eigentümern kommunizieren",
-    "searchPlaceholder": "Konversationen suchen...",
-    "messagePlaceholder": "Nachricht eingeben...",
-    "online": "Online",
-    "lastSeen": "Zuletzt gesehen: heute",
-    "roles": {
-      "worker": "Mitarbeiter",
-      "owner": "Eigentümer",
-      "admin": "Administrator"
+    "title": "Aktivitätsprotokoll",
+    "subtitle": "Eine Aufzeichnung der Aktionen von Admins",
+    "searchPlaceholder": "Nach Admin oder Aktion suchen...",
+    "allActions": "Alle Aktivitäten",
+    "noLogs": "Noch keine Aktivität",
+    "count": "{count} Ereignisse",
+    "actorTypes": {
+      "SuperAdmin": "Ein Super-Admin",
+      "Moderator": "Ein Moderator",
+      "Admin": "Ein Admin",
+      "Owner": "Ein Eigentümer",
+      "Worker": "Ein Mitarbeiter",
+      "System": "Das System"
+    },
+    "actions": {
+      "ADMIN_CREATED": "hat einen neuen Admin hinzugefügt",
+      "ADMIN_MODIFIED": "hat die Daten eines Admins aktualisiert",
+      "ADMIN_DEACTIVATED": "hat einen Admin deaktiviert",
+      "ADMIN_ROLE_CHANGED": "hat die Zugriffsrechte eines Admins geändert",
+      "KYC_APPROVED": "hat eine KYC-Prüfung genehmigt",
+      "KYC_REJECTED": "hat eine KYC-Prüfung abgelehnt",
+      "OWNER_KYC_RESET_TO_PENDING": "hat die KYC eines Eigentümers zurückgesetzt",
+      "OWNER_DEACTIVATED": "hat einen Eigentümer deaktiviert",
+      "WORKER_APPROVED": "hat einen Mitarbeiter genehmigt",
+      "WORKER_REJECTED": "hat einen Mitarbeiter abgelehnt",
+      "WORKER_DEACTIVATED": "hat einen Mitarbeiter deaktiviert",
+      "WORKER_DOC_APPROVED": "hat ein Mitarbeiterdokument genehmigt",
+      "WORKER_DOC_REJECTED": "hat ein Mitarbeiterdokument abgelehnt",
+      "PROPERTY_DEACTIVATED_BY_ADMIN": "hat eine Immobilie deaktiviert",
+      "PROPERTY_RESTORED": "hat eine Immobilie wiederhergestellt",
+      "PROPERTY_CREATED_BY_ADMIN": "hat eine Immobilie hinzugefügt",
+      "PROPERTY_DOCS_APPROVED": "hat die Dokumente einer Immobilie genehmigt",
+      "PROPERTY_DOCS_REJECTED": "hat die Dokumente einer Immobilie abgelehnt",
+      "ROLE_PERMISSION_ADDED": "hat einer Zugriffsvorlage eine Berechtigung hinzugefügt",
+      "ROLE_PERMISSION_REMOVED": "hat einer Zugriffsvorlage eine Berechtigung entzogen",
+      "WORKER_CONTRACT_FORCE_DEACTIVATED": "hat einen Mitarbeitervertrag zwangsweise beendet",
+      "WORKER_LEAVE_REQUEST_APPROVED": "hat einen Urlaubsantrag genehmigt",
+      "WORKER_LEAVE_REQUEST_REJECTED": "hat einen Urlaubsantrag abgelehnt",
+      "WORKER_TASK_RATED": "hat die Aufgabe eines Mitarbeiters bewertet"
     }
   },
   "settings": {
@@ -967,6 +981,14 @@
     "count": "{count} Einstellungen",
     "noSettings": "Keine Einstellungen konfiguriert",
     "loading": "Einstellungen werden geladen...",
+    "editValue": "Bearbeiten",
+    "lastUpdated": "Geändert {date}",
+    "neverUpdated": "Noch nicht geändert",
+    "categories": {
+      "attachment": "Anhänge",
+      "task": "Aufgaben",
+      "other": "Sonstige"
+    },
     "dialog": {
       "createTitle": "Einstellung erstellen",
       "editTitle": "Einstellung bearbeiten",
