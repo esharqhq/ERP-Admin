@@ -593,15 +593,13 @@
       "status": "Status",
       "priority": "Priority",
       "category": "Category",
-      "all": "All",
       "searchPlaceholder": "Search subject, category, requester…"
     },
     "list": {
       "count": "{count} conversations",
       "empty": "No conversations found.",
       "loading": "Loading…",
-      "error": "Could not load the inbox.",
-      "noMessages": "No messages yet"
+      "error": "Could not load the inbox."
     },
     "detail": {
       "emptyTitle": "Select a conversation",

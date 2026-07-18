@@ -41,6 +41,7 @@ function useInvalidateTicket() {
   return (id: string) => {
     qc.invalidateQueries({ queryKey: ["support-tickets"] });
     qc.invalidateQueries({ queryKey: ["support-ticket", id] });
+    qc.invalidateQueries({ queryKey: ["support-inbox"] });
   };
 }
 
