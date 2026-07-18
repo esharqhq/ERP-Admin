@@ -8,6 +8,8 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import { usePermissionCatalog } from "@/hooks/use-permissions";
 import type { PermissionCatalogDto } from "@/lib/services/permission.service";
 
@@ -23,16 +25,18 @@ function humanizeDomain(domain: string): string {
 }
 
 /**
- * Permission selector driven by the live backend registry (GET /api/admin/permissions),
- * grouped by domain. Covers all permissions (the old hardcoded list covered ~50).
- * Labels use the locale-appropriate backend description (EN `description` /
- * DE `descriptionDe`, ask (a)), falling back to the raw code.
+ * Permission selector driven by the live backend registry (GET /api/admin/permissions).
+ * Domains are shown as a tab bar; selecting a tab reveals only that domain's
+ * permissions below, so the list stays short instead of one long scroll.
+ * Search narrows which tabs appear. Labels use the locale-appropriate backend
+ * description (EN `description` / DE `descriptionDe`), falling back to the raw code.
  */
 export function PermissionCatalogGrid({ selected, onChange, disabled }: Props) {
   const t = useTranslations("permissions");
   const locale = useLocale();
   const { data: catalog, isLoading, isError } = usePermissionCatalog();
   const [query, setQuery] = useState("");
+  const [activeDomain, setActiveDomain] = useState<string | null>(null);
 
   /** Locale-appropriate description; falls back to EN, then nothing. */
   const describe = (p: PermissionCatalogDto): string | null =>
@@ -57,6 +61,15 @@ export function PermissionCatalogGrid({ selected, onChange, disabled }: Props) {
     }
     return Array.from(byDomain.entries());
   }, [catalog, query]);
+
+  // Active tab: keep the user's choice while it still has matches, else fall
+  // back to the first available domain (handles search narrowing the list).
+  const domains = groups.map(([d]) => d);
+  const active =
+    activeDomain && domains.includes(activeDomain) ? activeDomain : domains[0] ?? null;
+  const activePerms = groups.find(([d]) => d === active)?.[1] ?? [];
+  const activeAllOn =
+    activePerms.length > 0 && activePerms.every((p) => selected.has(p.name));
 
   function toggle(name: string) {
     const next = new Set(selected);
@@ -103,13 +116,47 @@ export function PermissionCatalogGrid({ selected, onChange, disabled }: Props) {
       {groups.length === 0 ? (
         <p className="py-6 text-center text-sm text-muted-foreground">{t("noMatches")}</p>
       ) : (
-        groups.map(([domain, perms]) => {
-          const allOn = perms.every((p) => selected.has(p.name));
-          return (
-            <div key={domain} className="flex flex-col gap-2">
+        <>
+          <div
+            role="tablist"
+            className="flex flex-row flex-nowrap gap-1 overflow-x-auto border-b border-border pb-px"
+          >
+            {groups.map(([domain, perms]) => {
+              const count = perms.filter((p) => selected.has(p.name)).length;
+              const isActive = domain === active;
+              return (
+                <button
+                  key={domain}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  onClick={() => setActiveDomain(domain)}
+                  className={cn(
+                    "flex shrink-0 items-center gap-1.5 border-b-2 px-3 py-2 text-xs font-medium uppercase tracking-[0.06em] transition-colors",
+                    isActive
+                      ? "border-primary text-primary"
+                      : "border-transparent text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {humanizeDomain(domain)}
+                  {count > 0 && (
+                    <Badge
+                      variant={isActive ? "default" : "secondary"}
+                      className="h-4 min-w-4 justify-center px-1 text-[10px] tabular-nums"
+                    >
+                      {count}
+                    </Badge>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {active && (
+            <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
                 <p className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-                  {humanizeDomain(domain)}
+                  {humanizeDomain(active)}
                 </p>
                 <Button
                   type="button"
@@ -117,13 +164,13 @@ export function PermissionCatalogGrid({ selected, onChange, disabled }: Props) {
                   size="sm"
                   className="h-6 px-2 text-[11px]"
                   disabled={disabled}
-                  onClick={() => toggleDomain(perms, allOn)}
+                  onClick={() => toggleDomain(activePerms, activeAllOn)}
                 >
-                  {allOn ? t("clearAll") : t("selectAll")}
+                  {activeAllOn ? t("clearAll") : t("selectAll")}
                 </Button>
               </div>
               <div className="flex flex-col divide-y divide-border rounded-xl border border-border px-3">
-                {perms.map((perm) => (
+                {activePerms.map((perm) => (
                   <div key={perm.id} className="flex items-center justify-between gap-3 py-2">
                     <div className="flex min-w-0 flex-col">
                       <span className="truncate text-sm">{describe(perm) || perm.name}</span>
@@ -140,8 +187,8 @@ export function PermissionCatalogGrid({ selected, onChange, disabled }: Props) {
                 ))}
               </div>
             </div>
-          );
-        })
+          )}
+        </>
       )}
     </div>
   );
