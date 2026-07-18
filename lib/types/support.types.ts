@@ -94,3 +94,30 @@ export const SUPPORT_STATUS_FILTERS = [
   "Closed",
 ] as const;
 export type SupportStatusFilter = (typeof SUPPORT_STATUS_FILTERS)[number];
+
+// ── Unified Support Inbox (Tickets ∪ Conversations, joined by ticketId) ──────
+export type SupportInboxScope = "all" | "mine";
+
+/** One inbox row: a ticket plus its 1:1 conversation's activity fields. */
+export interface SupportInboxRow {
+  ticketId: string;
+  conversationId: string;
+  subject: string;
+  category: string;
+  priority: string; // Low | Normal | High | Urgent (kept string; new values won't crash)
+  status: SupportTicketStatusName; // Open | InProgress | Resolved | Closed
+  requesterUserType: string; // normalized to friendly form ("Owner"|"Worker"|"Admin")
+  assignedAdminId: string | null;
+  lastMessageAt: string | null;
+  createdAt: string;
+  unreadCount?: number; // optional; drives the unread indicator when backend provides it
+}
+
+/** The controlled filter state emitted by inbox-filters. */
+export interface SupportInboxQuery {
+  scope: SupportInboxScope;
+  status?: SupportTicketStatusName;
+  priority?: string;
+  category?: string;
+  search?: string;
+}
