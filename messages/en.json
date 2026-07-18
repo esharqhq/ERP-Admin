@@ -609,6 +609,29 @@
       "created": "Created"
     }
   },
+  "supportInbox": {
+    "title": "Support",
+    "subtitle": "Tickets and conversations in one place",
+    "tabs": { "all": "All", "mine": "Assigned to me" },
+    "filters": {
+      "status": "Status",
+      "priority": "Priority",
+      "category": "Category",
+      "all": "All",
+      "searchPlaceholder": "Search subject, category, requester…"
+    },
+    "list": {
+      "count": "{count} conversations",
+      "empty": "No conversations found.",
+      "loading": "Loading…",
+      "error": "Could not load the inbox.",
+      "noMessages": "No messages yet"
+    },
+    "detail": {
+      "emptyTitle": "Select a conversation",
+      "emptyHint": "Pick a ticket from the list to see its details and chat."
+    }
+  },
   "support": {
     "title": "Support Tickets",
     "subtitle": "Manage and track support requests",

@@ -609,6 +609,29 @@
       "created": "Erstellt"
     }
   },
+  "supportInbox": {
+    "title": "Support",
+    "subtitle": "Tickets und Konversationen an einem Ort",
+    "tabs": { "all": "Alle", "mine": "Mir zugewiesen" },
+    "filters": {
+      "status": "Status",
+      "priority": "Priorität",
+      "category": "Kategorie",
+      "all": "Alle",
+      "searchPlaceholder": "Betreff, Kategorie, Anfragende:r suchen…"
+    },
+    "list": {
+      "count": "{count} Konversationen",
+      "empty": "Keine Konversationen gefunden.",
+      "loading": "Wird geladen…",
+      "error": "Posteingang konnte nicht geladen werden.",
+      "noMessages": "Noch keine Nachrichten"
+    },
+    "detail": {
+      "emptyTitle": "Konversation auswählen",
+      "emptyHint": "Wählen Sie ein Ticket aus der Liste, um Details und Chat zu sehen."
+    }
+  },
   "support": {
     "title": "Support-Tickets",
     "subtitle": "Support-Anfragen verwalten und verfolgen",
