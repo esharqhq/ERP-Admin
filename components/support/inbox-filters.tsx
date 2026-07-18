@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -28,12 +28,30 @@ export function InboxFilters({ value, onChange }: Props) {
   ]);
 
   const [searchInput, setSearchInput] = useState(value.search ?? "");
+
+  // Keep refs current after each commit (not during render) so the debounce
+  // timeout below always reads the latest value/onChange, never a stale closure.
+  const valueRef = useRef(value);
+  const onChangeRef = useRef(onChange);
+  useEffect(() => {
+    valueRef.current = value;
+    onChangeRef.current = onChange;
+  });
+
+  // Resync the input when value.search changes externally (e.g. filters reset).
+  const [prevSearch, setPrevSearch] = useState(value.search);
+  if (prevSearch !== value.search) {
+    setPrevSearch(value.search);
+    setSearchInput(value.search ?? "");
+  }
+
   useEffect(() => {
     const id = setTimeout(() => {
-      onChange({ ...value, search: searchInput || undefined });
+      const normalized = searchInput || undefined;
+      if (normalized === valueRef.current.search) return;
+      onChangeRef.current({ ...valueRef.current, search: normalized });
     }, 300);
     return () => clearTimeout(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchInput]);
 
   const selectCls =
