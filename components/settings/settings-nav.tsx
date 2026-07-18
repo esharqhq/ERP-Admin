@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useLocale, useTranslations } from "next-intl"
-import { Settings, UserCog, KeyRound, ShieldCheck, Briefcase } from "lucide-react"
+import { Settings, UserCog, ShieldCheck, Briefcase } from "lucide-react"
 import { useCurrentPermissions } from "@/hooks/use-current-permissions"
 import { cn } from "@/lib/utils"
 
@@ -18,7 +18,6 @@ type SettingsNavItem = {
 const NAV_ITEMS: SettingsNavItem[] = [
   { href: "/dashboard/settings",        labelKey: "general",  icon: Settings,    permission: "system:settings:read",   exact: true  },
   { href: "/dashboard/settings/admins", labelKey: "admins",   icon: UserCog,     permission: "admin:list",             exact: false },
-  { href: "/dashboard/settings/roles",  labelKey: "roles",    icon: KeyRound,    permission: "system:permission:read", exact: false },
   { href: "/dashboard/settings/professions", labelKey: "professions", icon: Briefcase,  permission: "profession:create",      exact: false },
   { href: "/dashboard/settings/audit",       labelKey: "auditLog",    icon: ShieldCheck, permission: "system:audit:read",      exact: false },
 ]
