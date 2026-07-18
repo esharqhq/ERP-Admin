@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import { useLocale, useTranslations } from "next-intl"
 import { Settings, UserCog, ShieldCheck, Briefcase } from "lucide-react"
 import { useCurrentPermissions } from "@/hooks/use-current-permissions"
+import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
 
 type SettingsNavItem = {
@@ -29,7 +30,20 @@ export function SettingsNav() {
   const { permissions } = useCurrentPermissions()
   const t = useTranslations("nav")
 
-  const canSee = (perm: string) => permissions === null || permissions.has(perm)
+  // Fail CLOSED on cold start (null) so a limited admin never flashes settings
+  // tabs they can't open; a refresh hydrates the set from cache, so null is
+  // rare and rendered as a short skeleton below.
+  const canSee = (perm: string) => permissions?.has(perm) ?? false
+
+  if (permissions === null) {
+    return (
+      <nav className="flex flex-row flex-nowrap gap-1 md:flex-col md:gap-0.5">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={i} className="h-9 w-full rounded-md" />
+        ))}
+      </nav>
+    )
+  }
 
   return (
     <nav className="flex flex-row flex-nowrap gap-1 overflow-x-auto md:flex-col md:gap-0.5 md:overflow-x-visible">

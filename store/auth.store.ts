@@ -8,8 +8,16 @@ interface AuthState {
   expireDate: string | null;
   isAuthenticated: boolean;
   adminMe: AdminMeDto | null;
+  /**
+   * Last-known effective permission codes for the signed-in admin, persisted so
+   * a page refresh can hydrate the grant set synchronously (like adminMe) and
+   * skip the "everything visible → filtered" flash while GET /me/permissions
+   * re-fetches. Null until the first successful fetch of a session.
+   */
+  cachedPermissions: string[] | null;
   setTokens: (result: AuthResultDto) => void;
   setAdminMe: (me: AdminMeDto) => void;
+  setCachedPermissions: (codes: string[]) => void;
   clearAuth: () => void;
 }
 
@@ -21,6 +29,7 @@ export const useAuthStore = create<AuthState>()(
       expireDate: null,
       isAuthenticated: false,
       adminMe: null,
+      cachedPermissions: null,
 
       setTokens: (result) => {
         if (typeof document !== "undefined") {
@@ -36,6 +45,8 @@ export const useAuthStore = create<AuthState>()(
 
       setAdminMe: (me) => set({ adminMe: me }),
 
+      setCachedPermissions: (codes) => set({ cachedPermissions: codes }),
+
       clearAuth: () => {
         if (typeof document !== "undefined") {
           document.cookie = "auth-token=; path=/; max-age=0";
@@ -46,6 +57,7 @@ export const useAuthStore = create<AuthState>()(
           expireDate: null,
           isAuthenticated: false,
           adminMe: null,
+          cachedPermissions: null,
         });
       },
     }),
@@ -57,6 +69,7 @@ export const useAuthStore = create<AuthState>()(
         expireDate: state.expireDate,
         isAuthenticated: state.isAuthenticated,
         adminMe: state.adminMe,
+        cachedPermissions: state.cachedPermissions,
       }),
     },
   ),

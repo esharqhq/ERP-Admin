@@ -54,7 +54,7 @@ export default function AdminDetailPage({
   const isSelf = currentAdminId === id;
 
   const { permissions } = useCurrentPermissions();
-  const has = (p: string) => permissions === null || permissions.has(p);
+  const has = (p: string) => permissions?.has(p) ?? false;
   // The unified form covers identity (admin:update) AND access (system:role:assign);
   // either permission is enough to open it — the form gates its sections itself.
   const canOpenEdit = has("admin:update") || has("system:role:assign");

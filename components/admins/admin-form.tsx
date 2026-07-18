@@ -62,7 +62,7 @@ export function AdminForm({
   const tCommon = useTranslations("common");
 
   const { permissions } = useCurrentPermissions();
-  const has = (p: string) => permissions === null || permissions.has(p);
+  const has = (p: string) => permissions?.has(p) ?? false;
   // Edit mode: without system:role:assign the form is identity-only.
   const showAccess = mode === "create" || has("system:role:assign");
   const showIdentity = mode === "create" || has("admin:update");
