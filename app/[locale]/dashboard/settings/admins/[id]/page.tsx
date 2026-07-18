@@ -65,7 +65,7 @@ export default function AdminDetailPage({
   // Effective grants of this admin's role (custom or shared) for the inline
   // read-only Access section. The roles list needs system:permission:read —
   // the section is gated on the same code below.
-  const { data: allRoles = [] } = useAllRoles();
+  const { data: allRoles = [], isLoading: rolesLoading } = useAllRoles();
 
   const formPending =
     update.isPending || assign.isPending || createRole.isPending || updateRole.isPending;
@@ -242,7 +242,7 @@ export default function AdminDetailPage({
         </CardContent>
       </Card>
 
-      {has("system:permission:read") && (
+      {has("system:permission:read") && !rolesLoading && (
         <AdminAccessSection
           presetLabel={roleLabel(roleCode, admin.role?.name)}
           permissionNames={rolePermissions}

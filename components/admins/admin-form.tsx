@@ -334,7 +334,7 @@ export function AdminForm({
                     </div>
                   )}
 
-                  {!selectedCode && !rolesError && (
+                  {!selectedCode && !isCustomResult && !rolesError && (
                     <p className="text-xs text-muted-foreground">{t("form.noPreset")}</p>
                   )}
 
