@@ -985,7 +985,8 @@
     "searchPlaceholder": "Berechtigungen suchen...",
     "noMatches": "Keine passenden Berechtigungen.",
     "selectAll": "Alle auswählen",
-    "clearAll": "Alle abwählen"
+    "clearAll": "Alle abwählen",
+    "selectedOfTotal": "{count} von {total} ausgewählt"
   },
   "roles": {
     "title": "Zugriffs-Presets",

@@ -8,7 +8,6 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { usePermissionCatalog } from "@/hooks/use-permissions";
 import type { PermissionCatalogDto } from "@/lib/services/permission.service";
@@ -117,10 +116,7 @@ export function PermissionCatalogGrid({ selected, onChange, disabled }: Props) {
         <p className="py-6 text-center text-sm text-muted-foreground">{t("noMatches")}</p>
       ) : (
         <>
-          <div
-            role="tablist"
-            className="flex flex-row flex-nowrap gap-1 overflow-x-auto border-b border-border pb-px"
-          >
+          <div role="tablist" className="flex flex-row flex-wrap gap-1.5">
             {groups.map(([domain, perms]) => {
               const count = perms.filter((p) => selected.has(p.name)).length;
               const isActive = domain === active;
@@ -132,20 +128,22 @@ export function PermissionCatalogGrid({ selected, onChange, disabled }: Props) {
                   aria-selected={isActive}
                   onClick={() => setActiveDomain(domain)}
                   className={cn(
-                    "flex shrink-0 items-center gap-1.5 border-b-2 px-3 py-2 text-xs font-medium uppercase tracking-[0.06em] transition-colors",
+                    "flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors",
                     isActive
-                      ? "border-primary text-primary"
-                      : "border-transparent text-muted-foreground hover:text-foreground",
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border text-muted-foreground hover:bg-accent/60 hover:text-foreground",
                   )}
                 >
                   {humanizeDomain(domain)}
                   {count > 0 && (
-                    <Badge
-                      variant={isActive ? "default" : "secondary"}
-                      className="h-4 min-w-4 justify-center px-1 text-[10px] tabular-nums"
+                    <span
+                      className={cn(
+                        "rounded-full px-1.5 text-[10px] tabular-nums",
+                        isActive ? "bg-primary-foreground/20" : "bg-muted text-foreground",
+                      )}
                     >
                       {count}
-                    </Badge>
+                    </span>
                   )}
                 </button>
               );
@@ -154,9 +152,12 @@ export function PermissionCatalogGrid({ selected, onChange, disabled }: Props) {
 
           {active && (
             <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between">
-                <p className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-                  {humanizeDomain(active)}
+              <div className="flex items-center justify-between px-0.5">
+                <p className="text-xs text-muted-foreground tabular-nums">
+                  {t("selectedOfTotal", {
+                    count: activePerms.filter((p) => selected.has(p.name)).length,
+                    total: activePerms.length,
+                  })}
                 </p>
                 <Button
                   type="button"

@@ -985,7 +985,8 @@
     "searchPlaceholder": "Search permissions...",
     "noMatches": "No matching permissions.",
     "selectAll": "Select all",
-    "clearAll": "Clear all"
+    "clearAll": "Clear all",
+    "selectedOfTotal": "{count} of {total} selected"
   },
   "roles": {
     "title": "Access presets",
