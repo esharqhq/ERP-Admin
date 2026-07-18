@@ -21,7 +21,12 @@
     "all": "Alle",
     "resultsFound": "{count} Ergebnisse gefunden",
     "yes": "Ja",
-    "no": "Nein"
+    "no": "Nein",
+    "notFoundPage": {
+      "title": "Seite nicht gefunden",
+      "description": "Die gesuchte Seite existiert nicht oder Sie haben keine Berechtigung, sie anzuzeigen.",
+      "back": "Zurück zum Dashboard"
+    }
   },
   "status": {
     "pending": "Ausstehend",
@@ -55,7 +60,10 @@
     "roles": "Rollen",
     "kyc": "KYC",
     "general": "Allgemein",
-    "notifications": "Benachrichtigungen"
+    "notifications": "Benachrichtigungen",
+    "agency": "Agentur",
+    "agencyRequests": "Anfragen",
+    "agencies": "Agenturen"
   },
   "auth": {
     "logout": "Abmelden",
@@ -1031,6 +1039,17 @@
       "action": "Löschen",
       "title": "Preset löschen?",
       "description": "„{name}“ wird gelöscht. Dies kann nicht rückgängig gemacht werden."
+    },
+    "history": {
+      "action": "Verlauf",
+      "title": "Berechtigungsverlauf — {name}",
+      "subtitle": "Jede Berechtigung, die dieser Rolle erteilt oder entzogen wurde.",
+      "empty": "Für diese Rolle wurden noch keine Berechtigungsänderungen erfasst.",
+      "added": "Hinzugefügt",
+      "removed": "Entfernt",
+      "actor": "von {actor}",
+      "openAudit": "Vollständiges Audit-Log öffnen",
+      "error": "Verlauf konnte nicht geladen werden."
     },
     "errors": {
       "role_code_exists": "Eine Rolle mit diesem Code existiert bereits.",

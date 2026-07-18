@@ -21,7 +21,12 @@
     "all": "All",
     "resultsFound": "{count} results found",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "notFoundPage": {
+      "title": "Page not found",
+      "description": "The page you're looking for doesn't exist or you don't have permission to view it.",
+      "back": "Back to dashboard"
+    }
   },
   "status": {
     "pending": "Pending",
@@ -55,7 +60,10 @@
     "roles": "Roles",
     "kyc": "KYC",
     "general": "General",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "agency": "Agency",
+    "agencyRequests": "Requests",
+    "agencies": "Agencies"
   },
   "auth": {
     "logout": "Logout",
@@ -1031,6 +1039,17 @@
       "action": "Delete",
       "title": "Delete preset?",
       "description": "“{name}” will be deleted. This can't be undone."
+    },
+    "history": {
+      "action": "History",
+      "title": "Permission history — {name}",
+      "subtitle": "Every permission granted to or removed from this role.",
+      "empty": "No permission changes recorded for this role yet.",
+      "added": "Added",
+      "removed": "Removed",
+      "actor": "by {actor}",
+      "openAudit": "Open full audit log",
+      "error": "Could not load the history."
     },
     "errors": {
       "role_code_exists": "A role with that code already exists.",
