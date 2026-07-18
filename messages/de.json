@@ -51,8 +51,6 @@
     "contracts": "Verträge",
     "professions": "Berufe",
     "support": "Support",
-    "tickets": "Tickets",
-    "conversations": "Konversationen",
     "auditLog": "Prüfprotokoll",
     "admins": "Administratoren",
     "settings": "Einstellungen",
@@ -585,28 +583,6 @@
     "present": {
       "yes": "Anwesend",
       "no": "Abwesend"
-    }
-  },
-  "conversations": {
-    "title": "Konversationen",
-    "subtitle": "Alle Support-Konversationen im System",
-    "assignedToMe": "Mir zugewiesen",
-    "count": "{count} Konversationen",
-    "empty": "Keine Konversationen gefunden.",
-    "noMessages": "Noch keine Nachrichten",
-    "tabs": {
-      "all": "Alle",
-      "open": "Offen",
-      "inProgress": "In Bearbeitung",
-      "resolved": "Gelöst",
-      "closed": "Geschlossen"
-    },
-    "columns": {
-      "requester": "Anfragesteller",
-      "priority": "Priorität",
-      "status": "Status",
-      "lastActivity": "Letzte Aktivität",
-      "created": "Erstellt"
     }
   },
   "supportInbox": {
