@@ -16,7 +16,7 @@ export default function SupportTicketDetailPage({
   const t = useTranslations("support");
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex h-[calc(100vh-7.5rem)] min-h-[30rem] flex-col gap-3">
       <Button
         variant="ghost"
         size="sm"
@@ -27,7 +27,9 @@ export default function SupportTicketDetailPage({
         <ArrowLeft className="size-4" />
         {t("detail.back")}
       </Button>
-      <TicketDetailPane ticketId={id} />
+      <div className="min-h-0 flex-1 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+        <TicketDetailPane ticketId={id} />
+      </div>
     </div>
   );
 }

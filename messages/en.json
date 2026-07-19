@@ -587,8 +587,10 @@
   },
   "supportInbox": {
     "title": "Support",
-    "subtitle": "Tickets and conversations in one place",
-    "tabs": { "all": "All", "mine": "Assigned to me" },
+    "tabs": {
+      "all": "All",
+      "mine": "Assigned to me"
+    },
     "filters": {
       "status": "Status",
       "priority": "Priority",
@@ -597,10 +599,9 @@
       "searchPlaceholder": "Search subject, category, requester…"
     },
     "list": {
-      "count": "{count} conversations",
       "empty": "No conversations found.",
-      "loading": "Loading…",
-      "error": "Could not load the inbox."
+      "error": "Could not load the inbox.",
+      "unread": "Unread"
     },
     "detail": {
       "emptyTitle": "Select a conversation",
@@ -682,7 +683,6 @@
       }
     },
     "thread": {
-      "title": "Conversation",
       "live": "Live",
       "empty": "No messages yet",
       "readOnly": "This conversation is closed.",

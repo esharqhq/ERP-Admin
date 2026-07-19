@@ -96,7 +96,29 @@ export function InboxFilters({ value, onChange }: Props) {
   };
 
   return (
-    <div className="flex flex-col gap-3 border-b border-border p-3">
+    <div className="flex flex-col gap-2.5 border-b border-border bg-background px-3 pb-3 pt-3.5">
+      <div className="flex items-center justify-between gap-2 px-0.5">
+        <h1 className="font-heading text-lg font-bold leading-none tracking-tight">
+          {t("title")}
+        </h1>
+        <FilterMenu
+          groups={filterGroups}
+          values={filterValues}
+          onChange={handleFilterChange}
+          allLabel={t("filters.all")}
+        />
+      </div>
+
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          placeholder={t("filters.searchPlaceholder")}
+          className="rounded-full bg-muted/50 pl-9"
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+        />
+      </div>
+
       <Tabs
         value={value.scope}
         onValueChange={(v) =>
@@ -116,24 +138,6 @@ export function InboxFilters({ value, onChange }: Props) {
           </TabsTrigger>
         </TabsList>
       </Tabs>
-
-      <div className="flex items-center gap-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
-          <Input
-            placeholder={t("filters.searchPlaceholder")}
-            className="pl-8"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-          />
-        </div>
-        <FilterMenu
-          groups={filterGroups}
-          values={filterValues}
-          onChange={handleFilterChange}
-          allLabel={t("filters.all")}
-        />
-      </div>
     </div>
   );
 }

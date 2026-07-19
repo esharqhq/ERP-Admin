@@ -587,8 +587,10 @@
   },
   "supportInbox": {
     "title": "Support",
-    "subtitle": "Tickets und Konversationen an einem Ort",
-    "tabs": { "all": "Alle", "mine": "Mir zugewiesen" },
+    "tabs": {
+      "all": "Alle",
+      "mine": "Mir zugewiesen"
+    },
     "filters": {
       "status": "Status",
       "priority": "Priorität",
@@ -597,10 +599,9 @@
       "searchPlaceholder": "Betreff, Kategorie, Anfragende:r suchen…"
     },
     "list": {
-      "count": "{count} Konversationen",
       "empty": "Keine Konversationen gefunden.",
-      "loading": "Wird geladen…",
-      "error": "Posteingang konnte nicht geladen werden."
+      "error": "Posteingang konnte nicht geladen werden.",
+      "unread": "Ungelesen"
     },
     "detail": {
       "emptyTitle": "Konversation auswählen",
@@ -682,7 +683,6 @@
       }
     },
     "thread": {
-      "title": "Konversation",
       "live": "Live",
       "empty": "Noch keine Nachrichten",
       "readOnly": "Diese Konversation ist geschlossen.",

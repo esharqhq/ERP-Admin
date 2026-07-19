@@ -172,16 +172,13 @@ export function ConversationThread({ conversationId, disabled }: Props) {
   const sendError = sendMessage.isError ? t("thread.sendFailed") : null;
 
   return (
-    <div className="flex h-[calc(100vh-19rem)] min-h-[26rem] max-h-[46rem] flex-col overflow-hidden rounded-xl border border-border">
-      <div className="flex items-center justify-between border-b border-border bg-background px-4 py-2.5">
-        <span className="text-sm font-medium">{t("thread.title")}</span>
-        {isLive ? (
-          <span className="flex items-center gap-1 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
-            <Radio className="size-3" />
-            {t("thread.live")}
-          </span>
-        ) : null}
-      </div>
+    <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
+      {isLive ? (
+        <span className="absolute right-3 top-2 z-20 flex items-center gap-1 rounded-full bg-background/90 px-2 py-0.5 text-[11px] font-medium text-emerald-600 shadow-sm ring-1 ring-border backdrop-blur dark:text-emerald-400">
+          <Radio className="size-3" />
+          {t("thread.live")}
+        </span>
+      ) : null}
 
       <div className="flex-1 overflow-y-auto bg-muted/30 px-4 py-3">
         {isLoading ? (

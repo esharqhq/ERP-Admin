@@ -19,14 +19,20 @@ export function InboxList({ selectedId, onSelect }: Props) {
   const { rows, isLoading, isError } = useSupportInbox(query);
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col bg-background">
       <InboxFilters value={query} onChange={setQuery} />
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto py-1">
         {isLoading ? (
-          <div className="space-y-2 p-3">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <Skeleton key={i} className="h-14 w-full rounded-md" />
+          <div className="flex flex-col gap-1 px-3 py-2">
+            {Array.from({ length: 7 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-3 py-1.5">
+                <Skeleton className="size-11 shrink-0 rounded-full" />
+                <div className="flex flex-1 flex-col gap-1.5">
+                  <Skeleton className="h-3.5 w-3/4" />
+                  <Skeleton className="h-3 w-1/2" />
+                </div>
+              </div>
             ))}
           </div>
         ) : isError ? (
@@ -47,10 +53,6 @@ export function InboxList({ selectedId, onSelect }: Props) {
             />
           ))
         )}
-      </div>
-
-      <div className="border-t border-border px-3 py-2 text-xs text-muted-foreground">
-        {isLoading ? t("list.loading") : t("list.count", { count: rows.length })}
       </div>
     </div>
   );

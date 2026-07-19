@@ -20,14 +20,22 @@ import {
   Home,
   ClipboardList,
   Archive,
+  ArrowLeft,
+  Info,
 } from "lucide-react";
 import { useTranslations, useLocale } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Can } from "@/components/auth/can";
 import { ConversationThread } from "@/components/support/conversation-thread";
 import {
@@ -124,7 +132,13 @@ function InfoRow({
   );
 }
 
-export function TicketDetailPane({ ticketId }: { ticketId: string }) {
+interface Props {
+  ticketId: string;
+  /** Mobile: return to the inbox list. */
+  onBack?: () => void;
+}
+
+export function TicketDetailPane({ ticketId, onBack }: Props) {
   const t = useTranslations("support");
   const tCommon = useTranslations("common");
   const locale = useLocale();
@@ -145,9 +159,19 @@ export function TicketDetailPane({ ticketId }: { ticketId: string }) {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col gap-6 p-4">
-        <Skeleton className="h-32 w-full rounded-xl" />
-        <Skeleton className="h-[28rem] w-full rounded-xl" />
+      <div className="flex h-full flex-col">
+        <div className="flex items-center gap-3 border-b border-border px-4 py-3">
+          <Skeleton className="size-10 rounded-full" />
+          <div className="flex flex-1 flex-col gap-1.5">
+            <Skeleton className="h-4 w-1/3" />
+            <Skeleton className="h-3 w-1/4" />
+          </div>
+        </div>
+        <div className="flex-1 space-y-3 bg-muted/30 p-4">
+          <Skeleton className="ml-auto h-10 w-2/3 rounded-2xl" />
+          <Skeleton className="h-10 w-1/2 rounded-2xl" />
+          <Skeleton className="ml-auto h-10 w-1/2 rounded-2xl" />
+        </div>
       </div>
     );
   }
@@ -171,43 +195,51 @@ export function TicketDetailPane({ ticketId }: { ticketId: string }) {
     .toUpperCase();
 
   return (
-    <div className="flex flex-col gap-6 p-4">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="flex min-w-0 items-start gap-3">
-          <Avatar>
-            <AvatarFallback>{requesterInitial}</AvatarFallback>
-          </Avatar>
-          <div className="flex min-w-0 flex-col gap-2">
-            <h1 className="font-heading text-2xl font-bold leading-tight tracking-tight break-words">
-              {ticket.subject}
-            </h1>
-            <div className="flex flex-wrap items-center gap-1.5">
-              <StatusBadge status={ticket.status} />
-              <PriorityBadge priority={ticket.priority} />
+    <div className="flex h-full min-h-0 flex-col">
+      {/* Chat-style header */}
+      <div className="flex items-center gap-3 border-b border-border bg-background px-3 py-2.5 sm:px-4">
+        {onBack ? (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="shrink-0 md:hidden"
+            onClick={onBack}
+            title={t("detail.back")}
+          >
+            <ArrowLeft className="size-4" />
+          </Button>
+        ) : null}
+
+        <Avatar className="size-10 shrink-0">
+          <AvatarFallback>{requesterInitial}</AvatarFallback>
+        </Avatar>
+
+        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <h1 className="truncate font-heading text-base font-semibold leading-tight">
+            {ticket.subject}
+          </h1>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <StatusBadge status={ticket.status} />
+            <PriorityBadge priority={ticket.priority} />
+            {ticket.conversationArchived ? (
               <Badge variant="outline">
-                <Tag />
-                {ticket.category}
+                <Archive />
+                {t("detail.archived")}
               </Badge>
-              {ticket.conversationArchived ? (
-                <Badge variant="outline">
-                  <Archive />
-                  {t("detail.archived")}
-                </Badge>
-              ) : null}
-            </div>
-            <p className="text-xs text-muted-foreground">
+            ) : null}
+            <span className="hidden text-xs text-muted-foreground sm:inline">
               {t("detail.from", { who: ticket.requesterUserType })}
-            </p>
+            </span>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1.5">
           {!isClosed ? (
             <Can permission="support_ticket:assign">
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-1.5"
+                className="hidden gap-1.5 lg:inline-flex"
                 disabled={busy || assignedToMe || !currentAdminId}
                 onClick={() =>
                   currentAdminId &&
@@ -228,7 +260,7 @@ export function TicketDetailPane({ ticketId }: { ticketId: string }) {
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-1.5"
+                className="hidden gap-1.5 lg:inline-flex"
                 disabled={busy}
                 onClick={() => resolve.mutate(ticketId)}
               >
@@ -246,7 +278,7 @@ export function TicketDetailPane({ ticketId }: { ticketId: string }) {
               <Button
                 variant="destructive"
                 size="sm"
-                className="gap-1.5"
+                className="hidden gap-1.5 lg:inline-flex"
                 disabled={busy}
                 onClick={() => close.mutate(ticketId)}
               >
@@ -259,99 +291,161 @@ export function TicketDetailPane({ ticketId }: { ticketId: string }) {
               </Button>
             </Can>
           ) : null}
+
+          <Sheet>
+            <SheetTrigger
+              render={
+                <Button variant="ghost" size="icon" title={t("detail.infoTitle")} />
+              }
+            >
+              <Info className="size-4" />
+            </SheetTrigger>
+            <SheetContent side="right" className="overflow-y-auto">
+              <SheetHeader>
+                <SheetTitle>{t("detail.infoTitle")}</SheetTitle>
+              </SheetHeader>
+
+              <div className="flex flex-col gap-5 px-4 pb-6">
+                <div className="grid grid-cols-1 gap-4">
+                  <InfoRow
+                    icon={Tag}
+                    label={t("detail.info.category")}
+                    value={ticket.category}
+                  />
+                  <InfoRow
+                    icon={Flag}
+                    label={t("detail.info.priority")}
+                    value={ticket.priority}
+                  />
+                  <InfoRow
+                    icon={User}
+                    label={t("detail.info.requester")}
+                    value={ticket.requesterUserType}
+                  />
+                  <InfoRow
+                    icon={UserCheck}
+                    label={t("detail.info.assignedAdmin")}
+                    value={
+                      ticket.assignedAdminId
+                        ? assignedToMe
+                          ? t("detail.you")
+                          : ticket.assignedAdminId.slice(0, 8)
+                        : t("detail.unassigned")
+                    }
+                  />
+                </div>
+
+                <Separator />
+
+                <div className="grid grid-cols-1 gap-4">
+                  <InfoRow
+                    icon={CalendarPlus}
+                    label={t("detail.info.created")}
+                    value={fmtDateTime(ticket.createdAt, locale)}
+                  />
+                  <InfoRow
+                    icon={CheckCircle2}
+                    label={t("detail.info.resolved")}
+                    value={fmtDateTime(ticket.resolvedAt, locale)}
+                  />
+                  <InfoRow
+                    icon={XCircle}
+                    label={t("detail.info.closed")}
+                    value={fmtDateTime(ticket.closedAt, locale)}
+                  />
+                </div>
+
+                {ticket.relatedPropertyId || ticket.relatedTaskGroupId ? (
+                  <>
+                    <Separator />
+                    <div className="grid grid-cols-1 gap-4">
+                      {ticket.relatedPropertyId ? (
+                        <InfoRow
+                          icon={Home}
+                          label={t("detail.info.relatedProperty")}
+                          value={ticket.relatedPropertyId.slice(0, 8)}
+                        />
+                      ) : null}
+                      {ticket.relatedTaskGroupId ? (
+                        <InfoRow
+                          icon={ClipboardList}
+                          label={t("detail.info.relatedTaskGroup")}
+                          value={
+                            <Link
+                              href={`/dashboard/tasks/${ticket.relatedTaskGroupId}`}
+                              className="underline underline-offset-2"
+                            >
+                              {ticket.relatedTaskGroupId.slice(0, 8)}
+                            </Link>
+                          }
+                        />
+                      ) : null}
+                    </div>
+                  </>
+                ) : null}
+
+                {/* On smaller screens the header hides text actions; offer them here. */}
+                <div className="flex flex-col gap-2 lg:hidden">
+                  <Separator />
+                  {!isClosed ? (
+                    <Can permission="support_ticket:assign">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="justify-start gap-1.5"
+                        disabled={busy || assignedToMe || !currentAdminId}
+                        onClick={() =>
+                          currentAdminId &&
+                          assign.mutate({ id: ticketId, adminId: currentAdminId })
+                        }
+                      >
+                        <UserCheck className="size-3.5" />
+                        {assignedToMe
+                          ? t("actions.assignedToMe")
+                          : t("actions.assignToMe")}
+                      </Button>
+                    </Can>
+                  ) : null}
+                  {!isClosed && !isResolved ? (
+                    <Can permission="support_ticket:resolve">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="justify-start gap-1.5"
+                        disabled={busy}
+                        onClick={() => resolve.mutate(ticketId)}
+                      >
+                        <CheckCircle2 className="size-3.5" />
+                        {t("actions.resolve")}
+                      </Button>
+                    </Can>
+                  ) : null}
+                  {!isClosed ? (
+                    <Can permission="support_ticket:close">
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="justify-start gap-1.5"
+                        disabled={busy}
+                        onClick={() => close.mutate(ticketId)}
+                      >
+                        <XCircle className="size-3.5" />
+                        {t("actions.close")}
+                      </Button>
+                    </Can>
+                  ) : null}
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
 
       {actionErrorMsg ? (
-        <p className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+        <p className="border-b border-destructive/40 bg-destructive/10 px-4 py-2 text-sm text-destructive">
           {actionErrorMsg}
         </p>
       ) : null}
-
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">{t("detail.infoTitle")}</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-5">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <InfoRow
-              icon={Tag}
-              label={t("detail.info.category")}
-              value={ticket.category}
-            />
-            <InfoRow
-              icon={Flag}
-              label={t("detail.info.priority")}
-              value={ticket.priority}
-            />
-            <InfoRow
-              icon={User}
-              label={t("detail.info.requester")}
-              value={ticket.requesterUserType}
-            />
-            <InfoRow
-              icon={UserCheck}
-              label={t("detail.info.assignedAdmin")}
-              value={
-                ticket.assignedAdminId
-                  ? assignedToMe
-                    ? t("detail.you")
-                    : ticket.assignedAdminId.slice(0, 8)
-                  : t("detail.unassigned")
-              }
-            />
-          </div>
-
-          <Separator />
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <InfoRow
-              icon={CalendarPlus}
-              label={t("detail.info.created")}
-              value={fmtDateTime(ticket.createdAt, locale)}
-            />
-            <InfoRow
-              icon={CheckCircle2}
-              label={t("detail.info.resolved")}
-              value={fmtDateTime(ticket.resolvedAt, locale)}
-            />
-            <InfoRow
-              icon={XCircle}
-              label={t("detail.info.closed")}
-              value={fmtDateTime(ticket.closedAt, locale)}
-            />
-          </div>
-
-          {ticket.relatedPropertyId || ticket.relatedTaskGroupId ? (
-            <>
-              <Separator />
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                {ticket.relatedPropertyId ? (
-                  <InfoRow
-                    icon={Home}
-                    label={t("detail.info.relatedProperty")}
-                    value={ticket.relatedPropertyId.slice(0, 8)}
-                  />
-                ) : null}
-                {ticket.relatedTaskGroupId ? (
-                  <InfoRow
-                    icon={ClipboardList}
-                    label={t("detail.info.relatedTaskGroup")}
-                    value={
-                      <Link
-                        href={`/dashboard/tasks/${ticket.relatedTaskGroupId}`}
-                        className="underline underline-offset-2"
-                      >
-                        {ticket.relatedTaskGroupId.slice(0, 8)}
-                      </Link>
-                    }
-                  />
-                ) : null}
-              </div>
-            </>
-          ) : null}
-        </CardContent>
-      </Card>
 
       <ConversationThread
         conversationId={ticket.conversationId}
