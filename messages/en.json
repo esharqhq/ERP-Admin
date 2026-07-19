@@ -689,7 +689,9 @@
       "composerPlaceholder": "Type a message…",
       "send": "Send",
       "sendFailed": "Message could not be sent. Please try again.",
-      "participant": "Participant"
+      "participant": "Participant",
+      "today": "Today",
+      "yesterday": "Yesterday"
     }
   },
   "tasks": {

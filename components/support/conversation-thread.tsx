@@ -19,7 +19,36 @@ import type {
 function fmtTime(iso: string, locale: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
-  return d.toLocaleString(locale, { dateStyle: "short", timeStyle: "short" });
+  return d.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
+}
+
+function sameDay(a: string, b: string): boolean {
+  const da = new Date(a);
+  const db = new Date(b);
+  return (
+    da.getFullYear() === db.getFullYear() &&
+    da.getMonth() === db.getMonth() &&
+    da.getDate() === db.getDate()
+  );
+}
+
+function dayLabel(
+  iso: string,
+  locale: string,
+  t: (k: string) => string,
+): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const now = new Date();
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  if (sameDay(iso, now.toISOString())) return t("today");
+  if (sameDay(iso, yesterday.toISOString())) return t("yesterday");
+  return d.toLocaleDateString(locale, {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  });
 }
 
 function AttachmentLink({ a }: { a: MessageAttachmentDto }) {
@@ -39,9 +68,13 @@ function AttachmentLink({ a }: { a: MessageAttachmentDto }) {
 function MessageBubble({
   msg,
   locale,
+  showName,
+  isLastOfGroup,
 }: {
   msg: ConversationMessageDto;
   locale: string;
+  showName: boolean;
+  isLastOfGroup: boolean;
 }) {
   const t = useTranslations("support");
   const isSystem = normalizeStatus(msg.messageType) === "system";
@@ -49,29 +82,43 @@ function MessageBubble({
 
   if (isSystem) {
     return (
-      <div className="my-1 flex justify-center">
-        <span className="rounded-full bg-muted px-3 py-1 text-[11px] text-muted-foreground">
+      <div className="my-2 flex justify-center">
+        <span className="rounded-full bg-background/80 px-3 py-1 text-[11px] text-muted-foreground ring-1 ring-border">
           {msg.body}
         </span>
       </div>
     );
   }
 
+  // Telegram/WhatsApp-style tail: square off the trailing bottom corner on the
+  // last bubble of a run so grouped messages read as one stack.
+  const tail = isLastOfGroup
+    ? isAdmin
+      ? "rounded-br-sm"
+      : "rounded-bl-sm"
+    : "";
+
   return (
-    <div className={`flex ${isAdmin ? "justify-end" : "justify-start"}`}>
+    <div
+      className={`flex ${isAdmin ? "justify-end" : "justify-start"} ${
+        isLastOfGroup ? "mb-2" : "mb-0.5"
+      }`}
+    >
       <div
-        className={`flex max-w-[78%] flex-col gap-1 rounded-2xl px-3.5 py-2 text-sm ${
+        className={`flex max-w-[80%] flex-col gap-0.5 rounded-2xl px-3 py-1.5 text-sm shadow-sm ${tail} ${
           isAdmin
             ? "bg-primary text-primary-foreground"
-            : "bg-muted text-foreground"
+            : "bg-background text-foreground ring-1 ring-border"
         }`}
       >
-        {!isAdmin ? (
-          <span className="text-[11px] font-medium opacity-70">
+        {showName && !isAdmin ? (
+          <span className="text-[11px] font-semibold text-primary">
             {msg.senderUserType || t("thread.participant")}
           </span>
         ) : null}
-        {msg.body ? <span className="whitespace-pre-wrap break-words">{msg.body}</span> : null}
+        {msg.body ? (
+          <span className="whitespace-pre-wrap break-words">{msg.body}</span>
+        ) : null}
         {msg.attachments?.length ? (
           <div className="flex flex-wrap gap-1.5 pt-0.5">
             {msg.attachments.map((a) => (
@@ -80,7 +127,9 @@ function MessageBubble({
           </div>
         ) : null}
         <span
-          className={`text-[10px] ${isAdmin ? "text-primary-foreground/70" : "text-muted-foreground"}`}
+          className={`self-end text-[10px] leading-none ${
+            isAdmin ? "text-primary-foreground/70" : "text-muted-foreground"
+          }`}
         >
           {fmtTime(msg.createdAt, locale)}
         </span>
@@ -117,27 +166,24 @@ export function ConversationThread({ conversationId, disabled }: Props) {
   const send = () => {
     const body = draft.trim();
     if (!body || sendMessage.isPending) return;
-    sendMessage.mutate(
-      { body },
-      { onSuccess: () => setDraft("") },
-    );
+    sendMessage.mutate({ body }, { onSuccess: () => setDraft("") });
   };
 
   const sendError = sendMessage.isError ? t("thread.sendFailed") : null;
 
   return (
-    <div className="flex h-[28rem] flex-col rounded-xl border border-border">
-      <div className="flex items-center justify-between border-b border-border px-4 py-2">
+    <div className="flex h-[calc(100vh-19rem)] min-h-[26rem] max-h-[46rem] flex-col overflow-hidden rounded-xl border border-border">
+      <div className="flex items-center justify-between border-b border-border bg-background px-4 py-2.5">
         <span className="text-sm font-medium">{t("thread.title")}</span>
         {isLive ? (
-          <span className="flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400">
+          <span className="flex items-center gap-1 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
             <Radio className="size-3" />
             {t("thread.live")}
           </span>
         ) : null}
       </div>
 
-      <div className="flex-1 space-y-2 overflow-y-auto px-4 py-3">
+      <div className="flex-1 overflow-y-auto bg-muted/30 px-4 py-3">
         {isLoading ? (
           <div className="space-y-2">
             <Skeleton className="ml-auto h-10 w-2/3 rounded-2xl" />
@@ -149,18 +195,50 @@ export function ConversationThread({ conversationId, disabled }: Props) {
             {tCommon("error")}
           </p>
         ) : messages.length === 0 ? (
-          <p className="py-8 text-center text-sm text-muted-foreground">
-            {t("thread.empty")}
-          </p>
+          <div className="flex h-full items-center justify-center">
+            <p className="text-sm text-muted-foreground">{t("thread.empty")}</p>
+          </div>
         ) : (
-          messages.map((m) => (
-            <MessageBubble key={m.id} msg={m} locale={locale} />
-          ))
+          messages.map((m, i) => {
+            const prev = messages[i - 1];
+            const next = messages[i + 1];
+            const newDay = !prev || !sameDay(prev.createdAt, m.createdAt);
+            // A "group" is a run of same-sender, same-day, non-system messages.
+            const grouped =
+              !!prev &&
+              !newDay &&
+              prev.senderUserType === m.senderUserType &&
+              normalizeStatus(prev.messageType) !== "system" &&
+              normalizeStatus(m.messageType) !== "system";
+            const isLastOfGroup =
+              !next ||
+              !sameDay(next.createdAt, m.createdAt) ||
+              next.senderUserType !== m.senderUserType ||
+              normalizeStatus(next.messageType) === "system";
+
+            return (
+              <div key={m.id}>
+                {newDay ? (
+                  <div className="sticky top-0 z-10 my-2 flex justify-center">
+                    <span className="rounded-full bg-background/90 px-3 py-0.5 text-[11px] font-medium text-muted-foreground shadow-sm ring-1 ring-border backdrop-blur">
+                      {dayLabel(m.createdAt, locale, (k) => t(`thread.${k}`))}
+                    </span>
+                  </div>
+                ) : null}
+                <MessageBubble
+                  msg={m}
+                  locale={locale}
+                  showName={!grouped}
+                  isLastOfGroup={isLastOfGroup}
+                />
+              </div>
+            );
+          })
         )}
         <div ref={bottomRef} />
       </div>
 
-      <div className="border-t border-border p-3">
+      <div className="border-t border-border bg-background p-3">
         {sendError ? (
           <p className="mb-2 text-xs text-destructive">{sendError}</p>
         ) : null}
@@ -169,7 +247,7 @@ export function ConversationThread({ conversationId, disabled }: Props) {
             {t("thread.readOnly")}
           </p>
         ) : (
-          <div className="flex items-end gap-2">
+          <div className="flex items-end gap-2 rounded-2xl border border-input bg-background py-1 pl-3 pr-1 transition-colors focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50">
             <textarea
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
@@ -181,13 +259,14 @@ export function ConversationThread({ conversationId, disabled }: Props) {
               }}
               rows={1}
               placeholder={t("thread.composerPlaceholder")}
-              className="max-h-32 min-h-9 flex-1 resize-none rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+              className="max-h-32 min-h-8 flex-1 resize-none bg-transparent py-1.5 text-sm outline-none placeholder:text-muted-foreground"
             />
             <Button
               size="icon"
               onClick={send}
               disabled={!draft.trim() || sendMessage.isPending}
               title={t("thread.send")}
+              className="size-9 shrink-0 rounded-full"
             >
               {sendMessage.isPending ? (
                 <Loader2 className="size-4 animate-spin" />

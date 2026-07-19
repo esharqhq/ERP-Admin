@@ -689,7 +689,9 @@
       "composerPlaceholder": "Nachricht eingeben…",
       "send": "Senden",
       "sendFailed": "Nachricht konnte nicht gesendet werden. Bitte erneut versuchen.",
-      "participant": "Teilnehmer"
+      "participant": "Teilnehmer",
+      "today": "Heute",
+      "yesterday": "Gestern"
     }
   },
   "tasks": {
