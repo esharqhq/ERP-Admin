@@ -593,6 +593,7 @@
       "status": "Status",
       "priority": "Priorität",
       "category": "Kategorie",
+      "all": "Alle",
       "searchPlaceholder": "Betreff, Kategorie, Anfragende:r suchen…"
     },
     "list": {

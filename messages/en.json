@@ -593,6 +593,7 @@
       "status": "Status",
       "priority": "Priority",
       "category": "Category",
+      "all": "All",
       "searchPlaceholder": "Search subject, category, requester…"
     },
     "list": {
