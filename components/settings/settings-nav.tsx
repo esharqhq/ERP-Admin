@@ -3,8 +3,9 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useLocale, useTranslations } from "next-intl"
-import { Settings, UserCog, KeyRound, ShieldCheck, Briefcase } from "lucide-react"
+import { Settings, UserCog, ShieldCheck, Briefcase } from "lucide-react"
 import { useCurrentPermissions } from "@/hooks/use-current-permissions"
+import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
 
 type SettingsNavItem = {
@@ -18,7 +19,6 @@ type SettingsNavItem = {
 const NAV_ITEMS: SettingsNavItem[] = [
   { href: "/dashboard/settings",        labelKey: "general",  icon: Settings,    permission: "system:settings:read",   exact: true  },
   { href: "/dashboard/settings/admins", labelKey: "admins",   icon: UserCog,     permission: "admin:list",             exact: false },
-  { href: "/dashboard/settings/roles",  labelKey: "roles",    icon: KeyRound,    permission: "system:permission:read", exact: false },
   { href: "/dashboard/settings/professions", labelKey: "professions", icon: Briefcase,  permission: "profession:create",      exact: false },
   { href: "/dashboard/settings/audit",       labelKey: "auditLog",    icon: ShieldCheck, permission: "system:audit:read",      exact: false },
 ]
@@ -30,7 +30,20 @@ export function SettingsNav() {
   const { permissions } = useCurrentPermissions()
   const t = useTranslations("nav")
 
-  const canSee = (perm: string) => permissions === null || permissions.has(perm)
+  // Fail CLOSED on cold start (null) so a limited admin never flashes settings
+  // tabs they can't open; a refresh hydrates the set from cache, so null is
+  // rare and rendered as a short skeleton below.
+  const canSee = (perm: string) => permissions?.has(perm) ?? false
+
+  if (permissions === null) {
+    return (
+      <nav className="flex flex-row flex-nowrap gap-1 md:flex-col md:gap-0.5">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={i} className="h-9 w-full rounded-md" />
+        ))}
+      </nav>
+    )
+  }
 
   return (
     <nav className="flex flex-row flex-nowrap gap-1 overflow-x-auto md:flex-col md:gap-0.5 md:overflow-x-visible">

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Pencil, Check, X, Plus } from "lucide-react";
+import { Pencil, Check, X, Plus, Loader2 } from "lucide-react";
 import { useSettings, useUpsertSetting } from "@/hooks/use-settings";
 import { useRouter } from "@/i18n/navigation";
 import { useCurrentPermissions } from "@/hooks/use-current-permissions";
@@ -33,14 +33,16 @@ export default function SettingsPage() {
   const locale = useLocale();
   const router = useRouter()
   const { permissions } = useCurrentPermissions()
-  const canViewGeneral = permissions === null || permissions.has("system:settings:read")
+  // Fail CLOSED while unknown: don't render the General settings for an admin
+  // who may lack system:settings:read (avoids a flash before the redirect).
+  const canViewGeneral = permissions !== null && permissions.has("system:settings:read")
 
   useEffect(() => {
     if (permissions === null || permissions.has("system:settings:read")) return
     const fallback = permissions.has("admin:list")
       ? "/dashboard/settings/admins"
       : permissions.has("system:permission:read")
-        ? "/dashboard/settings/roles"
+        ? "/dashboard/settings/admins/presets"
         : permissions.has("system:audit:read")
           ? "/dashboard/settings/audit"
           : null
@@ -87,6 +89,16 @@ export default function SettingsPage() {
       year: "numeric", month: "2-digit", day: "2-digit",
       hour: "2-digit", minute: "2-digit",
     });
+  }
+
+  // Cold start: hold with a spinner until permissions resolve (then either
+  // render General or redirect to the admin's first allowed settings tab).
+  if (permissions === null) {
+    return (
+      <div className="flex flex-1 items-center justify-center py-24">
+        <Loader2 className="size-6 animate-spin text-muted-foreground" />
+      </div>
+    )
   }
 
   if (!canViewGeneral) return null

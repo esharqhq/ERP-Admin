@@ -75,10 +75,37 @@ export interface ConversationMessageDto {
   createdAt: string;
 }
 
+/** AttachmentType name expected by the backend (§8.2 conversations API). */
+export type AttachmentTypeName = "Voice" | "Image" | "Video" | "File";
+
+export interface OutboundAttachment {
+  storageKey: string;
+  type: AttachmentTypeName;
+  mimeType: string;
+  sizeBytes: number;
+  fileName: string;
+  durationSeconds?: number;
+}
+
 export interface SendMessageRequest {
   body?: string | null;
-  // Outbound attachments (presign→confirm) deferred from v1; text-only for now.
-  attachments?: null;
+  attachments?: OutboundAttachment[];
+}
+
+/** POST /api/conversations/{id}/attachments/presign request body. */
+export interface PresignAttachmentRequest {
+  attachmentType: AttachmentTypeName;
+  mimeType: string;
+  sizeBytes: number;
+  fileName: string;
+}
+
+/** Presign result — the storageKey is scoped to this conversation. */
+export interface PresignAttachmentResult {
+  uploadUrl: string;
+  storageKey: string;
+  permanentUrl: string;
+  expiresAtUtc: string;
 }
 
 export interface AssignTicketRequest {
@@ -94,3 +121,30 @@ export const SUPPORT_STATUS_FILTERS = [
   "Closed",
 ] as const;
 export type SupportStatusFilter = (typeof SUPPORT_STATUS_FILTERS)[number];
+
+// ── Unified Support Inbox (Tickets ∪ Conversations, joined by ticketId) ──────
+export type SupportInboxScope = "all" | "mine";
+
+/** One inbox row: a ticket plus its 1:1 conversation's activity fields. */
+export interface SupportInboxRow {
+  ticketId: string;
+  conversationId: string;
+  subject: string;
+  category: string;
+  priority: string; // Low | Normal | High | Urgent (kept string; new values won't crash)
+  status: SupportTicketStatusName; // Open | InProgress | Resolved | Closed
+  requesterUserType: string; // normalized to friendly form ("Owner"|"Worker"|"Admin")
+  assignedAdminId: string | null;
+  lastMessageAt: string | null;
+  createdAt: string;
+  unreadCount?: number; // optional; drives the unread indicator when backend provides it
+}
+
+/** The controlled filter state emitted by inbox-filters. */
+export interface SupportInboxQuery {
+  scope: SupportInboxScope;
+  status?: SupportTicketStatusName;
+  priority?: string;
+  category?: string;
+  search?: string;
+}

@@ -21,7 +21,12 @@
     "all": "All",
     "resultsFound": "{count} results found",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "notFoundPage": {
+      "title": "Page not found",
+      "description": "The page you're looking for doesn't exist or you don't have permission to view it.",
+      "back": "Back to dashboard"
+    }
   },
   "status": {
     "pending": "Pending",
@@ -46,16 +51,16 @@
     "contracts": "Contracts",
     "professions": "Professions",
     "support": "Support",
-    "tickets": "Tickets",
-    "conversations": "Conversations",
-    "chat": "Chat",
     "auditLog": "Audit Log",
     "admins": "Admins",
     "settings": "Settings",
     "roles": "Roles",
     "kyc": "KYC",
     "general": "General",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "agency": "Agency",
+    "agencyRequests": "Requests",
+    "agencies": "Agencies"
   },
   "auth": {
     "logout": "Logout",
@@ -430,15 +435,18 @@
       "emailPlaceholder": "john@erp.com",
       "password": "Password",
       "passwordPlaceholder": "At least 8 characters",
-      "permissions": "Permissions",
-      "role": "Role",
-      "selectRole": "Select a role",
-      "accessMode": "Access",
-      "modeShared": "Assign role",
-      "modeSharedHint": "Use a shared named role",
-      "modeCustom": "Custom access",
-      "modeCustomHint": "Pick individual permissions",
-      "create": "Create"
+      "create": "Create",
+      "identitySection": "Identity",
+      "accessSection": "Access preset",
+      "permCount": "{count} permissions",
+      "recommended": "Recommended",
+      "systemBadge": "System",
+      "customCard": "Custom",
+      "customCardHint": "Hand-pick individual permissions",
+      "customizeToggle": "Customize permissions ({count} selected)",
+      "detachNote": "Customizing gives {name} their own copy of the permissions, separate from the \"{preset}\" preset.",
+      "presetsError": "Could not load access presets.",
+      "noPreset": "Choose an access preset to continue."
     },
     "roles": {
       "superAdmin": "Super Admin",
@@ -469,17 +477,10 @@
     },
     "detail": {
       "created": "Created {date}",
-      "updated": "Updated {date}"
+      "updated": "Updated {date}",
+      "accessSection": "Access"
     },
     "assign": {
-      "title": "Reassign role",
-      "modeShared": "Shared role",
-      "modeSharedHint": "Assign an existing named role",
-      "modeCustom": "Custom access",
-      "modeCustomHint": "Create a one-off permission set",
-      "modeCustomEditHint": "Edit this admin’s custom permissions",
-      "roleLabel": "Role",
-      "confirm": "Apply",
       "errors": {
         "invalid_admin_role": "That role is not assignable to admins.",
         "admin_not_found": "Admin not found.",
@@ -488,7 +489,8 @@
         "role_not_found": "Role not found.",
         "generic": "Could not update the role."
       }
-    }
+    },
+    "managePresets": "Manage presets"
   },
   "layout": {
     "appName": "Mond Control Center",
@@ -583,26 +585,27 @@
       "no": "Absent"
     }
   },
-  "conversations": {
-    "title": "Conversations",
-    "subtitle": "All support conversations across the system",
-    "assignedToMe": "Assigned to me",
-    "count": "{count} conversations",
-    "empty": "No conversations found.",
-    "noMessages": "No messages yet",
+  "supportInbox": {
+    "title": "Support",
     "tabs": {
       "all": "All",
-      "open": "Open",
-      "inProgress": "In Progress",
-      "resolved": "Resolved",
-      "closed": "Closed"
+      "mine": "Assigned to me"
     },
-    "columns": {
-      "requester": "Requester",
-      "priority": "Priority",
+    "filters": {
       "status": "Status",
-      "lastActivity": "Last Activity",
-      "created": "Created"
+      "priority": "Priority",
+      "category": "Category",
+      "all": "All",
+      "searchPlaceholder": "Search subject, category, requester…"
+    },
+    "list": {
+      "empty": "No conversations found.",
+      "error": "Could not load the inbox.",
+      "unread": "Unread"
+    },
+    "detail": {
+      "emptyTitle": "Select a conversation",
+      "emptyHint": "Pick a ticket from the list to see its details and chat."
     }
   },
   "support": {
@@ -680,14 +683,22 @@
       }
     },
     "thread": {
-      "title": "Conversation",
-      "live": "Live",
       "empty": "No messages yet",
       "readOnly": "This conversation is closed.",
       "composerPlaceholder": "Type a message…",
       "send": "Send",
       "sendFailed": "Message could not be sent. Please try again.",
-      "participant": "Participant"
+      "participant": "Participant",
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "attach": "Attach file",
+      "recordVoice": "Record a voice message",
+      "recording": "Recording",
+      "stopAndSend": "Stop and send",
+      "cancelRecording": "Cancel recording",
+      "uploadFailed": "Upload failed",
+      "removeAttachment": "Remove attachment",
+      "micDenied": "Microphone access was denied."
     }
   },
   "tasks": {
@@ -929,30 +940,45 @@
     }
   },
   "audit": {
-    "title": "Audit Log",
-    "subtitle": "Track all administrative actions",
-    "searchPlaceholder": "Search logs...",
-    "allActions": "All Actions",
-    "noLogs": "No audit logs found",
-    "columns": {
-      "actor": "Actor",
-      "action": "Action",
-      "entity": "Entity",
-      "targetId": "Target ID",
-      "time": "Time"
-    }
-  },
-  "chat": {
-    "title": "Chat",
-    "subtitle": "Communicate with workers and owners",
-    "searchPlaceholder": "Search conversations...",
-    "messagePlaceholder": "Type a message...",
-    "online": "Online",
-    "lastSeen": "Last seen: today",
-    "roles": {
-      "worker": "Worker",
-      "owner": "Owner",
-      "admin": "Admin"
+    "title": "Activity Log",
+    "subtitle": "A record of what admins have done",
+    "searchPlaceholder": "Search by admin or action...",
+    "allActions": "All activity",
+    "noLogs": "No activity yet",
+    "count": "{count} events",
+    "actorTypes": {
+      "SuperAdmin": "A Super Admin",
+      "Moderator": "A Moderator",
+      "Admin": "An Admin",
+      "Owner": "An owner",
+      "Worker": "A worker",
+      "System": "The system"
+    },
+    "actions": {
+      "ADMIN_CREATED": "added a new admin",
+      "ADMIN_MODIFIED": "updated an admin's details",
+      "ADMIN_DEACTIVATED": "deactivated an admin",
+      "ADMIN_ROLE_CHANGED": "changed an admin's access",
+      "KYC_APPROVED": "approved a KYC verification",
+      "KYC_REJECTED": "rejected a KYC verification",
+      "OWNER_KYC_RESET_TO_PENDING": "reset an owner's KYC to pending",
+      "OWNER_DEACTIVATED": "deactivated an owner",
+      "WORKER_APPROVED": "approved a worker",
+      "WORKER_REJECTED": "rejected a worker",
+      "WORKER_DEACTIVATED": "deactivated a worker",
+      "WORKER_DOC_APPROVED": "approved a worker's document",
+      "WORKER_DOC_REJECTED": "rejected a worker's document",
+      "PROPERTY_DEACTIVATED_BY_ADMIN": "deactivated a property",
+      "PROPERTY_RESTORED": "restored a property",
+      "PROPERTY_CREATED_BY_ADMIN": "added a property",
+      "PROPERTY_DOCS_APPROVED": "approved a property's documents",
+      "PROPERTY_DOCS_REJECTED": "rejected a property's documents",
+      "ROLE_PERMISSION_ADDED": "added a permission to an access preset",
+      "ROLE_PERMISSION_REMOVED": "removed a permission from an access preset",
+      "WORKER_CONTRACT_FORCE_DEACTIVATED": "force-ended a worker contract",
+      "WORKER_LEAVE_REQUEST_APPROVED": "approved a leave request",
+      "WORKER_LEAVE_REQUEST_REJECTED": "rejected a leave request",
+      "WORKER_TASK_RATED": "rated a worker's task"
     }
   },
   "settings": {
@@ -962,6 +988,14 @@
     "count": "{count} settings",
     "noSettings": "No settings configured",
     "loading": "Loading settings...",
+    "editValue": "Edit",
+    "lastUpdated": "Updated {date}",
+    "neverUpdated": "Not changed yet",
+    "categories": {
+      "attachment": "Attachments",
+      "task": "Tasks",
+      "other": "Other"
+    },
     "dialog": {
       "createTitle": "Create Setting",
       "editTitle": "Edit Setting",
@@ -980,18 +1014,18 @@
     "searchPlaceholder": "Search permissions...",
     "noMatches": "No matching permissions.",
     "selectAll": "Select all",
-    "clearAll": "Clear all"
+    "clearAll": "Clear all",
+    "selectedOfTotal": "{count} of {total} selected"
   },
   "roles": {
-    "title": "Roles & Permissions",
-    "subtitle": "Manage shared admin roles and their permissions.",
-    "new": "New Role",
-    "empty": "No roles found.",
-    "showCustom": "Show custom roles",
+    "title": "Access presets",
+    "subtitle": "Manage reusable permission presets for admins.",
+    "new": "New preset",
+    "empty": "No presets found.",
     "permCount": "{count} permissions",
     "systemImmutable": "System roles cannot be edited",
     "columns": {
-      "name": "Role",
+      "name": "Preset",
       "code": "Code",
       "type": "Type",
       "permissions": "Permissions"
@@ -1002,8 +1036,8 @@
       "custom": "Custom"
     },
     "form": {
-      "createTitle": "Create Role",
-      "editTitle": "Edit Role",
+      "createTitle": "Create preset",
+      "editTitle": "Edit preset",
       "code": "Code",
       "codePlaceholder": "e.g. SUPPORT_LEAD",
       "codeImmutable": "Code cannot be changed.",
@@ -1017,8 +1051,19 @@
     },
     "delete": {
       "action": "Delete",
-      "title": "Delete role?",
+      "title": "Delete preset?",
       "description": "“{name}” will be deleted. This can't be undone."
+    },
+    "history": {
+      "action": "History",
+      "title": "Permission history — {name}",
+      "subtitle": "Every permission granted to or removed from this role.",
+      "empty": "No permission changes recorded for this role yet.",
+      "added": "Added",
+      "removed": "Removed",
+      "actor": "by {actor}",
+      "openAudit": "Open full audit log",
+      "error": "Could not load the history."
     },
     "errors": {
       "role_code_exists": "A role with that code already exists.",
@@ -1027,7 +1072,14 @@
       "role_in_use": "This role is still assigned. Reassign or remove it first.",
       "role_not_found": "Role not found.",
       "generic": "Could not save the role."
-    }
+    },
+    "backToAdmins": "Back to Admins"
+  },
+  "rolePermissions": {
+    "title": "{name}'s permissions",
+    "count": "{count} permissions",
+    "empty": "No permissions granted.",
+    "otherDomain": "Other"
   },
   "profile": {
     "title": "Profile",

@@ -3,23 +3,34 @@
 import { use, useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import {
-  ArrowLeft, BadgeCheck, Pencil, ShieldCheck, UserX, KeyRound,
-} from "lucide-react";
+import { ArrowLeft, BadgeCheck, Pencil, ShieldCheck, UserX } from "lucide-react";
 import { useRouter } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Can } from "@/components/auth/can";
-import { AdminEditDialog } from "@/components/admins/admin-edit-dialog";
-import { RoleAssignDialog } from "@/components/admins/role-assign-dialog";
+import { AdminForm, type AdminFormResult } from "@/components/admins/admin-form";
+import { AdminAccessSection } from "@/components/admins/admin-access-section";
 import { DeactivateConfirm } from "@/components/admins/deactivate-confirm";
-import { useAdmin, useUpdateAdmin, useDeactivateAdmin } from "@/hooks/use-admins";
+import {
+  useAdmin, useUpdateAdmin, useAssignAdminRole, useDeactivateAdmin,
+} from "@/hooks/use-admins";
+import {
+  useAllRoles, useCreateRole, useUpdateRole, useDeleteRole,
+} from "@/hooks/use-permissions";
+import { useCurrentPermissions } from "@/hooks/use-current-permissions";
 import { getApiErrorCode } from "@/lib/http/api-error";
 import { useAuthStore } from "@/store/auth.store";
-import { isCustomRoleCode } from "@/lib/types/admin-user.types";
+import { isCustomRoleCode, type UpdateAdminRequest } from "@/lib/types/admin-user.types";
+
+const ACCESS_ERRORS = new Set([
+  "invalid_admin_role",
+  "admin_not_found",
+  "role_code_exists",
+  "system_role_immutable",
+  "role_not_found",
+]);
 
 export default function AdminDetailPage({
   params,
@@ -33,20 +44,103 @@ export default function AdminDetailPage({
 
   const { data: admin, isLoading, isError } = useAdmin(id);
   const update = useUpdateAdmin(id);
+  const assign = useAssignAdminRole(id);
+  const createRole = useCreateRole();
+  const updateRole = useUpdateRole();
+  const removeRole = useDeleteRole();
   const deactivate = useDeactivateAdmin();
 
   const currentAdminId = useAuthStore((s) => s.adminMe?.id);
   const isSelf = currentAdminId === id;
 
+  const { permissions } = useCurrentPermissions();
+  const has = (p: string) => permissions?.has(p) ?? false;
+  // The unified form covers identity (admin:update) AND access (system:role:assign);
+  // either permission is enough to open it — the form gates its sections itself.
+  const canOpenEdit = has("admin:update") || has("system:role:assign");
+
   const [showEdit, setShowEdit] = useState(false);
-  const [showAssign, setShowAssign] = useState(false);
   const [showDeactivate, setShowDeactivate] = useState(false);
 
-  const editError = update.isError
-    ? getApiErrorCode(update.error) === "admin_email_exists"
+  // Effective grants of this admin's role (custom or shared) for the inline
+  // read-only Access section. The roles list needs system:permission:read —
+  // the section is gated on the same code below.
+  const { data: allRoles = [], isLoading: rolesLoading } = useAllRoles();
+
+  const formPending =
+    update.isPending || assign.isPending || createRole.isPending || updateRole.isPending;
+
+  const emailError =
+    getApiErrorCode(update.error) === "admin_email_exists"
       ? t("errors.emailTaken")
-      : t("edit.errors.generic")
-    : null;
+      : undefined;
+
+  const formError = (() => {
+    if (!(update.isError || assign.isError || createRole.isError || updateRole.isError)) {
+      return null;
+    }
+    const code =
+      getApiErrorCode(assign.error) ??
+      getApiErrorCode(createRole.error) ??
+      getApiErrorCode(updateRole.error);
+    if (code && ACCESS_ERRORS.has(code)) return t(`assign.errors.${code}`);
+    if (emailError) return null; // surfaced inline at the email field instead
+    return t("assign.errors.generic");
+  })();
+
+  function resetFormMutations() {
+    update.reset();
+    assign.reset();
+    createRole.reset();
+    updateRole.reset();
+  }
+
+  async function handleFormSubmit(result: AdminFormResult) {
+    if (!admin) return;
+    resetFormMutations();
+    const oldRole = admin.role;
+
+    try {
+      // Access first, then identity (spec: no rollback; on failure the form
+      // stays open and already-applied steps remain applied).
+      if (result.kind === "shared") {
+        if (result.roleCode !== oldRole?.code) {
+          await assign.mutateAsync({ roleCode: result.roleCode });
+          // Best-effort cleanup: the old per-admin custom role is orphaned now.
+          if (oldRole && isCustomRoleCode(oldRole.code)) {
+            removeRole.mutate(oldRole.id);
+          }
+        }
+      } else if (result.kind === "custom") {
+        if (oldRole && isCustomRoleCode(oldRole.code)) {
+          // Already this admin's own override (1:1) — edit it in place.
+          await updateRole.mutateAsync({
+            roleId: oldRole.id,
+            body: { permissionNames: result.permissionNames },
+          });
+        } else {
+          // Detach: mint a fresh custom_<uuid> role, then assign it, so the
+          // shared preset and its other holders are untouched.
+          const role = await createRole.mutateAsync({
+            code: `custom_${crypto.randomUUID()}`,
+            name: admin.fullName,
+            appliesTo: "ADMIN",
+            isDefault: false,
+            permissionNames: result.permissionNames,
+          });
+          await assign.mutateAsync({ roleCode: role.code });
+        }
+      }
+
+      const body = result.identity as UpdateAdminRequest;
+      if (Object.keys(body).length > 0) {
+        await update.mutateAsync(body);
+      }
+      setShowEdit(false);
+    } catch {
+      // Errors surface via the mutations' error state; the form stays open.
+    }
+  }
 
   function roleLabel(code: string | null | undefined, name: string | undefined): string {
     if (code === "SUPER_ADMIN") return t("roles.superAdmin");
@@ -81,6 +175,8 @@ export default function AdminDetailPage({
   }
 
   const roleCode = admin.role?.code ?? null;
+  const rolePermissions =
+    allRoles.find((r) => r.id === admin.role?.id)?.permissions ?? [];
 
   return (
     <div className="flex flex-col gap-6">
@@ -123,19 +219,13 @@ export default function AdminDetailPage({
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <Can permission="admin:update">
+            {canOpenEdit && (
               <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setShowEdit(true)}>
                 <Pencil className="size-4" />
                 {tCommon("edit")}
               </Button>
-            </Can>
-            <Can permission="system:role:assign">
-              <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setShowAssign(true)}>
-                <KeyRound className="size-4" />
-                {t("assign.title")}
-              </Button>
-            </Can>
-            <Can permission="admin:deactivate">
+            )}
+            {has("admin:deactivate") && (
               <Button
                 variant="outline"
                 size="sm"
@@ -147,39 +237,31 @@ export default function AdminDetailPage({
                 <UserX className="size-4" />
                 {t("deactivate.confirm")}
               </Button>
-            </Can>
+            )}
           </div>
         </CardContent>
       </Card>
 
-      {showEdit && (
-        <AdminEditDialog
-          open
-          admin={admin}
-          pending={update.isPending}
-          error={editError}
-          onClose={() => {
-            setShowEdit(false);
-            update.reset();
-          }}
-          onSubmit={(body) =>
-            update.mutate(body, {
-              onSuccess: () => {
-                setShowEdit(false);
-                update.reset();
-              },
-            })
-          }
+      {has("system:permission:read") && !rolesLoading && (
+        <AdminAccessSection
+          presetLabel={roleLabel(roleCode, admin.role?.name)}
+          permissionNames={rolePermissions}
         />
       )}
 
-      {showAssign && (
-        <RoleAssignDialog
+      {showEdit && (
+        <AdminForm
+          mode="edit"
           open
-          adminId={admin.id}
-          adminName={admin.fullName}
-          currentRole={admin.role}
-          onClose={() => setShowAssign(false)}
+          admin={admin}
+          isPending={formPending}
+          error={formError}
+          emailError={emailError}
+          onClose={() => {
+            setShowEdit(false);
+            resetFormMutations();
+          }}
+          onSubmit={handleFormSubmit}
         />
       )}
 

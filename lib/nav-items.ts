@@ -8,12 +8,12 @@ import {
   FolderOpen,
   Settings,
   TicketCheck,
-  MessagesSquare,
   FileText,
   CalendarOff,
   CalendarCheck,
   BadgeCheck,
-  Bell,
+  Briefcase,
+  Inbox,
 } from "lucide-react"
 import { type LucideIcon } from "lucide-react"
 
@@ -42,7 +42,6 @@ export const navGroups: NavGroup[] = [
     labelKey: "nav.dashboard",
     items: [
       { title: "Overview",       labelKey: "nav.overview",       url: "/dashboard",               icon: LayoutDashboard },
-      { title: "Notifications",  labelKey: "nav.notifications",  url: "/dashboard/notifications", icon: Bell },
     ],
   },
   {
@@ -70,16 +69,73 @@ export const navGroups: NavGroup[] = [
     ],
   },
   {
+    id: "agency",
+    label: "Agency",
+    labelKey: "nav.agency",
+    items: [
+      { title: "Requests", labelKey: "nav.agencyRequests", url: "/dashboard/agency-requests", icon: Inbox },
+      { title: "Agencies", labelKey: "nav.agencies",       url: "/dashboard/agencies",         icon: Briefcase },
+    ],
+  },
+  {
     id: "support",
     label: "Support",
     labelKey: "nav.support",
     items: [
-      { title: "Tickets",       labelKey: "nav.tickets",       url: "/dashboard/support",       icon: TicketCheck,    permission: "support_ticket:list_any" },
-      { title: "Conversations", labelKey: "nav.conversations", url: "/dashboard/conversations", icon: MessagesSquare, permission: "conversation:list_any" },
-      { title: "Settings",      labelKey: "nav.settings",      url: "/dashboard/settings",      icon: Settings,
+      { title: "Support",  labelKey: "nav.support",  url: "/dashboard/support",  icon: TicketCheck,
+        anyOf: ["conversation:list_any", "support_ticket:list_any"] },
+      { title: "Settings", labelKey: "nav.settings", url: "/dashboard/settings", icon: Settings,
         anyOf: ["system:settings:read", "admin:list", "system:permission:read", "system:audit:read", "profession:create"] },
     ],
   },
 ]
 
 export const navItems: NavItem[] = navGroups.flatMap((g) => g.items)
+
+// ── Route access control ─────────────────────────────────────────────────────
+// The permission gate for a given dashboard route. `null` = no gate (any
+// authenticated admin may view). Consumed by BOTH the sidebar (which hides nav
+// items) and the central RouteGuard (which blocks page access). Backend still
+// enforces every [RequirePermission] independently — this layer is UX only.
+
+export type RouteGate = { permission?: string; anyOf?: string[] }
+
+/**
+ * Extra gates for pages that are NOT top-level nav items (mostly settings
+ * sub-pages). These use LONGER prefixes than the nav entries, so they win the
+ * longest-prefix match below and get their own specific permission instead of
+ * inheriting the broader `/dashboard/settings` anyOf gate.
+ */
+const EXTRA_ROUTE_GATES: { prefix: string; permission?: string; anyOf?: string[] }[] = [
+  { prefix: "/dashboard/settings/admins",      permission: "admin:list" },
+  { prefix: "/dashboard/settings/admins/presets", permission: "system:permission:read" },
+  { prefix: "/dashboard/settings/audit",       permission: "system:audit:read" },
+  { prefix: "/dashboard/settings/professions", permission: "profession:create" },
+]
+
+/** Routes always visible to any authenticated admin (no permission needed). */
+const OPEN_PREFIXES = ["/dashboard/profile"]
+
+/**
+ * Resolve the permission gate for a path (locale already stripped, e.g.
+ * "/dashboard/owners/123"). Matches the longest configured prefix so detail
+ * pages inherit their section's gate (`/dashboard/owners/123` → `owner:list`).
+ * Returns `null` for open/ungated routes (e.g. the "/dashboard" overview).
+ */
+export function resolveRouteGate(path: string): RouteGate | null {
+  if (OPEN_PREFIXES.some((p) => path === p || path.startsWith(`${p}/`))) return null
+
+  const entries = [
+    ...EXTRA_ROUTE_GATES,
+    ...navItems
+      .filter((i) => i.permission || i.anyOf)
+      .map((i) => ({ prefix: i.url, permission: i.permission, anyOf: i.anyOf })),
+  ].sort((a, b) => b.prefix.length - a.prefix.length)
+
+  for (const e of entries) {
+    if (path === e.prefix || path.startsWith(`${e.prefix}/`)) {
+      return { permission: e.permission, anyOf: e.anyOf }
+    }
+  }
+  return null
+}

@@ -17,6 +17,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -49,12 +50,16 @@ export function AppSidebar() {
   const { permissions } = useCurrentPermissions()
   const t = useTranslations()
 
+  // Fail CLOSED while the grant set is unknown (cold start): hide items until
+  // permissions resolve so a limited admin never flashes sections they can't
+  // open. On a refresh the set hydrates synchronously from cache, so this null
+  // branch only hits on a first login (handled by the skeleton below).
   const canSee = (perm?: string) =>
-    !perm || permissions === null || permissions.has(perm)
+    !perm || (permissions?.has(perm) ?? false)
 
   const canSeeItem = (item: { permission?: string; anyOf?: string[] }) =>
     item.anyOf
-      ? permissions === null || item.anyOf.some((p) => permissions.has(p))
+      ? (permissions ? item.anyOf.some((p) => permissions.has(p)) : false)
       : canSee(item.permission)
 
   const email = adminMe?.email ?? "admin@erp.com"
@@ -95,7 +100,14 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent className="gap-4 px-1.5 py-2">
-        {navGroups.map((group) => {
+        {permissions === null ? (
+          <div className="flex flex-col gap-2 px-2.5 py-2">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Skeleton key={i} className="h-8 w-full rounded-md" />
+            ))}
+          </div>
+        ) : null}
+        {permissions !== null && navGroups.map((group) => {
           const items = group.items.filter((item) => canSeeItem(item))
           if (items.length === 0) return null
           return (
