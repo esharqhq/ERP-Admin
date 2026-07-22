@@ -690,7 +690,15 @@
       "sendFailed": "Message could not be sent. Please try again.",
       "participant": "Participant",
       "today": "Today",
-      "yesterday": "Yesterday"
+      "yesterday": "Yesterday",
+      "attach": "Attach file",
+      "recordVoice": "Record a voice message",
+      "recording": "Recording",
+      "stopAndSend": "Stop and send",
+      "cancelRecording": "Cancel recording",
+      "uploadFailed": "Upload failed",
+      "removeAttachment": "Remove attachment",
+      "micDenied": "Microphone access was denied."
     }
   },
   "tasks": {

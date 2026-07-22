@@ -2,7 +2,17 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import { Loader2, Send, Paperclip } from "lucide-react";
+import {
+  Loader2,
+  Send,
+  Paperclip,
+  Mic,
+  Square,
+  Trash2,
+  X,
+  FileText,
+  AlertTriangle,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -10,8 +20,10 @@ import {
   useSendMessage,
 } from "@/hooks/use-support";
 import { useConversationHub } from "@/hooks/use-conversation-hub";
+import { uploadService } from "@/lib/services/upload.service";
 import { normalizeStatus } from "@/lib/types/task.types";
 import type {
+  AttachmentTypeName,
   ConversationMessageDto,
   MessageAttachmentDto,
 } from "@/lib/types/support.types";
@@ -20,6 +32,13 @@ function fmtTime(iso: string, locale: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
   return d.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
+}
+
+function fmtDuration(totalSeconds: number): string {
+  const s = Math.max(0, Math.round(totalSeconds));
+  const m = Math.floor(s / 60);
+  const r = s % 60;
+  return `${m}:${r.toString().padStart(2, "0")}`;
 }
 
 function sameDay(a: string, b: string): boolean {
@@ -51,7 +70,55 @@ function dayLabel(
   });
 }
 
-function AttachmentLink({ a }: { a: MessageAttachmentDto }) {
+/** Classify a File's MIME type into the backend's AttachmentType enum. */
+function attachmentKind(mimeType: string): AttachmentTypeName {
+  if (mimeType.startsWith("audio/")) return "Voice";
+  if (mimeType.startsWith("video/")) return "Video";
+  if (mimeType.startsWith("image/")) return "Image";
+  return "File";
+}
+
+function AttachmentView({ a }: { a: MessageAttachmentDto }) {
+  const kind = normalizeStatus(a.type);
+
+  if (kind === "voice") {
+    return (
+      <div className="flex min-w-[13rem] items-center gap-2 rounded-lg bg-black/5 px-2 py-1.5 dark:bg-white/10">
+        <Mic className="size-4 shrink-0 opacity-70" />
+        <audio controls preload="metadata" src={a.url} className="h-8 max-w-[11rem] flex-1" />
+        {a.durationSeconds ? (
+          <span className="shrink-0 text-[10px] tabular-nums opacity-70">
+            {fmtDuration(a.durationSeconds)}
+          </span>
+        ) : null}
+      </div>
+    );
+  }
+
+  if (kind === "video") {
+    return (
+      <video
+        controls
+        preload="metadata"
+        src={a.url}
+        className="max-h-64 w-full max-w-[16rem] rounded-lg bg-black"
+      />
+    );
+  }
+
+  if (kind === "image") {
+    return (
+      <a href={a.url} target="_blank" rel="noreferrer">
+        {/* eslint-disable-next-line @next/next/no-img-element -- dynamic user-uploaded chat thumbnail, not worth next/image config */}
+        <img
+          src={a.url}
+          alt={a.fileName}
+          className="max-h-64 max-w-[16rem] rounded-lg object-cover"
+        />
+      </a>
+    );
+  }
+
   return (
     <a
       href={a.url}
@@ -105,7 +172,7 @@ function MessageBubble({
       }`}
     >
       <div
-        className={`flex max-w-[80%] flex-col gap-0.5 rounded-2xl px-3 py-1.5 text-sm shadow-sm ${tail} ${
+        className={`flex max-w-[80%] flex-col gap-1 rounded-2xl px-3 py-1.5 text-sm shadow-sm ${tail} ${
           isAdmin
             ? "bg-primary text-primary-foreground"
             : "bg-background text-foreground ring-1 ring-border"
@@ -122,7 +189,7 @@ function MessageBubble({
         {msg.attachments?.length ? (
           <div className="flex flex-wrap gap-1.5 pt-0.5">
             {msg.attachments.map((a) => (
-              <AttachmentLink key={a.id} a={a} />
+              <AttachmentView key={a.id} a={a} />
             ))}
           </div>
         ) : null}
@@ -138,6 +205,15 @@ function MessageBubble({
   );
 }
 
+interface PendingAttachment {
+  file: File;
+  kind: AttachmentTypeName;
+  previewUrl: string;
+  durationSeconds?: number;
+  status: "uploading" | "ready" | "error";
+  storageKey?: string;
+}
+
 interface Props {
   conversationId: string;
   /** Closed/archived conversation → composer is read-only. */
@@ -149,7 +225,16 @@ export function ConversationThread({ conversationId, disabled }: Props) {
   const tCommon = useTranslations("common");
   const locale = useLocale();
   const [draft, setDraft] = useState("");
+  const [pending, setPending] = useState<PendingAttachment | null>(null);
+  const [recordingElapsed, setRecordingElapsed] = useState<number | null>(null);
+  const [micError, setMicError] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const elapsedRef = useRef(0);
+  const discardRef = useRef(false);
+  const recordTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Hub first: when it's live we retire the 15s message poll (the hub pushes
   // ReceiveMessage); the poll resumes automatically if the connection drops.
@@ -163,10 +248,149 @@ export function ConversationThread({ conversationId, disabled }: Props) {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages.length]);
 
+  // Revoke the object URL whenever the pending attachment changes/unmounts.
+  useEffect(() => {
+    return () => {
+      if (pending) URL.revokeObjectURL(pending.previewUrl);
+    };
+  }, [pending]);
+
+  const clearPending = () => {
+    setPending((p) => {
+      if (p) URL.revokeObjectURL(p.previewUrl);
+      return null;
+    });
+  };
+
+  const uploadAttachment = async (
+    file: File,
+    kind: AttachmentTypeName,
+    durationSeconds?: number,
+  ) => {
+    const previewUrl = URL.createObjectURL(file);
+    setPending({ file, kind, previewUrl, durationSeconds, status: "uploading" });
+    try {
+      const presigned = await uploadService.presign("support-chat", file);
+      await uploadService.putBytes(
+        presigned.presignedUploadUrl,
+        file,
+        presigned.method,
+      );
+      setPending((p) =>
+        p && p.file === file
+          ? { ...p, status: "ready", storageKey: presigned.storageKey }
+          : p,
+      );
+    } catch {
+      setPending((p) => (p && p.file === file ? { ...p, status: "error" } : p));
+    }
+  };
+
+  const onPickFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    void uploadAttachment(file, attachmentKind(file.type || ""));
+  };
+
+  const startRecording = async () => {
+    if (pending || recordingElapsed !== null) return;
+    setMicError(false);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mimeType = MediaRecorder.isTypeSupported("audio/webm")
+        ? "audio/webm"
+        : "";
+      const recorder = new MediaRecorder(
+        stream,
+        mimeType ? { mimeType } : undefined,
+      );
+      chunksRef.current = [];
+      discardRef.current = false;
+      elapsedRef.current = 0;
+
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data);
+      };
+      recorder.onstop = () => {
+        stream.getTracks().forEach((track) => track.stop());
+        if (!discardRef.current && chunksRef.current.length > 0) {
+          const blob = new Blob(chunksRef.current, {
+            type: recorder.mimeType || "audio/webm",
+          });
+          const ext = blob.type.includes("ogg") ? "ogg" : "webm";
+          const file = new File([blob], `voice-message-${Date.now()}.${ext}`, {
+            type: blob.type,
+          });
+          void uploadAttachment(file, "Voice", elapsedRef.current);
+        }
+        setRecordingElapsed(null);
+      };
+
+      mediaRecorderRef.current = recorder;
+      recorder.start();
+      setRecordingElapsed(0);
+      recordTimerRef.current = setInterval(() => {
+        elapsedRef.current += 1;
+        setRecordingElapsed(elapsedRef.current);
+      }, 1000);
+    } catch {
+      setMicError(true);
+    }
+  };
+
+  const stopRecording = (discard: boolean) => {
+    discardRef.current = discard;
+    if (recordTimerRef.current) {
+      clearInterval(recordTimerRef.current);
+      recordTimerRef.current = null;
+    }
+    mediaRecorderRef.current?.stop();
+  };
+
+  // Recorder cleanup on unmount (e.g. navigating away mid-recording).
+  useEffect(() => {
+    return () => {
+      if (recordTimerRef.current) clearInterval(recordTimerRef.current);
+      if (mediaRecorderRef.current?.state === "recording") {
+        discardRef.current = true;
+        mediaRecorderRef.current.stop();
+      }
+    };
+  }, []);
+
+  const isRecording = recordingElapsed !== null;
+  const attachmentReady = pending?.status === "ready";
+  const canSend =
+    (draft.trim().length > 0 || attachmentReady) &&
+    !sendMessage.isPending &&
+    pending?.status !== "uploading";
+
   const send = () => {
+    if (!canSend) return;
     const body = draft.trim();
-    if (!body || sendMessage.isPending) return;
-    sendMessage.mutate({ body }, { onSuccess: () => setDraft("") });
+    const attachments =
+      attachmentReady && pending
+        ? [
+            {
+              storageKey: pending.storageKey!,
+              type: pending.kind,
+              mimeType: pending.file.type || "application/octet-stream",
+              sizeBytes: pending.file.size,
+              fileName: pending.file.name,
+              durationSeconds: pending.durationSeconds,
+            },
+          ]
+        : undefined;
+    sendMessage.mutate(
+      { body: body || undefined, attachments },
+      {
+        onSuccess: () => {
+          setDraft("");
+          clearPending();
+        },
+      },
+    );
   };
 
   const sendError = sendMessage.isError ? t("thread.sendFailed") : null;
@@ -232,38 +456,140 @@ export function ConversationThread({ conversationId, disabled }: Props) {
         {sendError ? (
           <p className="mb-2 text-xs text-destructive">{sendError}</p>
         ) : null}
+        {micError ? (
+          <p className="mb-2 flex items-center gap-1 text-xs text-destructive">
+            <AlertTriangle className="size-3" />
+            {t("thread.micDenied")}
+          </p>
+        ) : null}
         {disabled ? (
           <p className="py-1 text-center text-xs text-muted-foreground">
             {t("thread.readOnly")}
           </p>
         ) : (
-          <div className="flex items-end gap-2 rounded-2xl border border-input bg-background py-1 pl-3 pr-1 transition-colors focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50">
-            <textarea
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  send();
-                }
-              }}
-              rows={1}
-              placeholder={t("thread.composerPlaceholder")}
-              className="max-h-32 min-h-8 flex-1 resize-none bg-transparent py-1.5 text-sm outline-none placeholder:text-muted-foreground"
-            />
-            <Button
-              size="icon"
-              onClick={send}
-              disabled={!draft.trim() || sendMessage.isPending}
-              title={t("thread.send")}
-              className="size-9 shrink-0 rounded-full"
-            >
-              {sendMessage.isPending ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <Send className="size-4" />
-              )}
-            </Button>
+          <div className="flex flex-col gap-2">
+            {pending ? (
+              <div className="flex items-center gap-2 rounded-xl border border-border bg-muted/40 px-2.5 py-1.5">
+                <span className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted text-muted-foreground">
+                  {pending.kind === "Image" ? (
+                    // eslint-disable-next-line @next/next/no-img-element -- local blob preview, not a next/image candidate
+                    <img
+                      src={pending.previewUrl}
+                      alt=""
+                      className="size-full object-cover"
+                    />
+                  ) : pending.kind === "Voice" ? (
+                    <Mic className="size-4" />
+                  ) : pending.kind === "Video" ? (
+                    <video src={pending.previewUrl} className="size-full object-cover" muted />
+                  ) : (
+                    <FileText className="size-4" />
+                  )}
+                </span>
+                <span className="min-w-0 flex-1 truncate text-xs">
+                  {pending.kind === "Voice"
+                    ? fmtDuration(pending.durationSeconds ?? 0)
+                    : pending.file.name}
+                </span>
+                {pending.status === "uploading" ? (
+                  <Loader2 className="size-3.5 shrink-0 animate-spin text-muted-foreground" />
+                ) : pending.status === "error" ? (
+                  <span className="shrink-0 text-[11px] text-destructive">
+                    {t("thread.uploadFailed")}
+                  </span>
+                ) : null}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-6 shrink-0"
+                  title={t("thread.removeAttachment")}
+                  onClick={clearPending}
+                >
+                  <X className="size-3.5" />
+                </Button>
+              </div>
+            ) : null}
+
+            {isRecording ? (
+              <div className="flex items-center gap-2 rounded-2xl border border-input bg-background px-3 py-1.5">
+                <span className="flex size-2.5 shrink-0 animate-pulse rounded-full bg-destructive" />
+                <span className="flex-1 text-sm text-muted-foreground">
+                  {t("thread.recording")} · {fmtDuration(recordingElapsed ?? 0)}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-8 shrink-0 text-muted-foreground"
+                  title={t("thread.cancelRecording")}
+                  onClick={() => stopRecording(true)}
+                >
+                  <Trash2 className="size-4" />
+                </Button>
+                <Button
+                  size="icon"
+                  className="size-8 shrink-0 rounded-full"
+                  title={t("thread.stopAndSend")}
+                  onClick={() => stopRecording(false)}
+                >
+                  <Square className="size-3.5" />
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-end gap-1.5 rounded-2xl border border-input bg-background py-1 pl-1.5 pr-1 transition-colors focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  className="hidden"
+                  onChange={onPickFile}
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-8 shrink-0 self-end text-muted-foreground"
+                  title={t("thread.attach")}
+                  disabled={!!pending}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Paperclip className="size-4" />
+                </Button>
+                <textarea
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      send();
+                    }
+                  }}
+                  rows={1}
+                  placeholder={t("thread.composerPlaceholder")}
+                  className="max-h-32 min-h-8 flex-1 resize-none bg-transparent py-1.5 text-sm outline-none placeholder:text-muted-foreground"
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-8 shrink-0 self-end text-muted-foreground"
+                  title={t("thread.recordVoice")}
+                  disabled={!!pending}
+                  onClick={startRecording}
+                >
+                  <Mic className="size-4" />
+                </Button>
+                <Button
+                  size="icon"
+                  onClick={send}
+                  disabled={!canSend}
+                  title={t("thread.send")}
+                  className="size-9 shrink-0 rounded-full"
+                >
+                  {sendMessage.isPending ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <Send className="size-4" />
+                  )}
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </div>

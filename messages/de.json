@@ -690,7 +690,15 @@
       "sendFailed": "Nachricht konnte nicht gesendet werden. Bitte erneut versuchen.",
       "participant": "Teilnehmer",
       "today": "Heute",
-      "yesterday": "Gestern"
+      "yesterday": "Gestern",
+      "attach": "Datei anhängen",
+      "recordVoice": "Sprachnachricht aufnehmen",
+      "recording": "Aufnahme läuft",
+      "stopAndSend": "Stoppen und senden",
+      "cancelRecording": "Aufnahme abbrechen",
+      "uploadFailed": "Upload fehlgeschlagen",
+      "removeAttachment": "Anhang entfernen",
+      "micDenied": "Mikrofonzugriff wurde verweigert."
     }
   },
   "tasks": {

@@ -75,10 +75,21 @@ export interface ConversationMessageDto {
   createdAt: string;
 }
 
+/** AttachmentType name expected by the backend (§8.2 conversations API). */
+export type AttachmentTypeName = "Voice" | "Image" | "Video" | "File";
+
+export interface OutboundAttachment {
+  storageKey: string;
+  type: AttachmentTypeName;
+  mimeType: string;
+  sizeBytes: number;
+  fileName: string;
+  durationSeconds?: number;
+}
+
 export interface SendMessageRequest {
   body?: string | null;
-  // Outbound attachments (presign→confirm) deferred from v1; text-only for now.
-  attachments?: null;
+  attachments?: OutboundAttachment[];
 }
 
 export interface AssignTicketRequest {
