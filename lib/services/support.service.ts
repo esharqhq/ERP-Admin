@@ -4,6 +4,8 @@ import type {
   ConversationMessageDto,
   ConversationSummaryDto,
   SendMessageRequest,
+  PresignAttachmentRequest,
+  PresignAttachmentResult,
 } from "@/lib/types/support.types";
 
 export const supportService = {
@@ -95,6 +97,23 @@ export const supportService = {
     const { data } = await apiClient.post<ConversationMessageDto>(
       `/api/conversations/${conversationId}/messages`,
       body,
+    );
+    return data;
+  },
+
+  /**
+   * Mint a presigned upload URL scoped to this conversation. Attachment
+   * storageKeys are tied to the conversation they were presigned for — the
+   * generic /api/files/presign path is rejected on send with
+   * `attachment_key_not_for_conversation`.
+   */
+  presignAttachment: async (
+    conversationId: string,
+    req: PresignAttachmentRequest,
+  ): Promise<PresignAttachmentResult> => {
+    const { data } = await apiClient.post<PresignAttachmentResult>(
+      `/api/conversations/${conversationId}/attachments/presign`,
+      req,
     );
     return data;
   },

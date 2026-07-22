@@ -20,6 +20,7 @@ import {
   useSendMessage,
 } from "@/hooks/use-support";
 import { useConversationHub } from "@/hooks/use-conversation-hub";
+import { supportService } from "@/lib/services/support.service";
 import { uploadService } from "@/lib/services/upload.service";
 import { normalizeStatus } from "@/lib/types/task.types";
 import type {
@@ -270,12 +271,13 @@ export function ConversationThread({ conversationId, disabled }: Props) {
     const previewUrl = URL.createObjectURL(file);
     setPending({ file, kind, previewUrl, durationSeconds, status: "uploading" });
     try {
-      const presigned = await uploadService.presign("support-chat", file);
-      await uploadService.putBytes(
-        presigned.presignedUploadUrl,
-        file,
-        presigned.method,
-      );
+      const presigned = await supportService.presignAttachment(conversationId, {
+        attachmentType: kind,
+        mimeType: file.type || "application/octet-stream",
+        sizeBytes: file.size,
+        fileName: file.name,
+      });
+      await uploadService.putBytes(presigned.uploadUrl, file);
       setPending((p) =>
         p && p.file === file
           ? { ...p, status: "ready", storageKey: presigned.storageKey }

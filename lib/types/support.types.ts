@@ -92,6 +92,22 @@ export interface SendMessageRequest {
   attachments?: OutboundAttachment[];
 }
 
+/** POST /api/conversations/{id}/attachments/presign request body. */
+export interface PresignAttachmentRequest {
+  attachmentType: AttachmentTypeName;
+  mimeType: string;
+  sizeBytes: number;
+  fileName: string;
+}
+
+/** Presign result — the storageKey is scoped to this conversation. */
+export interface PresignAttachmentResult {
+  uploadUrl: string;
+  storageKey: string;
+  permanentUrl: string;
+  expiresAtUtc: string;
+}
+
 export interface AssignTicketRequest {
   adminId: string;
 }
