@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import {
   Loader2,
@@ -50,6 +50,22 @@ function fmtDuration(totalSeconds: number): string {
   return `${m}:${r.toString().padStart(2, "0")}`;
 }
 
+/** Zero-padded mm:ss clock for the voice caption (e.g. "00:04"). */
+function fmtClock(totalSeconds: number): string {
+  const s = Math.max(0, Math.round(totalSeconds));
+  const m = Math.floor(s / 60);
+  const r = s % 60;
+  return `${m.toString().padStart(2, "0")}:${r.toString().padStart(2, "0")}`;
+}
+
+function fmtBytes(bytes: number): string {
+  if (!bytes || bytes <= 0) return "";
+  if (bytes < 1024) return `${bytes} B`;
+  const kb = bytes / 1024;
+  if (kb < 1024) return `${kb.toFixed(1)} KB`;
+  return `${(kb / 1024).toFixed(1)} MB`;
+}
+
 function sameDay(a: string, b: string): boolean {
   const da = new Date(a);
   const db = new Date(b);
@@ -88,18 +104,20 @@ function attachmentKind(mimeType: string): AttachmentTypeName {
 }
 
 /**
- * Custom voice-message player — a play/pause control, a seekable progress bar
- * and elapsed/total time. Styled with `currentColor`-derived tones (via the
- * `onPrimary` flag) so it reads correctly on both the blue admin bubble and the
- * light incoming bubble, unlike the raw browser <audio> widget.
+ * Custom voice-message player — a play/pause control, a seekable waveform and a
+ * "mm:ss, size" caption (WhatsApp/Telegram style). Styled with tones derived
+ * from the `onPrimary` flag so it reads correctly on both the blue admin bubble
+ * and the light incoming bubble, unlike the raw browser <audio> widget.
  */
 function VoicePlayer({
   src,
   durationSeconds,
+  sizeBytes,
   onPrimary,
 }: {
   src: string;
   durationSeconds: number | null;
+  sizeBytes: number;
   onPrimary: boolean;
 }) {
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -111,6 +129,22 @@ function VoicePlayer({
   const total =
     durationSeconds && durationSeconds > 0 ? durationSeconds : metaDuration ?? 0;
   const pct = total > 0 ? Math.min(100, (current / total) * 100) : 0;
+
+  // Deterministic pseudo-waveform seeded from the URL — stable per message and
+  // avoids fetching/decoding the audio bytes (which the storage CDN may block
+  // cross-origin) just to draw amplitude bars.
+  const bars = useMemo(() => {
+    let seed = 0;
+    for (let i = 0; i < src.length; i += 1) {
+      seed = (seed * 31 + src.charCodeAt(i)) >>> 0;
+    }
+    const out: number[] = [];
+    for (let i = 0; i < 40; i += 1) {
+      seed = (seed * 1664525 + 1013904223) >>> 0;
+      out.push(0.2 + (seed / 0xffffffff) * 0.8);
+    }
+    return out;
+  }, [src]);
 
   const toggle = () => {
     const el = audioRef.current;
@@ -131,12 +165,17 @@ function VoicePlayer({
   const btnCls = onPrimary
     ? "bg-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/30"
     : "bg-foreground/10 text-foreground hover:bg-foreground/20";
-  const trackCls = onPrimary ? "bg-primary-foreground/25" : "bg-foreground/15";
-  const fillCls = onPrimary ? "bg-primary-foreground" : "bg-foreground/70";
+  const playedCls = onPrimary ? "bg-primary-foreground" : "bg-foreground/70";
+  const unplayedCls = onPrimary ? "bg-primary-foreground/30" : "bg-foreground/20";
   const timeCls = onPrimary ? "text-primary-foreground/70" : "text-muted-foreground";
 
+  const size = fmtBytes(sizeBytes);
+  const caption = `${fmtClock(playing || current > 0 ? current : total)}${
+    size ? `, ${size}` : ""
+  }`;
+
   return (
-    <div className="flex min-w-[12.5rem] items-center gap-2.5 py-0.5">
+    <div className="flex min-w-[13.5rem] max-w-[16rem] items-center gap-2.5 py-0.5">
       <button
         type="button"
         onClick={toggle}
@@ -148,19 +187,22 @@ function VoicePlayer({
           <Play className="size-4 translate-x-px" />
         )}
       </button>
-      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
         <div
           onClick={seek}
-          className={`h-1.5 w-full cursor-pointer rounded-full ${trackCls}`}
+          className="flex h-6 cursor-pointer items-center gap-[2px]"
         >
-          <div
-            className={`h-full rounded-full ${fillCls}`}
-            style={{ width: `${pct}%` }}
-          />
+          {bars.map((bh, i) => (
+            <span
+              key={i}
+              className={`min-w-[2px] flex-1 rounded-full ${
+                (i / bars.length) * 100 < pct ? playedCls : unplayedCls
+              }`}
+              style={{ height: `${Math.round(bh * 100)}%` }}
+            />
+          ))}
         </div>
-        <span className={`text-[10px] tabular-nums ${timeCls}`}>
-          {fmtDuration(playing || current > 0 ? current : total)}
-        </span>
+        <span className={`text-[10px] tabular-nums ${timeCls}`}>{caption}</span>
       </div>
       <audio
         ref={audioRef}
@@ -199,6 +241,7 @@ function AttachmentView({
       <VoicePlayer
         src={a.url}
         durationSeconds={a.durationSeconds}
+        sizeBytes={a.sizeBytes}
         onPrimary={onPrimary}
       />
     );
