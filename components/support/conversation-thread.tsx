@@ -315,12 +315,14 @@ export function ConversationThread({ conversationId, disabled }: Props) {
       recorder.onstop = () => {
         stream.getTracks().forEach((track) => track.stop());
         if (!discardRef.current && chunksRef.current.length > 0) {
-          const blob = new Blob(chunksRef.current, {
-            type: recorder.mimeType || "audio/webm",
-          });
-          const ext = blob.type.includes("ogg") ? "ogg" : "webm";
+          // Recorder.mimeType always includes a codec suffix (e.g.
+          // "audio/webm;codecs=opus"); the backend's upload allowlist checks
+          // the bare MIME type, so strip it before naming the Blob/File.
+          const bareMimeType = (recorder.mimeType || "audio/webm").split(";")[0];
+          const blob = new Blob(chunksRef.current, { type: bareMimeType });
+          const ext = bareMimeType.includes("ogg") ? "ogg" : "webm";
           const file = new File([blob], `voice-message-${Date.now()}.${ext}`, {
-            type: blob.type,
+            type: bareMimeType,
           });
           void uploadAttachment(file, "Voice", elapsedRef.current);
         }
