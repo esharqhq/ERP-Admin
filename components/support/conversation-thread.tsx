@@ -277,7 +277,10 @@ export function ConversationThread({ conversationId, disabled }: Props) {
         sizeBytes: file.size,
         fileName: file.name,
       });
-      await uploadService.putBytes(presigned.uploadUrl, file);
+      // This conversation-scoped presign result carries no "method" field —
+      // the local file-store driver's upload-direct endpoint is POST-only
+      // (unlike the S3-style PUT used by the generic /api/files/presign flow).
+      await uploadService.putBytes(presigned.uploadUrl, file, "POST");
       setPending((p) =>
         p && p.file === file
           ? { ...p, status: "ready", storageKey: presigned.storageKey }
