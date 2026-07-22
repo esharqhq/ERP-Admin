@@ -12,6 +12,7 @@ import {
   X,
   FileText,
   AlertTriangle,
+  Play,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -28,6 +29,12 @@ import type {
   ConversationMessageDto,
   MessageAttachmentDto,
 } from "@/lib/types/support.types";
+
+/** How many attachments may ride along on a single message. */
+const MAX_ATTACHMENTS = 10;
+
+/** A media attachment the lightbox can open full-screen. */
+type MediaView = { url: string; kind: "image" | "video"; fileName?: string };
 
 function fmtTime(iso: string, locale: string): string {
   const d = new Date(iso);
@@ -79,7 +86,13 @@ function attachmentKind(mimeType: string): AttachmentTypeName {
   return "File";
 }
 
-function AttachmentView({ a }: { a: MessageAttachmentDto }) {
+function AttachmentView({
+  a,
+  onOpenMedia,
+}: {
+  a: MessageAttachmentDto;
+  onOpenMedia: (m: MediaView) => void;
+}) {
   const kind = normalizeStatus(a.type);
 
   if (kind === "voice") {
@@ -97,26 +110,44 @@ function AttachmentView({ a }: { a: MessageAttachmentDto }) {
   }
 
   if (kind === "video") {
+    // Poster-style thumbnail with a play badge; tap to open in the lightbox
+    // (WhatsApp/Telegram behaviour) rather than juggling tiny inline controls.
     return (
-      <video
-        controls
-        preload="metadata"
-        src={a.url}
-        className="max-h-64 w-full max-w-[16rem] rounded-lg bg-black"
-      />
+      <button
+        type="button"
+        onClick={() => onOpenMedia({ url: a.url, kind: "video", fileName: a.fileName })}
+        className="group relative block max-w-[16rem] overflow-hidden rounded-lg bg-black"
+      >
+        <video
+          src={a.url}
+          preload="metadata"
+          muted
+          playsInline
+          className="pointer-events-none max-h-64 w-full"
+        />
+        <span className="pointer-events-none absolute inset-0 flex items-center justify-center">
+          <span className="flex size-11 items-center justify-center rounded-full bg-black/50 text-white transition-transform group-hover:scale-105">
+            <Play className="size-5 translate-x-0.5" />
+          </span>
+        </span>
+      </button>
     );
   }
 
   if (kind === "image") {
     return (
-      <a href={a.url} target="_blank" rel="noreferrer">
+      <button
+        type="button"
+        onClick={() => onOpenMedia({ url: a.url, kind: "image", fileName: a.fileName })}
+        className="block cursor-zoom-in overflow-hidden rounded-lg"
+      >
         {/* eslint-disable-next-line @next/next/no-img-element -- dynamic user-uploaded chat thumbnail, not worth next/image config */}
         <img
           src={a.url}
           alt={a.fileName}
-          className="max-h-64 max-w-[16rem] rounded-lg object-cover"
+          className="max-h-64 max-w-[16rem] object-cover"
         />
-      </a>
+      </button>
     );
   }
 
@@ -138,11 +169,13 @@ function MessageBubble({
   locale,
   showName,
   isLastOfGroup,
+  onOpenMedia,
 }: {
   msg: ConversationMessageDto;
   locale: string;
   showName: boolean;
   isLastOfGroup: boolean;
+  onOpenMedia: (m: MediaView) => void;
 }) {
   const t = useTranslations("support");
   const isSystem = normalizeStatus(msg.messageType) === "system";
@@ -190,7 +223,7 @@ function MessageBubble({
         {msg.attachments?.length ? (
           <div className="flex flex-wrap gap-1.5 pt-0.5">
             {msg.attachments.map((a) => (
-              <AttachmentView key={a.id} a={a} />
+              <AttachmentView key={a.id} a={a} onOpenMedia={onOpenMedia} />
             ))}
           </div>
         ) : null}
@@ -207,6 +240,7 @@ function MessageBubble({
 }
 
 interface PendingAttachment {
+  id: string;
   file: File;
   kind: AttachmentTypeName;
   previewUrl: string;
@@ -226,9 +260,10 @@ export function ConversationThread({ conversationId, disabled }: Props) {
   const tCommon = useTranslations("common");
   const locale = useLocale();
   const [draft, setDraft] = useState("");
-  const [pending, setPending] = useState<PendingAttachment | null>(null);
+  const [pending, setPending] = useState<PendingAttachment[]>([]);
   const [recordingElapsed, setRecordingElapsed] = useState<number | null>(null);
   const [micError, setMicError] = useState(false);
+  const [lightbox, setLightbox] = useState<MediaView | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -236,6 +271,10 @@ export function ConversationThread({ conversationId, disabled }: Props) {
   const elapsedRef = useRef(0);
   const discardRef = useRef(false);
   const recordTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const attachIdRef = useRef(0);
+  // Mirror of `pending` so the unmount cleanup can revoke every live object URL
+  // without re-running (and prematurely revoking) on each add/remove.
+  const pendingRef = useRef<PendingAttachment[]>([]);
 
   // Hub first: when it's live we retire the 15s message poll (the hub pushes
   // ReceiveMessage); the poll resumes automatically if the connection drops.
@@ -249,17 +288,40 @@ export function ConversationThread({ conversationId, disabled }: Props) {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages.length]);
 
-  // Revoke the object URL whenever the pending attachment changes/unmounts.
   useEffect(() => {
-    return () => {
-      if (pending) URL.revokeObjectURL(pending.previewUrl);
-    };
+    pendingRef.current = pending;
   }, [pending]);
 
-  const clearPending = () => {
-    setPending((p) => {
-      if (p) URL.revokeObjectURL(p.previewUrl);
-      return null;
+  // Revoke any still-live preview URLs when the thread unmounts.
+  useEffect(
+    () => () => {
+      pendingRef.current.forEach((p) => URL.revokeObjectURL(p.previewUrl));
+    },
+    [],
+  );
+
+  // Close the lightbox on Escape while it's open.
+  useEffect(() => {
+    if (!lightbox) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setLightbox(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [lightbox]);
+
+  const removePending = (id: string) => {
+    setPending((prev) => {
+      const target = prev.find((p) => p.id === id);
+      if (target) URL.revokeObjectURL(target.previewUrl);
+      return prev.filter((p) => p.id !== id);
+    });
+  };
+
+  const clearAllPending = () => {
+    setPending((prev) => {
+      prev.forEach((p) => URL.revokeObjectURL(p.previewUrl));
+      return [];
     });
   };
 
@@ -268,8 +330,12 @@ export function ConversationThread({ conversationId, disabled }: Props) {
     kind: AttachmentTypeName,
     durationSeconds?: number,
   ) => {
+    const id = String((attachIdRef.current += 1));
     const previewUrl = URL.createObjectURL(file);
-    setPending({ file, kind, previewUrl, durationSeconds, status: "uploading" });
+    setPending((prev) => [
+      ...prev,
+      { id, file, kind, previewUrl, durationSeconds, status: "uploading" },
+    ]);
     try {
       const presigned = await supportService.presignAttachment(conversationId, {
         attachmentType: kind,
@@ -281,25 +347,32 @@ export function ConversationThread({ conversationId, disabled }: Props) {
       // the local file-store driver's upload-direct endpoint is POST-only
       // (unlike the S3-style PUT used by the generic /api/files/presign flow).
       await uploadService.putBytes(presigned.uploadUrl, file, "POST");
-      setPending((p) =>
-        p && p.file === file
-          ? { ...p, status: "ready", storageKey: presigned.storageKey }
-          : p,
+      setPending((prev) =>
+        prev.map((p) =>
+          p.id === id
+            ? { ...p, status: "ready", storageKey: presigned.storageKey }
+            : p,
+        ),
       );
     } catch {
-      setPending((p) => (p && p.file === file ? { ...p, status: "error" } : p));
+      setPending((prev) =>
+        prev.map((p) => (p.id === id ? { ...p, status: "error" } : p)),
+      );
     }
   };
 
   const onPickFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const files = e.target.files;
     e.target.value = "";
-    if (!file) return;
-    void uploadAttachment(file, attachmentKind(file.type || ""));
+    if (!files || files.length === 0) return;
+    const remaining = MAX_ATTACHMENTS - pending.length;
+    Array.from(files)
+      .slice(0, Math.max(0, remaining))
+      .forEach((file) => void uploadAttachment(file, attachmentKind(file.type || "")));
   };
 
   const startRecording = async () => {
-    if (pending || recordingElapsed !== null) return;
+    if (recordingElapsed !== null || pending.length >= MAX_ATTACHMENTS) return;
     setMicError(false);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -367,34 +440,36 @@ export function ConversationThread({ conversationId, disabled }: Props) {
   }, []);
 
   const isRecording = recordingElapsed !== null;
-  const attachmentReady = pending?.status === "ready";
+  const uploading = pending.some((p) => p.status === "uploading");
+  const hasError = pending.some((p) => p.status === "error");
+  const readyCount = pending.filter((p) => p.status === "ready").length;
+  const atMax = pending.length >= MAX_ATTACHMENTS;
   const canSend =
-    (draft.trim().length > 0 || attachmentReady) &&
+    (draft.trim().length > 0 || readyCount > 0) &&
     !sendMessage.isPending &&
-    pending?.status !== "uploading";
+    !uploading &&
+    !hasError;
 
   const send = () => {
     if (!canSend) return;
     const body = draft.trim();
-    const attachments =
-      attachmentReady && pending
-        ? [
-            {
-              storageKey: pending.storageKey!,
-              type: pending.kind,
-              mimeType: pending.file.type || "application/octet-stream",
-              sizeBytes: pending.file.size,
-              fileName: pending.file.name,
-              durationSeconds: pending.durationSeconds,
-            },
-          ]
-        : undefined;
+    const ready = pending.filter((p) => p.status === "ready");
+    const attachments = ready.length
+      ? ready.map((p) => ({
+          storageKey: p.storageKey!,
+          type: p.kind,
+          mimeType: p.file.type || "application/octet-stream",
+          sizeBytes: p.file.size,
+          fileName: p.file.name,
+          durationSeconds: p.durationSeconds,
+        }))
+      : undefined;
     sendMessage.mutate(
       { body: body || undefined, attachments },
       {
         onSuccess: () => {
           setDraft("");
-          clearPending();
+          clearAllPending();
         },
       },
     );
@@ -451,6 +526,7 @@ export function ConversationThread({ conversationId, disabled }: Props) {
                   locale={locale}
                   showName={!grouped}
                   isLastOfGroup={isLastOfGroup}
+                  onOpenMedia={setLightbox}
                 />
               </div>
             );
@@ -475,45 +551,56 @@ export function ConversationThread({ conversationId, disabled }: Props) {
           </p>
         ) : (
           <div className="flex flex-col gap-2">
-            {pending ? (
-              <div className="flex items-center gap-2 rounded-xl border border-border bg-muted/40 px-2.5 py-1.5">
-                <span className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted text-muted-foreground">
-                  {pending.kind === "Image" ? (
-                    // eslint-disable-next-line @next/next/no-img-element -- local blob preview, not a next/image candidate
-                    <img
-                      src={pending.previewUrl}
-                      alt=""
-                      className="size-full object-cover"
-                    />
-                  ) : pending.kind === "Voice" ? (
-                    <Mic className="size-4" />
-                  ) : pending.kind === "Video" ? (
-                    <video src={pending.previewUrl} className="size-full object-cover" muted />
-                  ) : (
-                    <FileText className="size-4" />
-                  )}
-                </span>
-                <span className="min-w-0 flex-1 truncate text-xs">
-                  {pending.kind === "Voice"
-                    ? fmtDuration(pending.durationSeconds ?? 0)
-                    : pending.file.name}
-                </span>
-                {pending.status === "uploading" ? (
-                  <Loader2 className="size-3.5 shrink-0 animate-spin text-muted-foreground" />
-                ) : pending.status === "error" ? (
-                  <span className="shrink-0 text-[11px] text-destructive">
-                    {t("thread.uploadFailed")}
-                  </span>
-                ) : null}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="size-6 shrink-0"
-                  title={t("thread.removeAttachment")}
-                  onClick={clearPending}
-                >
-                  <X className="size-3.5" />
-                </Button>
+            {pending.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {pending.map((p) => (
+                  <div
+                    key={p.id}
+                    className="flex items-center gap-2 rounded-xl border border-border bg-muted/40 px-2.5 py-1.5"
+                  >
+                    <span className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted text-muted-foreground">
+                      {p.kind === "Image" ? (
+                        // eslint-disable-next-line @next/next/no-img-element -- local blob preview, not a next/image candidate
+                        <img
+                          src={p.previewUrl}
+                          alt=""
+                          className="size-full object-cover"
+                        />
+                      ) : p.kind === "Voice" ? (
+                        <Mic className="size-4" />
+                      ) : p.kind === "Video" ? (
+                        <video
+                          src={p.previewUrl}
+                          className="size-full object-cover"
+                          muted
+                        />
+                      ) : (
+                        <FileText className="size-4" />
+                      )}
+                    </span>
+                    <span className="min-w-0 max-w-[9rem] flex-1 truncate text-xs">
+                      {p.kind === "Voice"
+                        ? fmtDuration(p.durationSeconds ?? 0)
+                        : p.file.name}
+                    </span>
+                    {p.status === "uploading" ? (
+                      <Loader2 className="size-3.5 shrink-0 animate-spin text-muted-foreground" />
+                    ) : p.status === "error" ? (
+                      <span className="shrink-0 text-[11px] text-destructive">
+                        {t("thread.uploadFailed")}
+                      </span>
+                    ) : null}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="size-6 shrink-0"
+                      title={t("thread.removeAttachment")}
+                      onClick={() => removePending(p.id)}
+                    >
+                      <X className="size-3.5" />
+                    </Button>
+                  </div>
+                ))}
               </div>
             ) : null}
 
@@ -546,6 +633,7 @@ export function ConversationThread({ conversationId, disabled }: Props) {
                 <input
                   ref={fileInputRef}
                   type="file"
+                  multiple
                   className="hidden"
                   onChange={onPickFile}
                 />
@@ -554,7 +642,7 @@ export function ConversationThread({ conversationId, disabled }: Props) {
                   size="icon"
                   className="size-8 shrink-0 self-end text-muted-foreground"
                   title={t("thread.attach")}
-                  disabled={!!pending}
+                  disabled={atMax}
                   onClick={() => fileInputRef.current?.click()}
                 >
                   <Paperclip className="size-4" />
@@ -577,7 +665,7 @@ export function ConversationThread({ conversationId, disabled }: Props) {
                   size="icon"
                   className="size-8 shrink-0 self-end text-muted-foreground"
                   title={t("thread.recordVoice")}
-                  disabled={!!pending}
+                  disabled={atMax}
                   onClick={startRecording}
                 >
                   <Mic className="size-4" />
@@ -600,6 +688,42 @@ export function ConversationThread({ conversationId, disabled }: Props) {
           </div>
         )}
       </div>
+
+      {lightbox ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+          onClick={() => setLightbox(null)}
+          role="dialog"
+          aria-modal="true"
+        >
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute right-4 top-4 z-10 text-white hover:bg-white/10 hover:text-white"
+            title={tCommon("close")}
+            onClick={() => setLightbox(null)}
+          >
+            <X className="size-5" />
+          </Button>
+          {lightbox.kind === "image" ? (
+            // eslint-disable-next-line @next/next/no-img-element -- full-size chat image preview, not a next/image candidate
+            <img
+              src={lightbox.url}
+              alt={lightbox.fileName ?? ""}
+              className="max-h-[90vh] max-w-[90vw] object-contain"
+              onClick={(e) => e.stopPropagation()}
+            />
+          ) : (
+            <video
+              src={lightbox.url}
+              controls
+              autoPlay
+              className="max-h-[90vh] max-w-[90vw]"
+              onClick={(e) => e.stopPropagation()}
+            />
+          )}
+        </div>
+      ) : null}
     </div>
   );
 }
