@@ -683,7 +683,6 @@
       }
     },
     "thread": {
-      "live": "Live",
       "empty": "Noch keine Nachrichten",
       "readOnly": "Diese Konversation ist geschlossen.",
       "composerPlaceholder": "Nachricht eingeben…",

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import { Loader2, Send, Paperclip, Radio } from "lucide-react";
+import { Loader2, Send, Paperclip } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -173,13 +173,6 @@ export function ConversationThread({ conversationId, disabled }: Props) {
 
   return (
     <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
-      {isLive ? (
-        <span className="absolute right-3 top-2 z-20 flex items-center gap-1 rounded-full bg-background/90 px-2 py-0.5 text-[11px] font-medium text-emerald-600 shadow-sm ring-1 ring-border backdrop-blur dark:text-emerald-400">
-          <Radio className="size-3" />
-          {t("thread.live")}
-        </span>
-      ) : null}
-
       <div className="flex-1 overflow-y-auto bg-muted/30 px-4 py-3">
         {isLoading ? (
           <div className="space-y-2">

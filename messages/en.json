@@ -683,7 +683,6 @@
       }
     },
     "thread": {
-      "live": "Live",
       "empty": "No messages yet",
       "readOnly": "This conversation is closed.",
       "composerPlaceholder": "Type a message…",
