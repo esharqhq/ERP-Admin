@@ -604,7 +604,9 @@
       "checkIn": "Einchecken",
       "checkOut": "Auschecken",
       "status": "Status",
-      "outcome": "Ergebnis"
+      "outcome": "Ergebnis",
+      "lat": "Check-in Breitengrad",
+      "lng": "Check-in Längengrad"
     },
     "present": {
       "yes": "Anwesend",

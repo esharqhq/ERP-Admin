@@ -8,7 +8,11 @@ export function downloadCsv(
   rows: (string | number | null | undefined)[][],
 ): void {
   const escape = (value: string | number | null | undefined): string => {
-    const s = value == null ? "" : String(value);
+    const raw = value == null ? "" : String(value);
+    // Neutralize spreadsheet formula injection for TEXT cells only. Numeric
+    // values (e.g. a negative coordinate like -51.5) keep their leading sign.
+    const s =
+      typeof value === "string" && /^[=+\-@\t\r]/.test(raw) ? `'${raw}` : raw;
     return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   };
   const body = [headers, ...rows]

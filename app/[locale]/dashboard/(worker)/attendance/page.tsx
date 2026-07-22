@@ -114,8 +114,8 @@ export default function AttendancePage() {
       t("columns.checkOut"),
       t("columns.status"),
       t("columns.outcome"),
-      "Lat",
-      "Lng",
+      t("columns.lat"),
+      t("columns.lng"),
     ];
     const data = table.filteredRows.map((r) => [
       r.workerName,

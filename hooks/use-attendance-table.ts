@@ -135,7 +135,7 @@ export function useAttendanceTable(rows: AttendanceRowDto[]): AttendanceTable {
 
   // Clamp page so a shrunk result set (filter change, new date) never shows blank.
   const pageCount = Math.max(1, Math.ceil(sorted.length / pageSize));
-  const safePage = Math.min(page, pageCount);
+  const safePage = Math.max(1, Math.min(page, pageCount));
   const pageRows = useMemo(
     () => sorted.slice((safePage - 1) * pageSize, safePage * pageSize),
     [sorted, safePage, pageSize],

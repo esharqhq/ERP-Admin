@@ -604,7 +604,9 @@
       "checkIn": "Check-In",
       "checkOut": "Check-Out",
       "status": "Status",
-      "outcome": "Outcome"
+      "outcome": "Outcome",
+      "lat": "Check-in Lat",
+      "lng": "Check-in Lng"
     },
     "present": {
       "yes": "Present",
