@@ -20,6 +20,12 @@
     "filter": "Filter",
     "all": "All",
     "resultsFound": "{count} results found",
+    "pagination": {
+      "showing": "{from}–{to} of {total}",
+      "perPage": "{count} / page",
+      "previous": "Previous",
+      "next": "Next"
+    },
     "yes": "Yes",
     "no": "No",
     "notFoundPage": {
