@@ -13,6 +13,7 @@ import {
   FileText,
   AlertTriangle,
   Play,
+  Pause,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -86,26 +87,120 @@ function attachmentKind(mimeType: string): AttachmentTypeName {
   return "File";
 }
 
+/**
+ * Custom voice-message player — a play/pause control, a seekable progress bar
+ * and elapsed/total time. Styled with `currentColor`-derived tones (via the
+ * `onPrimary` flag) so it reads correctly on both the blue admin bubble and the
+ * light incoming bubble, unlike the raw browser <audio> widget.
+ */
+function VoicePlayer({
+  src,
+  durationSeconds,
+  onPrimary,
+}: {
+  src: string;
+  durationSeconds: number | null;
+  onPrimary: boolean;
+}) {
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [playing, setPlaying] = useState(false);
+  const [current, setCurrent] = useState(0);
+  // WebM blobs from MediaRecorder often report duration=Infinity, so trust the
+  // recorded durationSeconds first and only fall back to the element's metadata.
+  const [metaDuration, setMetaDuration] = useState<number | null>(null);
+  const total =
+    durationSeconds && durationSeconds > 0 ? durationSeconds : metaDuration ?? 0;
+  const pct = total > 0 ? Math.min(100, (current / total) * 100) : 0;
+
+  const toggle = () => {
+    const el = audioRef.current;
+    if (!el) return;
+    if (el.paused) void el.play();
+    else el.pause();
+  };
+
+  const seek = (e: React.MouseEvent<HTMLDivElement>) => {
+    const el = audioRef.current;
+    if (!el || total <= 0) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const ratio = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
+    el.currentTime = ratio * total;
+    setCurrent(ratio * total);
+  };
+
+  const btnCls = onPrimary
+    ? "bg-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/30"
+    : "bg-foreground/10 text-foreground hover:bg-foreground/20";
+  const trackCls = onPrimary ? "bg-primary-foreground/25" : "bg-foreground/15";
+  const fillCls = onPrimary ? "bg-primary-foreground" : "bg-foreground/70";
+  const timeCls = onPrimary ? "text-primary-foreground/70" : "text-muted-foreground";
+
+  return (
+    <div className="flex min-w-[12.5rem] items-center gap-2.5 py-0.5">
+      <button
+        type="button"
+        onClick={toggle}
+        className={`flex size-9 shrink-0 items-center justify-center rounded-full transition-colors ${btnCls}`}
+      >
+        {playing ? (
+          <Pause className="size-4" />
+        ) : (
+          <Play className="size-4 translate-x-px" />
+        )}
+      </button>
+      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+        <div
+          onClick={seek}
+          className={`h-1.5 w-full cursor-pointer rounded-full ${trackCls}`}
+        >
+          <div
+            className={`h-full rounded-full ${fillCls}`}
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+        <span className={`text-[10px] tabular-nums ${timeCls}`}>
+          {fmtDuration(playing || current > 0 ? current : total)}
+        </span>
+      </div>
+      <audio
+        ref={audioRef}
+        src={src}
+        preload="metadata"
+        className="hidden"
+        onLoadedMetadata={(e) => {
+          const d = e.currentTarget.duration;
+          if (Number.isFinite(d) && d > 0) setMetaDuration(d);
+        }}
+        onPlay={() => setPlaying(true)}
+        onPause={() => setPlaying(false)}
+        onTimeUpdate={(e) => setCurrent(e.currentTarget.currentTime)}
+        onEnded={() => {
+          setPlaying(false);
+          setCurrent(0);
+        }}
+      />
+    </div>
+  );
+}
+
 function AttachmentView({
   a,
   onOpenMedia,
+  onPrimary,
 }: {
   a: MessageAttachmentDto;
   onOpenMedia: (m: MediaView) => void;
+  onPrimary: boolean;
 }) {
   const kind = normalizeStatus(a.type);
 
   if (kind === "voice") {
     return (
-      <div className="flex min-w-[13rem] items-center gap-2 rounded-lg bg-black/5 px-2 py-1.5 dark:bg-white/10">
-        <Mic className="size-4 shrink-0 opacity-70" />
-        <audio controls preload="metadata" src={a.url} className="h-8 max-w-[11rem] flex-1" />
-        {a.durationSeconds ? (
-          <span className="shrink-0 text-[10px] tabular-nums opacity-70">
-            {fmtDuration(a.durationSeconds)}
-          </span>
-        ) : null}
-      </div>
+      <VoicePlayer
+        src={a.url}
+        durationSeconds={a.durationSeconds}
+        onPrimary={onPrimary}
+      />
     );
   }
 
@@ -126,7 +221,7 @@ function AttachmentView({
           className="pointer-events-none max-h-64 w-full"
         />
         <span className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <span className="flex size-11 items-center justify-center rounded-full bg-black/50 text-white transition-transform group-hover:scale-105">
+          <span className="flex size-12 items-center justify-center rounded-full bg-black/55 text-white shadow-lg ring-1 ring-white/30 transition-transform group-hover:scale-105">
             <Play className="size-5 translate-x-0.5" />
           </span>
         </span>
@@ -156,7 +251,11 @@ function AttachmentView({
       href={a.url}
       target="_blank"
       rel="noreferrer"
-      className="flex items-center gap-1.5 rounded-md border border-border/60 bg-background/60 px-2 py-1 text-xs underline-offset-2 hover:underline"
+      className={`flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs underline-offset-2 hover:underline ${
+        onPrimary
+          ? "border-primary-foreground/25 bg-primary-foreground/10 text-primary-foreground"
+          : "border-border/60 bg-background/60"
+      }`}
     >
       <Paperclip className="size-3" />
       {a.fileName}
@@ -223,7 +322,12 @@ function MessageBubble({
         {msg.attachments?.length ? (
           <div className="flex flex-wrap gap-1.5 pt-0.5">
             {msg.attachments.map((a) => (
-              <AttachmentView key={a.id} a={a} onOpenMedia={onOpenMedia} />
+              <AttachmentView
+                key={a.id}
+                a={a}
+                onOpenMedia={onOpenMedia}
+                onPrimary={isAdmin}
+              />
             ))}
           </div>
         ) : null}
