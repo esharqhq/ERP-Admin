@@ -571,9 +571,28 @@
     "dateLabel": "Datum",
     "noAccess": "Sie haben keine Berechtigung, Anwesenheitsdaten anzuzeigen.",
     "empty": "Für dieses Datum sind keine Einsätze geplant.",
+    "export": "CSV exportieren",
     "stats": {
       "assigned": "Zugewiesen",
       "present": "Anwesend",
+      "absent": "Abwesend"
+    },
+    "summary": {
+      "assigned": "Zugewiesen",
+      "present": "Anwesend",
+      "late": "Verspätet",
+      "absent": "Abwesend",
+      "rate": "Anwesenheit"
+    },
+    "tabs": {
+      "all": "Alle",
+      "present": "Anwesend",
+      "late": "Verspätet",
+      "absent": "Abwesend"
+    },
+    "status": {
+      "present": "Anwesend",
+      "late": "Verspätet",
       "absent": "Abwesend"
     },
     "columns": {
@@ -584,6 +603,7 @@
       "present": "Anwesend",
       "checkIn": "Einchecken",
       "checkOut": "Auschecken",
+      "status": "Status",
       "outcome": "Ergebnis"
     },
     "present": {
