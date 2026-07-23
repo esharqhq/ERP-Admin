@@ -20,6 +20,12 @@
     "filter": "Filter",
     "all": "Alle",
     "resultsFound": "{count} Ergebnisse gefunden",
+    "pagination": {
+      "showing": "{from}–{to} von {total}",
+      "perPage": "{count} / Seite",
+      "previous": "Zurück",
+      "next": "Weiter"
+    },
     "yes": "Ja",
     "no": "Nein",
     "notFoundPage": {
@@ -565,9 +571,28 @@
     "dateLabel": "Datum",
     "noAccess": "Sie haben keine Berechtigung, Anwesenheitsdaten anzuzeigen.",
     "empty": "Für dieses Datum sind keine Einsätze geplant.",
+    "export": "CSV exportieren",
     "stats": {
       "assigned": "Zugewiesen",
       "present": "Anwesend",
+      "absent": "Abwesend"
+    },
+    "summary": {
+      "assigned": "Zugewiesen",
+      "present": "Anwesend",
+      "late": "Verspätet",
+      "absent": "Abwesend",
+      "rate": "Anwesenheit"
+    },
+    "tabs": {
+      "all": "Alle",
+      "present": "Anwesend",
+      "late": "Verspätet",
+      "absent": "Abwesend"
+    },
+    "status": {
+      "present": "Anwesend",
+      "late": "Verspätet",
       "absent": "Abwesend"
     },
     "columns": {
@@ -578,7 +603,10 @@
       "present": "Anwesend",
       "checkIn": "Einchecken",
       "checkOut": "Auschecken",
-      "outcome": "Ergebnis"
+      "status": "Status",
+      "outcome": "Ergebnis",
+      "lat": "Check-in Breitengrad",
+      "lng": "Check-in Längengrad"
     },
     "present": {
       "yes": "Anwesend",

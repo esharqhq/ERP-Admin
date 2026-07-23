@@ -20,6 +20,12 @@
     "filter": "Filter",
     "all": "All",
     "resultsFound": "{count} results found",
+    "pagination": {
+      "showing": "{from}–{to} of {total}",
+      "perPage": "{count} / page",
+      "previous": "Previous",
+      "next": "Next"
+    },
     "yes": "Yes",
     "no": "No",
     "notFoundPage": {
@@ -565,9 +571,28 @@
     "dateLabel": "Date",
     "noAccess": "You don't have permission to view attendance.",
     "empty": "No assignments scheduled for this date.",
+    "export": "Export CSV",
     "stats": {
       "assigned": "Assigned",
       "present": "Present",
+      "absent": "Absent"
+    },
+    "summary": {
+      "assigned": "Assigned",
+      "present": "Present",
+      "late": "Late",
+      "absent": "Absent",
+      "rate": "Attendance"
+    },
+    "tabs": {
+      "all": "All",
+      "present": "Present",
+      "late": "Late",
+      "absent": "Absent"
+    },
+    "status": {
+      "present": "Present",
+      "late": "Late",
       "absent": "Absent"
     },
     "columns": {
@@ -578,7 +603,10 @@
       "present": "Present",
       "checkIn": "Check-In",
       "checkOut": "Check-Out",
-      "outcome": "Outcome"
+      "status": "Status",
+      "outcome": "Outcome",
+      "lat": "Check-in Lat",
+      "lng": "Check-in Lng"
     },
     "present": {
       "yes": "Present",
