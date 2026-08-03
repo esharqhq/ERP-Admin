@@ -6,6 +6,7 @@ import { useLocale } from "next-intl";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Pencil, Check, X, Plus, Loader2, Paperclip, ListChecks, SlidersHorizontal,
@@ -18,6 +19,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 
 interface EditingRow {
   key: string;
@@ -36,6 +38,14 @@ const CATEGORY_ICONS: Record<string, React.ElementType> = {
   attachment: Paperclip,
   task: ListChecks,
 };
+
+// Some settings hold prose, not a scalar — contract templates run to thousands
+// of characters across many lines. Those must never go through a single-line
+// <input>: the browser strips CR/LF from its value, so saving would silently
+// flatten the template. They get a textarea, and a truncated chip when idle.
+function isProse(value: string): boolean {
+  return value.includes("\n") || value.length > 60;
+}
 
 // Turn a raw key/segment like "worker_threshold.lead_hours" into readable words.
 function humanize(raw: string): string {
@@ -195,10 +205,15 @@ export default function SettingsPage() {
                   <div className="divide-y divide-border">
                     {items.map((s) => {
                       const isEditing = editing?.key === s.key;
+                      // A prose row stays stacked while editing so its textarea gets full width.
+                      const prose = isProse(s.value);
                       return (
                         <div
                           key={s.key}
-                          className="flex flex-col gap-3 px-4 py-4 transition-colors hover:bg-accent/20 sm:flex-row sm:items-center sm:gap-4 sm:px-5"
+                          className={cn(
+                            "flex flex-col gap-3 px-4 py-4 transition-colors hover:bg-accent/20 sm:px-5",
+                            !(isEditing && prose) && "sm:flex-row sm:items-center sm:gap-4",
+                          )}
                         >
                           <div className="flex min-w-0 flex-1 flex-col gap-1">
                             <span className="text-sm font-medium leading-snug text-foreground">
@@ -211,7 +226,39 @@ export default function SettingsPage() {
                             </span>
                           </div>
 
-                          {isEditing ? (
+                          {isEditing && prose ? (
+                            <div className="flex flex-col gap-2">
+                              {/* Enter has to insert a newline here, so Escape is the only shortcut. */}
+                              <Textarea
+                                className="min-h-64 font-mono text-xs leading-relaxed"
+                                value={editing.value}
+                                onChange={(e) => setEditing({ key: s.key, value: e.target.value })}
+                                autoFocus
+                                onKeyDown={(e) => {
+                                  if (e.key === "Escape") cancelEdit();
+                                }}
+                              />
+                              <div className="flex items-center justify-end gap-1.5">
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={cancelEdit}
+                                  disabled={isPending}
+                                >
+                                  {t("cancel")}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  className="gap-1.5"
+                                  onClick={saveEdit}
+                                  disabled={isPending}
+                                >
+                                  {isPending ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
+                                  {t("save")}
+                                </Button>
+                              </div>
+                            </div>
+                          ) : isEditing ? (
                             <div className="flex shrink-0 items-center gap-1.5">
                               <Input
                                 className="h-9 w-full text-sm sm:w-40"
@@ -244,14 +291,19 @@ export default function SettingsPage() {
                               </Button>
                             </div>
                           ) : (
-                            <div className="flex shrink-0 items-center gap-2">
-                              <span className="inline-flex min-w-14 items-center justify-center rounded-lg bg-primary/10 px-3 py-1.5 font-mono text-sm font-semibold text-primary">
+                            <div className="flex min-w-0 items-center gap-2">
+                              {/* Must stay shrinkable and single-line: a template value
+                                  is thousands of characters and would blow out the row. */}
+                              <span
+                                title={s.value}
+                                className="min-w-14 max-w-56 truncate rounded-lg bg-primary/10 px-3 py-1.5 text-center font-mono text-sm font-semibold text-primary"
+                              >
                                 {s.value}
                               </span>
                               <Button
                                 size="sm"
                                 variant="outline"
-                                className="h-9 gap-1.5"
+                                className="h-9 shrink-0 gap-1.5"
                                 onClick={() => startEdit(s.key, s.value)}
                               >
                                 <Pencil className="size-3.5" />
@@ -287,8 +339,11 @@ export default function SettingsPage() {
             </div>
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="new-value">{t("dialog.value")}</Label>
-              <Input
+              {/* Textarea, not Input: a pasted multi-line value would otherwise
+                  have its newlines stripped before it ever reached the API. */}
+              <Textarea
                 id="new-value"
+                className="min-h-24"
                 placeholder={t("dialog.valuePlaceholder")}
                 value={newSetting.value}
                 onChange={(e) => setNewSetting((p) => ({ ...p, value: e.target.value }))}
