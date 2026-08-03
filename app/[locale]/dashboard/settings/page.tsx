@@ -1,15 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useLocale } from "next-intl";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
-import { Pencil, Check, X, Plus, Loader2 } from "lucide-react";
+import {
+  Pencil, Check, X, Plus, Loader2, Paperclip, ListChecks, SlidersHorizontal,
+} from "lucide-react";
 import { useSettings, useUpsertSetting } from "@/hooks/use-settings";
+import type { SystemSettingDto } from "@/lib/services/setting.service";
 import { useRouter } from "@/i18n/navigation";
 import { useCurrentPermissions } from "@/hooks/use-current-permissions";
 import {
@@ -26,6 +28,22 @@ interface NewSetting {
   key: string;
   value: string;
   description: string;
+}
+
+// Known categories get a recognizable icon; anything else falls back to a
+// generic one. The label itself is translated (with a humanized fallback).
+const CATEGORY_ICONS: Record<string, React.ElementType> = {
+  attachment: Paperclip,
+  task: ListChecks,
+};
+
+// Turn a raw key/segment like "worker_threshold.lead_hours" into readable words.
+function humanize(raw: string): string {
+  return raw
+    .replace(/[._]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 export default function SettingsPage() {
@@ -56,6 +74,22 @@ export default function SettingsPage() {
   const [showAdd, setShowAdd] = useState(false);
   const [newSetting, setNewSetting] = useState<NewSetting>({ key: "", value: "", description: "" });
 
+  // Group settings under a readable category (the key prefix before the first dot).
+  const groups = useMemo(() => {
+    const map = new Map<string, SystemSettingDto[]>();
+    for (const s of [...settings].sort((a, b) => a.key.localeCompare(b.key))) {
+      const cat = s.key.split(".")[0] || "other";
+      const list = map.get(cat) ?? [];
+      list.push(s);
+      map.set(cat, list);
+    }
+    return [...map.entries()];
+  }, [settings]);
+
+  function categoryLabel(cat: string) {
+    return t.has(`categories.${cat}`) ? t(`categories.${cat}`) : humanize(cat);
+  }
+
   function startEdit(key: string, value: string) {
     setEditing({ key, value });
   }
@@ -84,10 +118,9 @@ export default function SettingsPage() {
   }
 
   function formatDate(iso: string | null) {
-    if (!iso) return "—";
-    return new Date(iso).toLocaleString(locale, {
-      year: "numeric", month: "2-digit", day: "2-digit",
-      hour: "2-digit", minute: "2-digit",
+    if (!iso) return t("neverUpdated");
+    return new Date(iso).toLocaleDateString(locale, {
+      year: "numeric", month: "short", day: "numeric",
     });
   }
 
@@ -120,96 +153,122 @@ export default function SettingsPage() {
         </Button>
       </div>
 
-      <Card>
-        <CardHeader className="pb-3">
-          <p className="text-xs text-muted-foreground">
-            {t("count", { count: settings.length })}
-          </p>
-        </CardHeader>
-        <CardContent className="p-0">
-          {isLoading ? (
-            <div className="flex flex-col gap-2 p-4">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Skeleton key={i} className="h-12 w-full rounded-lg" />
-              ))}
+      {isLoading ? (
+        <div className="flex flex-col gap-4">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <Skeleton key={i} className="h-52 w-full rounded-xl" />
+          ))}
+        </div>
+      ) : settings.length === 0 ? (
+        <Card>
+          <CardContent className="flex flex-col items-center gap-3 py-16 text-center">
+            <div className="flex size-12 items-center justify-center rounded-full bg-muted">
+              <SlidersHorizontal className="size-5 text-muted-foreground" />
             </div>
-          ) : settings.length === 0 ? (
-            <p className="p-6 text-sm text-muted-foreground">
-              {t("noSettings")}
-            </p>
-          ) : (
-            <div className="divide-y divide-border">
-              {settings.map((s) => (
-                <div key={s.key} className="flex items-center gap-4 px-4 py-3 hover:bg-accent/30">
-                  <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-sm font-medium">{s.key}</span>
-                      {s.description && (
-                        <Badge variant="outline" className="text-[10px] font-normal">
-                          {s.description}
-                        </Badge>
-                      )}
-                    </div>
-                    {editing?.key === s.key ? (
-                      <Input
-                        className="mt-1 h-7 text-sm"
-                        value={editing.value}
-                        onChange={(e) => setEditing({ key: s.key, value: e.target.value })}
-                        autoFocus
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") saveEdit();
-                          if (e.key === "Escape") cancelEdit();
-                        }}
-                      />
-                    ) : (
-                      <span className="text-sm text-muted-foreground truncate">{s.value}</span>
-                    )}
+            <p className="text-sm text-muted-foreground">{t("noSettings")}</p>
+            <Button size="sm" variant="outline" className="gap-2" onClick={() => setShowAdd(true)}>
+              <Plus className="size-4" />
+              {t("newSetting")}
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="flex flex-col gap-5">
+          {groups.map(([cat, items]) => {
+            const Icon = CATEGORY_ICONS[cat] ?? SlidersHorizontal;
+            return (
+              <Card key={cat} className="overflow-hidden">
+                <CardHeader className="flex flex-row items-center gap-3 border-b border-border bg-muted/30 py-4">
+                  <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                    <Icon className="size-[18px]" />
                   </div>
+                  <div className="flex flex-col">
+                    <h2 className="font-heading text-base font-semibold leading-tight">
+                      {categoryLabel(cat)}
+                    </h2>
+                    <p className="text-xs text-muted-foreground">
+                      {t("count", { count: items.length })}
+                    </p>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="divide-y divide-border">
+                    {items.map((s) => {
+                      const isEditing = editing?.key === s.key;
+                      return (
+                        <div
+                          key={s.key}
+                          className="flex flex-col gap-3 px-4 py-4 transition-colors hover:bg-accent/20 sm:flex-row sm:items-center sm:gap-4 sm:px-5"
+                        >
+                          <div className="flex min-w-0 flex-1 flex-col gap-1">
+                            <span className="text-sm font-medium leading-snug text-foreground">
+                              {s.description || humanize(s.key)}
+                            </span>
+                            <span className="font-mono text-[11px] text-muted-foreground">
+                              {s.key}
+                              <span className="mx-1.5 text-border">•</span>
+                              {formatDate(s.updatedAt)}
+                            </span>
+                          </div>
 
-                  <div className="flex shrink-0 items-center gap-1">
-                    {editing?.key === s.key ? (
-                      <>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="size-7 text-green-600 hover:text-green-600"
-                          onClick={saveEdit}
-                          disabled={isPending}
-                        >
-                          <Check className="size-4" />
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="size-7"
-                          onClick={cancelEdit}
-                          disabled={isPending}
-                        >
-                          <X className="size-4" />
-                        </Button>
-                      </>
-                    ) : (
-                      <>
-                        <span className="hidden text-[11px] text-muted-foreground sm:inline">
-                          {formatDate(s.updatedAt)}
-                        </span>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="size-7"
-                          onClick={() => startEdit(s.key, s.value)}
-                        >
-                          <Pencil className="size-3.5" />
-                        </Button>
-                      </>
-                    )}
+                          {isEditing ? (
+                            <div className="flex shrink-0 items-center gap-1.5">
+                              <Input
+                                className="h-9 w-full text-sm sm:w-40"
+                                value={editing.value}
+                                onChange={(e) => setEditing({ key: s.key, value: e.target.value })}
+                                autoFocus
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") saveEdit();
+                                  if (e.key === "Escape") cancelEdit();
+                                }}
+                              />
+                              <Button
+                                size="icon"
+                                className="size-9 shrink-0"
+                                onClick={saveEdit}
+                                disabled={isPending}
+                                aria-label={t("save")}
+                              >
+                                {isPending ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
+                              </Button>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="size-9 shrink-0"
+                                onClick={cancelEdit}
+                                disabled={isPending}
+                                aria-label={t("cancel")}
+                              >
+                                <X className="size-4" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className="flex shrink-0 items-center gap-2">
+                              <span className="inline-flex min-w-14 items-center justify-center rounded-lg bg-primary/10 px-3 py-1.5 font-mono text-sm font-semibold text-primary">
+                                {s.value}
+                              </span>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-9 gap-1.5"
+                                onClick={() => startEdit(s.key, s.value)}
+                              >
+                                <Pencil className="size-3.5" />
+                                <span className="hidden sm:inline">{t("editValue")}</span>
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
 
       <Dialog open={showAdd} onOpenChange={(v) => !v && setShowAdd(false)}>
         <DialogContent className="sm:max-w-md">
