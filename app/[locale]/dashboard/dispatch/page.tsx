@@ -40,14 +40,13 @@ const VACATED_OUTCOMES = new Set(["removed", "cancelled", "noshow"]);
 // terminal DONE / CANCELLED states are not dispatch targets.
 const OPEN_STATUSES = new Set(["pending", "active"]);
 
-// v2 admin-assign refusals. The gate codes arrive as 403 WITH a body and are about
-// the WORKER's contract cover, not the admin's permission; an empty 403 body is a
-// permission problem instead. `worker_not_approved` no longer exists.
-const KNOWN_ASSIGN_ERRORS = new Set([
-  "onboarding_incomplete",
-  "contract_expired",
-  "contract_not_yet_active",
-  "worker_contract_ends_before_task",
+// v2 admin-assign refusals. The gate codes (403 WITH a body, about the WORKER's
+// contract cover — an empty 403 body is a permission problem instead) and
+// `worker_contract_ends_before_task` are covered by the shared onboarding
+// catalog (see `assignError` below); `worker_not_approved` no longer exists.
+// These four are the only codes THIS PAGE still owns copy for — checked by
+// membership, never by interpolating an arbitrary code into `errors.*`.
+const LEGACY_ASSIGN_ERRORS = new Set([
   "worker_below_rating_floor",
   "worker_profession_not_eligible",
   "worker_limit_reached",
@@ -269,12 +268,17 @@ export default function DispatchPage() {
             return tOnboarding("permissionDenied");
           }
           const info = describeApiError(assignWorker.error);
-          // Gate/contract codes are already covered by the shared onboarding catalog
-          // (info.labelKey !== "unknown"); the four legacy assign-specific codes are
-          // not in that catalog, so they keep resolving through dispatch.errors.
-          return info && info.labelKey !== "unknown" && KNOWN_ASSIGN_ERRORS.has(info.code)
-            ? tOnboarding(`apiErrors.${info.labelKey}`)
-            : t(`errors.${info?.code ?? "generic"}`);
+          if (info && info.labelKey !== "unknown") {
+            // A code the shared onboarding catalog covers (the gate codes plus
+            // worker_contract_ends_before_task). Never interpolate a raw code into
+            // a page-local key below — an uncataloged code (e.g. worker_not_found)
+            // would otherwise render next-intl's missing-key path string.
+            return tOnboarding(`apiErrors.${info.labelKey}`);
+          }
+          if (info && LEGACY_ASSIGN_ERRORS.has(info.code)) {
+            return t(`errors.${info.code}`);
+          }
+          return t("errors.generic");
         })()
       : null;
 
