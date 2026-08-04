@@ -271,6 +271,11 @@ function WorkersCalendar() {
   const [selectedTaskId, setSelectedTaskId] = useState("");
   const [taskSearch, setTaskSearch] = useState("");
 
+  // Admin-assigning to a task from this calendar is refused by the server's live
+  // ACTIVE gate (403) unless the worker's contract is covering today, so only offer
+  // `Active` workers here. `Active` is the stored projection and can lag real cover
+  // by up to an hour; the assignError handling below (KNOWN_ASSIGN_ERRORS) remains
+  // the real guard for that edge.
   const { data: workersPage, isLoading: isLoadingWorkers } = useWorkers({
     onboardingStatus: "Active",
     pageSize: MAX_PAGE_SIZE,

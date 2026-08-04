@@ -34,7 +34,7 @@ import { Can } from "@/components/auth/can";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getApiErrorCode } from "@/lib/http/api-error";
-import { onboardingStatusPresentation } from "@/lib/onboarding/status";
+import { canDecide, onboardingStatusPresentation } from "@/lib/onboarding/status";
 import { useTranslations } from "next-intl";
 
 export default function WorkerDetailPage({
@@ -105,7 +105,7 @@ export default function WorkerDetailPage({
       <HeroCard worker={worker} />
 
       <div className="flex flex-wrap gap-2">
-        {worker.onboardingStatus === "Review" && (
+        {canDecide(worker.onboardingStatus) && (
           <>
             <Button className="gap-1.5" onClick={() => setShowApprove(true)}>
               <CheckCircle className="size-4" />

@@ -35,6 +35,8 @@ import {
 import { useOwnerList } from "@/hooks/use-owners";
 import { useWorkers } from "@/hooks/use-workers";
 import { getApiErrorCode } from "@/lib/http/api-error";
+import { canAuthorContract } from "@/lib/onboarding/status";
+import { MAX_PAGE_SIZE } from "@/lib/types/paged.types";
 import type { ContractType, CreateContractRequest } from "@/lib/types/contract.types";
 
 const KNOWN_ERRORS = new Set([
@@ -81,11 +83,15 @@ export default function ContractsPage() {
   const ownerContracts = useOwnerContracts();
   const workerContracts = useWorkerContracts();
   const { data: owners = [] } = useOwnerList();
-  const { data: workersPage } = useWorkers({
-    onboardingStatus: "Active",
-    pageSize: 100,
-  });
-  const workers = useMemo(() => workersPage?.items ?? [], [workersPage]);
+  // The party picker is for AUTHORING a contract: the server allows that only from
+  // Approved or Active (409 onboarding_not_approved otherwise), which is not a single
+  // onboardingStatus value the query filter can express — fetch broadly and narrow
+  // client-side with canAuthorContract instead.
+  const { data: workersPage } = useWorkers({ pageSize: MAX_PAGE_SIZE });
+  const workers = useMemo(
+    () => (workersPage?.items ?? []).filter((w) => canAuthorContract(w.onboardingStatus)),
+    [workersPage],
+  );
 
   const createOwner = useCreateOwnerContract();
   const renewOwner = useRenewOwnerContract();

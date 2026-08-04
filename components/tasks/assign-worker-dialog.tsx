@@ -38,6 +38,10 @@ export function AssignWorkerDialog({
   const t = useTranslations("tasks");
   const tCommon = useTranslations("common");
   const [search, setSearch] = useState("");
+  // Admin-assigning to a task is refused by the server's live ACTIVE gate (403) unless
+  // the worker's contract is covering today, so only offer `Active` workers here.
+  // `Active` is the stored projection and can lag real cover by up to an hour;
+  // the server's assign endpoint remains the real guard for that edge.
   const { data: page, isLoading } = useWorkers({
     onboardingStatus: "Active",
     pageSize: 100,
