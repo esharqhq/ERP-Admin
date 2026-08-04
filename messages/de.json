@@ -125,6 +125,88 @@
       "unknown": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
     }
   },
+  "docsWorkspace": {
+    "progress": "Fortschritt",
+    "cancel": "Abbrechen",
+    "backToWorkerDocs": "Zurück zu Mitarbeiterdokumenten",
+    "steps": {
+      "documents": "Dokumente",
+      "contract": "Vertrag",
+      "awaitingSignature": "Warten auf Unterschrift",
+      "inForce": "In Kraft"
+    },
+    "identity": {
+      "title": "Identität",
+      "firstName": "Vorname (laut Pass)",
+      "lastName": "Nachname (laut Pass)",
+      "passportNumber": "Passnummer",
+      "passportExpiry": "Pass gültig bis",
+      "licenseExpiry": "Lizenz gültig bis",
+      "expired": "Abgelaufen",
+      "expiresInDays": "{days} Tage übrig",
+      "readOnlyNote": "Nur der Kontoinhaber kann diese Angaben ändern. Lehnen Sie die Einreichung mit einer Begründung ab, damit sie korrigiert und neu eingereicht werden kann."
+    },
+    "company": {
+      "title": "Unternehmen",
+      "naturalPerson": "Natürliche Person — kein Unternehmenseintrag.",
+      "name": "Firmenname",
+      "type": "Rechtsform",
+      "licenseNumber": "Lizenznummer",
+      "licenseExpiry": "Lizenz gültig bis",
+      "taxNumber": "Steuernummer",
+      "registeredIn": "Registriert in"
+    },
+    "documents": {
+      "title": "Eingereichte Dokumente",
+      "empty": "Noch nichts eingereicht.",
+      "silentNote": "Eine Entscheidung zu einer einzelnen Datei bleibt stumm: sie ändert nichts am Konto und benachrichtigt niemanden. Erst die Entscheidung unten erreicht die Person."
+    },
+    "docStatus": {
+      "pending": "Ausstehend",
+      "approved": "Genehmigt",
+      "rejected": "Abgelehnt"
+    },
+    "docView": "Öffnen",
+    "docApprove": "Genehmigen",
+    "docRejectAction": "Ablehnen",
+    "docReject": {
+      "placeholder": "Was ist mit dieser Datei nicht in Ordnung?",
+      "confirm": "Datei ablehnen"
+    },
+    "decision": {
+      "title": "Entscheidung",
+      "notInReview": "Diese Einreichung wartet derzeit nicht auf eine Entscheidung.",
+      "approve": "Dokumente genehmigen",
+      "reject": "Einreichung ablehnen",
+      "rejectPlaceholder": "Teilen Sie mit, was vor der erneuten Einreichung zu korrigieren ist.",
+      "rejectConfirm": "Einreichung ablehnen"
+    },
+    "contract": {
+      "title": "Vertrag",
+      "for": "Für",
+      "from": "Deckung beginnt",
+      "to": "Deckung endet",
+      "commissionPercent": "Provision %",
+      "paymentOrder": "Zahlungsbedingungen",
+      "generalTerms": "Allgemeine Bedingungen",
+      "extraClauses": "Zusätzliche Klauseln",
+      "sourceFile": "Quelldokument (PDF)",
+      "saveDraft": "Entwurf speichern",
+      "send": "Zur Unterschrift senden",
+      "sendNote": "Beim Senden wird der Vertrag erzeugt und zur Unterschrift angefragt. Solange er nicht unterschrieben ist, können Sie ihn zurückziehen.",
+      "lockedNote": "Genehmigen Sie zuerst die Dokumente — ein Vertrag kann nur für ein genehmigtes Konto erstellt werden.",
+      "sentBack": "Zurückgesendet",
+      "awaitingNote": "Gesendet, wartet auf Unterschrift. Ziehen Sie ihn zurück, wenn die Bedingungen geändert werden müssen.",
+      "openPreview": "Vorschau öffnen",
+      "recall": "Zurückziehen",
+      "recallReason": "Warum ziehen Sie ihn zurück?",
+      "recallConfirm": "Vertrag zurückziehen",
+      "openSigned": "Unterschriebenen Vertrag öffnen",
+      "renew": "Verlängern",
+      "renewNote": "Beim Verlängern wird ein neuer Vertrag erstellt, der übernimmt, wenn dieser endet.",
+      "continuesFrom": "Deckung läuft ab {date} weiter."
+    }
+  },
   "nav": {
     "dashboard": "Dashboard",
     "overview": "Übersicht",

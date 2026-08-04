@@ -21,10 +21,8 @@ import type { OnboardingStatus } from "@/lib/types/onboarding.types";
 import { onboardingStatusPresentation } from "@/lib/onboarding/status";
 import { describeApiError, isPermissionDenied } from "@/lib/onboarding/errors";
 import { DEFAULT_PAGE_SIZE } from "@/lib/types/paged.types";
-import { WorkerDocReview } from "@/components/workers/worker-doc-review";
-import { cn } from "@/lib/utils";
+import { RowLink } from "@/components/ui/row-link";
 
-/** Keeps the expanded review row spanning the whole table. */
 const COLUMN_COUNT = 5;
 
 type FilterTab = "all" | "approved" | "pending";
@@ -48,61 +46,33 @@ function StatusBadge({ status }: { status: WorkerRowDto["onboardingStatus"] }) {
 }
 
 /**
- * Expands in place to review the worker's documents, mirroring the owner queue's
- * `components/kyc/kyc-row.tsx`. It used to carry a "Documents" button that navigated
- * to the worker **detail** page — which meant the two document screens behaved
- * differently for the same job. Phase 1's Docs workspace replaces both with one
- * component; until then they at least behave alike.
+ * The whole row opens the worker's Docs workspace — the screen where their
+ * documents and the contract they unlock sit side by side. `RowLink` keeps
+ * right-click and open-in-new-tab working, unlike an onClick handler.
  */
 function WorkerRow({ worker, locale }: { worker: WorkerRowDto; locale: string }) {
-  const [expanded, setExpanded] = useState(false);
-
   return (
-    <>
-      <TableRow
-        className="cursor-pointer hover:bg-accent/40"
-        onClick={() => setExpanded((v) => !v)}
-        tabIndex={0}
-        aria-expanded={expanded}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            setExpanded((v) => !v);
-          }
-        }}
-      >
-        <TableCell className="py-3 font-medium">
-          <div className="flex items-center gap-3">
-            <ChevronRight
-              className={cn(
-                "size-4 shrink-0 text-muted-foreground transition-transform",
-                expanded && "rotate-90",
-              )}
-            />
-            {worker.fullName ?? "—"}
-          </div>
-        </TableCell>
-        <TableCell className="text-sm text-muted-foreground">
-          {worker.phoneNumber ?? worker.email ?? "—"}
-        </TableCell>
-        <TableCell className="text-sm text-muted-foreground">
-          {formatDate(worker.createdAt, locale)}
-        </TableCell>
-        <TableCell>
-          <StatusBadge status={worker.onboardingStatus} />
-        </TableCell>
-        {/* Empty cell where the navigation button used to be — keeps the 5-column grid aligned. */}
-        <TableCell />
-      </TableRow>
-
-      {expanded && (
-        <TableRow className="hover:bg-transparent">
-          <TableCell colSpan={COLUMN_COUNT} className="p-0">
-            <WorkerDocReview workerId={worker.id} />
-          </TableCell>
-        </TableRow>
-      )}
-    </>
+    <TableRow className="relative cursor-pointer hover:bg-accent/40">
+      <TableCell className="py-3 font-medium">
+        <RowLink
+          href={`/dashboard/worker-documents/${worker.id}`}
+          label={worker.fullName || undefined}
+        />
+        {worker.fullName ?? "—"}
+      </TableCell>
+      <TableCell className="text-sm text-muted-foreground">
+        {worker.phoneNumber ?? worker.email ?? "—"}
+      </TableCell>
+      <TableCell className="text-sm text-muted-foreground">
+        {formatDate(worker.createdAt, locale)}
+      </TableCell>
+      <TableCell>
+        <StatusBadge status={worker.onboardingStatus} />
+      </TableCell>
+      <TableCell className="text-right">
+        <ChevronRight className="ml-auto size-4 text-muted-foreground" />
+      </TableCell>
+    </TableRow>
   );
 }
 

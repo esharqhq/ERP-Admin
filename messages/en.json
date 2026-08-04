@@ -125,6 +125,88 @@
       "unknown": "Something went wrong. Please try again."
     }
   },
+  "docsWorkspace": {
+    "progress": "Progress",
+    "cancel": "Cancel",
+    "backToWorkerDocs": "Back to worker documents",
+    "steps": {
+      "documents": "Documents",
+      "contract": "Contract",
+      "awaitingSignature": "Awaiting signature",
+      "inForce": "In force"
+    },
+    "identity": {
+      "title": "Identity",
+      "firstName": "Legal first name",
+      "lastName": "Legal last name",
+      "passportNumber": "Passport number",
+      "passportExpiry": "Passport expires",
+      "licenseExpiry": "Licence expires",
+      "expired": "Expired",
+      "expiresInDays": "{days} days left",
+      "readOnlyNote": "Only the account holder can change these. To correct them, reject the submission with a reason so they can edit and re-submit."
+    },
+    "company": {
+      "title": "Company",
+      "naturalPerson": "Natural person — no company on file.",
+      "name": "Company name",
+      "type": "Legal form",
+      "licenseNumber": "Licence number",
+      "licenseExpiry": "Licence expires",
+      "taxNumber": "Tax number",
+      "registeredIn": "Registered in"
+    },
+    "documents": {
+      "title": "Submitted documents",
+      "empty": "Nothing submitted yet.",
+      "silentNote": "A decision on a single file is silent: it changes nothing about the account and notifies nobody. The decision below is what reaches them."
+    },
+    "docStatus": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "docView": "Open",
+    "docApprove": "Approve",
+    "docRejectAction": "Reject",
+    "docReject": {
+      "placeholder": "What is wrong with this file?",
+      "confirm": "Reject file"
+    },
+    "decision": {
+      "title": "Decision",
+      "notInReview": "This submission is not awaiting a decision right now.",
+      "approve": "Approve documents",
+      "reject": "Reject submission",
+      "rejectPlaceholder": "Tell them what to fix before re-submitting.",
+      "rejectConfirm": "Reject submission"
+    },
+    "contract": {
+      "title": "Contract",
+      "for": "For",
+      "from": "Cover starts",
+      "to": "Cover ends",
+      "commissionPercent": "Commission %",
+      "paymentOrder": "Payment terms",
+      "generalTerms": "General terms",
+      "extraClauses": "Additional clauses",
+      "sourceFile": "Source document (PDF)",
+      "saveDraft": "Save draft",
+      "send": "Send for signature",
+      "sendNote": "Sending renders the contract and asks them to sign. You can recall it while it is unsigned.",
+      "lockedNote": "Approve the documents first — a contract can only be written for an approved account.",
+      "sentBack": "Sent back",
+      "awaitingNote": "Sent, waiting for their signature. Recall it if the terms need to change.",
+      "openPreview": "Open preview",
+      "recall": "Recall",
+      "recallReason": "Why are you recalling it?",
+      "recallConfirm": "Recall contract",
+      "openSigned": "Open signed contract",
+      "renew": "Renew",
+      "renewNote": "Renewing writes a new contract that takes over when this one ends.",
+      "continuesFrom": "Cover continues from {date}."
+    }
+  },
   "nav": {
     "dashboard": "Dashboard",
     "overview": "Overview",
