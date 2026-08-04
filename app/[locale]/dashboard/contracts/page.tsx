@@ -84,13 +84,25 @@ export default function ContractsPage() {
   const workerContracts = useWorkerContracts();
   const { data: owners = [] } = useOwnerList();
   // The party picker is for AUTHORING a contract: the server allows that only from
-  // Approved or Active (409 onboarding_not_approved otherwise), which is not a single
-  // onboardingStatus value the query filter can express — fetch broadly and narrow
-  // client-side with canAuthorContract instead.
-  const { data: workersPage } = useWorkers({ pageSize: MAX_PAGE_SIZE });
+  // Approved or Active (409 onboarding_not_approved otherwise). WorkerListQuery.onboardingStatus
+  // takes a single value, so it can't express "Approved OR Active" in one request —
+  // issue one query per eligible stage (each gets its own MAX_PAGE_SIZE budget, so a
+  // large population in one stage can't crowd the other out of the picker) and merge.
+  // canAuthorContract is kept as a cheap safety net over the merged list.
+  const { data: approvedWorkersPage } = useWorkers({
+    onboardingStatus: "Approved",
+    pageSize: MAX_PAGE_SIZE,
+  });
+  const { data: activeWorkersPage } = useWorkers({
+    onboardingStatus: "Active",
+    pageSize: MAX_PAGE_SIZE,
+  });
   const workers = useMemo(
-    () => (workersPage?.items ?? []).filter((w) => canAuthorContract(w.onboardingStatus)),
-    [workersPage],
+    () =>
+      [...(approvedWorkersPage?.items ?? []), ...(activeWorkersPage?.items ?? [])].filter(
+        (w) => canAuthorContract(w.onboardingStatus),
+      ),
+    [approvedWorkersPage, activeWorkersPage],
   );
 
   const createOwner = useCreateOwnerContract();
@@ -138,7 +150,7 @@ export default function ContractsPage() {
   const parties = useMemo<ContractParty[]>(() => {
     if (isOwner) {
       return owners
-        .filter((o) => !!o.ownerUserId)
+        .filter((o) => !!o.ownerUserId && canAuthorContract(o.onboardingStatus))
         .map((o) => ({
           id: o.ownerUserId,
           name: o.ownerName ?? o.ownerUserId.slice(0, 8),
