@@ -57,7 +57,7 @@
       "scheduled": "Beginnt später",
       "inForce": "In Kraft",
       "expired": "Abgelaufen",
-      "terminated": "Beendet",
+      "terminated": "Vorzeitig beendet",
       "unknown": "Unbekannt"
     },
     "docType": {
@@ -68,6 +68,14 @@
       "companyRegistration": "Handelsregisterauszug",
       "taxCertificate": "Steuerbescheinigung",
       "other": "Sonstiges"
+    },
+    "companyType": {
+      "llc": "LLC",
+      "gmbh": "GmbH",
+      "individualEntrepreneur": "Einzelunternehmer",
+      "soleTrader": "Einzelkaufmann",
+      "other": "Sonstige",
+      "unknown": "Unbekannt"
     },
     "permissionDenied": "Ihre Rolle hat keine Berechtigung für diese Aktion.",
     "apiErrors": {
@@ -105,6 +113,15 @@
       "countryNotFound": "Dieses Land existiert nicht mehr.",
       "invalidTargetType": "Ungültiger Empfängertyp.",
       "targetNotFound": "Dieser Empfänger existiert nicht mehr.",
+      "incompleteIdentityData": "Die Identitätsdaten dieses Subjekts sind unvollständig, eine Einreichung ist noch nicht möglich.",
+      "onboardingLocked": "Diese Daten sind während der Prüfung gesperrt.",
+      "cityCountryMismatch": "Diese Stadt gehört nicht zum ausgewählten Land.",
+      "cityNotFound": "Diese Stadt existiert nicht mehr.",
+      "invalidCompanyType": "Ungültige Unternehmensform.",
+      "companyNameRequired": "Ein Firmenname ist erforderlich.",
+      "companyLicenseNumberRequired": "Eine Lizenznummer ist erforderlich.",
+      "companyNotFound": "Für diesen Eigentümer existiert kein Unternehmenseintrag.",
+      "requiresBoss": "Nur der Kontoinhaber (BOSS) kann dies tun.",
       "unknown": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
     }
   },

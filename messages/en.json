@@ -57,7 +57,7 @@
       "scheduled": "Starts later",
       "inForce": "In force",
       "expired": "Expired",
-      "terminated": "Terminated",
+      "terminated": "Ended early",
       "unknown": "Unknown"
     },
     "docType": {
@@ -68,6 +68,14 @@
       "companyRegistration": "Company registration",
       "taxCertificate": "Tax certificate",
       "other": "Other"
+    },
+    "companyType": {
+      "llc": "LLC",
+      "gmbh": "GmbH",
+      "individualEntrepreneur": "Individual entrepreneur",
+      "soleTrader": "Sole trader",
+      "other": "Other",
+      "unknown": "Unknown"
     },
     "permissionDenied": "Your role does not have permission for this action.",
     "apiErrors": {
@@ -105,6 +113,15 @@
       "countryNotFound": "This country no longer exists.",
       "invalidTargetType": "Invalid recipient type.",
       "targetNotFound": "This recipient no longer exists.",
+      "incompleteIdentityData": "This subject's identity data is incomplete, so they cannot submit yet.",
+      "onboardingLocked": "This data is locked while the application is under review.",
+      "cityCountryMismatch": "That city does not belong to the selected country.",
+      "cityNotFound": "This city no longer exists.",
+      "invalidCompanyType": "Invalid company type.",
+      "companyNameRequired": "A company name is required.",
+      "companyLicenseNumberRequired": "A licence number is required.",
+      "companyNotFound": "No company record exists for this owner.",
+      "requiresBoss": "Only the account owner (BOSS) can do this.",
       "unknown": "Something went wrong. Please try again."
     }
   },

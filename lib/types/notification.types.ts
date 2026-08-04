@@ -20,7 +20,8 @@ export type NotificationEntityType =
   | "Property"
   | "OwnerContract"
   | "WorkerContract"
-  | "SupportTicket";
+  | "SupportTicket"
+  | "Onboarding";
 
 export type NotificationDto = {
   id: string;

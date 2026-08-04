@@ -25,6 +25,11 @@ export function notificationRoute(
     case "OwnerContract":
     case "WorkerContract":
       return `/dashboard/contracts`;
+    // OnboardingRevertedToKyc carries this with the subject's id. Phase 1 repoints it
+    // at the subject's Docs detail once those routes exist; until then, no route to
+    // invent, so the row renders non-clickable.
+    case "Onboarding":
+      return null;
     default:
       return null;
   }

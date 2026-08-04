@@ -2,11 +2,15 @@ import type {
   ContractPrefillDto,
   OnboardingStatus,
 } from "@/lib/types/onboarding.types";
+import type {
+  OwnerCompanyDto,
+  OwnerIdentityDto,
+} from "@/lib/types/identity.types";
 
 /**
- * Owner KYC document. Deliberately has **no** review fields: unlike worker
- * documents there is no per-document status, reason or reviewer on the owner
- * side, and no admin endpoint to set one. Owner review is account-level only.
+ * Owner KYC document. F-03·1 gave owner documents the same per-document review
+ * fields workers already had — status, reason and reviewer are now tracked per
+ * document, not just at the account level.
  */
 export interface KycDocDto {
   id: string;
@@ -15,6 +19,12 @@ export interface KycDocDto {
   fileName: string | null;
   /** Storage key as posted; fetch at `{filesBase}/files/{fileUrl}` (public, no auth). */
   fileUrl: string | null;
+  /** F-03·1. TitleCase on the wire: "Pending" | "Approved" | "Rejected". */
+  status: string | null;
+  /** Set by a per-document reject; cleared when the document is approved. */
+  rejectReason: string | null;
+  reviewedAt: string | null;
+  reviewedByAdminId: string | null;
   createdAt: string;
 }
 
@@ -40,6 +50,10 @@ export interface KycProfileDto {
   onboardingRejectReason: string | null;
   onboardingReviewedAt: string | null;
   documents: KycDocDto[] | null;
+  /** F-03·1. Always present; its fields are null until the subject fills them. */
+  identity: OwnerIdentityDto;
+  /** F-03·1. **Null means the owner is a natural person** — do not default it to an object. */
+  company: OwnerCompanyDto | null;
 }
 
 /**

@@ -47,6 +47,8 @@ const PHASE: Record<ContractPhase, StatusPresentation> = {
   // Lapsed vs Expired is a <=1h job artifact; render them identically.
   Lapsed: { variant: "destructive", labelKey: "expired" },
   Expired: { variant: "destructive", labelKey: "expired" },
+  // "Ended early" — an admin force-terminate, or a period cut short when a watched
+  // document expired (F-03·1). Never render this as "expired".
   Terminated: { variant: "secondary", className: MUTED, labelKey: "terminated" },
 };
 

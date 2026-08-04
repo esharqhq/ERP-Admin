@@ -4,6 +4,7 @@ import type {
   OnboardingStatus,
 } from "@/lib/types/onboarding.types";
 import type { PagedQuery } from "@/lib/types/paged.types";
+import type { WorkerIdentityDto } from "@/lib/types/identity.types";
 
 export interface WorkerProfessionDto {
   id: string;
@@ -103,6 +104,11 @@ export interface WorkerDetailDto {
   profilePictureUrl: string | null;
   professions: WorkerProfessionDto[] | null;
   documents: WorkerDocumentDto[] | null;
+  /**
+   * F-03·1. The admin read is one of only two places this block is served — the worker
+   * app itself has no self-read route for it.
+   */
+  identity: WorkerIdentityDto;
 }
 
 /**

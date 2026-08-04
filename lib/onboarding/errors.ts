@@ -49,6 +49,20 @@ const CATALOG: Record<string, Omit<ApiErrorInfo, "code">> = {
   worker_doc_not_found: { labelKey: "documentNotFound", reaction: "not-found" },
   kyc_doc_not_found: { labelKey: "documentNotFound", reaction: "not-found" },
 
+  // ── F-03·1 structured document data ─────────────────────────────────────
+  incomplete_identity_data: { labelKey: "incompleteIdentityData", reaction: "toast" },
+  onboarding_locked: { labelKey: "onboardingLocked", reaction: "refetch" },
+  city_country_mismatch: { labelKey: "cityCountryMismatch", reaction: "toast" },
+  city_not_found: { labelKey: "cityNotFound", reaction: "toast" },
+  invalid_company_type: { labelKey: "invalidCompanyType", reaction: "toast" },
+  company_name_required: { labelKey: "companyNameRequired", reaction: "toast" },
+  company_license_number_required: { labelKey: "companyLicenseNumberRequired", reaction: "toast" },
+  company_not_found: { labelKey: "companyNotFound", reaction: "not-found" },
+
+  // ── BOSS-only guards — arrive as the third 403 flavour's `detail` code ──
+  kyc_submit_requires_boss: { labelKey: "requiresBoss", reaction: "toast" },
+  kyc_doc_upload_requires_boss: { labelKey: "requiresBoss", reaction: "toast" },
+
   // ── contract authoring ──────────────────────────────────────────────────
   onboarding_not_approved: { labelKey: "onboardingNotApproved", reaction: "refetch" },
   contract_already_sent: { labelKey: "contractAlreadySent", reaction: "toast" },
@@ -84,8 +98,22 @@ const CATALOG: Record<string, Omit<ApiErrorInfo, "code">> = {
   target_not_found: { labelKey: "targetNotFound", reaction: "not-found" },
 };
 
+function status(err: unknown): number | null {
+  return err instanceof AxiosError ? (err.response?.status ?? null) : null;
+}
+
+/** The middleware's fall-through shape puts the real code in `detail`, not `error`. */
+function forbiddenDetail(err: unknown): string | null {
+  if (!(err instanceof AxiosError)) return null;
+  const data = err.response?.data as { error?: unknown; detail?: unknown } | undefined;
+  if (data?.error !== "forbidden") return null;
+  return typeof data.detail === "string" ? data.detail : null;
+}
+
 export function describeApiError(err: unknown): ApiErrorInfo | null {
-  const code = getApiErrorCode(err);
+  // `{"error":"forbidden","detail":"<code>"}` — read the code out of `detail`.
+  const detail = forbiddenDetail(err);
+  const code = detail ?? getApiErrorCode(err);
   if (!code) return null;
   const known = CATALOG[code];
   return known
@@ -93,23 +121,24 @@ export function describeApiError(err: unknown): ApiErrorInfo | null {
     : { code, labelKey: "unknown", reaction: "toast" };
 }
 
-function status(err: unknown): number | null {
-  return err instanceof AxiosError ? (err.response?.status ?? null) : null;
-}
-
 /**
- * An **empty** 403 body means the permission filter refused: the caller's role
- * lacks the permission. Copy must talk about the admin's access, not the subject.
+ * An **empty** 403 body means the permission filter refused: the caller's role lacks
+ * the permission. The middleware's `{"error":"forbidden","detail":…}` shape means the
+ * same thing — an authorization failure that simply wasn't mapped by its controller —
+ * so it counts here too, even though a body is present.
  */
 export function isPermissionDenied(err: unknown): boolean {
-  return status(err) === 403 && getApiErrorCode(err) === null;
+  if (status(err) !== 403) return false;
+  return getApiErrorCode(err) === null || forbiddenDetail(err) !== null;
 }
 
 /**
- * A 403 **with** a body is the ACTIVE gate: the caller is permitted, but the
- * subject has no signed contract covering today. Copy must talk about the
- * subject's contract — and `contract_not_yet_active` must never say "expired".
+ * A 403 **with** a gate code is the ACTIVE gate: the caller is permitted, but the
+ * subject has no signed contract covering today. Copy must talk about the subject's
+ * contract — and `contract_not_yet_active` must never say "expired".
  */
 export function isGateRefusal(err: unknown): boolean {
-  return status(err) === 403 && getApiErrorCode(err) !== null;
+  if (status(err) !== 403) return false;
+  if (forbiddenDetail(err) !== null) return false;
+  return getApiErrorCode(err) !== null;
 }

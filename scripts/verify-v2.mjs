@@ -28,7 +28,8 @@ for (const [name, expected] of Object.entries(EXPECTED_ENUMS)) {
   const live = S[name]?.enum;
   if (!live) { bad(`enum ${name} missing from live swagger`); continue; }
   const same = live.length === expected.length && expected.every((v, i) => live[i] === v);
-  same ? ok(`enum ${name}`) : bad(`enum ${name}: live=[${live}] expected=[${expected}]`);
+  if (same) ok(`enum ${name}`);
+  else bad(`enum ${name}: live=[${live}] expected=[${expected}]`);
 }
 
 // ── 2. fields we read ───────────────────────────────────────────────────────
@@ -63,7 +64,8 @@ for (const [name, fields] of Object.entries(EXPECTED_FIELDS)) {
   const live = S[name]?.properties;
   if (!live) { bad(`schema ${name} missing`); continue; }
   const missing = fields.filter((f) => !(f in live));
-  missing.length ? bad(`${name} missing: ${missing.join(", ")}`) : ok(`schema ${name}`);
+  if (missing.length) bad(`${name} missing: ${missing.join(", ")}`);
+  else ok(`schema ${name}`);
 }
 
 // ── 3. fields that must be GONE ─────────────────────────────────────────────
@@ -71,7 +73,8 @@ for (const [name, dead] of Object.entries({
   WorkerDetailDto: "isApproved", KycProfileDto: "kycStatus", KycProfileSummaryDto: "isApproved",
 })) {
   const live = S[name]?.properties ?? {};
-  dead in live ? bad(`${name}.${dead} still exists — v1 field came back`) : ok(`${name}.${dead} gone`);
+  if (dead in live) bad(`${name}.${dead} still exists — v1 field came back`);
+  else ok(`${name}.${dead} gone`);
 }
 
 // ── 4. routes we call ───────────────────────────────────────────────────────
@@ -88,14 +91,15 @@ for (const [route, method] of [
   ["/api/contracts/admin/worker/{contractId}/send", "post"],
   ["/api/system/settings/{key}", "get"],
 ]) {
-  swagger.paths[route]?.[method] ? ok(`route ${method.toUpperCase()} ${route}`)
-                                 : bad(`route ${method.toUpperCase()} ${route} missing`);
+  if (swagger.paths[route]?.[method]) ok(`route ${method.toUpperCase()} ${route}`);
+  else bad(`route ${method.toUpperCase()} ${route} missing`);
 }
 
 // ── 5. X-Idempotency-Key really is required on renew ───────────────────────
 const renewParams = swagger.paths["/api/contracts/admin/owner/{ownerUserId}/renew"]?.post?.parameters ?? [];
 const idem = renewParams.find((p) => p.name === "X-Idempotency-Key");
-idem?.required ? ok("renew requires X-Idempotency-Key") : bad("renew no longer requires X-Idempotency-Key — re-check the spec");
+if (idem?.required) ok("renew requires X-Idempotency-Key");
+else bad("renew no longer requires X-Idempotency-Key — re-check the spec");
 
 // ── 6. i18n: every labelKey used by lib/onboarding/* exists in BOTH locales ──
 const REPO = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -112,9 +116,13 @@ const REQUIRED = {
     "taskDateBeyondContract", "workerContractEndsBeforeTask", "propertyDocsNotApproved",
     "invalidSortColumn", "invalidFilterValue", "invalidFormat", "exportTooLarge",
     "codeExists", "nameExists", "countryNotFound", "invalidTargetType", "targetNotFound",
+    "incompleteIdentityData", "onboardingLocked", "cityCountryMismatch", "cityNotFound",
+    "invalidCompanyType", "companyNameRequired", "companyLicenseNumberRequired",
+    "companyNotFound", "requiresBoss",
     "unknown"],
   docType: ["passport", "idCard", "residencePermit", "businessLicense",
     "companyRegistration", "taxCertificate", "other"],
+  companyType: ["llc", "gmbh", "individualEntrepreneur", "soleTrader", "other", "unknown"],
 };
 for (const locale of ["en", "de"]) {
   const msgs = JSON.parse(readFileSync(join(REPO, "messages", `${locale}.json`), "utf8"));
@@ -122,9 +130,8 @@ for (const locale of ["en", "de"]) {
   if (!ns) { bad(`${locale}.json has no "onboarding" namespace`); continue; }
   for (const [group, keys] of Object.entries(REQUIRED)) {
     const missing = keys.filter((k) => typeof ns[group]?.[k] !== "string");
-    missing.length
-      ? bad(`${locale}.json onboarding.${group} missing: ${missing.join(", ")}`)
-      : ok(`${locale}.json onboarding.${group}`);
+    if (missing.length) bad(`${locale}.json onboarding.${group} missing: ${missing.join(", ")}`);
+    else ok(`${locale}.json onboarding.${group}`);
   }
   if (typeof ns.permissionDenied !== "string") bad(`${locale}.json onboarding.permissionDenied missing`);
 }
@@ -144,32 +151,40 @@ if (!email || !password) {
     const H = { Authorization: `Bearer ${accessToken}` };
 
     const kyc = await fetch(`${BASE}/api/admin/kyc?status=Review`, { headers: H });
-    kyc.ok ? ok("GET /api/admin/kyc?status=Review") : bad(`GET /api/admin/kyc?status=Review → ${kyc.status}`);
+    if (kyc.ok) ok("GET /api/admin/kyc?status=Review");
+    else bad(`GET /api/admin/kyc?status=Review → ${kyc.status}`);
     const kycRows = kyc.ok ? await kyc.json() : [];
     if (Array.isArray(kycRows)) {
       ok(`kyc list is a bare array (${kycRows.length} rows)`);
       if (kycRows[0]) {
-        for (const f of ["ownerProfileId", "ownerUserId", "onboardingStatus", "documentCount"])
-          (f in kycRows[0]) ? ok(`kyc row has ${f}`) : bad(`kyc row missing ${f}`);
-        ("kycStatus" in kycRows[0]) && bad("kyc row still has kycStatus");
+        for (const f of ["ownerProfileId", "ownerUserId", "onboardingStatus", "documentCount"]) {
+          if (f in kycRows[0]) ok(`kyc row has ${f}`);
+          else bad(`kyc row missing ${f}`);
+        }
+        if ("kycStatus" in kycRows[0]) bad("kyc row still has kycStatus");
       } else console.log("SKIP  kyc row field check (queue is empty)");
     } else bad("kyc list is not an array");
 
     const wk = await fetch(`${BASE}/api/admin/workers?onboardingStatus=Review&pageSize=1`, { headers: H });
-    wk.ok ? ok("GET /api/admin/workers?onboardingStatus=Review") : bad(`GET /api/admin/workers → ${wk.status}`);
+    if (wk.ok) ok("GET /api/admin/workers?onboardingStatus=Review");
+    else bad(`GET /api/admin/workers → ${wk.status}`);
     if (wk.ok) {
       const page = await wk.json();
-      ["items", "total", "page", "pageSize", "totalPages"].every((f) => f in page)
-        ? ok("worker list is a PagedResult envelope") : bad("worker list is not a PagedResult");
+      if (["items", "total", "page", "pageSize", "totalPages"].every((f) => f in page))
+        ok("worker list is a PagedResult envelope");
+      else bad("worker list is not a PagedResult");
     }
 
     const oc = await fetch(`${BASE}/api/contracts/admin/owner`, { headers: H });
-    oc.ok ? ok("GET /api/contracts/admin/owner") : bad(`GET /api/contracts/admin/owner → ${oc.status}`);
+    if (oc.ok) ok("GET /api/contracts/admin/owner");
+    else bad(`GET /api/contracts/admin/owner → ${oc.status}`);
     if (oc.ok) {
       const rows = await oc.json();
       if (Array.isArray(rows) && rows[0]) {
-        for (const f of ["status", "phase", "previewUrl", "documentUrl", "renewalStartsAt"])
-          (f in rows[0]) ? ok(`owner contract has ${f}`) : bad(`owner contract missing ${f}`);
+        for (const f of ["status", "phase", "previewUrl", "documentUrl", "renewalStartsAt"]) {
+          if (f in rows[0]) ok(`owner contract has ${f}`);
+          else bad(`owner contract missing ${f}`);
+        }
       } else console.log("SKIP  owner contract field check (no contracts yet)");
     }
 
@@ -179,6 +194,38 @@ if (!email || !password) {
       console.log(`INFO  contract.template.approved = ${s.value} (send fails with 409 while false)`);
     } else console.log(`INFO  contract.template.approved unreadable (${tpl.status})`);
   }
+}
+
+// ── 8. F-03·1 (PR #47): structured document data ───────────────────────────
+const F031_FIELDS = {
+  OwnerIdentityDto: ["firstName", "lastName", "passportNumber", "passportExpiry"],
+  WorkerIdentityDto: ["firstName", "lastName", "passportNumber", "passportExpiry", "licenseExpiry"],
+  OwnerCompanyDto: ["id", "name", "type", "licenseNumber", "licenseExpiry", "registrationDate",
+    "countryId", "countryNameDe", "countryNameEn", "cityId", "cityNameDe", "cityNameEn", "taxNumber"],
+  KycProfileDto: ["identity", "company"],
+  KycDocDto: ["status", "rejectReason", "reviewedAt", "reviewedByAdminId"],
+  WorkerDetailDto: ["identity"],
+};
+for (const [name, fields] of Object.entries(F031_FIELDS)) {
+  const live = S[name]?.properties;
+  if (!live) { bad(`F-03.1 schema ${name} missing`); continue; }
+  const missing = fields.filter((f) => !(f in live));
+  if (missing.length) bad(`${name} missing: ${missing.join(", ")}`);
+  else ok(`F-03.1 ${name}`);
+}
+const COMPANY_TYPES_EXPECTED = ["Llc", "Gmbh", "IndividualEntrepreneur", "SoleTrader", "Other"];
+const liveCompanyTypes = S.CompanyType?.enum;
+if (liveCompanyTypes && COMPANY_TYPES_EXPECTED.every((v, i) => liveCompanyTypes[i] === v)) {
+  ok("enum CompanyType");
+} else {
+  bad(`enum CompanyType: live=[${liveCompanyTypes}] expected=[${COMPANY_TYPES_EXPECTED}]`);
+}
+for (const [route, method] of [
+  ["/api/admin/kyc/{ownerProfileId}/docs/{docId}/approve", "post"],
+  ["/api/admin/kyc/{ownerProfileId}/docs/{docId}/reject", "post"],
+]) {
+  if (swagger.paths[route]?.[method]) ok(`route ${method.toUpperCase()} ${route}`);
+  else bad(`route ${method.toUpperCase()} ${route} missing`);
 }
 
 console.log(`\n${failures === 0 ? "ALL PASS" : `${failures} FAILURE(S)`}`);
