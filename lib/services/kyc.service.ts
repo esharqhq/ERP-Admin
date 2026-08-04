@@ -57,4 +57,32 @@ export const kycService = {
     );
     return data;
   },
+
+  /**
+   * Per-document verdict, the owner mirror of the worker routes. Rides the same
+   * account-level permissions (`kyc:approve` / `kyc:reject`), so a panel that can
+   * already decide a bundle can decide a file.
+   *
+   * Two behaviours the caller must account for: it does **not** move
+   * `onboardingStatus`, and it notifies **nobody** — the bundle-level decision is
+   * the only thing that reaches the owner. Approving also clears `rejectReason`.
+   * A `docId` under the wrong `ownerProfileId` is `404 kyc_doc_not_found`.
+   */
+  approveDoc: async (ownerProfileId: string, docId: string): Promise<void> => {
+    await apiClient.post(
+      `/api/admin/kyc/${ownerProfileId}/docs/${docId}/approve`,
+    );
+  },
+
+  /** `reason` is required; a blank one is rejected before the service even sees it. */
+  rejectDoc: async (
+    ownerProfileId: string,
+    docId: string,
+    body: RejectKycRequest,
+  ): Promise<void> => {
+    await apiClient.post(
+      `/api/admin/kyc/${ownerProfileId}/docs/${docId}/reject`,
+      body,
+    );
+  },
 };

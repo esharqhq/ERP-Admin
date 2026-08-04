@@ -205,7 +205,12 @@
       "renew": "Verlängern",
       "renewNote": "Beim Verlängern wird ein neuer Vertrag erstellt, der übernimmt, wenn dieser endet.",
       "continuesFrom": "Deckung läuft ab {date} weiter."
-    }
+    },
+    "backToOwnerDocs": "Zurück zu Eigentümerdokumenten",
+    "ownerListTitle": "Eigentümerdokumente",
+    "ownerListSubtitle": "Prüfen Sie die eingereichten Unterlagen und erstellen Sie den Vertrag, der das Konto aktiviert.",
+    "searchPlaceholder": "Nach Name oder E-Mail suchen",
+    "ownerCount": "{count, plural, =0 {Keine Eigentümer} one {# Eigentümer} other {# Eigentümer}}"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -360,7 +365,8 @@
       "email": "E-Mail",
       "kycStatus": "KYC-Status",
       "documents": "Dokumente",
-      "actions": "Aktionen"
+      "actions": "Aktionen",
+      "onboardingStatus": "Phase"
     },
     "kyc": {
       "allTab": "Alle",

@@ -13,10 +13,10 @@ export function notificationRoute(
   switch (entityType) {
     case "Worker":
       return `/dashboard/workers/${entityId}`;
-    // Phase 1 repoints this to /dashboard/owner-documents/{ownerProfileId} when the
-    // Docs workspace replaces /dashboard/kyc. See the roadmap, Phase 1 task 5.
+    // `entityId` is the ownerProfileId, which is exactly what the Docs detail route
+    // is keyed on — so this lands on the owner's documents, not on a list.
     case "OwnerProfile":
-      return `/dashboard/kyc`;
+      return `/dashboard/owner-documents/${entityId}`;
     case "Property":
       return `/dashboard/properties/${entityId}`;
     case "SupportTicket":
@@ -25,9 +25,10 @@ export function notificationRoute(
     case "OwnerContract":
     case "WorkerContract":
       return `/dashboard/contracts`;
-    // OnboardingRevertedToKyc carries this with the subject's id. Phase 1 repoints it
-    // at the subject's Docs detail once those routes exist; until then, no route to
-    // invent, so the row renders non-clickable.
+    // OnboardingRevertedToKyc carries the *subject's* id, which is a worker id or an
+    // ownerUserId depending on the side — and neither Docs detail route is keyed on
+    // an ownerUserId. Routing it would need the notification to say which side it is,
+    // so the row stays non-clickable rather than guessing wrong half the time.
     case "Onboarding":
       return null;
     default:

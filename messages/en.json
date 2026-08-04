@@ -205,7 +205,12 @@
       "renew": "Renew",
       "renewNote": "Renewing writes a new contract that takes over when this one ends.",
       "continuesFrom": "Cover continues from {date}."
-    }
+    },
+    "backToOwnerDocs": "Back to owner documents",
+    "ownerListTitle": "Owner documents",
+    "ownerListSubtitle": "Review what owners submitted, then write the contract that activates them.",
+    "searchPlaceholder": "Search by name or email",
+    "ownerCount": "{count, plural, =0 {No owners} one {# owner} other {# owners}}"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -360,7 +365,8 @@
       "email": "Email",
       "kycStatus": "KYC Status",
       "documents": "Documents",
-      "actions": "Actions"
+      "actions": "Actions",
+      "onboardingStatus": "Stage"
     },
     "kyc": {
       "allTab": "All",

@@ -19,6 +19,30 @@ export function useKycProfile(ownerProfileId: string, enabled: boolean) {
   });
 }
 
+/**
+ * Per-document verdicts on one owner's KYC bundle. They move no status and notify
+ * nobody, so they only ever invalidate this profile's own read — the queue's rows
+ * are unaffected by a file-level decision.
+ */
+export function useApproveKycDoc(ownerProfileId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (docId: string) => kycService.approveDoc(ownerProfileId, docId),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: ["kyc", "profile", ownerProfileId] }),
+  });
+}
+
+export function useRejectKycDoc(ownerProfileId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ docId, reason }: { docId: string; reason: string }) =>
+      kycService.rejectDoc(ownerProfileId, docId, { reason }),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: ["kyc", "profile", ownerProfileId] }),
+  });
+}
+
 export function useApproveKyc() {
   const qc = useQueryClient();
   return useMutation({

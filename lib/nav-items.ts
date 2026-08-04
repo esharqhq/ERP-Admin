@@ -51,7 +51,7 @@ export const navGroups: NavGroup[] = [
     items: [
       { title: "Owners",     labelKey: "nav.owners",     url: "/dashboard/owners",          icon: Building2,  permission: "owner:list" },
       { title: "Properties", labelKey: "nav.properties", url: "/dashboard/properties",      icon: Home,       permission: "property:list" },
-      { title: "KYC",        labelKey: "nav.kyc",        url: "/dashboard/kyc",             icon: BadgeCheck, permission: "kyc:read" },
+      { title: "Docs",       labelKey: "nav.documents",  url: "/dashboard/owner-documents", icon: BadgeCheck, permission: "kyc:read" },
       { title: "Contracts",  labelKey: "nav.contracts",  url: "/dashboard/contracts",       icon: FileText,   permission: "owner_contract:read_any" },
     ],
   },
