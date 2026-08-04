@@ -264,6 +264,7 @@
       "actions": "Actions"
     },
     "kyc": {
+      "allTab": "All",
       "documents": "KYC Documents",
       "documentsEmpty": "No documents found",
       "approveTitle": "Approve KYC",

@@ -46,11 +46,17 @@ export function PropertyCreateDialog({ open, onClose, pending, error, onSubmit }
   const t = useTranslations("properties");
   const tCommon = useTranslations("common");
 
-  // KYC-profile owners are the BOSS owners; approved ⇒ eligible to own a property.
+  // KYC-profile owners are the BOSS owners; approved (or further along the
+  // onboarding pipeline) ⇒ eligible to own a property.
   const { data: ownerRows = [], isLoading: ownersLoading } = useOwnerList();
   // `items` lets <SelectValue> render the owner's NAME in the trigger instead of the raw id.
   const ownerItems = ownerRows
-    .filter((o) => o.isApproved)
+    .filter(
+      (o) =>
+        o.onboardingStatus === "Approved" ||
+        o.onboardingStatus === "Contract" ||
+        o.onboardingStatus === "Active",
+    )
     .map((o) => ({
       value: o.ownerUserId,
       label: o.ownerName ?? o.ownerEmail ?? o.ownerUserId.slice(0, 8),

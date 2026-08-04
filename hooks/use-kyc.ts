@@ -2,9 +2,9 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { kycService } from "@/lib/services/kyc.service";
-import type { KycStatus } from "@/lib/types/kyc.types";
+import type { OnboardingStatus } from "@/lib/types/onboarding.types";
 
-export function useKycList(status?: KycStatus) {
+export function useKycList(status?: OnboardingStatus) {
   return useQuery({
     queryKey: ["kyc", status],
     queryFn: () => kycService.getList(status),

@@ -164,10 +164,10 @@ export function KycDocReview({
         </div>
       )}
 
-      {!canAct && profile.kycRejectReason && (
+      {!canAct && profile.onboardingRejectReason && (
         <p className="rounded-md bg-destructive/5 px-3 py-2 text-xs text-destructive">
           <span className="font-semibold">{t("kyc.rejectReasonLabel")}: </span>
-          {profile.kycRejectReason}
+          {profile.onboardingRejectReason}
         </p>
       )}
 

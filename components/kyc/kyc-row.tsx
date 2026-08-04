@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { canDecide, onboardingStatusPresentation } from "@/lib/onboarding/status";
+import { useTranslations } from "next-intl";
 import { KycDocReview } from "./kyc-doc-review";
 import type { KycProfileSummaryDto } from "@/lib/types/kyc.types";
 
@@ -17,18 +19,15 @@ interface Props {
   isRejecting: boolean;
 }
 
-const statusVariant: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-  Approved: "default",
-  Pending: "secondary",
-  Rejected: "destructive",
-};
-
 // Total column count in the KYC table — keep in sync with the table header in the page.
 const COLUMN_COUNT = 5;
 
 export function KycRow({ kyc, onApprove, onReject, isApproving, isRejecting }: Props) {
   const [expanded, setExpanded] = useState(false);
-  const canAct = kyc.kycStatus === "Pending" || (!kyc.isApproved && !kyc.kycRejectReason);
+  // Approve/reject are legal only from `Review` — the server 400s otherwise.
+  const canAct = canDecide(kyc.onboardingStatus);
+  const presentation = onboardingStatusPresentation(kyc.onboardingStatus);
+  const tOnboarding = useTranslations("onboarding");
 
   return (
     <>
@@ -65,8 +64,8 @@ export function KycRow({ kyc, onApprove, onReject, isApproving, isRejecting }: P
         </TableCell>
 
         <TableCell>
-          <Badge variant={statusVariant[kyc.kycStatus ?? "Pending"] ?? "secondary"}>
-            {kyc.kycStatus ?? "Pending"}
+          <Badge variant={presentation.variant} className={presentation.className}>
+            {tOnboarding(`status.${presentation.labelKey}`)}
           </Badge>
         </TableCell>
 
@@ -75,8 +74,10 @@ export function KycRow({ kyc, onApprove, onReject, isApproving, isRejecting }: P
         </TableCell>
 
         <TableCell>
-          {kyc.kycRejectReason && (
-            <span className="text-xs text-destructive line-clamp-1">{kyc.kycRejectReason}</span>
+          {kyc.onboardingRejectReason && (
+            <span className="text-xs text-destructive line-clamp-1">
+              {kyc.onboardingRejectReason}
+            </span>
           )}
         </TableCell>
 

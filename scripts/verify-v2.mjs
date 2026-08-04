@@ -129,5 +129,57 @@ for (const locale of ["en", "de"]) {
   if (typeof ns.permissionDenied !== "string") bad(`${locale}.json onboarding.permissionDenied missing`);
 }
 
+// ── 7. authenticated shape checks (skipped without credentials) ─────────────
+const email = process.env.ERP_ADMIN_EMAIL, password = process.env.ERP_ADMIN_PASSWORD;
+if (!email || !password) {
+  console.log("SKIP  authenticated checks (set ERP_ADMIN_EMAIL / ERP_ADMIN_PASSWORD)");
+} else {
+  const auth = await fetch(`${BASE}/api/auth/login?userType=Admin`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+  if (!auth.ok) { bad(`admin login failed: ${auth.status}`); }
+  else {
+    const { accessToken } = await auth.json();
+    const H = { Authorization: `Bearer ${accessToken}` };
+
+    const kyc = await fetch(`${BASE}/api/admin/kyc?status=Review`, { headers: H });
+    kyc.ok ? ok("GET /api/admin/kyc?status=Review") : bad(`GET /api/admin/kyc?status=Review → ${kyc.status}`);
+    const kycRows = kyc.ok ? await kyc.json() : [];
+    if (Array.isArray(kycRows)) {
+      ok(`kyc list is a bare array (${kycRows.length} rows)`);
+      if (kycRows[0]) {
+        for (const f of ["ownerProfileId", "ownerUserId", "onboardingStatus", "documentCount"])
+          (f in kycRows[0]) ? ok(`kyc row has ${f}`) : bad(`kyc row missing ${f}`);
+        ("kycStatus" in kycRows[0]) && bad("kyc row still has kycStatus");
+      } else console.log("SKIP  kyc row field check (queue is empty)");
+    } else bad("kyc list is not an array");
+
+    const wk = await fetch(`${BASE}/api/admin/workers?onboardingStatus=Review&pageSize=1`, { headers: H });
+    wk.ok ? ok("GET /api/admin/workers?onboardingStatus=Review") : bad(`GET /api/admin/workers → ${wk.status}`);
+    if (wk.ok) {
+      const page = await wk.json();
+      ["items", "total", "page", "pageSize", "totalPages"].every((f) => f in page)
+        ? ok("worker list is a PagedResult envelope") : bad("worker list is not a PagedResult");
+    }
+
+    const oc = await fetch(`${BASE}/api/contracts/admin/owner`, { headers: H });
+    oc.ok ? ok("GET /api/contracts/admin/owner") : bad(`GET /api/contracts/admin/owner → ${oc.status}`);
+    if (oc.ok) {
+      const rows = await oc.json();
+      if (Array.isArray(rows) && rows[0]) {
+        for (const f of ["status", "phase", "previewUrl", "documentUrl", "renewalStartsAt"])
+          (f in rows[0]) ? ok(`owner contract has ${f}`) : bad(`owner contract missing ${f}`);
+      } else console.log("SKIP  owner contract field check (no contracts yet)");
+    }
+
+    const tpl = await fetch(`${BASE}/api/system/settings/contract.template.approved`, { headers: H });
+    if (tpl.ok) {
+      const s = await tpl.json();
+      console.log(`INFO  contract.template.approved = ${s.value} (send fails with 409 while false)`);
+    } else console.log(`INFO  contract.template.approved unreadable (${tpl.status})`);
+  }
+}
+
 console.log(`\n${failures === 0 ? "ALL PASS" : `${failures} FAILURE(S)`}`);
 process.exit(failures === 0 ? 0 : 1);

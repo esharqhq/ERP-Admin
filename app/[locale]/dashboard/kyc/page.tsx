@@ -16,20 +16,22 @@ import { Search } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useKycList, useApproveKyc, useRejectKyc } from "@/hooks/use-kyc";
 import { KycRow } from "@/components/kyc/kyc-row";
-import type { KycStatus } from "@/lib/types/kyc.types";
+import type { OnboardingStatus } from "@/lib/types/onboarding.types";
 
-type FilterTab = "all" | "pending" | "approved" | "rejected";
+type FilterTab = "all" | "review" | "approved" | "rejected";
 
-const tabStatusMap: Record<FilterTab, KycStatus | undefined> = {
+// The queue filter is `?status=Review`, not `Pending` — the old Pending conflated
+// "uploaded nothing yet" with "submitted and waiting for an admin".
+const tabStatusMap: Record<FilterTab, OnboardingStatus | undefined> = {
   all: undefined,
-  pending: 1,
-  approved: 2,
-  rejected: 3,
+  review: "Review",
+  approved: "Approved",
+  rejected: "Rejected",
 };
 
 export default function KycPage() {
   const t = useTranslations("owners");
-  const tStatus = useTranslations("status");
+  const tOnboarding = useTranslations("onboarding");
   const [tab, setTab] = useState<FilterTab>("all");
   const [search, setSearch] = useState("");
 
@@ -47,10 +49,10 @@ export default function KycPage() {
   });
 
   const tabs: { key: FilterTab; label: string }[] = [
-    { key: "all", label: "All" },
-    { key: "pending", label: tStatus("pending") },
-    { key: "approved", label: tStatus("approved") },
-    { key: "rejected", label: tStatus("rejected") },
+    { key: "all", label: t("kyc.allTab") },
+    { key: "review", label: tOnboarding("status.review") },
+    { key: "approved", label: tOnboarding("status.approved") },
+    { key: "rejected", label: tOnboarding("status.rejected") },
   ];
 
   return (
