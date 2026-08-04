@@ -432,7 +432,9 @@ reads the document in the modal and types.
   (`400 invalid_contract_transition` otherwise). The header button reads "Renew" and is intended
   for expiry/renewal, which is exactly what the product asked "Edit" to do. `Terminate` is not
   exposed anywhere.
-- Renew sends `X-Idempotency-Key` (required); a replay returns the cached 201 for 24 h.
+- Renew sends `X-Idempotency-Key` (required). The key is minted **once per renewal attempt** and
+  reused on retry — that is the whole point of the header. Generating it per request would turn a
+  retried renewal into a second draft, which is exactly what it exists to prevent.
 
 ### 4.4 Error → UI catalog
 
@@ -653,6 +655,8 @@ Everything below is verified present in the working tree and broken against live
 | `components/properties/property-create-dialog.tsx` | 53 | `.filter(o => o.isApproved)` owner picker | filter on `onboardingStatus === "Active"` **and** handle the gate 403 (§12.1) |
 | `app/…/(worker)/workers/page.tsx` | 49–55 | `KNOWN_ASSIGN_ERRORS` includes `worker_not_approved` | verify live; v2 refuses with the three gate codes + `worker_contract_ends_before_task` |
 | `messages/{en,de}.json` | 195, 218 | `columns.kycStatus` | `columns.onboardingStatus` + all new keys |
+| `lib/types/notification.types.ts` | 1–5 | `NotificationType` declares 3 values; the live backend already emits 44/47/48/51/52/54/56, and `NotificationDto` is **absent from swagger** so nothing catches it | widen both unions, accept unknown types instead of breaking the bell |
+| `app/…/notifications/page.tsx` + `components/layout/dashboard-header.tsx` | 19–28 + local copy | two duplicated `entityType → route` maps; `OwnerProfile` points at `/dashboard/kyc`, which Phase 1 deletes | extract `lib/notifications/route.ts`; Phase 1 repoints `OwnerProfile` and adds a `/dashboard/kyc` redirect |
 
 ### 12.1 The ACTIVE gate touches two admin calls
 

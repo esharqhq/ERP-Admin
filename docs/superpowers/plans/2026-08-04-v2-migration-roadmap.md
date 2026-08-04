@@ -76,15 +76,45 @@ A gate is a condition, not a ceremony. If it is red, the phase does not start.
 | Gate | Condition | Who satisfies it | Blocks |
 |---|---|---|---|
 | **G0** | On `feat/v2-migration`, clean tree, `npm install` done, `npx tsc --noEmit` runs | worker | everything |
-| **G1** | Live API reachable and `node $SCRATCH/verify-v2.mjs` reports `ALL PASS` on the public (unauthenticated) half | worker | Phase 0 Task 1 |
+| **G1** | Live API reachable and `npm run verify:api` reports `ALL PASS` on the public (unauthenticated) half | worker | Phase 0 Task 1 |
 | **G2** | `ERP_ADMIN_EMAIL` / `ERP_ADMIN_PASSWORD` available, authenticated half of `verify-v2.mjs` passes | **user** (provide credentials) | Phase 0 Task 8, all of Phase 1 |
-| **G3** | Explicit user approval to set `contract.template.approved = true` on the **shared deployment**, plus a dedicated **test owner** and **test worker** account | **user** | Phase 1's send/sign verification only — the UI work proceeds without it |
+| **G3** | Explicit user approval to set `contract.template.approved = true` on the **shared deployment**, plus a dedicated **test owner** and **test worker** account (email + password for each) | **user** | Phase 1's send/sign verification only — the UI work proceeds without it |
 | **G4** | Phase 0 gate task green: `tsc` + `lint` + `build` clean, dead-vocabulary sweep empty, live check passing | worker | Phases 1, 3, 4 |
 | **G5** | Phase 1 merged and the full owner+worker journey verified once against live | worker | Phase 2 |
 | **G6** | FND-2 `targetUserType` owner literal (`"Owner"` vs `"OwnerUser"`) confirmed with one live call | worker | Phase 4's ticket dialog only |
 
 **G2 and G3 are the two things only the user can unblock.** Everything else a worker can satisfy
 alone. If G2 is missing, Phase 0 still completes tasks 1–7 and stops at the gate.
+
+**Signing as the subject does not need the Owner or Worker app.** G3 only has to provide credentials;
+the verification signs over the API, which keeps Phase 1's end-to-end check inside one terminal:
+
+```bash
+# 1. subject logs in (userType=Owner or Worker)
+node -e "
+const B='https://germany-erp.esharq.com';
+(async()=>{
+  const a=await fetch(B+'/api/auth/login?userType=Owner',{method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({email:process.env.ERP_TEST_OWNER_EMAIL,password:process.env.ERP_TEST_OWNER_PASSWORD})});
+  const {accessToken}=await a.json();
+  // 2. read own contracts — the Sent row carries previewUrl
+  const r=await fetch(B+'/api/contracts/owner/me',{headers:{Authorization:'Bearer '+accessToken}});
+  const rows=await r.json();
+  console.log(rows.map(c=>({id:c.id,status:c.status,phase:c.phase,previewUrl:!!c.previewUrl})));
+  // 3. sign the Sent one
+  const sent=rows.find(c=>c.status==='Sent');
+  if(!sent){console.log('nothing to sign');return}
+  const s=await fetch(B+'/api/contracts/owner/'+sent.id+'/sign',{method:'POST',
+    headers:{Authorization:'Bearer '+accessToken}});
+  console.log('sign →',s.status,JSON.stringify(await s.json()).slice(0,300));
+})()
+"
+```
+
+Signing is deliberately **not** idempotent: a second call returns
+`400 invalid_onboarding_transition`, which is itself a useful assertion. The worker variant is the
+same with `userType=Worker` and `/api/contracts/worker/…`.
 
 ---
 
@@ -112,6 +142,56 @@ all fixed in the spec now. The per-phase plans add task decomposition and code, 
 **Plan file to write:** `docs/superpowers/plans/2026-08-XX-v2-phase-1-docs-workspace.md`
 **Gates:** G4 required; G2 required; G3 required only for the send/sign verification task.
 
+### Phase 1 Global Constraints — copy these verbatim into that plan's header
+
+These are the things that separate a working screen from a finished one. Each is a review rejection
+if missing, not a nice-to-have.
+
+1. **Permission-aware rendering, not 403-driven.** An admin holding `kyc:read` but not
+   `owner_contract:create_any` (70011) must never see the contract panel at all — not see it and get
+   a 403. Read the caller's set through the existing `hooks/use-current-permissions.ts`. Gates:
+   documents panel `kyc:review` (40011) / `worker:doc:read_any` (80030); Approve `kyc:approve`
+   (40012) / `worker:approve` (80003); Reject `kyc:reject` (40013) / `worker:reject` (80004);
+   contract panel and all its actions `owner_contract:create_any` (70011) /
+   `worker_contract:create_any` (90021); Renew `owner_contract:renew_any` (70012) /
+   `worker_contract:renew_any` (90022). The 403 handlers stay as the backstop.
+2. **One invalidation map, declared once.** Approve/reject/create/send/recall/renew each invalidate
+   an explicit list, and nothing invalidates by guesswork: approve → `["kyc"]` or `["workers"]`,
+   plus the subject's detail key, plus `["owner-contracts"]`/`["worker-contracts"]`, plus
+   `["notifications"]` (an approval produces bell rows for other admins). Never invalidate a
+   still-mounted detail query for a record that was just soft-deleted — the repo already documents
+   that trap in `hooks/use-owners.ts`.
+3. **The admin contract list is fetched once, selected per subject.** `GET /api/contracts/admin/{side}`
+   is unpaginated and returns every subject's rows. Hold it under one query key and derive the
+   subject's rows with react-query's `select`; do **not** refetch the whole list on every detail
+   open.
+4. **The 70/30 split collapses.** Two columns at `lg` and above; below that the documents panel moves
+   **above** the contract form (documents are read first) and both go full width. The page body never
+   scrolls horizontally.
+5. **Every panel has four states.** Skeleton (reuse `components/ui/skeleton.tsx`), empty (with copy
+   that says what to do next), error (with a retry), and loaded. "Loading…" text is not a state.
+6. **Search feels identical on both sides.** 300 ms debounce on both; the owner side filters an
+   in-memory array, the worker side issues a request — the pending indicator must appear on both so
+   the two screens behave the same to the admin.
+7. **One `useSignedPdf` helper for `previewUrl` / `documentUrl`.** Follow the URL, never persist it;
+   on 404 re-read the contract once and retry with the fresh URL; on the second 404 stop and surface
+   "this document is missing" (it means a genuine backend problem). No retry loops.
+8. **Every date leaves through one `toUtcIso()` helper.** A naive datetime is a 500 with no parseable
+   body, so there must be exactly one place that serializes contract dates.
+9. **Deleting `/dashboard/kyc` requires two follow-ups in the same task:** a redirect from
+   `/dashboard/kyc` → `/dashboard/owner-documents` so existing bookmarks and any external link keep
+   working, and repointing `notificationRoute`'s `OwnerProfile` case to
+   `/dashboard/owner-documents/{entityId}`. Also delete the now-dead `owners.kyc.*` i18n keys the old
+   page owned (`allTab`, `documents`, `documentsEmpty`, …) in **both** locales.
+10. **The worker Docs table has no document-count column at all** — `WorkerRowDto` has no such field,
+    and a column of dashes reads as missing data. The owner table shows it; the shared table takes the
+    column set from the adapter.
+11. **Reuse, don't re-invent.** `data-table-card`, `table-pagination`, `sortable-table-head`,
+    `filter-menu`, `dialog`, `sheet`, `tabs`, `skeleton` already exist. A new primitive that
+    duplicates one of these, a new dependency, or hardcoded colors instead of the `globals.css`
+    tokens is a rejection. Dark mode must work because the tokens are used, not because it was
+    patched afterwards.
+
 **Task outline** (the plan expands each into bite-sized steps with real code):
 
 | # | Task | Agent |
@@ -120,7 +200,7 @@ all fixed in the spec now. The per-phase plans add task decomposition and code, 
 | 2 | `owner-adapter.ts` — `/api/admin/kyc` + client-side search/sort/page; carries both `ownerProfileId` and `ownerUserId` | `general-purpose` |
 | 3 | `worker-adapter.ts` — `/api/admin/workers` server-side query; `documentCount: null` | `general-purpose` |
 | 4 | `docs-filter-bar.tsx` + `docs-table.tsx` — identical both sides, no row actions, sortable on name/date only | `general-purpose` + `frontend-design` |
-| 5 | Routes `/dashboard/owner-documents` and `/dashboard/worker-documents` (list) + nav rename `KYC` → `Docs`, delete `/dashboard/kyc` | `general-purpose` |
+| 5 | Routes `/dashboard/owner-documents` and `/dashboard/worker-documents` (list) + nav rename `KYC` → `Docs`; delete `/dashboard/kyc` **with** its redirect, the `notificationRoute` repoint, and the dead `owners.kyc.*` keys removed (constraint 9) | `general-purpose` |
 | 6 | `onboarding-stepper.tsx` — the 4-step state machine derived from status + phase | `general-purpose` + `frontend-design` |
 | 7 | `documents-panel.tsx` + `document-viewer-modal.tsx` — read-only list, modal viewer over the public `/files/` URL | `general-purpose` + `frontend-design` |
 | 8 | `review-actions.tsx` — account-level Approve / Reject+reason, enabled only at `Review`, `prefill` captured from the response | `general-purpose` |
@@ -199,6 +279,19 @@ all fixed in the spec now. The per-phase plans add task decomposition and code, 
 - Every cover statement derives from `phase === "InForce"`.
 - An admin can take an owner and a worker from submitted documents to a signed, in-force contract
   without leaving the admin panel, and can see who was sent a contract and never signed it.
-- `npx tsc --noEmit`, `npm run lint`, `npm run build` clean; `node $SCRATCH/verify-v2.mjs`
+- `npx tsc --noEmit`, `npm run lint`, `npm run build` clean; `npm run verify:api`
   `ALL PASS`.
 - The eight backend asks are filed.
+
+## Known pre-existing issues, deliberately out of scope
+
+Found while planning; not caused by and not fixed by this migration. Listed so nobody mistakes them
+for migration fallout:
+
+- **Two dead sidebar links.** `lib/nav-items.ts` declares an `agency` group pointing at
+  `/dashboard/agency-requests` and `/dashboard/agencies`; neither route exists under
+  `app/[locale]/dashboard/`. Both 404 today. Fixing them (or hiding the group) is a separate,
+  one-line decision for the product owner.
+- **The audit screen will show unfamiliar action codes** once Phase 3 lands, because exports write
+  `OWNER_TABLE_EXPORTED` / `WORKER_TABLE_EXPORTED` rows. Confirm how `lib/services/audit.service.ts`
+  labels unknown codes during Phase 3 and add labels if it renders them raw.

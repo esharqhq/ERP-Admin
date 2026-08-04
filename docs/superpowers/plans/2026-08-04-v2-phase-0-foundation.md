@@ -36,9 +36,9 @@ This repo has **no test runner** (no jest/vitest, no `test` script) and the plan
 | "Run it, see it pass" | same command, now `PASS` / clean |
 | "Commit" | `git add <exact files> && git commit` |
 
-`verify-v2.mjs` lives in the scratchpad, not the repo:
-`C:\Users\bilol\AppData\Local\Temp\claude\D--projekts-ERP-Uyer-ERP-Admin\2c1533b2-068c-43fa-b840-85ca3fd479bc\scratchpad\verify-v2.mjs`
-Referred to below as `$SCRATCH/verify-v2.mjs`.
+`verify-v2.mjs` lives **in the repo** at `scripts/verify-v2.mjs`, wired to `npm run verify:api`.
+It is a permanent dev tool, not a scratch file: every phase gate re-runs it, and a check that
+disappears with the session is not a check. Task 1 creates both the file and the npm script.
 
 ## Preconditions (must be true before Task 1 starts)
 
@@ -99,7 +99,8 @@ Before dispatching a "find every usage of X" sweep, use the `Explore` agent — 
 - Create: `lib/types/paged.types.ts`
 - Create: `lib/onboarding/status.ts`
 - Create: `lib/onboarding/errors.ts`
-- Create: `$SCRATCH/verify-v2.mjs`
+- Create: `scripts/verify-v2.mjs`
+- Modify: `package.json` — add `"verify:api": "node scripts/verify-v2.mjs"` to `scripts`
 
 **Interfaces:**
 - Consumes: nothing (first task).
@@ -111,11 +112,11 @@ Before dispatching a "find every usage of X" sweep, use the `Explore` agent — 
 
 - [ ] **Step 1: Write the failing test — the live enum contract check**
 
-Create `$SCRATCH/verify-v2.mjs`:
+Create `scripts/verify-v2.mjs`, and add `"verify:api": "node scripts/verify-v2.mjs"` to `package.json`'s `scripts` block:
 
 ```js
 // Contract check: our TS unions must match the live API's enums, and the DTOs we
-// depend on must still carry the fields we read. Run with: node verify-v2.mjs
+// depend on must still carry the fields we read. Run with: npm run verify:api
 const BASE = process.env.ERP_API ?? "https://germany-erp.esharq.com";
 
 let failures = 0;
@@ -215,7 +216,7 @@ process.exit(failures === 0 ? 0 : 1);
 
 - [ ] **Step 2: Run it — the enum/DTO half must already pass, proving the checker works**
 
-Run: `node "$SCRATCH/verify-v2.mjs"`
+Run: `npm run verify:api`
 Expected: `ALL PASS`. If any line FAILs, **stop and report** — the live API has drifted from the spec and the spec must be corrected first (that is the whole point of this check).
 
 - [ ] **Step 3: Create `lib/types/onboarding.types.ts`**
@@ -225,7 +226,7 @@ Expected: `ALL PASS`. If any line FAILs, **stop and report** — the live API ha
  * v2 onboarding + contract vocabulary. Every value is serialized BY NAME in JSON
  * (`"Review"`, never `2`) in both directions.
  *
- * Verified against the live API 2026-08-04; re-verified by $SCRATCH/verify-v2.mjs.
+ * Verified against the live API 2026-08-04; re-verified by scripts/verify-v2.mjs.
  * Guides: docs/onboarding-and-active-gate.md §1, contract-lifecycle.md §5.
  */
 
@@ -548,8 +549,14 @@ Expected: exit 0 — these are new, unreferenced modules; no existing file impor
 - [ ] **Step 8: Commit**
 
 ```bash
-git add lib/types/onboarding.types.ts lib/types/paged.types.ts lib/onboarding/status.ts lib/onboarding/errors.ts
-git commit -m "feat(onboarding): v2 status vocabulary, paged envelope, status and error presentation"
+git add lib/types/onboarding.types.ts lib/types/paged.types.ts \
+        lib/onboarding/status.ts lib/onboarding/errors.ts \
+        scripts/verify-v2.mjs package.json
+git commit -m "feat(onboarding): v2 status vocabulary, paged envelope, status and error presentation
+
+Adds scripts/verify-v2.mjs (npm run verify:api): asserts our TS unions against the
+live API's enums, that the DTO fields we read still exist, that the v1 fields are
+gone, and that every i18n key both locales need is present."
 ```
 
 ---
@@ -566,12 +573,15 @@ git commit -m "feat(onboarding): v2 status vocabulary, paged envelope, status an
 
 - [ ] **Step 1: Write the failing test — a key-parity check**
 
-Append to `$SCRATCH/verify-v2.mjs` (keep the existing content; add at the end, before the summary lines — move the two summary lines to the bottom of the file):
+Append to `scripts/verify-v2.mjs` (keep the existing content; add at the end, before the summary lines — move the two summary lines to the bottom of the file):
 
 ```js
 // ── 6. i18n: every labelKey used by lib/onboarding/* exists in BOTH locales ──
 import { readFileSync } from "node:fs";
-const REPO = process.env.ERP_ADMIN_DIR ?? "D:/projekts/ERP-Uyer/ERP-Admin";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
+// This script lives in <repo>/scripts, so the repo root is one level up. No hardcoded path.
+const REPO = join(dirname(fileURLToPath(import.meta.url)), "..");
 const REQUIRED = {
   status: ["kyc", "review", "rejected", "approved", "contract", "active", "unknown"],
   phase: ["draft", "sent", "scheduled", "inForce", "expired", "terminated", "unknown"],
@@ -590,7 +600,7 @@ const REQUIRED = {
     "companyRegistration", "taxCertificate", "other"],
 };
 for (const locale of ["en", "de"]) {
-  const msgs = JSON.parse(readFileSync(`${REPO}/messages/${locale}.json`, "utf8"));
+  const msgs = JSON.parse(readFileSync(join(REPO, "messages", `${locale}.json`), "utf8"));
   const ns = msgs.onboarding;
   if (!ns) { bad(`${locale}.json has no "onboarding" namespace`); continue; }
   for (const [group, keys] of Object.entries(REQUIRED)) {
@@ -605,7 +615,7 @@ for (const locale of ["en", "de"]) {
 
 - [ ] **Step 2: Run it, see it fail**
 
-Run: `node "$SCRATCH/verify-v2.mjs"`
+Run: `npm run verify:api`
 Expected: `FAIL  en.json has no "onboarding" namespace` and the same for `de.json`.
 
 - [ ] **Step 3: Add the namespace to `messages/en.json`**
@@ -756,7 +766,7 @@ Insert as a new top-level key (place it directly after the existing `"status"` b
 
 - [ ] **Step 5: Run it, see it pass**
 
-Run: `node "$SCRATCH/verify-v2.mjs"`
+Run: `npm run verify:api`
 Expected: `ALL PASS`, including all eight `onboarding.*` lines.
 
 - [ ] **Step 6: Confirm both files are still valid JSON**
@@ -789,7 +799,7 @@ git commit -m "feat(i18n): onboarding status, contract phase and API error copy 
 
 - [ ] **Step 1: Write the failing test — compile against the v2 field names**
 
-Add to `$SCRATCH/verify-v2.mjs` (section 7), an authenticated live check. It is skipped with a clear message when P4 credentials are absent, so the task still runs without them:
+Add to `scripts/verify-v2.mjs` (section 7), an authenticated live check. It is skipped with a clear message when P4 credentials are absent, so the task still runs without them:
 
 ```js
 // ── 7. authenticated shape checks (skipped without credentials) ─────────────
@@ -847,7 +857,7 @@ if (!email || !password) {
 
 - [ ] **Step 2: Run it — the authenticated section must pass or print SKIP**
 
-Run: `node "$SCRATCH/verify-v2.mjs"`
+Run: `npm run verify:api`
 Expected: either `SKIP  authenticated checks …` (no credentials) or `PASS` on every authenticated line. Any `FAIL` here means the live API disagrees with the spec — stop and report.
 
 - [ ] **Step 3: Rewrite `lib/types/kyc.types.ts`**
@@ -1104,6 +1114,7 @@ git commit -m "fix(kyc): migrate owner KYC queue to onboardingStatus"
 - Modify: `lib/types/worker.types.ts:24-33,35-51,69-76`
 - Modify: `lib/services/worker.service.ts:11-15,27-30`
 - Modify: `hooks/use-workers.ts:12-16`
+- Modify: `hooks/use-worker-actions.ts`, `hooks/use-worker-detail.ts` (whatever the compiler flags: `WorkerSummaryDto` imports, optional reject `reason`)
 - Modify: `app/[locale]/dashboard/(worker)/workers/page.tsx:96-99,214-215`
 - Modify: `app/[locale]/dashboard/(worker)/workers/[id]/page.tsx:107,203-206`
 - Modify: `app/[locale]/dashboard/(worker)/worker-documents/page.tsx:33-41,56`
@@ -1516,9 +1527,38 @@ import { describeApiError, isGateRefusal, isPermissionDenied } from "@/lib/onboa
 Run: `npx tsc --noEmit` → exit 0.
 Run: `npx rg -n "isApproved|worker_not_approved" --glob "!node_modules" .` → **no matches**.
 
-- [ ] **Step 8: Smoke-test the gate copy**
+- [ ] **Step 8: Smoke-test the gate copy — safely**
 
-Open the property-create dialog and pick an owner whose `onboardingStatus` is not `Active` (temporarily relax the filter to `!== "Deleted"` to force it), submit, and confirm the toast says the *owner's contract* is the problem — not "you don't have permission". Restore the filter afterwards.
+⚠ `.env.local` points at the **shared deployment**, so a successful submit here would create a real property in real data. The rule for this step: **only ever submit for an owner the API has just confirmed is _not_ `Active`.** For such an owner the gate refuses with a 403 and nothing is written; for a covered owner the property would be created for real.
+
+First, pick that owner read-only:
+
+```bash
+node -e "
+const B='https://germany-erp.esharq.com';
+(async()=>{
+  const a=await fetch(B+'/api/auth/login?userType=Admin',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({email:process.env.ERP_ADMIN_EMAIL,password:process.env.ERP_ADMIN_PASSWORD})});
+  const {accessToken}=await a.json();
+  const r=await fetch(B+'/api/admin/owners?pageSize=100',{headers:{Authorization:'Bearer '+accessToken}});
+  const {items}=await r.json();
+  const uncovered=items.filter(o=>o.onboardingStatus!=='Active');
+  console.log('uncovered owners (safe to test with):');
+  uncovered.slice(0,5).forEach(o=>console.log(' ',o.id,o.onboardingStatus,o.fullName));
+  if(!uncovered.length) console.log('  NONE — skip the UI half of this step and report it');
+})()
+"
+```
+
+Then, with that owner id in hand: temporarily relax the picker filter to `!== "Deleted"`, open the dialog, select **that** owner, submit once.
+Expected: a toast about the *owner's contract* (`gateOnboardingIncomplete` / `gateContractExpired` / `gateContractNotYetActive`), **not** "you don't have permission". DevTools shows `403` with a JSON body.
+
+Finally restore the filter and confirm nothing was created:
+
+```bash
+npx rg -n 'onboardingStatus === "Active"' components/properties/property-create-dialog.tsx
+```
+Expected: the strict filter is back. If the run returned `NONE`, skip the UI half, note it in the task's report, and rely on Task 1's `isGateRefusal` / `isPermissionDenied` unit boundary plus the code review for this path.
 
 - [ ] **Step 9: Commit**
 
@@ -1537,6 +1577,9 @@ git commit -m "fix(gate): v2 ACTIVE-gate codes in admin-assign and property crea
 - Modify: `lib/services/contract.service.ts`
 - Modify: `hooks/use-contracts.ts`
 - Modify: `components/contracts/contract-form-dialog.tsx` (only as far as the compiler demands)
+- Modify: `lib/types/notification.types.ts`
+- Create: `lib/notifications/route.ts`
+- Modify: `app/[locale]/dashboard/notifications/page.tsx:19-28`, `components/layout/dashboard-header.tsx`
 
 **Interfaces:**
 - Consumes: `ContractStatus`, `ContractPhase`, `isCoveredNow` (Task 1).
@@ -1544,9 +1587,9 @@ git commit -m "fix(gate): v2 ACTIVE-gate codes in admin-assign and property crea
 
 - [ ] **Step 1: Write the failing test — the live contract row must expose lifecycle fields**
 
-Already covered by section 4 of `$SCRATCH/verify-v2.mjs` (`owner contract has status/phase/previewUrl/documentUrl/renewalStartsAt`) and section 2's `AdminOwnerContractDto` field list.
+Already covered by section 4 of `scripts/verify-v2.mjs` (`owner contract has status/phase/previewUrl/documentUrl/renewalStartsAt`) and section 2's `AdminOwnerContractDto` field list.
 
-Run: `node "$SCRATCH/verify-v2.mjs"`
+Run: `npm run verify:api`
 Expected: those lines PASS (or SKIP when there are no contracts yet). This is what the new types must mirror.
 
 - [ ] **Step 2: Rewrite `lib/types/contract.types.ts`**
@@ -1677,9 +1720,25 @@ import type {
   CreateWorkerContractRequest,
 } from "@/lib/types/contract.types";
 
-/** Both renew routes require this header — a replay returns the cached 201 for 24 h. */
-function idempotent() {
-  return { headers: { "X-Idempotency-Key": crypto.randomUUID() } };
+/**
+ * Both renew routes require this header, and the key must stay **the same across
+ * retries of one intent** — that is the whole point: a replay returns the cached
+ * 201 for 24 h instead of authoring a second draft.
+ *
+ * So the caller supplies it. Generating it in here would give every retry a fresh
+ * key, turning a retried renewal into a duplicate contract — exactly what the
+ * header exists to prevent.
+ */
+function idempotent(key: string) {
+  return { headers: { "X-Idempotency-Key": key } };
+}
+
+/**
+ * Mint one key per user-initiated renewal attempt and hold it (a ref, not state)
+ * for as long as that attempt may be retried. Do not call it per request.
+ */
+export function newIdempotencyKey(): string {
+  return crypto.randomUUID();
 }
 
 export const contractService = {
@@ -1747,15 +1806,19 @@ export const contractService = {
     return data;
   },
 
-  /** Requires an existing active contract, else 400 no_active_contract_to_renew. */
+  /**
+   * Requires an existing active contract, else 400 no_active_contract_to_renew.
+   * `idempotencyKey` comes from `newIdempotencyKey()` and must be reused on retry.
+   */
   renewOwner: async (
     ownerUserId: string,
     body: CreateOwnerContractRequest,
+    idempotencyKey: string,
   ): Promise<AdminOwnerContractDto> => {
     const { data } = await apiClient.post<AdminOwnerContractDto>(
       `/api/contracts/admin/owner/${ownerUserId}/renew`,
       body,
-      idempotent(),
+      idempotent(idempotencyKey),
     );
     return data;
   },
@@ -1818,11 +1881,12 @@ export const contractService = {
   renewWorker: async (
     workerId: string,
     body: CreateWorkerContractRequest,
+    idempotencyKey: string,
   ): Promise<AdminWorkerContractDto> => {
     const { data } = await apiClient.post<AdminWorkerContractDto>(
       `/api/contracts/admin/worker/${workerId}/renew`,
       body,
-      idempotent(),
+      idempotent(idempotencyKey),
     );
     return data;
   },
@@ -1918,7 +1982,31 @@ export function useUpdateWorkerContractDraft() {
 
 Retype the four existing create/renew hooks so the owner ones take
 `CreateOwnerContractRequest` and the worker ones `CreateWorkerContractRequest`
-(the old shared `CreateContractRequest` no longer exists).
+(the old shared `CreateContractRequest` no longer exists). The two **renew** hooks
+additionally thread the caller's idempotency key through — never generate one inside
+the hook, because a re-render or a retry would then produce a duplicate contract:
+
+```ts
+export function useRenewOwnerContract() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      ownerUserId,
+      body,
+      idempotencyKey,
+    }: {
+      ownerUserId: string;
+      body: CreateOwnerContractRequest;
+      /** From `newIdempotencyKey()`, minted once per renewal attempt and reused on retry. */
+      idempotencyKey: string;
+    }) => contractService.renewOwner(ownerUserId, body, idempotencyKey),
+    onSuccess: () => qc.invalidateQueries({ queryKey: OWNER_KEY }),
+  });
+}
+```
+
+Apply the identical change to `useRenewWorkerContract` with `workerId` and
+`CreateWorkerContractRequest`.
 
 - [ ] **Step 6: Make `components/contracts/contract-form-dialog.tsx` compile**
 
@@ -1928,18 +2016,103 @@ Run: `npx tsc --noEmit` and fix only what it reports in that file: the import of
 **not** add the four term-field inputs here — Phase 1 replaces this dialog with
 `components/docs-workspace/contract-form.tsx`.
 
-- [ ] **Step 7: Verify**
+- [ ] **Step 7: Widen the notification types the backend is already sending**
+
+`NotificationDto` is **not in swagger at all**, so notification `type` values cannot be verified
+mechanically — and the live v2 backend already emits types the app has never heard of (44, 47, 48,
+51, 52, 54, 56). Today `lib/types/notification.types.ts` declares three. Widen both unions so the
+new rows are typed rather than accidental:
+
+```ts
+export type NotificationType =
+  // pre-v2
+  | "WorkerApprovalPending"
+  | "KycSubmitted"
+  | "PropertyDocsSubmitted"
+  // v2 — admin recipients (subject-only types are deliberately absent)
+  | "WorkerOnboardingSubmitted"
+  | "OwnerContractSigned"
+  | "WorkerContractSigned"
+  | "OwnerContractRejected"
+  | "WorkerContractRejected"
+  | "OnboardingExpiryAdminAlert"
+  | "TicketOpenedByUser"
+  // any type the backend adds later: render the row, do not crash
+  | (string & {});
+
+export type NotificationEntityType =
+  | "Worker"
+  | "OwnerProfile"
+  | "Property"
+  | "OwnerContract"
+  | "WorkerContract"
+  | "SupportTicket";
+```
+
+`(string & {})` keeps autocomplete for the known members while accepting anything else — the union
+must never be the reason an unknown notification breaks the bell.
+
+- [ ] **Step 8: Unify the duplicated notification routing**
+
+`app/[locale]/dashboard/notifications/page.tsx:19-28` and `components/layout/dashboard-header.tsx`
+each carry their own `entityType → route` mapping. Extract one:
+
+```ts
+// lib/notifications/route.ts
+import type { NotificationEntityType } from "@/lib/types/notification.types";
+
+/**
+ * Deep link for a bell row, or null when the row is not navigable.
+ * Unknown entity types return null — a new backend type must degrade to a
+ * non-clickable row, never to a broken route.
+ */
+export function notificationRoute(
+  entityType: NotificationEntityType | null,
+  entityId: string | null,
+): string | null {
+  if (!entityType || !entityId) return null;
+  switch (entityType) {
+    case "Worker":
+      return `/dashboard/workers/${entityId}`;
+    // Phase 1 repoints this to /dashboard/owner-documents/{ownerProfileId} when the
+    // Docs workspace replaces /dashboard/kyc. See the roadmap, Phase 1 task 5.
+    case "OwnerProfile":
+      return `/dashboard/kyc`;
+    case "Property":
+      return `/dashboard/properties/${entityId}`;
+    case "SupportTicket":
+      return `/dashboard/support`;
+    // Contract rows have no dedicated screen until Phase 2's registry exists.
+    case "OwnerContract":
+    case "WorkerContract":
+      return `/dashboard/contracts`;
+    default:
+      return null;
+  }
+}
+```
+
+Point both consumers at it and delete their local copies.
+
+- [ ] **Step 9: Verify**
 
 Run: `npx tsc --noEmit` → exit 0.
 Run: `npm run lint` → no new errors.
-Run: `node "$SCRATCH/verify-v2.mjs"` → `ALL PASS` (or the documented SKIPs).
+Run: `npm run verify:api` → `ALL PASS` (or the documented SKIPs).
+Run: `npx rg -n "entityRoute" --glob "!node_modules" .` → only `lib/notifications/route.ts`'s
+`notificationRoute` remains; no local copies.
 
-- [ ] **Step 8: Commit**
+- [ ] **Step 10: Commit**
 
 ```bash
 git add lib/types/contract.types.ts lib/services/contract.service.ts \
-        hooks/use-contracts.ts components/contracts/contract-form-dialog.tsx
-git commit -m "feat(contracts): v2 lifecycle types, send/recall/draft-edit, idempotent renew"
+        hooks/use-contracts.ts components/contracts/contract-form-dialog.tsx \
+        lib/types/notification.types.ts lib/notifications/route.ts \
+        "app/[locale]/dashboard/notifications/page.tsx" components/layout/dashboard-header.tsx
+git commit -m "feat(contracts): v2 lifecycle types, send/recall/draft-edit, idempotent renew
+
+Also widens the notification unions to the v2 types the backend already emits and
+unifies the two duplicated entity-route maps into lib/notifications/route.ts."
 ```
 
 ---
@@ -2013,16 +2186,33 @@ Expected: **no matches.**
 - [ ] **Step 3: Live contract check**
 
 ```bash
-node "$SCRATCH/verify-v2.mjs"
+npm run verify:api
 ```
 Expected: `ALL PASS`. If P4 credentials were unavailable, this prints `SKIP  authenticated checks` — in that case Phase 1 is **blocked** until it runs, because Phase 1 builds directly on these shapes.
 
-- [ ] **Step 4: Manual smoke pass**
+- [ ] **Step 4: Confirm the routes the untouched screens still depend on**
 
-Run `npm run dev` and walk: `/dashboard/kyc` (all four tabs) → `/dashboard/workers` (tabs, open one) → `/dashboard/worker-documents` → `/dashboard/contracts` → open the property-create dialog.
-Expected: no console errors, no `undefined` in badges, no missing-i18n warnings.
+FND-3 retired the bare `GET /api/owners` listing, but the owner **detail** screen calls
+`/api/owners/{id}` and `/api/owners/{ownerId}/sub-accounts`. Both were present in the live swagger on
+2026-08-04; re-confirm rather than assume, because that screen was never migrated:
 
-- [ ] **Step 5: Record what Phase 1 needs to know**
+```bash
+node -e "
+const s=require('C:/Users/bilol/AppData/Local/Temp/claude/D--projekts-ERP-Uyer-ERP-Admin/2c1533b2-068c-43fa-b840-85ca3fd479bc/scratchpad/swagger-live.json');
+for(const p of ['/api/owners/{id}','/api/owners/{ownerId}/sub-accounts','/api/owners'])
+  console.log(p, s.paths[p]?Object.keys(s.paths[p]):'GONE');
+"
+```
+Expected: `/api/owners/{id}` → `[get,delete]`, `/api/owners/{ownerId}/sub-accounts` → `[get]`,
+`/api/owners` → `GONE`. If a detail route is gone, the owner detail screen is broken too and needs a
+task before this phase closes.
+
+- [ ] **Step 5: Manual smoke pass**
+
+Run `npm run dev` and walk: `/dashboard/kyc` (all four tabs) → `/dashboard/workers` (tabs, open one) → `/dashboard/worker-documents` → `/dashboard/owners` → open one owner (detail + sub-accounts) → `/dashboard/contracts` → `/dashboard/notifications` → open the property-create dialog.
+Expected: no console errors, no `undefined` in badges, no missing-i18n warnings, notification rows render (unknown types appear as non-clickable rows, not blank).
+
+- [ ] **Step 6: Record what Phase 1 needs to know**
 
 Read the live template so Phase 1 does not have to guess its tokens:
 
@@ -2037,7 +2227,7 @@ console.log('===',k,r.status); if(r.ok){const s=await r.json();console.log(s.val
 ```
 Write the `{{token}}` names you find into the Phase 1 plan's Global Constraints. If the login fails, note that Phase 1's contract-form task starts with this same command.
 
-- [ ] **Step 6: Commit any fix-ups, then hand off**
+- [ ] **Step 7: Commit any fix-ups, then hand off**
 
 ```bash
 git add -A ':!.claude/settings.local.json'
@@ -2047,7 +2237,7 @@ git commit -m "chore(v2): phase 0 verification fix-ups"
 Then dispatch the `git-pusher` agent to push `feat/v2-migration` and open the PR titled
 `Phase 0 — v2 foundation: onboardingStatus, paged workers, contract lifecycle types`.
 
-- [ ] **Step 7: Write the Phase 1 plan**
+- [ ] **Step 8: Write the Phase 1 plan**
 
 Only now, with the live shapes and template tokens confirmed, write
 `docs/superpowers/plans/2026-08-XX-v2-phase-1-docs-workspace.md` following
@@ -2058,6 +2248,16 @@ Only now, with the live shapes and template tokens confirmed, write
 ## Self-review
 
 **Spec coverage for Phase 0.** Spec §12's inventory maps to tasks as follows: kyc types/service/hook and the three KYC call sites → Task 3; worker types/service/hook and the four worker call sites → Task 4; property-create-dialog and `KNOWN_ASSIGN_ERRORS` (spec §12.1) → Task 5; contract types/service/hooks → Task 6; i18n keys → Task 2; the shared status/error modules the spec puts in `lib/onboarding/` → Task 1; the stale mirror → Task 7. Spec §14's per-phase verification → Task 8. Spec §2.1–2.3 (adapters), §3–4 (Docs workspace), §5–6 (registry, settings), §7–10 (FND-3/1/2, notifications) are **deliberately out of this plan** — they are Phases 1–4 in the roadmap.
+
+**Three items this plan adds beyond the spec's original §12 inventory** (found while reviewing the
+plan; the spec was updated to match):
+- `scripts/verify-v2.mjs` + `npm run verify:api` — the live contract checker is a repo tool, not a
+  scratch file, because every later phase gate re-runs it (Task 1).
+- The notification unions are widened and the two duplicated entity-route maps are unified
+  (Task 6, Steps 7–8). The backend already emits v2 notification types and `NotificationDto` is not
+  in swagger, so nothing else would have caught it.
+- `X-Idempotency-Key` is minted by the caller, once per renewal attempt (Task 6). Generating it
+  inside the service — as the first draft of this plan did — makes every retry a duplicate contract.
 
 **Two spec items intentionally deferred with a note rather than silently dropped:**
 - `owner.service.ts` paged `/api/admin/owners` + export → Phase 3 (nothing in the current UI calls it; the `bosses` picker it does use is unaffected).
