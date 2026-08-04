@@ -184,7 +184,10 @@ if missing, not a nice-to-have.
    `/dashboard/kyc` → `/dashboard/owner-documents` so existing bookmarks and any external link keep
    working, and repointing `notificationRoute`'s `OwnerProfile` case to
    `/dashboard/owner-documents/{entityId}`. Also delete the now-dead `owners.kyc.*` i18n keys the old
-   page owned (`allTab`, `documents`, `documentsEmpty`, …) in **both** locales.
+   page owned (`allTab`, `documents`, `documentsEmpty`, …) in **both** locales — **and**
+   `owners.columns.kycStatus`, which Phase 0's gate sweep found still serving as that page's column
+   header (two occurrences per locale), labelling an onboarding stage "KYC Status". The replacement
+   table names it `onboardingStatus`; do not carry the old name forward.
 11. **The worker Docs table has no document-count column at all** — `WorkerRowDto` has no such field,
     and a column of dashes reads as missing data. The owner table shows it; the shared table takes the
     column set from the adapter.
