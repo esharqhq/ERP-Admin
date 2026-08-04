@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ExternalLink, Lock } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
@@ -106,18 +106,29 @@ export function ContractPanel({
   const live = phase === "InForce" || phase === "Scheduled";
 
   /**
-   * Re-seed from the server on every contract change: the API **snaps**
-   * `eligibleFrom` to the boundary of existing cover, so the value that comes back
-   * is not always the one that was sent.
+   * Re-seed the period from the server whenever it changes, because the API **snaps**
+   * `eligibleFrom` to the boundary of existing cover — the value that comes back is
+   * not always the one that was sent.
+   *
+   * Adjusted during render rather than in an effect (React's documented "adjust state
+   * when a prop changes" pattern): an effect here would render the stale dates once
+   * before correcting them, and `react-hooks/set-state-in-effect` rightly flags it.
+   * The signature covers both cases that matter — a different contract, and the same
+   * contract whose dates the server moved.
    */
-  useEffect(() => {
-    if (!contract) return;
+  const periodSignature = contract
+    ? `${contract.id}:${contract.eligibleFrom}:${contract.eligibleTo}`
+    : null;
+  const [seededPeriod, setSeededPeriod] = useState<string | null>(null);
+
+  if (contract && periodSignature !== seededPeriod) {
+    setSeededPeriod(periodSignature);
     setValues((v) => ({
       ...v,
       eligibleFrom: isoToDateInput(contract.eligibleFrom),
       eligibleTo: isoToDateInput(contract.eligibleTo),
     }));
-  }, [contract]);
+  }
 
   const set = (key: keyof ContractFormValues) => (value: string) =>
     setValues((v) => ({ ...v, [key]: value }));
