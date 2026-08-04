@@ -59,6 +59,7 @@ disappears with the session is not a check. Task 1 creates both the file and the
 | 2 | `general-purpose` subagent, **German strings reviewed by the main agent** | Mechanical JSON edit; the `de` copy needs a second pair of eyes |
 | 3, 4, 5, 6 | one `general-purpose` subagent **per task** | Each is a bounded domain slice with an exact file list |
 | 7 | `general-purpose` subagent | Docs-only |
+| 9 | `general-purpose` subagent (dispatch **before** Task 8 — the gate must verify the F-03·1 shapes too) | Bounded, exact file list, complete code in the brief |
 | 8 | **main agent** (not delegated) + `git-pusher` for the final push | Needs live credentials, judgment on shape diffs, and the go/no-go on Phase 1 |
 | Review gate after **every** task | main agent runs `superpowers:requesting-code-review`, then `/code-review` on the diff | Two-stage review per subagent-driven-development |
 
@@ -89,6 +90,9 @@ Before dispatching a "find every usage of X" sweep, use the `Explore` agent — 
 | `lib/services/contract.service.ts` | add `getOne`, `send`, `recall`, `updateDraft`; `renew` sends `X-Idempotency-Key` | 6 |
 | `hooks/use-contracts.ts` | expose the new mutations | 6 |
 | `docs/superpowers/index/{schemas,dtos,flows}/…` | staleness banner pointing at the v2 guides | 7 |
+| `lib/types/identity.types.ts` | **NEW** — F-03·1 identity/company DTOs + `CompanyType` | 9 |
+| `lib/onboarding/company.ts` | **NEW** — `CompanyType` → i18n label key (the backend prints the raw enum) | 9 |
+| `lib/types/kyc.types.ts`, `worker.types.ts`, `errors.ts`, `status.ts`, `notification.types.ts`, both `messages/*.json`, `scripts/verify-v2.mjs` | F-03·1 catch-up (spec §12.2) | 9 |
 
 ---
 
@@ -2242,6 +2246,391 @@ Then dispatch the `git-pusher` agent to push `feat/v2-migration` and open the PR
 Only now, with the live shapes and template tokens confirmed, write
 `docs/superpowers/plans/2026-08-XX-v2-phase-1-docs-workspace.md` following
 `docs/superpowers/plans/2026-08-04-v2-migration-roadmap.md`.
+
+---
+
+### Task 9: F-03·1 catch-up — identity, company, per-document fields, third 403 flavour
+
+**Added 2026-08-04.** Tasks 1–6 were written before `f-03-1-structured-document-data.md` (PR #47) was
+read. It is **deployed live** — verified against swagger the same day — so this task closes the gap.
+Nothing already committed is *wrong* (TypeScript ignores extra response fields, so no screen breaks);
+it is incomplete. Spec §12.2 is the authoritative list.
+
+**Files:**
+- Modify: `lib/types/kyc.types.ts` (add `identity`, `company`, and the four document review fields)
+- Modify: `lib/types/worker.types.ts` (add `identity` to `WorkerDetailDto`)
+- Create: `lib/types/identity.types.ts` (`OwnerIdentityDto`, `WorkerIdentityDto`, `OwnerCompanyDto`, `CompanyType`, `COMPANY_TYPES`)
+- Create: `lib/onboarding/company.ts` (`CompanyType` → display-label key map)
+- Modify: `lib/onboarding/errors.ts` (eight new codes + the third 403 flavour)
+- Modify: `lib/onboarding/status.ts` (`Terminated` → "ended early")
+- Modify: `lib/types/notification.types.ts` (`Onboarding` entity type)
+- Modify: `messages/en.json`, `messages/de.json` (new error copy, company-type labels, `phase.terminated` wording)
+- Modify: `scripts/verify-v2.mjs` (assert the F-03·1 schemas and routes)
+
+**Interfaces:**
+- Consumes: everything Tasks 1–6 produced.
+- Produces: `OwnerIdentityDto`, `WorkerIdentityDto`, `OwnerCompanyDto`, `CompanyType`, `COMPANY_TYPES`, `companyTypeLabelKey(type)`; `KycProfileDto.identity`/`.company`; `KycDocDto.status`/`.rejectReason`/`.reviewedAt`/`.reviewedByAdminId`; `WorkerDetailDto.identity`. Phase 1's documents panel and per-document actions consume all of it.
+
+- [ ] **Step 1: Write the failing test — assert the F-03·1 contract**
+
+Add a section 8 to `scripts/verify-v2.mjs`, before the two summary lines (which must remain last):
+
+```js
+// ── 8. F-03·1 (PR #47): structured document data ───────────────────────────
+const F031_FIELDS = {
+  OwnerIdentityDto: ["firstName", "lastName", "passportNumber", "passportExpiry"],
+  WorkerIdentityDto: ["firstName", "lastName", "passportNumber", "passportExpiry", "licenseExpiry"],
+  OwnerCompanyDto: ["id", "name", "type", "licenseNumber", "licenseExpiry", "registrationDate",
+    "countryId", "countryNameDe", "countryNameEn", "cityId", "cityNameDe", "cityNameEn", "taxNumber"],
+  KycProfileDto: ["identity", "company"],
+  KycDocDto: ["status", "rejectReason", "reviewedAt", "reviewedByAdminId"],
+  WorkerDetailDto: ["identity"],
+};
+for (const [name, fields] of Object.entries(F031_FIELDS)) {
+  const live = S[name]?.properties;
+  if (!live) { bad(`F-03.1 schema ${name} missing`); continue; }
+  const missing = fields.filter((f) => !(f in live));
+  missing.length ? bad(`${name} missing: ${missing.join(", ")}`) : ok(`F-03.1 ${name}`);
+}
+const COMPANY_TYPES_EXPECTED = ["Llc", "Gmbh", "IndividualEntrepreneur", "SoleTrader", "Other"];
+const liveCompanyTypes = S.CompanyType?.enum;
+liveCompanyTypes && COMPANY_TYPES_EXPECTED.every((v, i) => liveCompanyTypes[i] === v)
+  ? ok("enum CompanyType")
+  : bad(`enum CompanyType: live=[${liveCompanyTypes}] expected=[${COMPANY_TYPES_EXPECTED}]`);
+for (const [route, method] of [
+  ["/api/admin/kyc/{ownerProfileId}/docs/{docId}/approve", "post"],
+  ["/api/admin/kyc/{ownerProfileId}/docs/{docId}/reject", "post"],
+]) {
+  swagger.paths[route]?.[method] ? ok(`route ${method.toUpperCase()} ${route}`)
+                                 : bad(`route ${method.toUpperCase()} ${route} missing`);
+}
+```
+
+- [ ] **Step 2: Run it, see it fail**
+
+Run: `npm run verify:api`
+Expected: the new `F-03.1 …` lines FAIL — not because the API lacks them, but because this step is
+the assertion itself; if any line fails **after** the code below lands, the live API disagrees with the
+guide and you must stop and report. (The routes and `CompanyType` lines should pass immediately: they
+assert live swagger, not our types.)
+
+- [ ] **Step 3: Create `lib/types/identity.types.ts`**
+
+```ts
+/**
+ * F-03·1 structured document data (PR #47, live 2026-08-03). The subject writes all
+ * of this; the admin panel only ever reads it — there is deliberately no admin
+ * correction endpoint, so the correction loop is reject-with-reason → subject edits
+ * → subject re-submits.
+ */
+
+/** Legal names off the passport. Allowed to differ from the account's display name; never reconciled. */
+export interface OwnerIdentityDto {
+  firstName: string | null;
+  lastName: string | null;
+  passportNumber: string | null;
+  /** Not validated as future-dated by the server. The expiry ladder acts on it. */
+  passportExpiry: string | null;
+}
+
+/** The owner block plus the worker's own service licence. */
+export interface WorkerIdentityDto extends OwnerIdentityDto {
+  /** The worker's own service licence, not a company's. Optional even at submit. */
+  licenseExpiry: string | null;
+}
+
+export const COMPANY_TYPES = [
+  "Llc",
+  "Gmbh",
+  "IndividualEntrepreneur",
+  "SoleTrader",
+  "Other",
+] as const;
+export type CompanyType = (typeof COMPANY_TYPES)[number];
+
+/**
+ * Present only when the owner is a legal entity. **A null company means the owner is a
+ * natural person** — the absence is the fact. There is no `isLegalEntity` flag and no
+ * CompanyType member meaning "not a company"; never default this to an empty object.
+ *
+ * Carries the resolved country/city names in both localizations alongside the ids, so
+ * the block renders without an FND-1 lookup call.
+ */
+export interface OwnerCompanyDto {
+  id: string;
+  name: string | null;
+  type: CompanyType;
+  licenseNumber: string | null;
+  /** Watched by the expiry ladder — a lapse reverts the owner to `Kyc`. */
+  licenseExpiry: string | null;
+  registrationDate: string | null;
+  countryId: string;
+  countryNameDe: string | null;
+  countryNameEn: string | null;
+  cityId: string | null;
+  cityNameDe: string | null;
+  cityNameEn: string | null;
+  taxNumber: string | null;
+}
+```
+
+- [ ] **Step 4: Create `lib/onboarding/company.ts`**
+
+```ts
+import type { CompanyType } from "@/lib/types/identity.types";
+
+/**
+ * `CompanyType` serializes as its enum member name — `Gmbh`, not `GmbH`;
+ * `IndividualEntrepreneur`, not `Individual entrepreneur`. The backend prints the raw
+ * member in its own generated PDF and treats the display strings as a pending business
+ * ruling, so every place we show a company type maps it ourselves. No general rule
+ * derives `GmbH` from `Gmbh`.
+ *
+ * Returns a key under the `onboarding.companyType` i18n namespace.
+ */
+export function companyTypeLabelKey(type: CompanyType | null | undefined): string {
+  switch (type) {
+    case "Llc":
+      return "llc";
+    case "Gmbh":
+      return "gmbh";
+    case "IndividualEntrepreneur":
+      return "individualEntrepreneur";
+    case "SoleTrader":
+      return "soleTrader";
+    case "Other":
+      return "other";
+    default:
+      return "unknown";
+  }
+}
+```
+
+- [ ] **Step 5: Extend `lib/types/kyc.types.ts`**
+
+Add the imports and the two nested blocks, and give `KycDocDto` its review fields:
+
+```ts
+import type {
+  OwnerCompanyDto,
+  OwnerIdentityDto,
+} from "@/lib/types/identity.types";
+```
+
+In `KycDocDto`, after `fileUrl`:
+
+```ts
+  /** F-03·1. TitleCase on the wire: "Pending" | "Approved" | "Rejected". */
+  status: string | null;
+  /** Set by a per-document reject; cleared when the document is approved. */
+  rejectReason: string | null;
+  reviewedAt: string | null;
+  reviewedByAdminId: string | null;
+```
+
+In `KycProfileDto`, after `onboardingReviewedAt`:
+
+```ts
+  /** F-03·1. Always present; its fields are null until the subject fills them. */
+  identity: OwnerIdentityDto;
+  /** F-03·1. **Null means the owner is a natural person** — do not default it to an object. */
+  company: OwnerCompanyDto | null;
+```
+
+- [ ] **Step 6: Extend `lib/types/worker.types.ts`**
+
+Import `WorkerIdentityDto` from `@/lib/types/identity.types` and add to `WorkerDetailDto`:
+
+```ts
+  /**
+   * F-03·1. The admin read is one of only two places this block is served — the worker
+   * app itself has no self-read route for it.
+   */
+  identity: WorkerIdentityDto;
+```
+
+- [ ] **Step 7: Add the eight F-03·1 codes to `lib/onboarding/errors.ts`**
+
+Insert into `CATALOG`, in the onboarding-review group:
+
+```ts
+  // ── F-03·1 structured document data ─────────────────────────────────────
+  incomplete_identity_data: { labelKey: "incompleteIdentityData", reaction: "toast" },
+  onboarding_locked: { labelKey: "onboardingLocked", reaction: "refetch" },
+  city_country_mismatch: { labelKey: "cityCountryMismatch", reaction: "toast" },
+  city_not_found: { labelKey: "cityNotFound", reaction: "toast" },
+  invalid_company_type: { labelKey: "invalidCompanyType", reaction: "toast" },
+  company_name_required: { labelKey: "companyNameRequired", reaction: "toast" },
+  company_license_number_required: { labelKey: "companyLicenseNumberRequired", reaction: "toast" },
+  company_not_found: { labelKey: "companyNotFound", reaction: "not-found" },
+```
+
+- [ ] **Step 8: Teach `errors.ts` the third 403 flavour**
+
+The global middleware answers an unmapped authorization failure with
+`{"error": "forbidden", "detail": "<real_code>"}` — the only place in this API where `error` is not the
+code. Without this, every such response resolves to the literal code `"forbidden"` and degrades to
+"unknown", and `isPermissionDenied` returns `false` because a body is present.
+
+Replace the three exported helpers with:
+
+```ts
+/** The middleware's fall-through shape puts the real code in `detail`, not `error`. */
+function forbiddenDetail(err: unknown): string | null {
+  if (!(err instanceof AxiosError)) return null;
+  const data = err.response?.data as { error?: unknown; detail?: unknown } | undefined;
+  if (data?.error !== "forbidden") return null;
+  return typeof data.detail === "string" ? data.detail : null;
+}
+
+export function describeApiError(err: unknown): ApiErrorInfo | null {
+  // `{"error":"forbidden","detail":"<code>"}` — read the code out of `detail`.
+  const detail = forbiddenDetail(err);
+  const code = detail ?? getApiErrorCode(err);
+  if (!code) return null;
+  const known = CATALOG[code];
+  return known
+    ? { code, ...known }
+    : { code, labelKey: "unknown", reaction: "toast" };
+}
+
+/**
+ * An **empty** 403 body means the permission filter refused: the caller's role lacks
+ * the permission. The middleware's `{"error":"forbidden","detail":…}` shape means the
+ * same thing — an authorization failure that simply wasn't mapped by its controller —
+ * so it counts here too, even though a body is present.
+ */
+export function isPermissionDenied(err: unknown): boolean {
+  if (status(err) !== 403) return false;
+  return getApiErrorCode(err) === null || forbiddenDetail(err) !== null;
+}
+
+/**
+ * A 403 **with** a gate code is the ACTIVE gate: the caller is permitted, but the
+ * subject has no signed contract covering today. Copy must talk about the subject's
+ * contract — and `contract_not_yet_active` must never say "expired".
+ */
+export function isGateRefusal(err: unknown): boolean {
+  if (status(err) !== 403) return false;
+  if (forbiddenDetail(err) !== null) return false;
+  return getApiErrorCode(err) !== null;
+}
+```
+
+Add these two codes to `CATALOG` as well, since they can now arrive through `detail`:
+
+```ts
+  kyc_submit_requires_boss: { labelKey: "requiresBoss", reaction: "toast" },
+  kyc_doc_upload_requires_boss: { labelKey: "requiresBoss", reaction: "toast" },
+```
+
+- [ ] **Step 9: Reword `Terminated` in `lib/onboarding/status.ts`**
+
+F-03·1 made `Expired` vs `Terminated` load-bearing: a revert stamps an elapsed period `Expired` and an
+in-period one `Terminated`, so one lapse can produce both. Change only the phase entry's comment and
+keep the labelKey stable (the i18n copy changes in Step 10):
+
+```ts
+  // "Ended early" — an admin force-terminate, or a period cut short when a watched
+  // document expired (F-03·1). Never render this as "expired".
+  Terminated: { variant: "secondary", className: MUTED, labelKey: "terminated" },
+```
+
+- [ ] **Step 10: i18n — new copy in both locales**
+
+Add to `onboarding.apiErrors` in `messages/en.json`:
+
+```json
+      "incompleteIdentityData": "This subject's identity data is incomplete, so they cannot submit yet.",
+      "onboardingLocked": "This data is locked while the application is under review.",
+      "cityCountryMismatch": "That city does not belong to the selected country.",
+      "cityNotFound": "This city no longer exists.",
+      "invalidCompanyType": "Invalid company type.",
+      "companyNameRequired": "A company name is required.",
+      "companyLicenseNumberRequired": "A licence number is required.",
+      "companyNotFound": "No company record exists for this owner.",
+      "requiresBoss": "Only the account owner (BOSS) can do this."
+```
+
+and `messages/de.json`:
+
+```json
+      "incompleteIdentityData": "Die Identitätsdaten dieses Subjekts sind unvollständig, eine Einreichung ist noch nicht möglich.",
+      "onboardingLocked": "Diese Daten sind während der Prüfung gesperrt.",
+      "cityCountryMismatch": "Diese Stadt gehört nicht zum ausgewählten Land.",
+      "cityNotFound": "Diese Stadt existiert nicht mehr.",
+      "invalidCompanyType": "Ungültige Unternehmensform.",
+      "companyNameRequired": "Ein Firmenname ist erforderlich.",
+      "companyLicenseNumberRequired": "Eine Lizenznummer ist erforderlich.",
+      "companyNotFound": "Für diesen Eigentümer existiert kein Unternehmenseintrag.",
+      "requiresBoss": "Nur der Kontoinhaber (BOSS) kann dies tun."
+```
+
+Add a new `onboarding.companyType` group — `en`:
+
+```json
+    "companyType": {
+      "llc": "LLC",
+      "gmbh": "GmbH",
+      "individualEntrepreneur": "Individual entrepreneur",
+      "soleTrader": "Sole trader",
+      "other": "Other",
+      "unknown": "Unknown"
+    },
+```
+
+`de`:
+
+```json
+    "companyType": {
+      "llc": "LLC",
+      "gmbh": "GmbH",
+      "individualEntrepreneur": "Einzelunternehmer",
+      "soleTrader": "Einzelkaufmann",
+      "other": "Sonstige",
+      "unknown": "Unbekannt"
+    },
+```
+
+And change the existing `onboarding.phase.terminated` value — `en`: `"Ended early"`,
+`de`: `"Vorzeitig beendet"`. Leave every other phase string alone.
+
+- [ ] **Step 11: Extend the i18n parity check**
+
+In `scripts/verify-v2.mjs`'s section 6, add to `REQUIRED`:
+
+```js
+  companyType: ["llc", "gmbh", "individualEntrepreneur", "soleTrader", "other", "unknown"],
+```
+
+and append to the `apiErrors` list: `"incompleteIdentityData"`, `"onboardingLocked"`,
+`"cityCountryMismatch"`, `"cityNotFound"`, `"invalidCompanyType"`, `"companyNameRequired"`,
+`"companyLicenseNumberRequired"`, `"companyNotFound"`, `"requiresBoss"`.
+
+- [ ] **Step 12: Add `Onboarding` to the notification entity union**
+
+In `lib/types/notification.types.ts`, add `| "Onboarding"` to `NotificationEntityType` — the
+`OnboardingRevertedToKyc` notification uses it with the subject's id. In `lib/notifications/route.ts`,
+route it to the subject's Docs detail once Phase 1 creates those routes; until then return `null` for
+it rather than inventing a route, and say so in a comment.
+
+- [ ] **Step 13: Verify**
+
+Run: `npx tsc --noEmit` → exit 0.
+Run: `npm run lint` → no new errors.
+Run: `npm run verify:api` → `ALL PASS`, including every `F-03.1 …` line and the new i18n groups.
+Run: `node -e "require('./messages/en.json');require('./messages/de.json');console.log('valid')"` → `valid`.
+
+- [ ] **Step 14: Commit**
+
+```bash
+git add lib/types/identity.types.ts lib/onboarding/company.ts \
+        lib/types/kyc.types.ts lib/types/worker.types.ts \
+        lib/onboarding/errors.ts lib/onboarding/status.ts \
+        lib/types/notification.types.ts lib/notifications/route.ts \
+        messages/en.json messages/de.json scripts/verify-v2.mjs
+git commit -m "feat(onboarding): F-03.1 identity, company, per-document fields and the third 403 flavour"
+```
 
 ---
 

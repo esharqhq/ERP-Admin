@@ -1,7 +1,7 @@
 # ERP-Admin v2 Migration — Onboarding, Docs Workspace & Contracts
 
 **Date:** 2026-08-04
-**Status:** Approved (design)
+**Status:** Approved (design) · **amended 2026-08-04 for F-03·1** (see §18)
 **Scope:** Whole admin app, delivered in 5 phases. Rewrites the KYC/worker-approval surface,
 adds a shared Docs workspace (owner + worker), a contract registry, server-paged admin tables,
 lookup CRUD, and admin-initiated tickets.
@@ -11,9 +11,13 @@ lookup CRUD, and admin-initiated tickets.
 1. **Live API** — `https://germany-erp.esharq.com` (v2). Verified 2026-08-04 by downloading
    `/swagger/v1/swagger.json` and diffing every DTO named in this spec. The v2 guides say
    "the live response wins"; so does this spec.
-2. **Cross-stack guides** — `D:\projekts\ERP-Uyer\docs\`:
-   `onboarding-and-active-gate.md`, `contract-lifecycle.md`, `fnd-1-configurable-lookups.md`,
+2. **Cross-stack guides** — the canonical set lives at `D:\projekts\ERP-Uyer\Backend\docs\handoff\`:
+   `onboarding-and-active-gate.md`, `contract-lifecycle.md`,
+   **`f-03-1-structured-document-data.md`** (F-03·1, PR #47 — new), `fnd-1-configurable-lookups.md`,
    `fnd-2-admin-initiated-ticket.md`, `fnd-3-table-query.md`.
+   ⚠ The copies under `D:\projekts\ERP-Uyer\docs\` are a **2026-08-03 snapshot** and are missing the
+   F-03·1 amendments. Read the `Backend\docs\handoff\` set. (The three FND docs are byte-identical in
+   both places — verified by diff — so only the two F-03 docs drifted.)
 3. This repo's `docs/superpowers/index/` is a **v1 mirror and is stale** (still describes
    `kycStatus`, `isApproved`). Do not trust it for owner/worker/contract work until re-synced.
 
@@ -54,7 +58,9 @@ no UI for it (one dialog, `components/contracts/contract-form-dialog.tsx`).
 - **No delete/terminate of contracts.** Product decision: the admin never deletes a contract.
   The recovery path for wrong terms is Recall → edit draft → send again. `DELETE
   /api/contracts/admin/{owner|worker}/{contractId}` stays unused.
-- **No per-document approve/reject.** The worker side has per-doc endpoints; they stay unused so
+- ~~**No per-document approve/reject.**~~ **Reversed 2026-08-04 (§18):** F-03·1 added the owner
+  mirror, so per-document review is now in scope on both sides. Original rationale, kept for the
+  record: the worker side had per-doc endpoints; they would stay unused so
   that the owner and worker screens are identical (owner has no such endpoints — see §4.3).
 - **No pre-send PDF preview.** The backend renders the preview PDF only on `Draft → Sent`. The
   admin sees the real PDF after sending; that was accepted as normal.
@@ -97,15 +103,23 @@ KycProfileSummaryDto  { ownerProfileId, ownerUserId, ownerName, ownerEmail,
                         onboardingStatus, onboardingRejectReason, onboardingReviewedAt,
                         documentCount }
 KycProfileDto         { ownerProfileId, ownerUserId, onboardingStatus,
-                        onboardingRejectReason, onboardingReviewedAt, documents[] }
-KycDocDto             { id, type, fileName, fileUrl, createdAt }          ← no status
+                        onboardingRejectReason, onboardingReviewedAt,
+                        identity, company, documents[] }                  ← F-03·1
+KycDocDto             { id, type, fileName, fileUrl, status, rejectReason,
+                        reviewedAt, reviewedByAdminId, createdAt }        ← F-03·1
+OwnerIdentityDto      { firstName, lastName, passportNumber, passportExpiry }
+WorkerIdentityDto     { firstName, lastName, passportNumber, passportExpiry, licenseExpiry }
+OwnerCompanyDto       { id, name, type, licenseNumber, licenseExpiry, registrationDate,
+                        countryId, countryNameDe, countryNameEn,
+                        cityId, cityNameDe, cityNameEn, taxNumber }
+CompanyType           Llc | Gmbh | IndividualEntrepreneur | SoleTrader | Other
 KycApprovalDto        { ownerProfileId, onboardingStatus, onboardingRejectReason, prefill }
 WorkerApprovalDto     { id,             onboardingStatus, onboardingRejectReason, prefill }
 ContractPrefillDto    { subjectType, subjectId, fullName, email, phoneNumber }
 WorkerDocumentDto     { id, type, fileName, fileUrl, status, rejectReason,
                         reviewedAt, reviewedByAdminId, createdAt }        ← has status
 WorkerDetailDto       { …, onboardingStatus, onboardingRejectReason, onboardingReviewedAt,
-                        professions[], documents[] }                      ← no isApproved
+                        identity, professions[], documents[] }            ← no isApproved; identity is F-03·1
 OwnerRowDto           { id, fullName, email, phoneNumber, status, onboardingStatus,
                         isVerified, propertyCount, createdAt }
 WorkerRowDto          { id, fullName, email, phoneNumber, status, onboardingStatus,
@@ -213,7 +227,8 @@ see §2.3.
 | List response | bare array | `PagedResult<WorkerRowDto>` |
 | Search / sort / paging | **client-side** over the array | **server-side** |
 | Document count | `documentCount` present | absent from the DTO |
-| Per-document review | **no endpoints exist** | `…/docs/{docId}/approve|reject` exist |
+| Per-document review | `…/docs/{docId}/approve\|reject` — **added by F-03·1** | `…/docs/{docId}/approve\|reject` (pre-existing) |
+| Identity block | `identity` + nullable `company` on the profile read | `identity` on `WorkerDetailDto` |
 | Detail endpoint | `GET /api/admin/kyc/{ownerProfileId}` (also `/owner/{ownerUserId}`) | `GET /api/admin/workers/{id}` |
 | Account approve/reject | `POST /api/admin/kyc/{ownerProfileId}/approve|reject` | `POST /api/admin/workers/{id}/approve|reject` |
 
@@ -222,12 +237,24 @@ holding a KYC profile row only — sub-accounts never appear) and follows the ex
 (`useAttendanceTable`, `useTableFilters`). When the backend adds a paged owner KYC list, only
 `owner-adapter.ts` changes.
 
-**Per-document review is intentionally not used.** Product decision: owner and worker screens must
-be identical, and the owner side has no per-document capability at all (`KycDocDto` carries no
-`status`). Exposing per-doc buttons on the worker side only would split the admin's mental model.
-Consequence, stated plainly: worker documents will keep `status: "PENDING"` forever, and a rejected
-worker learns which document was wrong from the account-level reason text. Recorded as a backend
-ask (§16) so the asymmetry can be closed later.
+**Per-document review is used on both sides** (revised 2026-08-04 — see §18). The original decision
+ruled it out because only the worker side had per-document endpoints and asymmetric screens would
+split the admin's mental model. F-03·1 added the owner mirror, so the symmetry constraint is now
+satisfied *with* per-document review rather than without it.
+
+Three behaviours the UI must carry, all of them counter-intuitive:
+
+- **A per-document decision does not move `onboardingStatus`.** Approving all six documents does not
+  approve the subject; the admin still presses the account-level Approve. The two actions must be
+  visually distinct.
+- **A per-document decision notifies nobody** — no bell row, no push, no email. The account-level
+  rejection is the only thing that tells the subject to come back. So the screen must say it plainly:
+  reject the files, then reject the bundle, or the subject is never told.
+- **Approving a document clears its `rejectReason`.**
+
+`status` is TitleCase on the wire on **both** sides — `"Pending"` | `"Approved"` | `"Rejected"`.
+(An earlier revision of this spec said `PENDING`; that was wrong. The repo's pre-existing comment in
+`lib/types/worker.types.ts` had it right.)
 
 ### 2.4 `phase` is the truth; `onboardingStatus` lags
 
@@ -400,13 +427,41 @@ reads the document in the modal and types.
 
 ### 4.2 Documents panel
 
-- Read-only list: localized type label, file name, upload date.
+- **Identity block at the top, read-only.** `firstName`, `lastName`, `passportNumber`,
+  `passportExpiry` — the legal names off the passport, which are allowed to differ from the account's
+  display `fullName` and are never reconciled with it. Flag an expiry that is past or within 30 days:
+  the expiry ladder now acts on it (§5, §10).
+- **Company block below it, read-only, and only when present.** `company: null` means **the owner is a
+  natural person** — render that as a stated fact ("Natural person"), never as an empty form. There is
+  no `isLegalEntity` flag anywhere; the row's absence *is* the fact.
+  `OwnerCompanyDto` carries resolved `countryNameDe/En` and `cityNameDe/En` alongside the ids, so the
+  block renders without a lookup call. ⚠ `type` must be mapped to a display label by us —
+  `CompanyType` serializes as `Gmbh`, `IndividualEntrepreneur`, … and the backend's own PDF prints
+  those raw. No rule derives `GmbH` from `Gmbh`; keep an explicit label map.
+- **Identity and company are never editable here.** Only the subject writes them, only while at
+  `Kyc`/`Rejected`, and **no admin correction endpoint exists**. The correction loop is: admin rejects
+  with a reason → subject edits → subject re-submits. Say that in the UI where an admin would
+  otherwise look for an edit affordance.
+- Document list: localized type label, file name, upload date, **`status` badge**
+  (`Pending`/`Approved`/`Rejected`) and the per-document `rejectReason` when set.
 - Click → `document-viewer-modal.tsx`: `{filesBase}/files/{fileUrl}` is **public, unauthenticated**
   (KYC and worker documents were deliberately left public). PDFs in an `<iframe>`, images in
   `<img>`, anything else gets a download link.
-- Account-level actions at the bottom: `Approve` and `Reject` (reason required, validated
-  client-side before the call as well, because the server returns
-  `400 rejection_reason_required`).
+- **Per-document actions** (`✓` / `✕` with a reason) — identical on both sides:
+  `POST /api/admin/kyc/{ownerProfileId}/docs/{docId}/approve|reject` and
+  `POST /api/admin/workers/{workerId}/docs/{docId}/approve|reject`, both `204`, both on the
+  *account-level* permissions (`kyc:approve`/`kyc:reject`, `worker:approve`/`worker:reject`) — nothing
+  new to seed. A wrong `docId`/subject pair is `404 kyc_doc_not_found`.
+- **The panel must state that per-document decisions are silent.** They emit no notification of any
+  kind and do not move `onboardingStatus`. Copy: reject the files, then reject the bundle — otherwise
+  the subject is never told. This is the single most likely way an admin misuses the screen.
+- Account-level actions at the bottom, visually separated from the per-document row actions:
+  `Approve` and `Reject` (reason required, validated client-side before the call as well, because the
+  server returns `400 rejection_reason_required`). Only these move `onboardingStatus`, and only they
+  notify.
+- A per-document reject may also fail model validation *before* the service guard, returning a
+  model-validation body rather than `{"error": …}`. Require the reason client-side so neither shape is
+  ever hit.
 
 ### 4.3 Contract authoring rules
 
@@ -453,8 +508,12 @@ not the HTTP status — several routes map not-found to 400.
 | `rejection_reason_required` / `revision_reason_required` | 400 | required-field error on the reason input |
 | `kyc_profile_not_found` / `worker_not_found` / `kyc_documents_required` | **400** | not-found / empty state (swagger says 404; runtime says 400) |
 | `contract_not_found` | 404 | not-found state |
+| `kyc_doc_not_found` | **404** | per-document approve/reject with a wrong `docId`/subject pair — refetch the document list |
+| `incomplete_identity_data` | 400 | **F-03·1** — the subject's own submit failed its identity check. The admin cannot fix it (no correction endpoint): surface it as "the subject's identity data is incomplete" and offer the reject-with-reason path |
+| `onboarding_locked` | **409** | **F-03·1** — an identity/company write past `Kyc`/`Rejected`. The admin app never writes these, so this code should be unreachable here; catalogued so an unexpected occurrence is legible instead of falling into "unknown" |
 | *(empty body)* | 403 | "Your role lacks this permission" — an **empty** 403 body is a permission problem |
 | *(body with `error`)* | 403 | the ACTIVE gate — see §12.1 |
+| *(`{"error":"forbidden","detail":"<code>"}`)* | **403** | **F-03·1, third flavour** — an unmapped authorization failure fell through to the global middleware, so the real code is in **`detail`**, not `error`. `describeApiError` must read `detail` when `error === "forbidden"`, otherwise every one of these degrades to "unknown" |
 
 ### 4.5 Contract preview content
 
@@ -495,11 +554,25 @@ Contracts                                            [Owner] [Worker]
   contract: the subject gets one notification at send and then silence, and the expiry ladder only
   watches *signed* cover. Built from `phase == "Sent"`, sorted by `sentAt`.
 - The **expiring block** lists `phase: "InForce"` rows whose `eligibleTo` is within 30 days, linking
-  to Renew in the Docs detail.
+  to Renew in the Docs detail. ⚠ **F-03·1: a contract's end date is no longer the only thing that can
+  end cover.** The hourly job counts down to the *earliest* of the contract's cover end, the subject's
+  `passportExpiry`, and a licence expiry (the owner's company licence or the worker's own). So this
+  block understates the risk: a subject whose licence lapses next month is not in it. Surface the
+  document expiries in the Docs detail (§4.2) and treat this block as "contract-driven expiry only".
 - `GET /api/contracts/admin/{owner|worker}` is **unpaginated and unfiltered** — it returns every
   contract for every subject. Filtering is client-side; recorded as a backend ask (§16).
 - `Scheduled` renders as upcoming cover, never as a problem. `Lapsed` and `Expired` render
   identically.
+- ⚠ **`Terminated` vs `Expired` became load-bearing in F-03·1.** When a passport or licence lapses,
+  the job retires **every** signed row and stamps each on **its own** date: a period that genuinely
+  elapsed → `Expired` ("ran its full term"), one still in-period and cut short → **`Terminated`**
+  ("ended early"). One lapse can produce both in the same list. Render `Terminated` as *ended early*,
+  never as *expired* — and note that `phase` alone cannot distinguish a compliance-driven end from an
+  admin force-terminate. Only the audit log can: `ONBOARDING_REVERTED_TO_KYC` is never written by a
+  force-terminate, and its metadata carries `revertSource` plus separate `expiredContractIds` and
+  `terminatedContractIds` lists.
+- A consequence worth designing for: **a contract with months left can vanish from a subject's list
+  without any admin action.** If an admin asks why, the answer is in that audit row.
 
 ---
 
@@ -611,6 +684,14 @@ the target id. Contract notifications carry `metadata["eligibleTo"]`, so a bell 
 end date without a second call. Types are split per side (45/46, 47/48, …) specifically so a deep
 link can be routed on the type alone.
 
+⚠ **F-03·1: route the expiry alert on `metadata.sourceKey`, not on `entityType`.** The ladder now
+counts down to the earliest of three dates, and `sourceKey` says which one fired —
+`"contract"` | `"license"` | `"passport"`. But the warning row still carries the **contract** as its
+`entityType`/`entityId` even when a licence fired it, so routing on `entityType` alone lands the admin
+on a contract screen for a passport problem. Branch on `sourceKey`: `contract` → the contract/renew
+path, `license`/`passport` → the subject's Docs detail. (The *revert* notification uses
+`entityType: "Onboarding"` with the subject's id — another value the union must tolerate.)
+
 `AdminTicketOpened` (43), `OnboardingExpiryWarning` (53) and `OnboardingRevertedToKyc` (55) go to
 the subject, never to admins — not added.
 
@@ -675,6 +756,26 @@ distinction is the fastest way to tell a role problem from an account-state prob
 dialogs must render the two cases differently. `contract_not_yet_active` in particular must not be
 worded as "expired": it is the normal state right after an early renewal.
 
+### 12.2 F-03·1 catch-up (added 2026-08-04)
+
+Phase 0 Tasks 1–3 shipped before F-03·1 was read. Nothing they wrote is *wrong* — TypeScript ignores
+extra fields in a response, so no screen breaks — but six things are now incomplete. They are the
+content of Phase 0's **Task 9**.
+
+| File | Problem | Fix |
+|---|---|---|
+| `lib/types/kyc.types.ts` | `KycProfileDto` has no `identity` / `company`; `KycDocDto` has no `status` / `rejectReason` / `reviewedAt` / `reviewedByAdminId`. The admin review screen therefore cannot show any of it | add `OwnerIdentityDto`, `OwnerCompanyDto`, `CompanyType`, and the four document review fields |
+| `lib/types/worker.types.ts` | `WorkerDetailDto` has no `identity` | add `WorkerIdentityDto` (five fields — `licenseExpiry` included) |
+| `lib/onboarding/errors.ts` | eight F-03·1 codes absent: `incomplete_identity_data`, `onboarding_locked`, `city_country_mismatch`, `city_not_found`, `invalid_company_type`, `company_name_required`, `company_license_number_required`, `company_not_found` | add them to the catalog with i18n keys in both locales |
+| `lib/onboarding/errors.ts` | `describeApiError` cannot see the **third 403 flavour**: `{"error":"forbidden","detail":"<code>"}` resolves to the literal code `"forbidden"` and degrades to "unknown"; `isPermissionDenied` also returns `false` for it because a body is present | read `detail` when `error === "forbidden"`; treat that shape as a permission failure |
+| `lib/onboarding/status.ts` + i18n | `Terminated` reads as a neutral "Terminated"/"Beendet"; F-03·1 made the distinction load-bearing | render it as *ended early* / *vorzeitig beendet* |
+| `lib/types/notification.types.ts` | `NotificationEntityType` lacks `Onboarding` (used by the revert notification) | add it |
+| `scripts/verify-v2.mjs` | asserts the pre-F-03·1 shapes only | add the new schemas, the new routes, and the two per-document admin routes |
+
+Also needed, and cheap: a `CompanyType` → display-label map (`Gmbh` → `GmbH`,
+`IndividualEntrepreneur` → `Individual entrepreneur`, …) in both locales. The backend prints the raw
+enum member in its own PDF and has no plan to change it, so every place we render `type` must map it.
+
 ---
 
 ## 13. Phases and PR split
@@ -683,7 +784,7 @@ Every phase ends with the app fully working.
 
 | Phase | Content | PRs | Outcome |
 |---|---|---|---|
-| **0** | v2 types + services + hooks + `lib/onboarding/status.ts` + `errors.ts`; minimal patches to every site in §12 (including the two gate-error call sites); stale-mirror warning in `docs/superpowers/index/` | 1 | **broken screens work again**, no new UI |
+| **0** | v2 types + services + hooks + `lib/onboarding/status.ts` + `errors.ts`; minimal patches to every site in §12 (including the two gate-error call sites); stale-mirror warning in `docs/superpowers/index/`; **Task 9 — the F-03·1 catch-up of §12.2** | 1 | **broken screens work again**, no new UI |
 | **1** | Docs workspace: adapters + `components/docs-workspace/*` + both routes + nav rename (`KYC` → `Docs`) + delete `/dashboard/kyc`; `contract.template.approved` switch in Settings (nothing can be sent without it) | 1–2 | the full review → contract → send flow |
 | **2** | Contracts registry (unsigned block, expiring block, phase filter) + full Settings "Contract" category | 1 | oversight and control |
 | **3** | `use-paged-table` + Owners/Workers directories + CSV/XLSX export | 1–2 | catalogue and reporting |
@@ -704,6 +805,10 @@ so every DTO assumption is confirmed against a real call).
 - **Phase 1:** end-to-end on a **test** owner and a **test** worker: approve → create draft →
   send → read `previewUrl` → recall → edit → send → sign (as the subject) → read `documentUrl` →
   renew. Confirm the snapped `eligibleFrom`, and confirm `403`/`409` copy for each error in §4.4.
+  **F-03·1 additions:** confirm the identity block and a `company: null` owner both render; confirm
+  per-document approve/reject returns `204`, changes only `documents[].status`, leaves
+  `onboardingStatus` untouched, and produces **no** notification; confirm a document rejected under
+  the wrong subject id gives `404 kyc_doc_not_found`.
 - **Phase 2:** confirm `phase` values across the registry; confirm the settings write round-trips.
 - **Phase 3:** confirm `invalid_sort_column`, `invalid_filter_value`, `invalid_format`,
   `export_too_large`, and that `pageSize=500` silently becomes 100.
@@ -739,8 +844,11 @@ so every DTO assumption is confirmed against a real call).
 1. Owner KYC list has no paging/search/sort while the worker list has all three.
 2. `GET /api/contracts/admin/{owner|worker}` is unpaginated and unfiltered.
 3. No preview PDF for a `Draft` — the admin cannot see the rendered contract before sending.
-4. Owner documents have no per-document review (`KycDocDto` has no `status`), unlike worker
-   documents.
+4. ~~Owner documents have no per-document review.~~ **Closed by F-03·1** (PR #47) — the owner mirror
+   shipped. Replacement ask: **the worker app cannot read back its own identity block.** `WorkerIdentityDto`
+   is served only by the `PUT` response and by `GET /api/admin/workers/{id}`; `GET /api/worker-docs/me`
+   returns documents only and `GET /api/profile` carries no passport fields. The owner side has
+   `GET /api/kyc/me`. The asymmetry is acknowledged in the F-03·1 guide §6.2 — ask for the read route.
 5. `onboardingStatus` lags live cover, so admin tables can report `Active` for a subject the gate
    refuses.
 6. `onboarding.expiry.block_days`'s seeded description claims it drives the 24 h booking-creation
@@ -761,5 +869,41 @@ so every DTO assumption is confirmed against a real call).
 | 5 | "Edit" on a concluded contract = **Renew** | Backend allows edit only on a `Draft`; renewal is what the button is actually for |
 | 6 | No delete/terminate anywhere in the UI | Product: contracts are never deleted; Recall covers wrong terms |
 | 7 | Table shows everything by default, filtered from a top bar; no row actions | Product: decisions happen only in the detail screen; a shared admin filter system will replace the bar later |
-| 8 | No per-document approve/reject; account-level only, symmetric | Product: both sides must behave identically, and the owner side has no per-doc capability |
+| 8 | ~~No per-document approve/reject; account-level only, symmetric~~ → **Per-document review on both sides** (revised 2026-08-04) | The original rationale was that the owner side had no per-document capability, so symmetry meant going without. F-03·1 added the owner mirror, so symmetry is now satisfied *with* it. Product confirmed the reversal |
+| 10 | Identity and company render read-only in the admin panel; there is no admin edit path | The backend has no admin correction endpoint by design — only the subject writes identity, only while at `Kyc`/`Rejected`. The correction loop is reject-with-reason → subject edits → re-submit |
+| 11 | `company: null` renders as "natural person", never as an empty company form | The absence of the row *is* the fact; there is no `isLegalEntity` flag and no `CompanyType` member meaning "not a company" |
+| 12 | We keep our own `CompanyType` label map | The backend prints the raw enum member (`Gmbh`) in its own PDF and treats the display strings as a pending business ruling; no rule derives `GmbH` from `Gmbh` |
+| 13 | Expiry alerts route on `metadata.sourceKey`, not on `entityType` | The warning row carries the contract as its entity even when a passport or licence fired it, so `entityType` routing sends the admin to the wrong screen |
 | 9 | Phase 0 first (stop the breakage), then the Docs workspace | The live backend is already v2, so several screens are broken right now |
+
+---
+
+## 18. Amendment log — F-03·1 (2026-08-04)
+
+**What arrived.** `Backend\docs\handoff\f-03-1-structured-document-data.md` (PR #47, shipped
+2026-08-03) plus amendments to the two F-03 guides. **Verified deployed** on
+`https://germany-erp.esharq.com` the same day: all five new routes present, `OwnerIdentityDto` /
+`OwnerCompanyDto` / `WorkerIdentityDto` / `CompanyType` present, `KycProfileDto` carrying `identity` +
+`company`, `KycDocDto` carrying the four review fields, `WorkerDetailDto` carrying `identity`.
+The three FND guides are **byte-identical** to the earlier snapshot — foundations unchanged.
+
+**What it changes for this app**
+
+| Area | Change | Where |
+|---|---|---|
+| Structured identity | Subject-written passport block (owner + worker) and a conditional owner company block. The admin app **reads** them; it can never write them | §4.2, §12.2 |
+| Per-document review | Owner mirror of the worker routes shipped → **decision 8 reversed**, both sides get per-document actions | §2.3, §4.2, §17 |
+| Submit precondition | `400 incomplete_identity_data`, checked **before** the document check on both submits | §4.4 |
+| Expiry ladder | Watches the **earliest of three** dates (contract cover end, `passportExpiry`, licence expiry) with `metadata.sourceKey` naming the source; contract dates block live, document dates within ≤1 h | §5, §10 |
+| `Expired` vs `Terminated` | A revert retires every signed row and stamps each on its own date, so one lapse can produce both. `Terminated` = *ended early* | §5 |
+| Contract PDF | The client block is filled now; already-signed PDFs keep their old blank block, and `{{company.type}}` prints the raw enum | §4.5, §12.2 |
+| 403 | A **third** flavour: `{"error":"forbidden","detail":"<code>"}` — the real code is in `detail` | §4.4, §12.2 |
+| Worker doc `status` | TitleCase on the wire (`"Pending"`), on both sides. The earlier revision of this spec said `PENDING`; that was wrong | §2.3 |
+
+**What it does not change.** The phase order, the IA (sidebar groups, two `Docs` screens, one adapter
+pair), the "actions in Docs, oversight in Contracts" split, the no-delete rule, `phase` as the only
+source of truth for cover, and every FND-3/FND-1/FND-2 decision.
+
+**Cost.** One new task in Phase 0 (Task 9, §12.2) and roughly three more in Phase 1 — the identity and
+company panels, the per-document actions with their silent-decision copy, and the `CompanyType` label
+map.

@@ -4,7 +4,8 @@
 > phase runs when, which agent does each kind of work, and which gate must be green before the next
 > phase starts. It is not a task list — each phase has (or gets) its own detailed plan.
 
-**Spec:** `docs/superpowers/specs/2026-08-04-erp-admin-v2-migration-design.md`
+**Spec:** `docs/superpowers/specs/2026-08-04-erp-admin-v2-migration-design.md` (amended 2026-08-04 for
+F-03·1 — see its §18; the canonical backend guides live at `D:\projekts\ERP-Uyer\Backend\docs\handoff\`)
 **Branch:** `feat/v2-migration` (spec commit `520bc5f`)
 **Phase 0 plan:** `docs/superpowers/plans/2026-08-04-v2-phase-0-foundation.md` ← written, ready to execute
 **Phases 1–4 plans:** written at the start of each phase (see "Why the later plans are written later")
@@ -27,8 +28,8 @@ finished first — it is where the product value is.
 
 | Phase | Deliverable | Depends on | Rough size |
 |---|---|---|---|
-| **0** | App correct against live v2; shared status/error vocabulary | — | 8 tasks |
-| **1** | Docs workspace: review → approve → author → send → track, both sides | 0 | ~14 tasks |
+| **0** | App correct against live v2; shared status/error vocabulary; **F-03·1 catch-up** | — | 9 tasks |
+| **1** | Docs workspace: review → approve → author → send → track, both sides, **plus the F-03·1 identity/company panels and per-document review** | 0 | ~17 tasks |
 | **2** | Contracts registry (unsigned + expiring blocks) and the full Settings contract category | 0, 1 | ~6 tasks |
 | **3** | Owners/Workers directories: server paging, filters, CSV/XLSX export | 0 | ~8 tasks |
 | **4** | Lookup CRUD, admin-initiated ticket, new notification types | 0 | ~9 tasks |
@@ -186,7 +187,19 @@ if missing, not a nice-to-have.
 10. **The worker Docs table has no document-count column at all** — `WorkerRowDto` has no such field,
     and a column of dashes reads as missing data. The owner table shows it; the shared table takes the
     column set from the adapter.
-11. **Reuse, don't re-invent.** `data-table-card`, `table-pagination`, `sortable-table-head`,
+11. **F-03·1 rules the panels must carry** (spec §4.2, §18):
+    - Identity and company are **read-only here, always** — only the subject writes them, only while at
+      `Kyc`/`Rejected`, and **no admin correction endpoint exists**. Where an admin would look for an
+      edit affordance, state the loop instead: reject with a reason → the subject edits → the subject
+      re-submits.
+    - `company: null` is **"natural person"**, a valid and complete state — never an empty company form,
+      never a blank card. There is no `isLegalEntity` flag; the row's absence is the fact.
+    - **Per-document decisions are silent and do not move `onboardingStatus`.** The panel must say so.
+      An admin who rejects six files and stops has told the subject nothing.
+    - `CompanyType` renders through `companyTypeLabelKey` — never the raw enum member.
+    - A per-document reject can fail model validation *before* the service guard, returning a
+      model-validation body instead of `{"error": …}`. Require the reason client-side.
+12. **Reuse, don't re-invent.** `data-table-card`, `table-pagination`, `sortable-table-head`,
     `filter-menu`, `dialog`, `sheet`, `tabs`, `skeleton` already exist. A new primitive that
     duplicates one of these, a new dependency, or hardcoded colors instead of the `globals.css`
     tokens is a rejection. Dark mode must work because the tokens are used, not because it was
@@ -202,8 +215,10 @@ if missing, not a nice-to-have.
 | 4 | `docs-filter-bar.tsx` + `docs-table.tsx` — identical both sides, no row actions, sortable on name/date only | `general-purpose` + `frontend-design` |
 | 5 | Routes `/dashboard/owner-documents` and `/dashboard/worker-documents` (list) + nav rename `KYC` → `Docs`; delete `/dashboard/kyc` **with** its redirect, the `notificationRoute` repoint, and the dead `owners.kyc.*` keys removed (constraint 9) | `general-purpose` |
 | 6 | `onboarding-stepper.tsx` — the 4-step state machine derived from status + phase | `general-purpose` + `frontend-design` |
-| 7 | `documents-panel.tsx` + `document-viewer-modal.tsx` — read-only list, modal viewer over the public `/files/` URL | `general-purpose` + `frontend-design` |
-| 8 | `review-actions.tsx` — account-level Approve / Reject+reason, enabled only at `Review`, `prefill` captured from the response | `general-purpose` |
+| 7 | `documents-panel.tsx` + `document-viewer-modal.tsx` — read-only list with each document's `status` badge and `rejectReason`, modal viewer over the public `/files/` URL | `general-purpose` + `frontend-design` |
+| 7b | **F-03·1** `identity-panel.tsx` + `company-panel.tsx` — read-only passport block and the conditional company block; `company: null` renders as "natural person", never an empty form; `CompanyType` through `companyTypeLabelKey`; flag a passport/licence expiry that is past or within 30 days | `general-purpose` + `frontend-design` |
+| 7c | **F-03·1** `document-review-actions.tsx` — per-document ✓/✕ with a required reason, identical on both sides, on the account-level permissions. Must state that per-document decisions are **silent** (no notification) and do **not** move `onboardingStatus`; visually separated from the bundle actions | `general-purpose` + `frontend-design` |
+| 8 | `review-actions.tsx` — account-level Approve / Reject+reason, enabled only at `Review`, `prefill` captured from the response. Copy must tell the admin this is the step that actually notifies the subject | `general-purpose` |
 | 9 | `contract-form.tsx` — owner 8 fields / worker 4, `toUtcIso()` on every date, re-seed from the response (snapped `eligibleFrom`), presign under `contract-sources` | `general-purpose` + `frontend-design` |
 | 10 | `contract-state-panel.tsx` — Sent/Scheduled/InForce rendering, `previewUrl`/`documentUrl` follow-don't-cache with one retry, `renewalStartsAt` copy, Renew entry point | `general-purpose` + `frontend-design` |
 | 11 | `subject-detail.tsx` — the 70/30 layout wiring 6–10 together; `use-docs-workspace.ts` orchestration | `general-purpose` + `frontend-design` |
@@ -227,7 +242,8 @@ if missing, not a nice-to-have.
 | 1 | `findUnsigned` / expiring-soon selectors over the unpaginated admin lists | `general-purpose` |
 | 2 | Unsigned block (`phase === "Sent"` by `sentAt`) + expiring block (`InForce`, `eligibleTo` ≤ 30 d) | `general-purpose` + `frontend-design` |
 | 3 | Registry table with owner/worker tabs, phase filter, rows linking into the Docs detail | `general-purpose` + `frontend-design` |
-| 4 | Settings "Contract" category: templates (read-only view + edit), the four `onboarding.expiry.*` keys with **corrected** `block_days` copy | `general-purpose` |
+| 4 | Settings "Contract" category: templates (read-only view + edit), the four `onboarding.expiry.*` keys with **corrected** `block_days` copy, plus a note that the ladder now watches passport and licence dates too | `general-purpose` |
+| 4b | **F-03·1** the registry's "expiring" block covers contract dates only — label it as such, and render `Terminated` as *ended early* (never *expired*), since a document lapse now stamps in-period rows `Terminated` and elapsed ones `Expired` in the same list | `general-purpose` |
 | 5 | Remove whatever survived of `contract-form-dialog.tsx` and any terminate entry point | `general-purpose` |
 | 6 | Phase gate + PR | **main agent** + `git-pusher` |
 
@@ -265,7 +281,7 @@ if missing, not a nice-to-have.
 | 5 | Admin-ticket dialog + `support.service.openForUser` with required `X-Idempotency-Key`; recipient-not-caller semantics documented in code | `general-purpose` + `frontend-design` |
 | 6 | Three entry points for the dialog (Docs detail, owner/worker detail, support inbox) | `general-purpose` |
 | 7 | Notification types 44/47/48/51/52/54/56 + `OwnerContract`/`WorkerContract`/`SupportTicket` entity types | `general-purpose` |
-| 8 | Deep links per type; `metadata["eligibleTo"]` in the bell row | `general-purpose` |
+| 8 | Deep links per type; `metadata["eligibleTo"]` in the bell row. **F-03·1:** route the expiry alert on `metadata.sourceKey` (`contract`\|`license`\|`passport`), **not** on `entityType` — the warning row carries the contract as its entity even when a licence fired it, so `entityType` routing sends the admin to the wrong screen. Handle `entityType: "Onboarding"` on the revert notification | `general-purpose` |
 | 9 | Phase gate + PR; append the eight backend asks from spec §16 to `BACKEND-ASKS.md` | **main agent** + `git-pusher` |
 
 ---
@@ -293,5 +309,9 @@ for migration fallout:
   `app/[locale]/dashboard/`. Both 404 today. Fixing them (or hiding the group) is a separate,
   one-line decision for the product owner.
 - **The audit screen will show unfamiliar action codes** once Phase 3 lands, because exports write
-  `OWNER_TABLE_EXPORTED` / `WORKER_TABLE_EXPORTED` rows. Confirm how `lib/services/audit.service.ts`
-  labels unknown codes during Phase 3 and add labels if it renders them raw.
+  `OWNER_TABLE_EXPORTED` / `WORKER_TABLE_EXPORTED` rows. F-03·1 adds three more —
+  `OWNER_KYC_DOC_APPROVED`, `OWNER_KYC_DOC_REJECTED`, and `ONBOARDING_REVERTED_TO_KYC` (whose metadata
+  carries `revertSource`, `expiredContractIds` and `terminatedContractIds`). Confirm how
+  `lib/services/audit.service.ts` labels unknown codes and add labels if it renders them raw. That
+  revert row is also the **only** way to tell a compliance-driven contract end from an admin
+  force-terminate, so it is worth surfacing well.
