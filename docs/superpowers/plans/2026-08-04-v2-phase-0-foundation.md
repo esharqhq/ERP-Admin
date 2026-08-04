@@ -2154,14 +2154,31 @@ Insert immediately below the top heading of each file:
 Run: `npx rg -l "STALE for owner/worker/contract onboarding" docs/superpowers/index/`
 Expected: exactly six file paths.
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 4: Do not commit — and understand why**
+
+**This task intentionally produces no commit.** `/docs` is gitignored and
+`docs/superpowers/index/` has never been tracked, so there is no way to commit "just the banner": each
+file would enter git in full. Force-adding the directory (as an earlier revision of this step told you
+to) stages **26 files and about 4,000 lines** of the very stale v1 material this banner exists to warn
+people away from, and buries the phase's actual code diff under it.
+
+The banner's whole audience is someone reading the mirror **on disk**, and the mirror only exists on
+disk — a fresh clone has neither. So a working-tree change is the complete deliverable here.
+
+Verify and stop:
 
 ```bash
-git add -f docs/superpowers/index/
-git commit -m "docs(index): flag the v1 onboarding mirror as stale"
+git status --short          # docs/superpowers/index/ must NOT appear as staged
 ```
 
-Note the `-f`: `/docs` is gitignored in this repo, so doc changes need a force-add.
+If a previous attempt already committed the directory, undo it before continuing — the commit is at the
+branch tip and unpushed, so:
+
+```bash
+git reset --soft HEAD~1 && git reset
+```
+
+then confirm with `git status --short` that only the untracked working-tree edits remain.
 
 ---
 
