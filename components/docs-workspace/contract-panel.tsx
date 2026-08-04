@@ -9,7 +9,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { contractPhasePresentation } from "@/lib/onboarding/status";
-import type { ContractPhase } from "@/lib/types/onboarding.types";
+import type {
+  ContractPhase,
+  OnboardingStatus,
+} from "@/lib/types/onboarding.types";
 
 /** What the form collects. Owner contracts add the four term fields; worker ones don't. */
 export interface ContractFormValues {
@@ -65,6 +68,7 @@ export function ContractPanel({
   variant,
   subjectName,
   subjectContact,
+  status,
   canAuthor,
   contract,
   locale,
@@ -79,6 +83,8 @@ export function ContractPanel({
   variant: "owner" | "worker";
   subjectName: string;
   subjectContact: string | null;
+  /** Drives the copy that explains why the form is locked. */
+  status: OnboardingStatus;
   /** True once the subject is `Approved` or `Active`. */
   canAuthor: boolean;
   /** The subject's newest contract, if they have one. */
@@ -283,7 +289,14 @@ export function ContractPanel({
       {!canAuthor && (
         <p className="flex items-start gap-2 rounded-md border border-border p-3 text-sm text-muted-foreground">
           <Lock className="mt-0.5 size-4 shrink-0" />
-          {t("contract.lockedNote")}
+          {/* Before a submission exists there is nothing for the admin to approve, so
+              telling them to approve first sends them looking for a button that is
+              correctly absent. Name the real blocker instead. */}
+          {status === "Kyc"
+            ? t("contract.notSubmittedNote")
+            : status === "Rejected"
+              ? t("contract.rejectedNote")
+              : t("contract.lockedNote")}
         </p>
       )}
 

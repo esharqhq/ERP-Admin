@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import type { OnboardingStatus } from "@/lib/types/onboarding.types";
 
 /** The shape both sides share — owner KYC docs and worker docs now carry the same review fields. */
 export interface ReviewDoc {
@@ -162,6 +163,7 @@ export function DocumentsPanel({
   docs,
   isLoading,
   locale,
+  status,
   canDecideAccount,
   onApproveDoc,
   onRejectDoc,
@@ -174,6 +176,8 @@ export function DocumentsPanel({
   docs: ReviewDoc[];
   isLoading: boolean;
   locale: string;
+  /** Drives the copy that explains why a decision is or isn't available. */
+  status: OnboardingStatus;
   /** Account-level approve/reject are legal only from `Review`. */
   canDecideAccount: boolean;
   onApproveDoc: (docId: string) => void;
@@ -235,7 +239,16 @@ export function DocumentsPanel({
         )}
 
         {!canDecideAccount ? (
-          <p className="text-xs text-muted-foreground">{t("decision.notInReview")}</p>
+          /* Name the actual blocker. "Not awaiting a decision" is true but useless —
+             at `Kyc` the subject has not submitted yet, and no admin action can
+             substitute for that. */
+          <p className="text-xs text-muted-foreground">
+            {status === "Kyc"
+              ? t("decision.waitingForSubmission")
+              : status === "Rejected"
+                ? t("decision.rejectedWaiting")
+                : t("decision.alreadyDecided")}
+          </p>
         ) : rejectingAccount ? (
           <div className="flex flex-col gap-2">
             <Textarea

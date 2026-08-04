@@ -144,7 +144,8 @@
       "licenseExpiry": "Lizenz gültig bis",
       "expired": "Abgelaufen",
       "expiresInDays": "{days} Tage übrig",
-      "readOnlyNote": "Nur der Kontoinhaber kann diese Angaben ändern. Lehnen Sie die Einreichung mit einer Begründung ab, damit sie korrigiert und neu eingereicht werden kann."
+      "readOnlyNote": "Nur der Kontoinhaber kann diese Angaben ändern. Lehnen Sie die Einreichung mit einer Begründung ab, damit sie korrigiert und neu eingereicht werden kann.",
+      "incomplete": "Identität unvollständig. Alle vier Passfelder müssen ausgefüllt sein, damit zur Prüfung eingereicht werden kann — das Genehmigen von Dateien hebt das nicht auf."
     },
     "company": {
       "title": "Unternehmen",
@@ -175,11 +176,13 @@
     },
     "decision": {
       "title": "Entscheidung",
-      "notInReview": "Diese Einreichung wartet derzeit nicht auf eine Entscheidung.",
       "approve": "Dokumente genehmigen",
       "reject": "Einreichung ablehnen",
       "rejectPlaceholder": "Teilen Sie mit, was vor der erneuten Einreichung zu korrigieren ist.",
-      "rejectConfirm": "Einreichung ablehnen"
+      "rejectConfirm": "Einreichung ablehnen",
+      "waitingForSubmission": "Die Dokumente wurden noch nicht zur Prüfung eingereicht. Einzelne Dateien hier zu genehmigen ändert das nicht — die Entscheidung wird möglich, sobald eingereicht wurde.",
+      "rejectedWaiting": "Abgelehnt. Es wird darauf gewartet, dass die Beanstandungen behoben und erneut eingereicht werden.",
+      "alreadyDecided": "Über diese Einreichung wurde bereits entschieden."
     },
     "contract": {
       "title": "Vertrag",
@@ -204,7 +207,9 @@
       "openSigned": "Unterschriebenen Vertrag öffnen",
       "renew": "Verlängern",
       "renewNote": "Beim Verlängern wird ein neuer Vertrag erstellt, der übernimmt, wenn dieser endet.",
-      "continuesFrom": "Deckung läuft ab {date} weiter."
+      "continuesFrom": "Deckung läuft ab {date} weiter.",
+      "notSubmittedNote": "Die Dokumente wurden noch nicht zur Prüfung eingereicht — es gibt nichts zu genehmigen und keinen Vertrag zu erstellen.",
+      "rejectedNote": "Sie haben diese Einreichung abgelehnt. Ein Vertrag kann erstellt werden, sobald erneut eingereicht und genehmigt wurde."
     },
     "backToOwnerDocs": "Zurück zu Eigentümerdokumenten",
     "ownerListTitle": "Eigentümerdokumente",

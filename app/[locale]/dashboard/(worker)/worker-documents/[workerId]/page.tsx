@@ -172,6 +172,7 @@ export default function WorkerDocsDetailPage() {
       contract={
         <ContractPanel
           variant="worker"
+          status={worker.onboardingStatus}
           subjectName={name}
           subjectContact={worker.phoneNumber ?? worker.email ?? null}
           canAuthor={canAuthorContract(worker.onboardingStatus) || renewing}
@@ -201,6 +202,7 @@ export default function WorkerDocsDetailPage() {
               docs={docs.data ?? []}
               isLoading={docs.isLoading}
               locale={locale}
+              status={worker.onboardingStatus}
               canDecideAccount={canDecide(worker.onboardingStatus)}
               onApproveDoc={(docId) => approveDoc.mutate(docId)}
               onRejectDoc={(docId, reason) => rejectDoc.mutate({ docId, reason })}

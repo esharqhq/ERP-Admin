@@ -92,6 +92,13 @@ export function IdentityPanel({
   const licenseExpiry =
     identity && "licenseExpiry" in identity ? identity.licenseExpiry : null;
 
+  /** All four are required before the subject can submit for review at all. */
+  const incomplete =
+    !identity?.firstName?.trim() ||
+    !identity?.lastName?.trim() ||
+    !identity?.passportNumber?.trim() ||
+    !identity?.passportExpiry;
+
   return (
     <div className="flex flex-col gap-4">
       <section className="flex flex-col gap-3">
@@ -155,6 +162,15 @@ export function IdentityPanel({
             </div>
           )}
         </section>
+      )}
+
+      {incomplete && (
+        /* The real blocker at the start of the flow: these four fields are a
+           precondition of the subject's own submit, so an empty block means nothing
+           is coming for review yet — no admin action substitutes for it. */
+        <p className="rounded-md border border-amber-500/40 bg-amber-500/10 p-2 text-xs text-amber-700 dark:text-amber-400">
+          {t("identity.incomplete")}
+        </p>
       )}
 
       <p className="text-xs text-muted-foreground">{t("identity.readOnlyNote")}</p>

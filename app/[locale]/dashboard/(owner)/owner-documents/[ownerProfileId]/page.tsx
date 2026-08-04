@@ -178,6 +178,7 @@ export default function OwnerDocsDetailPage() {
       contract={
         <ContractPanel
           variant="owner"
+          status={owner.onboardingStatus}
           subjectName={name}
           subjectContact={null}
           canAuthor={canAuthorContract(owner.onboardingStatus) || renewing}
@@ -214,6 +215,7 @@ export default function OwnerDocsDetailPage() {
               docs={owner.documents ?? []}
               isLoading={false}
               locale={locale}
+              status={owner.onboardingStatus}
               canDecideAccount={canDecide(owner.onboardingStatus)}
               onApproveDoc={(docId) => approveDoc.mutate(docId)}
               onRejectDoc={(docId, reason) => rejectDoc.mutate({ docId, reason })}

@@ -144,7 +144,8 @@
       "licenseExpiry": "Licence expires",
       "expired": "Expired",
       "expiresInDays": "{days} days left",
-      "readOnlyNote": "Only the account holder can change these. To correct them, reject the submission with a reason so they can edit and re-submit."
+      "readOnlyNote": "Only the account holder can change these. To correct them, reject the submission with a reason so they can edit and re-submit.",
+      "incomplete": "Identity is incomplete. All four passport fields must be filled before they can submit for review — approving files won't unblock it."
     },
     "company": {
       "title": "Company",
@@ -175,11 +176,13 @@
     },
     "decision": {
       "title": "Decision",
-      "notInReview": "This submission is not awaiting a decision right now.",
       "approve": "Approve documents",
       "reject": "Reject submission",
       "rejectPlaceholder": "Tell them what to fix before re-submitting.",
-      "rejectConfirm": "Reject submission"
+      "rejectConfirm": "Reject submission",
+      "waitingForSubmission": "They haven't submitted these documents for review yet. Approving files here doesn't change that — the decision opens once they submit.",
+      "rejectedWaiting": "Rejected. Waiting for them to fix what you flagged and submit again.",
+      "alreadyDecided": "This submission has already been decided."
     },
     "contract": {
       "title": "Contract",
@@ -204,7 +207,9 @@
       "openSigned": "Open signed contract",
       "renew": "Renew",
       "renewNote": "Renewing writes a new contract that takes over when this one ends.",
-      "continuesFrom": "Cover continues from {date}."
+      "continuesFrom": "Cover continues from {date}.",
+      "notSubmittedNote": "They haven't submitted their documents for review yet, so there is nothing to approve and no contract to write.",
+      "rejectedNote": "You rejected this submission. A contract can be written once they re-submit and you approve it."
     },
     "backToOwnerDocs": "Back to owner documents",
     "ownerListTitle": "Owner documents",
