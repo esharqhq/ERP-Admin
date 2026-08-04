@@ -1,9 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -15,13 +13,19 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Search, FolderOpen } from "lucide-react";
+import { Search, ChevronRight } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useWorkers } from "@/hooks/use-workers";
 import type { WorkerRowDto } from "@/lib/types/worker.types";
 import type { OnboardingStatus } from "@/lib/types/onboarding.types";
 import { onboardingStatusPresentation } from "@/lib/onboarding/status";
+import { describeApiError, isPermissionDenied } from "@/lib/onboarding/errors";
 import { DEFAULT_PAGE_SIZE } from "@/lib/types/paged.types";
+import { WorkerDocReview } from "@/components/workers/worker-doc-review";
+import { cn } from "@/lib/utils";
+
+/** Keeps the expanded review row spanning the whole table. */
+const COLUMN_COUNT = 5;
 
 type FilterTab = "all" | "approved" | "pending";
 
@@ -43,40 +47,69 @@ function StatusBadge({ status }: { status: WorkerRowDto["onboardingStatus"] }) {
   );
 }
 
+/**
+ * Expands in place to review the worker's documents, mirroring the owner queue's
+ * `components/kyc/kyc-row.tsx`. It used to carry a "Documents" button that navigated
+ * to the worker **detail** page — which meant the two document screens behaved
+ * differently for the same job. Phase 1's Docs workspace replaces both with one
+ * component; until then they at least behave alike.
+ */
 function WorkerRow({ worker, locale }: { worker: WorkerRowDto; locale: string }) {
+  const [expanded, setExpanded] = useState(false);
+
   return (
-    <TableRow className="hover:bg-accent/40">
-      <TableCell className="py-3 font-medium">
-        {worker.fullName ?? "—"}
-      </TableCell>
-      <TableCell className="text-sm text-muted-foreground">
-        {worker.phoneNumber ?? worker.email ?? "—"}
-      </TableCell>
-      <TableCell className="text-sm text-muted-foreground">
-        {formatDate(worker.createdAt, locale)}
-      </TableCell>
-      <TableCell>
-        <StatusBadge status={worker.onboardingStatus} />
-      </TableCell>
-      <TableCell className="text-right">
-        <Button
-          size="sm"
-          variant="ghost"
-          nativeButton={false}
-          className="gap-1.5 text-muted-foreground"
-          render={<Link href={`/dashboard/workers/${worker.id}`} />}
-        >
-          <FolderOpen className="size-3.5" />
-          Documents
-        </Button>
-      </TableCell>
-    </TableRow>
+    <>
+      <TableRow
+        className="cursor-pointer hover:bg-accent/40"
+        onClick={() => setExpanded((v) => !v)}
+        tabIndex={0}
+        aria-expanded={expanded}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setExpanded((v) => !v);
+          }
+        }}
+      >
+        <TableCell className="py-3 font-medium">
+          <div className="flex items-center gap-3">
+            <ChevronRight
+              className={cn(
+                "size-4 shrink-0 text-muted-foreground transition-transform",
+                expanded && "rotate-90",
+              )}
+            />
+            {worker.fullName ?? "—"}
+          </div>
+        </TableCell>
+        <TableCell className="text-sm text-muted-foreground">
+          {worker.phoneNumber ?? worker.email ?? "—"}
+        </TableCell>
+        <TableCell className="text-sm text-muted-foreground">
+          {formatDate(worker.createdAt, locale)}
+        </TableCell>
+        <TableCell>
+          <StatusBadge status={worker.onboardingStatus} />
+        </TableCell>
+        {/* Empty cell where the navigation button used to be — keeps the 5-column grid aligned. */}
+        <TableCell />
+      </TableRow>
+
+      {expanded && (
+        <TableRow className="hover:bg-transparent">
+          <TableCell colSpan={COLUMN_COUNT} className="p-0">
+            <WorkerDocReview workerId={worker.id} />
+          </TableCell>
+        </TableRow>
+      )}
+    </>
   );
 }
 
 export default function WorkerDocumentsPage() {
   const t = useTranslations("workers");
   const tStatus = useTranslations("status");
+  const tOnboarding = useTranslations("onboarding");
   const locale = useLocale();
   const [tab, setTab] = useState<FilterTab>("all");
   const [search, setSearch] = useState("");
@@ -85,7 +118,11 @@ export default function WorkerDocumentsPage() {
   const onboardingStatus: OnboardingStatus | undefined =
     tab === "approved" ? "Active" : tab === "pending" ? "Review" : undefined;
 
-  const { data: page, isLoading } = useWorkers({
+  const {
+    data: page,
+    isLoading,
+    error,
+  } = useWorkers({
     onboardingStatus,
     pageSize: DEFAULT_PAGE_SIZE,
   });
@@ -167,11 +204,26 @@ export default function WorkerDocumentsPage() {
               {isLoading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <TableRow key={i}>
-                    <TableCell colSpan={5}>
+                    <TableCell colSpan={COLUMN_COUNT}>
                       <Skeleton className="h-8 w-full rounded-md" />
                     </TableCell>
                   </TableRow>
                 ))
+              ) : error ? (
+                /* Without this branch a failed request is indistinguishable from
+                   "this admin has no workers" — the table just renders empty. */
+                <TableRow>
+                  <TableCell
+                    colSpan={COLUMN_COUNT}
+                    className="py-10 text-center text-sm text-destructive"
+                  >
+                    {isPermissionDenied(error)
+                      ? tOnboarding("permissionDenied")
+                      : tOnboarding(
+                          `apiErrors.${describeApiError(error)?.labelKey ?? "unknown"}`,
+                        )}
+                  </TableCell>
+                </TableRow>
               ) : filtered.length === 0 ? (
                 <TableRow>
                   <TableCell

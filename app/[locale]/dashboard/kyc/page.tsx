@@ -16,6 +16,7 @@ import { Search } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useKycList, useApproveKyc, useRejectKyc } from "@/hooks/use-kyc";
 import { KycRow } from "@/components/kyc/kyc-row";
+import { describeApiError, isPermissionDenied } from "@/lib/onboarding/errors";
 import type { OnboardingStatus } from "@/lib/types/onboarding.types";
 
 type FilterTab = "all" | "review" | "approved" | "rejected";
@@ -35,7 +36,11 @@ export default function KycPage() {
   const [tab, setTab] = useState<FilterTab>("all");
   const [search, setSearch] = useState("");
 
-  const { data: kycList = [], isLoading } = useKycList(tabStatusMap[tab]);
+  const {
+    data: kycList = [],
+    isLoading,
+    error,
+  } = useKycList(tabStatusMap[tab]);
   const approveMutation = useApproveKyc();
   const rejectMutation = useRejectKyc();
 
@@ -119,6 +124,21 @@ export default function KycPage() {
                     </TableCell>
                   </TableRow>
                 ))
+              ) : error ? (
+                /* Without this branch a failed request is indistinguishable from
+                   "no owners have submitted" — the table just renders empty. */
+                <TableRow>
+                  <TableCell
+                    colSpan={5}
+                    className="py-10 text-center text-sm text-destructive"
+                  >
+                    {isPermissionDenied(error)
+                      ? tOnboarding("permissionDenied")
+                      : tOnboarding(
+                          `apiErrors.${describeApiError(error)?.labelKey ?? "unknown"}`,
+                        )}
+                  </TableCell>
+                </TableRow>
               ) : filtered.length === 0 ? (
                 <TableRow>
                   <TableCell
