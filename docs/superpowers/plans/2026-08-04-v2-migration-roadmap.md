@@ -80,7 +80,7 @@ A gate is a condition, not a ceremony. If it is red, the phase does not start.
 | **G1** | Live API reachable and `npm run verify:api` reports `ALL PASS` on the public (unauthenticated) half | worker | Phase 0 Task 1 |
 | **G2** | `ERP_ADMIN_EMAIL` / `ERP_ADMIN_PASSWORD` available, authenticated half of `verify-v2.mjs` passes | **user** (provide credentials) | Phase 0 Task 8, all of Phase 1 |
 | **G3** | Explicit user approval to set `contract.template.approved = true` on the **shared deployment**, plus a dedicated **test owner** and **test worker** account (email + password for each) | **user** | Phase 1's send/sign verification only — the UI work proceeds without it |
-| **G4** | Phase 0 gate task green: `tsc` + `lint` + `build` clean, dead-vocabulary sweep empty, live check passing | worker | Phases 1, 3, 4 |
+| **G4** | Phase 0 gate task green: `tsc` and `build` clean, **no lint finding attributable to this phase** (see the pre-existing-issues section — `lint` itself exits 1 and has since June 2026), dead-vocabulary sweep empty, live check passing | worker | Phases 1, 3, 4 |
 | **G5** | Phase 1 merged and the full owner+worker journey verified once against live | worker | Phase 2 |
 | **G6** | FND-2 `targetUserType` owner literal (`"Owner"` vs `"OwnerUser"`) confirmed with one live call | worker | Phase 4's ticket dialog only |
 
@@ -162,32 +162,33 @@ if missing, not a nice-to-have.
    `["notifications"]` (an approval produces bell rows for other admins). Never invalidate a
    still-mounted detail query for a record that was just soft-deleted — the repo already documents
    that trap in `hooks/use-owners.ts`.
-3. **The admin contract list is fetched once, selected per subject.** `GET /api/contracts/admin/{side}`
+3. **First thing to fix on the contracts screen: it still gates on `isActive`.** `app/[locale]/dashboard/contracts/page.tsx` renders its badge and its renew/terminate affordances from `r.isActive`, and `phase` is not even mapped onto its row type. `isActive` is a mirror reconciled hourly; `phase` is computed live. This predates `phase` existing on the DTO and Phase 0 deliberately left it alone ("change only what the compiler forces"), but it is the literal thing the global constraint warns against — map `phase` onto the row and drive every affordance off it before adding anything to that screen.
+4. **The admin contract list is fetched once, selected per subject.** `GET /api/contracts/admin/{side}`
    is unpaginated and returns every subject's rows. Hold it under one query key and derive the
    subject's rows with react-query's `select`; do **not** refetch the whole list on every detail
    open.
-4. **The 70/30 split collapses.** Two columns at `lg` and above; below that the documents panel moves
+5. **The 70/30 split collapses.** Two columns at `lg` and above; below that the documents panel moves
    **above** the contract form (documents are read first) and both go full width. The page body never
    scrolls horizontally.
-5. **Every panel has four states.** Skeleton (reuse `components/ui/skeleton.tsx`), empty (with copy
+6. **Every panel has four states.** Skeleton (reuse `components/ui/skeleton.tsx`), empty (with copy
    that says what to do next), error (with a retry), and loaded. "Loading…" text is not a state.
-6. **Search feels identical on both sides.** 300 ms debounce on both; the owner side filters an
+7. **Search feels identical on both sides.** 300 ms debounce on both; the owner side filters an
    in-memory array, the worker side issues a request — the pending indicator must appear on both so
    the two screens behave the same to the admin.
-7. **One `useSignedPdf` helper for `previewUrl` / `documentUrl`.** Follow the URL, never persist it;
+8. **One `useSignedPdf` helper for `previewUrl` / `documentUrl`.** Follow the URL, never persist it;
    on 404 re-read the contract once and retry with the fresh URL; on the second 404 stop and surface
    "this document is missing" (it means a genuine backend problem). No retry loops.
-8. **Every date leaves through one `toUtcIso()` helper.** A naive datetime is a 500 with no parseable
+9. **Every date leaves through one `toUtcIso()` helper.** A naive datetime is a 500 with no parseable
    body, so there must be exactly one place that serializes contract dates.
-9. **Deleting `/dashboard/kyc` requires two follow-ups in the same task:** a redirect from
+10. **Deleting `/dashboard/kyc` requires two follow-ups in the same task:** a redirect from
    `/dashboard/kyc` → `/dashboard/owner-documents` so existing bookmarks and any external link keep
    working, and repointing `notificationRoute`'s `OwnerProfile` case to
    `/dashboard/owner-documents/{entityId}`. Also delete the now-dead `owners.kyc.*` i18n keys the old
    page owned (`allTab`, `documents`, `documentsEmpty`, …) in **both** locales.
-10. **The worker Docs table has no document-count column at all** — `WorkerRowDto` has no such field,
+11. **The worker Docs table has no document-count column at all** — `WorkerRowDto` has no such field,
     and a column of dashes reads as missing data. The owner table shows it; the shared table takes the
     column set from the adapter.
-11. **F-03·1 rules the panels must carry** (spec §4.2, §18):
+12. **F-03·1 rules the panels must carry** (spec §4.2, §18):
     - Identity and company are **read-only here, always** — only the subject writes them, only while at
       `Kyc`/`Rejected`, and **no admin correction endpoint exists**. Where an admin would look for an
       edit affordance, state the loop instead: reject with a reason → the subject edits → the subject
@@ -199,7 +200,7 @@ if missing, not a nice-to-have.
     - `CompanyType` renders through `companyTypeLabelKey` — never the raw enum member.
     - A per-document reject can fail model validation *before* the service guard, returning a
       model-validation body instead of `{"error": …}`. Require the reason client-side.
-12. **Reuse, don't re-invent.** `data-table-card`, `table-pagination`, `sortable-table-head`,
+13. **Reuse, don't re-invent.** `data-table-card`, `table-pagination`, `sortable-table-head`,
     `filter-menu`, `dialog`, `sheet`, `tabs`, `skeleton` already exist. A new primitive that
     duplicates one of these, a new dependency, or hardcoded colors instead of the `globals.css`
     tokens is a rejection. Dark mode must work because the tokens are used, not because it was
@@ -219,7 +220,7 @@ if missing, not a nice-to-have.
 | 7b | **F-03·1** `identity-panel.tsx` + `company-panel.tsx` — read-only passport block and the conditional company block; `company: null` renders as "natural person", never an empty form; `CompanyType` through `companyTypeLabelKey`; flag a passport/licence expiry that is past or within 30 days | `general-purpose` + `frontend-design` |
 | 7c | **F-03·1** `document-review-actions.tsx` — per-document ✓/✕ with a required reason, identical on both sides, on the account-level permissions. Must state that per-document decisions are **silent** (no notification) and do **not** move `onboardingStatus`; visually separated from the bundle actions | `general-purpose` + `frontend-design` |
 | 8 | `review-actions.tsx` — account-level Approve / Reject+reason, enabled only at `Review`, `prefill` captured from the response. Copy must tell the admin this is the step that actually notifies the subject | `general-purpose` |
-| 9 | `contract-form.tsx` — owner 8 fields / worker 4, `toUtcIso()` on every date, re-seed from the response (snapped `eligibleFrom`), presign under `contract-sources` | `general-purpose` + `frontend-design` |
+| 9 | `contract-form.tsx` — owner 8 fields / worker 4, `toUtcIso()` on every date, re-seed from the response (snapped `eligibleFrom`), presign under `contract-sources`. ⚠ **Fixing a live bug:** the current `components/contracts/contract-form-dialog.tsx:67` calls `useUpload("contracts")`, and the `contracts/` prefix is signature-protected while `fileUrl` is never signed — so every source file uploaded through it 404s for everyone, including the admin who uploaded it. The replacement must presign under a distinct category (`contract-sources`), and this must not be dropped when the dialog is retired | `general-purpose` + `frontend-design` |
 | 10 | `contract-state-panel.tsx` — Sent/Scheduled/InForce rendering, `previewUrl`/`documentUrl` follow-don't-cache with one retry, `renewalStartsAt` copy, Renew entry point | `general-purpose` + `frontend-design` |
 | 11 | `subject-detail.tsx` — the 70/30 layout wiring 6–10 together; `use-docs-workspace.ts` orchestration | `general-purpose` + `frontend-design` |
 | 12 | Detail routes `[ownerProfileId]` / `[workerId]`; owner term fields become required in `CreateOwnerContractRequest` | `general-purpose` |
