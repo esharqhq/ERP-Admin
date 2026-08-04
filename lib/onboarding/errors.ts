@@ -102,12 +102,18 @@ function status(err: unknown): number | null {
   return err instanceof AxiosError ? (err.response?.status ?? null) : null;
 }
 
+/** True for the middleware's fall-through shape, `{"error":"forbidden",...}` — with or without `detail`. */
+function isForbiddenShape(err: unknown): boolean {
+  if (!(err instanceof AxiosError)) return false;
+  const data = err.response?.data as { error?: unknown } | undefined;
+  return data?.error === "forbidden";
+}
+
 /** The middleware's fall-through shape puts the real code in `detail`, not `error`. */
 function forbiddenDetail(err: unknown): string | null {
-  if (!(err instanceof AxiosError)) return null;
-  const data = err.response?.data as { error?: unknown; detail?: unknown } | undefined;
-  if (data?.error !== "forbidden") return null;
-  return typeof data.detail === "string" ? data.detail : null;
+  if (!isForbiddenShape(err)) return null;
+  const data = (err as AxiosError).response?.data as { detail?: unknown } | undefined;
+  return typeof data?.detail === "string" ? data.detail : null;
 }
 
 export function describeApiError(err: unknown): ApiErrorInfo | null {
@@ -123,22 +129,26 @@ export function describeApiError(err: unknown): ApiErrorInfo | null {
 
 /**
  * An **empty** 403 body means the permission filter refused: the caller's role lacks
- * the permission. The middleware's `{"error":"forbidden","detail":…}` shape means the
- * same thing — an authorization failure that simply wasn't mapped by its controller —
- * so it counts here too, even though a body is present.
+ * the permission. The middleware's `{"error":"forbidden",...}` shape means the same
+ * thing — an authorization failure that simply wasn't mapped by its controller — so it
+ * counts here too, regardless of whether a `detail` code rode along.
  */
 export function isPermissionDenied(err: unknown): boolean {
   if (status(err) !== 403) return false;
-  return getApiErrorCode(err) === null || forbiddenDetail(err) !== null;
+  return getApiErrorCode(err) === null || isForbiddenShape(err);
 }
 
 /**
  * A 403 **with** a gate code is the ACTIVE gate: the caller is permitted, but the
  * subject has no signed contract covering today. Copy must talk about the subject's
- * contract — and `contract_not_yet_active` must never say "expired".
+ * contract — and `contract_not_yet_active` must never say "expired". Requires the
+ * resolved code to actually be a cataloged `"gate"` code — an unmapped or unexpected
+ * 403 (including the middleware's bare `forbidden` shape) is never reported as one.
  */
 export function isGateRefusal(err: unknown): boolean {
   if (status(err) !== 403) return false;
-  if (forbiddenDetail(err) !== null) return false;
-  return getApiErrorCode(err) !== null;
+  if (isForbiddenShape(err)) return false;
+  const code = getApiErrorCode(err);
+  if (!code) return false;
+  return CATALOG[code]?.reaction === "gate";
 }

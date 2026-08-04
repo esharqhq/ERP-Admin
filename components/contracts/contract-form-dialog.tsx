@@ -64,7 +64,7 @@ export function ContractFormDialog({
   const [to, setTo] = useState("");
   const [file, setFile] = useState<File | null>(null);
 
-  const upload = useUpload("contracts");
+  const upload = useUpload("contract-sources");
   const [uploadFailed, setUploadFailed] = useState(false);
 
   const datesValid = !!from && !!to && from <= to;

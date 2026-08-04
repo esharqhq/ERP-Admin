@@ -23,7 +23,13 @@ export function useApproveKyc() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (ownerProfileId: string) => kycService.approve(ownerProfileId),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["kyc"] }),
+    // Invalidate both react-query caches over GET /api/admin/kyc: this hook's own
+    // ["kyc"] list and the ["owners"] cache the Properties owner picker reads
+    // (hooks/use-owners.ts) — else a just-approved owner stays stale there.
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["kyc"] });
+      qc.invalidateQueries({ queryKey: ["owners"] });
+    },
   });
 }
 
@@ -32,6 +38,9 @@ export function useRejectKyc() {
   return useMutation({
     mutationFn: ({ ownerProfileId, reason }: { ownerProfileId: string; reason: string }) =>
       kycService.reject(ownerProfileId, { reason }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["kyc"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["kyc"] });
+      qc.invalidateQueries({ queryKey: ["owners"] });
+    },
   });
 }

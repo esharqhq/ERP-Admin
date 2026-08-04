@@ -1,8 +1,5 @@
 import { apiClient } from "@/lib/http/client";
-import type {
-  KycProfileSummaryDto,
-  KycApprovalDto,
-} from "@/lib/types/kyc.types";
+import type { KycProfileSummaryDto } from "@/lib/types/kyc.types";
 import type { OwnerSummaryDto } from "@/lib/types/owner.types";
 import type { PropertyDto } from "@/lib/types/property.types";
 import type { TaskGroupDto } from "@/lib/types/task.types";
@@ -13,21 +10,6 @@ export const ownerService = {
   getOwnerList: async (status?: string): Promise<KycProfileSummaryDto[]> => {
     const params = status !== undefined ? { status } : {};
     const { data } = await apiClient.get<KycProfileSummaryDto[]>("/api/admin/kyc", { params });
-    return data;
-  },
-
-  approveKyc: async (ownerProfileId: string): Promise<KycApprovalDto> => {
-    const { data } = await apiClient.post<KycApprovalDto>(
-      `/api/admin/kyc/${ownerProfileId}/approve`,
-    );
-    return data;
-  },
-
-  rejectKyc: async (ownerProfileId: string, reason: string): Promise<KycApprovalDto> => {
-    const { data } = await apiClient.post<KycApprovalDto>(
-      `/api/admin/kyc/${ownerProfileId}/reject`,
-      { reason },
-    );
     return data;
   },
 

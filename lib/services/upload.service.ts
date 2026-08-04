@@ -18,7 +18,7 @@ function toAbsolute(url: string): string {
 }
 
 export const uploadService = {
-  /** Step 1 — mint a presigned upload URL for a category (e.g. "contracts", "kyc"). */
+  /** Step 1 — mint a presigned upload URL for a category (e.g. "contract-sources", "kyc"). */
   presign: async (
     category: string,
     file: File,
