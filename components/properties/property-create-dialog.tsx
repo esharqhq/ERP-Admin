@@ -46,17 +46,16 @@ export function PropertyCreateDialog({ open, onClose, pending, error, onSubmit }
   const t = useTranslations("properties");
   const tCommon = useTranslations("common");
 
-  // KYC-profile owners are the BOSS owners; approved (or further along the
-  // onboarding pipeline) ⇒ eligible to own a property.
+  // KYC-profile owners are the BOSS owners. Creating a property for an owner
+  // whose contract isn't covering today is refused by the server's live ACTIVE
+  // gate (403), so only offer owners who are `Active` — `Approved` (no contract
+  // authored yet) and `Contract` (sent, not yet InForce) would foreseeably 403.
+  // `Active` is the stored projection and can lag real cover by up to an hour;
+  // the 403 handler below remains the real guard for that edge.
   const { data: ownerRows = [], isLoading: ownersLoading } = useOwnerList();
   // `items` lets <SelectValue> render the owner's NAME in the trigger instead of the raw id.
   const ownerItems = ownerRows
-    .filter(
-      (o) =>
-        o.onboardingStatus === "Approved" ||
-        o.onboardingStatus === "Contract" ||
-        o.onboardingStatus === "Active",
-    )
+    .filter((o) => o.onboardingStatus === "Active")
     .map((o) => ({
       value: o.ownerUserId,
       label: o.ownerName ?? o.ownerEmail ?? o.ownerUserId.slice(0, 8),
