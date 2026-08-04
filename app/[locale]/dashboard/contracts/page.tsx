@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { Plus, FileText, RefreshCw, Ban } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -37,7 +37,11 @@ import { useWorkers } from "@/hooks/use-workers";
 import { getApiErrorCode } from "@/lib/http/api-error";
 import { canAuthorContract } from "@/lib/onboarding/status";
 import { MAX_PAGE_SIZE } from "@/lib/types/paged.types";
-import type { ContractType, CreateContractRequest } from "@/lib/types/contract.types";
+import { newIdempotencyKey } from "@/lib/services/contract.service";
+import type {
+  ContractPeriodFields,
+  ContractType,
+} from "@/lib/types/contract.types";
 
 const KNOWN_ERRORS = new Set([
   "no_active_contract_to_renew",
@@ -50,12 +54,12 @@ const KNOWN_ERRORS = new Set([
 interface Row {
   contractId: string;
   partyId: string;
-  partyName: string;
-  partyEmail: string;
+  partyName: string | null;
+  partyEmail: string | null;
   eligibleFrom: string;
   eligibleTo: string;
-  fileName: string;
-  fileUrl: string;
+  fileName: string | null;
+  fileUrl: string | null;
   isActive: boolean;
   createdAt: string;
 }
@@ -79,6 +83,10 @@ export default function ContractsPage() {
   const locale = useLocale();
   const [tab, setTab] = useState<ContractType>("owner");
   const [modal, setModal] = useState<ModalState>(null);
+  // Minted once per renewal attempt (opening the renew dialog), reused across any
+  // retries of that same attempt — never regenerated per submit or per render, or a
+  // retry would author a second contract instead of replaying the cached one.
+  const renewIdempotencyKeyRef = useRef<string | null>(null);
 
   const ownerContracts = useOwnerContracts();
   const workerContracts = useWorkerContracts();
@@ -176,10 +184,16 @@ export default function ContractsPage() {
 
   const close = () => {
     setModal(null);
+    renewIdempotencyKeyRef.current = null;
     createMut.reset();
     renewMut.reset();
     deactivateMut.reset();
   };
+
+  function openRenew(row: Row) {
+    renewIdempotencyKeyRef.current = newIdempotencyKey();
+    setModal({ type: "renew", row });
+  }
 
   function mapError(err: unknown): string {
     const code = getApiErrorCode(err);
@@ -297,7 +311,7 @@ export default function ContractsPage() {
                     </TableCell>
                     <TableCell>
                       <a
-                        href={r.fileUrl}
+                        href={r.fileUrl ?? undefined}
                         target="_blank"
                         rel="noreferrer"
                         className="inline-flex items-center gap-1.5 text-sm text-muted-foreground underline-offset-2 hover:underline"
@@ -317,7 +331,7 @@ export default function ContractsPage() {
                               variant="ghost"
                               size="icon-sm"
                               title={t("form.renew")}
-                              onClick={() => setModal({ type: "renew", row: r })}
+                              onClick={() => openRenew(r)}
                             >
                               <RefreshCw className="size-4" />
                             </Button>
@@ -356,7 +370,7 @@ export default function ContractsPage() {
           parties={parties}
           pending={createMut.isPending}
           error={formError}
-          onSubmit={(partyId, body: CreateContractRequest) => {
+          onSubmit={(partyId, body: ContractPeriodFields) => {
             if (isOwner) {
               createOwner.mutate(
                 { ownerUserId: partyId, body },
@@ -377,18 +391,26 @@ export default function ContractsPage() {
           open
           mode="renew"
           onClose={close}
-          fixedParty={{ id: modal.row.partyId, name: modal.row.partyName }}
+          fixedParty={{
+            id: modal.row.partyId,
+            name: modal.row.partyName ?? modal.row.partyId.slice(0, 8),
+          }}
           pending={renewMut.isPending}
           error={formError}
-          onSubmit={(partyId, body: CreateContractRequest) => {
+          onSubmit={(partyId, body: ContractPeriodFields) => {
+            // Minted once when the renew dialog opened (openRenew) and held for the
+            // lifetime of this attempt — reused here even across retries.
+            const idempotencyKey =
+              renewIdempotencyKeyRef.current ?? newIdempotencyKey();
+            renewIdempotencyKeyRef.current = idempotencyKey;
             if (isOwner) {
               renewOwner.mutate(
-                { ownerUserId: partyId, body },
+                { ownerUserId: partyId, body, idempotencyKey },
                 { onSuccess: close },
               );
             } else {
               renewWorker.mutate(
-                { workerId: partyId, body },
+                { workerId: partyId, body, idempotencyKey },
                 { onSuccess: close },
               );
             }
@@ -402,7 +424,9 @@ export default function ContractsPage() {
           onClose={close}
           isPending={deactivateMut.isPending}
           title={t("deactivateTitle")}
-          description={t("deactivateConfirm", { name: modal.row.partyName })}
+          description={t("deactivateConfirm", {
+            name: modal.row.partyName ?? modal.row.partyId.slice(0, 8),
+          })}
           confirmLabel={t("deactivate")}
           destructive
           onConfirm={() =>

@@ -12,20 +12,9 @@ import {
   useMarkRead,
   useMarkAllRead,
 } from "@/hooks/use-notifications";
-import type { NotificationEntityType } from "@/lib/types/notification.types";
+import { notificationRoute } from "@/lib/notifications/route";
 
 type Filter = "all" | "unread";
-
-function entityRoute(
-  entityType: NotificationEntityType | null,
-  entityId: string | null,
-): string | null {
-  if (!entityType || !entityId) return null;
-  if (entityType === "Worker") return `/dashboard/workers/${entityId}`;
-  if (entityType === "OwnerProfile") return `/dashboard/kyc`;
-  if (entityType === "Property") return `/dashboard/properties/${entityId}`;
-  return null;
-}
 
 function relativeTime(createdAt: string): string {
   const mins = Math.floor((Date.now() - new Date(createdAt).getTime()) / 60000);
@@ -128,7 +117,7 @@ export default function NotificationsPage() {
           </div>
         ) : (
           notifications.map((n) => {
-            const route = entityRoute(n.entityType, n.entityId);
+            const route = notificationRoute(n.entityType, n.entityId);
             return (
               <div
                 key={n.id}

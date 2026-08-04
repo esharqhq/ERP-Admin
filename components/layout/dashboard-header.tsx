@@ -34,7 +34,7 @@ import {
     useMarkRead,
     useMarkAllRead,
 } from "@/hooks/use-notifications";
-import type {NotificationEntityType} from "@/lib/types/notification.types";
+import {notificationRoute} from "@/lib/notifications/route";
 
 function relativeTime(createdAt: string): string {
     const mins = Math.floor((Date.now() - new Date(createdAt).getTime()) / 60000);
@@ -43,14 +43,6 @@ function relativeTime(createdAt: string): string {
     const hrs = Math.floor(mins / 60);
     if (hrs < 24) return `${hrs}h ago`;
     return `${Math.floor(hrs / 24)}d ago`;
-}
-
-function entityRoute(entityType: NotificationEntityType | null, entityId: string | null): string | null {
-    if (!entityType || !entityId) return null;
-    if (entityType === "Worker") return `/dashboard/workers/${entityId}`;
-    if (entityType === "OwnerProfile") return `/dashboard/kyc`;
-    if (entityType === "Property") return `/dashboard/properties/${entityId}`;
-    return null;
 }
 
 export function DashboardHeader() {
@@ -139,7 +131,7 @@ export function DashboardHeader() {
                             ) : (
                                 <>
                                     {notifications.map((n) => {
-                                        const route = entityRoute(n.entityType, n.entityId);
+                                        const route = notificationRoute(n.entityType, n.entityId);
                                         return (
                                             <DropdownMenuItem
                                                 key={n.id}

@@ -1,9 +1,26 @@
 export type NotificationType =
+  // pre-v2
   | "WorkerApprovalPending"
   | "KycSubmitted"
-  | "PropertyDocsSubmitted";
+  | "PropertyDocsSubmitted"
+  // v2 — admin recipients (subject-only types are deliberately absent)
+  | "WorkerOnboardingSubmitted"
+  | "OwnerContractSigned"
+  | "WorkerContractSigned"
+  | "OwnerContractRejected"
+  | "WorkerContractRejected"
+  | "OnboardingExpiryAdminAlert"
+  | "TicketOpenedByUser"
+  // any type the backend adds later: render the row, do not crash
+  | (string & {});
 
-export type NotificationEntityType = "Worker" | "OwnerProfile" | "Property";
+export type NotificationEntityType =
+  | "Worker"
+  | "OwnerProfile"
+  | "Property"
+  | "OwnerContract"
+  | "WorkerContract"
+  | "SupportTicket";
 
 export type NotificationDto = {
   id: string;

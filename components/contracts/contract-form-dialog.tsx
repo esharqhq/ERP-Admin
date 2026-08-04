@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useUpload } from "@/hooks/use-upload";
-import type { CreateContractRequest } from "@/lib/types/contract.types";
+import type { ContractPeriodFields } from "@/lib/types/contract.types";
 
 export interface ContractParty {
   id: string; // ownerUserId | workerId
@@ -40,7 +40,7 @@ interface Props {
   pending: boolean;
   /** Localized parent-mutation error. */
   error?: string | null;
-  onSubmit: (partyId: string, body: CreateContractRequest) => void;
+  onSubmit: (partyId: string, body: ContractPeriodFields) => void;
 }
 
 function toIso(dateStr: string): string {
