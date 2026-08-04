@@ -1,3 +1,7 @@
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
+
 // Contract check: our TS unions must match the live API's enums, and the DTOs we
 // depend on must still carry the fields we read. Run with: npm run verify:api
 const BASE = process.env.ERP_API ?? "https://germany-erp.esharq.com";
@@ -92,6 +96,38 @@ for (const [route, method] of [
 const renewParams = swagger.paths["/api/contracts/admin/owner/{ownerUserId}/renew"]?.post?.parameters ?? [];
 const idem = renewParams.find((p) => p.name === "X-Idempotency-Key");
 idem?.required ? ok("renew requires X-Idempotency-Key") : bad("renew no longer requires X-Idempotency-Key — re-check the spec");
+
+// ── 6. i18n: every labelKey used by lib/onboarding/* exists in BOTH locales ──
+const REPO = join(dirname(fileURLToPath(import.meta.url)), "..");
+const REQUIRED = {
+  status: ["kyc", "review", "rejected", "approved", "contract", "active", "unknown"],
+  phase: ["draft", "sent", "scheduled", "inForce", "expired", "terminated", "unknown"],
+  apiErrors: ["invalidOnboardingTransition", "rejectionReasonRequired", "kycDocumentsRequired",
+    "workerDocumentsRequired", "subjectNotFound", "documentNotFound", "onboardingNotApproved",
+    "contractAlreadySent", "contractTemplateNotApproved", "contractTemplateMissing",
+    "invalidContractPeriod", "contractPeriodOverlaps", "contractPeriodGap",
+    "noActiveContractToRenew", "invalidContractTransition", "revisionReasonRequired",
+    "contractAlreadyInactive", "contractNotFound", "gateOnboardingIncomplete",
+    "gateContractExpired", "gateContractNotYetActive", "gateContractExpiringImminently",
+    "taskDateBeyondContract", "workerContractEndsBeforeTask", "propertyDocsNotApproved",
+    "invalidSortColumn", "invalidFilterValue", "invalidFormat", "exportTooLarge",
+    "codeExists", "nameExists", "countryNotFound", "invalidTargetType", "targetNotFound",
+    "unknown"],
+  docType: ["passport", "idCard", "residencePermit", "businessLicense",
+    "companyRegistration", "taxCertificate", "other"],
+};
+for (const locale of ["en", "de"]) {
+  const msgs = JSON.parse(readFileSync(join(REPO, "messages", `${locale}.json`), "utf8"));
+  const ns = msgs.onboarding;
+  if (!ns) { bad(`${locale}.json has no "onboarding" namespace`); continue; }
+  for (const [group, keys] of Object.entries(REQUIRED)) {
+    const missing = keys.filter((k) => typeof ns[group]?.[k] !== "string");
+    missing.length
+      ? bad(`${locale}.json onboarding.${group} missing: ${missing.join(", ")}`)
+      : ok(`${locale}.json onboarding.${group}`);
+  }
+  if (typeof ns.permissionDenied !== "string") bad(`${locale}.json onboarding.permissionDenied missing`);
+}
 
 console.log(`\n${failures === 0 ? "ALL PASS" : `${failures} FAILURE(S)`}`);
 process.exit(failures === 0 ? 0 : 1);
