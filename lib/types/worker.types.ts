@@ -1,3 +1,10 @@
+import type {
+  AccountStatusFilter,
+  ContractPrefillDto,
+  OnboardingStatus,
+} from "@/lib/types/onboarding.types";
+import type { PagedQuery } from "@/lib/types/paged.types";
+
 export interface WorkerProfessionDto {
   id: string;
   code: string | null;
@@ -21,16 +28,62 @@ export interface WorkerDocumentDto {
   createdAt: string;
 }
 
-export interface WorkerSummaryDto {
+/** One row of `GET /api/admin/workers` (`PagedResult<WorkerRowDto>`). */
+export interface WorkerRowDto {
   id: string;
   fullName: string | null;
   email: string | null;
   phoneNumber: string | null;
-  isApproved: boolean;
-  isVerified: boolean;
+  /** Coarse account status: Active | Pending | Deleted | Blocked. */
+  status: string | null;
+  onboardingStatus: OnboardingStatus;
+  employeeType: string | null;
+  skills: string[] | null;
   rating: number;
+  experience: number | null;
+  completedTasks: number;
+  /**
+   * Reconciled mirror of the contract's `isActive` flag, refreshed hourly —
+   * can lag real cover by up to an hour. Never use it to decide whether a
+   * worker is covered right now; read their contract list for `phase: "InForce"`.
+   */
+  hasActiveContract: boolean;
+  onTask: boolean;
   createdAt: string;
 }
+
+/**
+ * `GET /api/admin/workers` query. `status` (coarse) and `onboardingStatus`
+ * (exact stage) AND together. `?onboardingStatus=Review` **is** the review queue.
+ */
+export interface WorkerListQuery extends PagedQuery {
+  search?: string;
+  status?: AccountStatusFilter;
+  onboardingStatus?: OnboardingStatus;
+  employeeType?: string;
+  /** Repeatable, match-any. */
+  professionIds?: string[];
+  ratingMin?: number;
+  /** When true, unrated workers are kept alongside the ratingMin set. */
+  includeUnrated?: boolean;
+  experienceMin?: number;
+  experienceMax?: number;
+  completedMin?: number;
+  completedMax?: number;
+  registeredFrom?: string;
+  registeredTo?: string;
+  hasActiveContract?: boolean;
+  onTask?: boolean;
+}
+
+/** `sortBy` whitelist — anything else is `400 invalid_sort_column`. */
+export const WORKER_SORT_COLUMNS = [
+  "fullName",
+  "createdAt",
+  "rating",
+  "experience",
+  "completedTasks",
+] as const;
 
 export interface WorkerDetailDto {
   id: string;
@@ -42,7 +95,9 @@ export interface WorkerDetailDto {
   address: string | null;
   gender: string | null;
   experience: number | null;
-  isApproved: boolean;
+  onboardingStatus: OnboardingStatus;
+  onboardingRejectReason: string | null;
+  onboardingReviewedAt: string | null;
   isVerified: boolean;
   rating: number;
   profilePictureUrl: string | null;
@@ -68,11 +123,14 @@ export interface WorkerRatingDto {
 
 export interface WorkerApprovalDto {
   id: string;
-  isApproved: boolean;
+  onboardingStatus: OnboardingStatus;
+  onboardingRejectReason: string | null;
+  prefill: ContractPrefillDto;
 }
 
+/** `reason` is required since F-03 — empty is `400 rejection_reason_required`. */
 export interface RejectWorkerRequest {
-  reason?: string;
+  reason: string;
 }
 
 export interface RejectWorkerDocRequest {

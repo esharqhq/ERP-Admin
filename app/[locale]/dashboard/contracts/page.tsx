@@ -81,7 +81,11 @@ export default function ContractsPage() {
   const ownerContracts = useOwnerContracts();
   const workerContracts = useWorkerContracts();
   const { data: owners = [] } = useOwnerList();
-  const { data: workers = [] } = useWorkers(true);
+  const { data: workersPage } = useWorkers({
+    onboardingStatus: "Active",
+    pageSize: 100,
+  });
+  const workers = useMemo(() => workersPage?.items ?? [], [workersPage]);
 
   const createOwner = useCreateOwnerContract();
   const renewOwner = useRenewOwnerContract();

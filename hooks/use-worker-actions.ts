@@ -17,8 +17,8 @@ export function useApproveWorker(workerId: string) {
 export function useRejectWorker(workerId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (reason?: string) =>
-      workerService.rejectWorker(workerId, reason ? { reason } : {}),
+    mutationFn: (reason: string) =>
+      workerService.rejectWorker(workerId, { reason }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["worker", workerId] });
       qc.invalidateQueries({ queryKey: ["workers"] });

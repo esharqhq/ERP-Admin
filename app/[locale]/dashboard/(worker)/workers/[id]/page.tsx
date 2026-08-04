@@ -34,6 +34,7 @@ import { Can } from "@/components/auth/can";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getApiErrorCode } from "@/lib/http/api-error";
+import { onboardingStatusPresentation } from "@/lib/onboarding/status";
 import { useTranslations } from "next-intl";
 
 export default function WorkerDetailPage({
@@ -42,7 +43,7 @@ export default function WorkerDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const t = useTranslations("workers");
-  const tStatus = useTranslations("status");
+  const tOnboarding = useTranslations("onboarding");
   const { id } = use(params);
   const router = useRouter();
   const { data: worker, isLoading, isError } = useWorkerDetail(id);
@@ -104,7 +105,7 @@ export default function WorkerDetailPage({
       <HeroCard worker={worker} />
 
       <div className="flex flex-wrap gap-2">
-        {!worker.isApproved && (
+        {worker.onboardingStatus === "Review" && (
           <>
             <Button className="gap-1.5" onClick={() => setShowApprove(true)}>
               <CheckCircle className="size-4" />
@@ -200,10 +201,10 @@ export default function WorkerDetailPage({
         />
         <StatCard
           label={t("columns.status")}
-          value={worker.isApproved ? tStatus("approved") : tStatus("pending")}
-          hint={worker.isApproved ? "Active worker" : "Under review"}
+          value={tOnboarding(`status.${onboardingStatusPresentation(worker.onboardingStatus).labelKey}`)}
+          hint={worker.onboardingRejectReason ?? ""}
           icon={<BadgeCheck className="size-4" />}
-          tone={worker.isApproved ? "emerald" : "amber"}
+          tone={worker.onboardingStatus === "Active" ? "emerald" : "amber"}
         />
         {/* <StatCard
           label="Verified"

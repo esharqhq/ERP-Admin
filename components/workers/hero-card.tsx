@@ -6,11 +6,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { WorkerDetailDto } from "@/lib/types/worker.types";
+import { onboardingStatusPresentation } from "@/lib/onboarding/status";
 import { useTranslations } from "next-intl";
 
 export function HeroCard({ worker }: { worker: WorkerDetailDto }) {
   const t = useTranslations("workers");
-  const tStatus = useTranslations("status");
+  const tOnboarding = useTranslations("onboarding");
   const initials = (worker.fullName ?? "??").slice(0, 2).toUpperCase();
   const profession = worker.professions?.[0]?.name ?? null;
 
@@ -51,9 +52,14 @@ export function HeroCard({ worker }: { worker: WorkerDetailDto }) {
                 )}
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                <Badge variant={worker.isApproved ? "default" : "secondary"}>
-                  {worker.isApproved ? tStatus("approved") : tStatus("pending")}
-                </Badge>
+                {(() => {
+                  const p = onboardingStatusPresentation(worker.onboardingStatus);
+                  return (
+                    <Badge variant={p.variant} className={p.className}>
+                      {tOnboarding(`status.${p.labelKey}`)}
+                    </Badge>
+                  );
+                })()}
                 {/* {worker.isVerified && <Badge variant="outline">Verified</Badge>} */}
                 <span className="inline-flex items-center gap-1 text-[12px] font-medium text-muted-foreground">
                   <Star className="size-3.5 fill-amber-500 text-amber-500" />

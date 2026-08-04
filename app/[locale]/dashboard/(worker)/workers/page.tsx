@@ -42,7 +42,10 @@ import { useAdminTaskGroups, useAssignWorker } from "@/hooks/use-tasks";
 import { useProperties } from "@/hooks/use-properties";
 import { getApiErrorCode } from "@/lib/http/api-error";
 import { normalizeStatus } from "@/lib/types/task.types";
-import type { WorkerSummaryDto } from "@/lib/types/worker.types";
+import type { WorkerRowDto } from "@/lib/types/worker.types";
+import type { OnboardingStatus } from "@/lib/types/onboarding.types";
+import { onboardingStatusPresentation } from "@/lib/onboarding/status";
+import { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE } from "@/lib/types/paged.types";
 import { useTranslations, useLocale } from "next-intl";
 
 // admin-assign rejection codes with tailored copy (TaskService.AdminAssignWorkerAsync).
@@ -93,10 +96,15 @@ export default function WorkersPage() {
   const [statusTab, setStatusTab] = useState<StatusTab>("pending");
   const [search, setSearch] = useState("");
 
-  const isApproved =
-    statusTab === "pending" ? false : statusTab === "approved" ? true : undefined;
+  // Tabs map to the exact onboarding stage; `Review` is the admin review queue.
+  const onboardingStatus: OnboardingStatus | undefined =
+    statusTab === "approved" ? "Active" : statusTab === "pending" ? "Review" : undefined;
 
-  const { data: workers = [], isLoading } = useWorkers(isApproved);
+  const { data: page, isLoading } = useWorkers({
+    onboardingStatus,
+    pageSize: DEFAULT_PAGE_SIZE,
+  });
+  const workers = page?.items ?? [];
 
   const filtered = workers.filter((w) => {
     if (!search) return true;
@@ -164,12 +172,13 @@ function WorkersTable({
   onSearch,
   t,
 }: {
-  workers: WorkerSummaryDto[];
+  workers: WorkerRowDto[];
   isLoading: boolean;
   search: string;
   onSearch: (v: string) => void;
   t: ReturnType<typeof useTranslations<"workers">>;
 }) {
+  const tOnboarding = useTranslations("onboarding");
   const workerColumns = [
     { label: t("columns.worker") },
     { label: t("columns.status") },
@@ -211,9 +220,14 @@ function WorkersTable({
             </div>
           </TableCell>
           <TableCell>
-            <Badge variant={w.isApproved ? "default" : "secondary"}>
-              {w.isApproved ? t("tabs.approved") : t("tabs.pending")}
-            </Badge>
+            {(() => {
+              const p = onboardingStatusPresentation(w.onboardingStatus);
+              return (
+                <Badge variant={p.variant} className={p.className}>
+                  {tOnboarding(`status.${p.labelKey}`)}
+                </Badge>
+              );
+            })()}
           </TableCell>
           <TableCell>
             <div className="flex items-center justify-center gap-1 text-sm font-medium tabular-nums">
@@ -257,7 +271,11 @@ function WorkersCalendar() {
   const [selectedTaskId, setSelectedTaskId] = useState("");
   const [taskSearch, setTaskSearch] = useState("");
 
-  const { data: allWorkers = [], isLoading: isLoadingWorkers } = useWorkers(true);
+  const { data: workersPage, isLoading: isLoadingWorkers } = useWorkers({
+    onboardingStatus: "Active",
+    pageSize: MAX_PAGE_SIZE,
+  });
+  const allWorkers = useMemo(() => workersPage?.items ?? [], [workersPage]);
   const { data: taskGroups = [], isLoading: isLoadingTasks } = useAdminTaskGroups(
     undefined,
     propertyFilter || undefined,

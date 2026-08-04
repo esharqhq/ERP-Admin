@@ -38,7 +38,11 @@ export function AssignWorkerDialog({
   const t = useTranslations("tasks");
   const tCommon = useTranslations("common");
   const [search, setSearch] = useState("");
-  const { data: workers = [], isLoading } = useWorkers(true);
+  const { data: page, isLoading } = useWorkers({
+    onboardingStatus: "Active",
+    pageSize: 100,
+  });
+  const workers = page?.items ?? [];
 
   const filtered = workers.filter((w) => {
     if (!search) return true;

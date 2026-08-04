@@ -16,7 +16,7 @@ import { useTranslations } from "next-intl";
 interface Props {
   open: boolean;
   onClose: () => void;
-  onConfirm: (reason?: string) => void;
+  onConfirm: (reason: string) => void;
   isPending: boolean;
   workerName: string;
 }
@@ -25,6 +25,7 @@ export function RejectWorkerModal({ open, onClose, onConfirm, isPending, workerN
   const t = useTranslations("workers");
   const tCommon = useTranslations("common");
   const [reason, setReason] = useState("");
+  const isValid = reason.trim().length >= 3;
 
   function handleClose() {
     onClose();
@@ -46,14 +47,17 @@ export function RejectWorkerModal({ open, onClose, onConfirm, isPending, workerN
           placeholder={t("rejectReason")}
           className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring min-h-[80px] resize-none"
         />
+        {!isValid && reason.length > 0 && (
+          <p className="text-xs text-destructive">{t("rejectReasonMin", { min: 3 })}</p>
+        )}
         <DialogFooter>
           <Button variant="outline" onClick={handleClose} disabled={isPending}>
             {tCommon("cancel")}
           </Button>
           <Button
             variant="destructive"
-            onClick={() => onConfirm(reason.trim() || undefined)}
-            disabled={isPending}
+            onClick={() => onConfirm(reason.trim())}
+            disabled={!isValid || isPending}
           >
             {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
             {t("reject")}

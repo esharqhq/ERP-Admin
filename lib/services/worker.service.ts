@@ -1,6 +1,8 @@
 import { apiClient } from "@/lib/http/client";
+import type { PagedResult } from "@/lib/types/paged.types";
 import type {
-  WorkerSummaryDto,
+  WorkerListQuery,
+  WorkerRowDto,
   WorkerDetailDto,
   WorkerApprovalDto,
   WorkerRatingDto,
@@ -8,9 +10,21 @@ import type {
 } from "@/lib/types/worker.types";
 
 export const workerService = {
-  getWorkers: async (isApproved?: boolean): Promise<WorkerSummaryDto[]> => {
-    const params = isApproved !== undefined ? { isApproved } : {};
-    const { data } = await apiClient.get<WorkerSummaryDto[]>("/api/admin/workers", { params });
+  /**
+   * Paged since FND-3 — the old array shape and the `?isApproved` filter are gone.
+   * `professionIds` must be serialized as a repeated key, which is axios's default
+   * for arrays only with `indexes: null`; pass it explicitly.
+   */
+  getWorkers: async (
+    query: WorkerListQuery = {},
+  ): Promise<PagedResult<WorkerRowDto>> => {
+    const { data } = await apiClient.get<PagedResult<WorkerRowDto>>(
+      "/api/admin/workers",
+      {
+        params: query,
+        paramsSerializer: { indexes: null },
+      },
+    );
     return data;
   },
 
@@ -24,8 +38,15 @@ export const workerService = {
     return data;
   },
 
-  rejectWorker: async (id: string, body: RejectWorkerRequest = {}): Promise<WorkerApprovalDto> => {
-    const { data } = await apiClient.post<WorkerApprovalDto>(`/api/admin/workers/${id}/reject`, body);
+  /** `reason` is required — the server 400s on an empty one. */
+  rejectWorker: async (
+    id: string,
+    body: RejectWorkerRequest,
+  ): Promise<WorkerApprovalDto> => {
+    const { data } = await apiClient.post<WorkerApprovalDto>(
+      `/api/admin/workers/${id}/reject`,
+      body,
+    );
     return data;
   },
 

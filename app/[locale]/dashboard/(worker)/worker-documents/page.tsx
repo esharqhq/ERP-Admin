@@ -18,7 +18,10 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Search, FolderOpen } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useWorkers } from "@/hooks/use-workers";
-import type { WorkerSummaryDto } from "@/lib/types/worker.types";
+import type { WorkerRowDto } from "@/lib/types/worker.types";
+import type { OnboardingStatus } from "@/lib/types/onboarding.types";
+import { onboardingStatusPresentation } from "@/lib/onboarding/status";
+import { DEFAULT_PAGE_SIZE } from "@/lib/types/paged.types";
 
 type FilterTab = "all" | "approved" | "pending";
 
@@ -30,17 +33,17 @@ function formatDate(iso: string, locale: string) {
   });
 }
 
-function ApprovalBadge({ isApproved, isVerified }: { isApproved: boolean; isVerified: boolean }) {
-  if (isApproved) {
-    return <Badge variant="default">Approved</Badge>;
-  }
-  if (isVerified) {
-    return <Badge variant="secondary">Under Review</Badge>;
-  }
-  return <Badge variant="outline">Pending</Badge>;
+function StatusBadge({ status }: { status: WorkerRowDto["onboardingStatus"] }) {
+  const t = useTranslations("onboarding");
+  const p = onboardingStatusPresentation(status);
+  return (
+    <Badge variant={p.variant} className={p.className}>
+      {t(`status.${p.labelKey}`)}
+    </Badge>
+  );
 }
 
-function WorkerRow({ worker, locale }: { worker: WorkerSummaryDto; locale: string }) {
+function WorkerRow({ worker, locale }: { worker: WorkerRowDto; locale: string }) {
   return (
     <TableRow className="hover:bg-accent/40">
       <TableCell className="py-3 font-medium">
@@ -53,7 +56,7 @@ function WorkerRow({ worker, locale }: { worker: WorkerSummaryDto; locale: strin
         {formatDate(worker.createdAt, locale)}
       </TableCell>
       <TableCell>
-        <ApprovalBadge isApproved={worker.isApproved} isVerified={worker.isVerified} />
+        <StatusBadge status={worker.onboardingStatus} />
       </TableCell>
       <TableCell className="text-right">
         <Button
@@ -78,10 +81,15 @@ export default function WorkerDocumentsPage() {
   const [tab, setTab] = useState<FilterTab>("all");
   const [search, setSearch] = useState("");
 
-  const approvedParam =
-    tab === "approved" ? true : tab === "pending" ? false : undefined;
+  // Tabs map to the exact onboarding stage; `Review` is the admin review queue.
+  const onboardingStatus: OnboardingStatus | undefined =
+    tab === "approved" ? "Active" : tab === "pending" ? "Review" : undefined;
 
-  const { data: workers = [], isLoading } = useWorkers(approvedParam);
+  const { data: page, isLoading } = useWorkers({
+    onboardingStatus,
+    pageSize: DEFAULT_PAGE_SIZE,
+  });
+  const workers = page?.items ?? [];
 
   const filtered = workers.filter((w) => {
     if (!search) return true;

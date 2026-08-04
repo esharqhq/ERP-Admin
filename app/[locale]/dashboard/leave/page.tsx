@@ -20,6 +20,7 @@ import { Can } from "@/components/auth/can";
 import { LeaveDecisionDialog } from "@/components/leave/leave-decision-dialog";
 import { useLeaveRequests, useApproveLeave, useRejectLeave } from "@/hooks/use-leave";
 import { useWorkers } from "@/hooks/use-workers";
+import { MAX_PAGE_SIZE } from "@/lib/types/paged.types";
 import { getApiErrorCode } from "@/lib/http/api-error";
 import { normalizeStatus } from "@/lib/types/task.types";
 import {
@@ -82,7 +83,8 @@ export default function LeavePage() {
     isLoading,
     isError,
   } = useLeaveRequests(tab === "all" ? undefined : tab);
-  const { data: workers = [] } = useWorkers();
+  const { data: workersPage } = useWorkers({ pageSize: MAX_PAGE_SIZE });
+  const workers = useMemo(() => workersPage?.items ?? [], [workersPage]);
 
   const workerName = useMemo(() => {
     const map = new Map<string, string>();
