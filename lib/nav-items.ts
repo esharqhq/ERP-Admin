@@ -8,10 +8,8 @@ import {
   FolderOpen,
   Settings,
   TicketCheck,
-  FileText,
   CalendarOff,
   CalendarCheck,
-  BadgeCheck,
   Briefcase,
   Inbox,
 } from "lucide-react"
@@ -51,8 +49,10 @@ export const navGroups: NavGroup[] = [
     items: [
       { title: "Owners",     labelKey: "nav.owners",     url: "/dashboard/owners",          icon: Building2,  permission: "owner:list" },
       { title: "Properties", labelKey: "nav.properties", url: "/dashboard/properties",      icon: Home,       permission: "property:list" },
-      { title: "Docs",       labelKey: "nav.documents",  url: "/dashboard/owner-documents", icon: BadgeCheck, permission: "kyc:read" },
-      { title: "Contracts",  labelKey: "nav.contracts",  url: "/dashboard/contracts",       icon: FileText,   permission: "owner_contract:read_any" },
+      // Same label and same icon as the worker group's entry: one workspace, two
+      // subjects. Contract authoring lives *inside* this screen, which is why the
+      // owner group no longer carries a separate Contracts entry.
+      { title: "Documents",  labelKey: "nav.documents",  url: "/dashboard/owner-documents", icon: FolderOpen, permission: "kyc:read" },
     ],
   },
   {
@@ -107,6 +107,12 @@ export type RouteGate = { permission?: string; anyOf?: string[] }
  * inheriting the broader `/dashboard/settings` anyOf gate.
  */
 const EXTRA_ROUTE_GATES: { prefix: string; permission?: string; anyOf?: string[] }[] = [
+  // Dropped from the sidebar (authoring moved into the Docs workspace) but still
+  // reachable by URL and by the OwnerContract/WorkerContract notification deep link,
+  // so it keeps its gate here rather than falling through to "any admin may view".
+  // It lists both sides, hence either read permission admits.
+  { prefix: "/dashboard/contracts",
+    anyOf: ["owner_contract:read_any", "worker_contract:read_any"] },
   { prefix: "/dashboard/settings/admins",      permission: "admin:list" },
   { prefix: "/dashboard/settings/admins/presets", permission: "system:permission:read" },
   { prefix: "/dashboard/settings/audit",       permission: "system:audit:read" },

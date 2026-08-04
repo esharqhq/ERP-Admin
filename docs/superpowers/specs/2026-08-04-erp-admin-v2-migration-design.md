@@ -855,6 +855,23 @@ so every DTO assumption is confirmed against a real call).
    stop; it does not.
 7. A datetime without a UTC offset returns `500` with no `{error}` body instead of `400`.
 8. approve/reject return `400` for an unknown id while swagger declares `404`.
+9. **No admin route writes a subject's identity block — so an admin cannot correct or hand-enter
+   passport data.** Both existing routes are SELF-scoped with no subject path parameter
+   (`PUT /api/kyc/identity` → `kyc:data:update_self`; `PUT /api/worker-docs/identity` →
+   `worker:data:update_self`), and `POST /api/admin/kyc/{ownerProfileId}/approve` takes no body. The
+   only admin remedy today is "reject with a reason and wait for the subject to re-submit", which
+   fails the case the OCR seam was built for: OCR returns nothing, the admin is holding the passport
+   scan, and the subject cannot type. Requested:
+   - `PUT /api/admin/kyc/{ownerProfileId}/identity` (body `UpdateIdentityRequest`) and
+     `PUT /api/admin/workers/{workerId}/identity` (body `UpdateWorkerIdentityRequest`) — same DTOs,
+     subject-scoped, behind new `kyc:data:update_any` / `worker:data:update_any` permissions.
+   - **Writable at `Review`, not only at `Kyc`/`Rejected`.** The self routes return
+     `409 onboarding_locked` outside those two states, but `Review` is precisely when the admin is on
+     the screen. An admin route inheriting that guard would be unusable for its own use case.
+   - The write must be audited (who typed it), because a hand-entered passport number is a
+     compliance fact with no subject attestation behind it.
+   Until this exists the Docs workspace keeps the identity block read-only and says why — a form
+   whose Save cannot reach an endpoint is worse than an honest read-only panel.
 
 ---
 
