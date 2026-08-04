@@ -304,6 +304,12 @@ if missing, not a nice-to-have.
 Found while planning; not caused by and not fixed by this migration. Listed so nobody mistakes them
 for migration fallout:
 
+- **`npm run lint` has exited 1 since June 2026** — three findings in files this migration never
+  touches: `components/ui/sidebar.tsx:610` (error, `react-hooks/set-state-in-effect`, last changed
+  `6724399` 2026-06-05), `global.d.ts:7` (error, `no-empty-object-type`, `379bef7` 2026-06-14), and an
+  unused `workerName` warning in `components/workers/approve-modal.tsx:23` (`8f1fb8a` 2026-06-01).
+  Every phase gate therefore measures **"no lint finding attributable to this phase"**, never "lint
+  exits 0". Fixing those three is a separate, small cleanup for the product owner to schedule.
 - **Two dead sidebar links.** `lib/nav-items.ts` declares an `agency` group pointing at
   `/dashboard/agency-requests` and `/dashboard/agencies`; neither route exists under
   `app/[locale]/dashboard/`. Both 404 today. Fixing them (or hiding the group) is a separate,

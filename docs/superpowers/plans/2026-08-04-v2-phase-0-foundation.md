@@ -2178,7 +2178,25 @@ npx tsc --noEmit
 npm run lint
 npm run build
 ```
-Expected: all three clean. A build warning about `next-intl` message shape is a real failure — investigate before continuing.
+
+Expected: `tsc` and `build` clean. A build warning about `next-intl` message shape is a real failure — investigate before continuing.
+
+⚠ **`npm run lint` exits 1 on this repo and did so before this migration started.** Measured at
+`fe7de88`: **2 errors and 14 warnings**, of which the errors and one warning are pre-existing and out of
+scope for this phase — verified by `git log -1 -- <file>`, all three last touched in **June 2026**:
+
+| Finding | File | Last changed |
+|---|---|---|
+| error `react-hooks/set-state-in-effect` | `components/ui/sidebar.tsx:610` | `6724399`, 2026-06-05 |
+| error `@typescript-eslint/no-empty-object-type` | `global.d.ts:7` | `379bef7`, 2026-06-14 |
+| warning unused `workerName` | `components/workers/approve-modal.tsx:23` | `8f1fb8a`, 2026-06-01 |
+
+So the gate criterion is **"no lint finding attributable to this phase"**, not "lint exits 0". Fixing
+those three files is unrelated scope creep and is not this phase's work; record them instead as
+pre-existing issues in the roadmap. The remaining 13 warnings **are** ours —
+`@typescript-eslint/no-unused-expressions` in `scripts/verify-v2.mjs`, from writing
+`cond ? ok(…) : bad(…)` as a statement — and **Task 9 Step 15 cleans them up**. Confirm here that
+nothing beyond the three rows above is left.
 
 - [ ] **Step 2: Dead-vocabulary sweep**
 
@@ -2617,11 +2635,34 @@ it rather than inventing a route, and say so in a comment.
 - [ ] **Step 13: Verify**
 
 Run: `npx tsc --noEmit` → exit 0.
-Run: `npm run lint` → no new errors.
 Run: `npm run verify:api` → `ALL PASS`, including every `F-03.1 …` line and the new i18n groups.
 Run: `node -e "require('./messages/en.json');require('./messages/de.json');console.log('valid')"` → `valid`.
 
-- [ ] **Step 14: Commit**
+- [ ] **Step 14: Clear this phase's own lint warnings in `scripts/verify-v2.mjs`**
+
+`npm run lint` reports 13 `@typescript-eslint/no-unused-expressions` warnings in that file, all from
+the pattern `cond ? ok("…") : bad("…")` used as a statement. They are ours — Task 1 introduced them and
+Steps 1 and 11 above add more. Convert every one to a plain `if`/`else`:
+
+```js
+// before
+same ? ok(`enum ${name}`) : bad(`enum ${name}: live=[${live}] expected=[${expected}]`);
+
+// after
+if (same) ok(`enum ${name}`);
+else bad(`enum ${name}: live=[${live}] expected=[${expected}]`);
+```
+
+Do not silence them with an `eslint-disable` and do not exclude `scripts/` from the lint config — the
+file is small and the rewrite is mechanical.
+
+Then run `npm run lint` and confirm the only findings left are the three **pre-existing** ones, all
+last touched in June 2026 and out of scope for this phase:
+`components/ui/sidebar.tsx:610` (error), `global.d.ts:7` (error),
+`components/workers/approve-modal.tsx:23` (warning). Zero findings in any file this phase created or
+changed.
+
+- [ ] **Step 15: Commit**
 
 ```bash
 git add lib/types/identity.types.ts lib/onboarding/company.ts \
