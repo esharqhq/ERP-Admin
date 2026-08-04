@@ -22,7 +22,7 @@ import { AssignWorkerDialog } from "@/components/tasks/assign-worker-dialog";
 import { ConfirmDialog } from "@/components/tasks/confirm-dialog";
 import { useAdminTasks, useAssignWorker, useUnassignWorker } from "@/hooks/use-tasks";
 import { useProperties } from "@/hooks/use-properties";
-import { getApiErrorCode } from "@/lib/http/api-error";
+import { describeApiError, isPermissionDenied } from "@/lib/onboarding/errors";
 import {
   normalizeStatus,
   type TaskItemDto,
@@ -40,9 +40,14 @@ const VACATED_OUTCOMES = new Set(["removed", "cancelled", "noshow"]);
 // terminal DONE / CANCELLED states are not dispatch targets.
 const OPEN_STATUSES = new Set(["pending", "active"]);
 
-// admin-assign rejection codes we have tailored copy for (TaskService.AdminAssignWorkerAsync).
+// v2 admin-assign refusals. The gate codes arrive as 403 WITH a body and are about
+// the WORKER's contract cover, not the admin's permission; an empty 403 body is a
+// permission problem instead. `worker_not_approved` no longer exists.
 const KNOWN_ASSIGN_ERRORS = new Set([
-  "worker_not_approved",
+  "onboarding_incomplete",
+  "contract_expired",
+  "contract_not_yet_active",
+  "worker_contract_ends_before_task",
   "worker_below_rating_floor",
   "worker_profession_not_eligible",
   "worker_limit_reached",
@@ -207,6 +212,7 @@ function DispatchTaskCard({
 export default function DispatchPage() {
   const t = useTranslations("dispatch");
   const tCommon = useTranslations("common");
+  const tOnboarding = useTranslations("onboarding");
   const locale = useLocale();
   const [filter, setFilter] = useState<DispatchFilter>("needsWorkers");
   const [search, setSearch] = useState("");
@@ -259,10 +265,16 @@ export default function DispatchPage() {
   const assignError =
     modal?.type === "assign" && assignWorker.isError
       ? (() => {
-          const code = getApiErrorCode(assignWorker.error);
-          return code && KNOWN_ASSIGN_ERRORS.has(code)
-            ? t(`errors.${code}`)
-            : t("errors.generic");
+          if (isPermissionDenied(assignWorker.error)) {
+            return tOnboarding("permissionDenied");
+          }
+          const info = describeApiError(assignWorker.error);
+          // Gate/contract codes are already covered by the shared onboarding catalog
+          // (info.labelKey !== "unknown"); the four legacy assign-specific codes are
+          // not in that catalog, so they keep resolving through dispatch.errors.
+          return info && info.labelKey !== "unknown" && KNOWN_ASSIGN_ERRORS.has(info.code)
+            ? tOnboarding(`apiErrors.${info.labelKey}`)
+            : t(`errors.${info?.code ?? "generic"}`);
         })()
       : null;
 

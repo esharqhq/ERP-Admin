@@ -14,7 +14,7 @@ import { useTableFilters, type TableFilterConfig } from "@/hooks/use-table-filte
 import { useLocale, useTranslations } from "next-intl";
 import { Can } from "@/components/auth/can";
 import { PropertyCreateDialog } from "@/components/properties/property-create-dialog";
-import { getApiErrorCode } from "@/lib/http/api-error";
+import { describeApiError, isGateRefusal, isPermissionDenied } from "@/lib/onboarding/errors";
 import { PROPERTY_TYPES, type PropertyDto } from "@/lib/types/property.types";
 
 const docsStatusConfig: Record<
@@ -46,6 +46,7 @@ const propertyFilterConfig: TableFilterConfig<PropertyDto>[] = [
 export default function PropertiesPage() {
   const t = useTranslations("properties");
   const tc = useTranslations("common");
+  const tOnboarding = useTranslations("onboarding");
   const locale = useLocale();
   const { data: properties = [], isLoading, isError, error } = useProperties();
 
@@ -82,11 +83,21 @@ export default function PropertiesPage() {
 
   const [createOpen, setCreateOpen] = useState(false);
   const create = useCreateAdminProperty();
-  // Picker pre-filters to approved BOSS owners, so a 400 here is an edge case;
-  // surface a single generic message (getApiErrorCode keeps the door open to
-  // map specific codes later if the backend documents them).
-  const createError =
-    create.isError && getApiErrorCode(create.error) ? t("create.errors.generic") : null;
+  // POST /api/admin/properties is gated on the TARGET OWNER's contract, not the
+  // admin's — a 403 with a body is that owner's cover, not a permission problem
+  // (isPermissionDenied catches the empty-body 403 that actually is one).
+  const createError = !create.isError
+    ? null
+    : isPermissionDenied(create.error)
+      ? tOnboarding("permissionDenied")
+      : (() => {
+          const info = describeApiError(create.error);
+          if (info && isGateRefusal(create.error)) {
+            // About the OWNER's contract, not the admin's access.
+            return tOnboarding(`apiErrors.${info.labelKey}`);
+          }
+          return tOnboarding(`apiErrors.${info?.labelKey ?? "unknown"}`);
+        })();
 
   const closeCreate = () => {
     setCreateOpen(false);

@@ -207,11 +207,11 @@
       "showEmpty": "Show empty rows"
     },
     "assignErrors": {
-      "worker_not_approved": "This worker is not approved.",
       "worker_below_rating_floor": "This worker is below the task's rating floor.",
       "worker_profession_not_eligible": "This worker's profession is not eligible for this task.",
       "worker_limit_reached": "This task is already fully staffed.",
-      "worker_has_overlapping_assignment": "This worker has an overlapping assignment at this time."
+      "worker_has_overlapping_assignment": "This worker has an overlapping assignment at this time.",
+      "unknown": "Could not assign this worker. Please try again."
     },
     "activity": {
       "title": "Recent Activity",
@@ -1028,7 +1028,6 @@
     },
     "errors": {
       "generic": "Could not assign this worker. Please try again.",
-      "worker_not_approved": "This worker is not approved.",
       "worker_below_rating_floor": "This worker is below the task's rating floor.",
       "worker_profession_not_eligible": "This worker's profession is not eligible for this task.",
       "worker_limit_reached": "This task is already fully staffed.",

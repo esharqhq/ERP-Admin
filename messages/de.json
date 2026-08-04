@@ -207,11 +207,11 @@
       "showEmpty": "Leere Zeilen anzeigen"
     },
     "assignErrors": {
-      "worker_not_approved": "Dieser Mitarbeiter ist nicht freigegeben.",
       "worker_below_rating_floor": "Dieser Mitarbeiter liegt unter der Mindestbewertung der Aufgabe.",
       "worker_profession_not_eligible": "Der Beruf dieses Mitarbeiters ist für diese Aufgabe nicht zugelassen.",
       "worker_limit_reached": "Diese Aufgabe ist bereits vollständig besetzt.",
-      "worker_has_overlapping_assignment": "Dieser Mitarbeiter hat zu dieser Zeit eine überschneidende Zuweisung."
+      "worker_has_overlapping_assignment": "Dieser Mitarbeiter hat zu dieser Zeit eine überschneidende Zuweisung.",
+      "unknown": "Mitarbeiter konnte nicht zugewiesen werden. Bitte erneut versuchen."
     },
     "activity": {
       "title": "Letzte Aktivität",
@@ -1028,7 +1028,6 @@
     },
     "errors": {
       "generic": "Mitarbeiter konnte nicht zugewiesen werden. Bitte erneut versuchen.",
-      "worker_not_approved": "Dieser Mitarbeiter ist nicht freigegeben.",
       "worker_below_rating_floor": "Dieser Mitarbeiter liegt unter der Mindestbewertung der Aufgabe.",
       "worker_profession_not_eligible": "Der Beruf dieses Mitarbeiters ist für diese Aufgabe nicht zugelassen.",
       "worker_limit_reached": "Diese Aufgabe ist bereits vollständig besetzt.",

@@ -40,17 +40,22 @@ import { cn } from "@/lib/utils";
 import { useWorkers } from "@/hooks/use-workers";
 import { useAdminTaskGroups, useAssignWorker } from "@/hooks/use-tasks";
 import { useProperties } from "@/hooks/use-properties";
-import { getApiErrorCode } from "@/lib/http/api-error";
 import { normalizeStatus } from "@/lib/types/task.types";
 import type { WorkerRowDto } from "@/lib/types/worker.types";
 import type { OnboardingStatus } from "@/lib/types/onboarding.types";
 import { onboardingStatusPresentation } from "@/lib/onboarding/status";
+import { describeApiError, isPermissionDenied } from "@/lib/onboarding/errors";
 import { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE } from "@/lib/types/paged.types";
 import { useTranslations, useLocale } from "next-intl";
 
-// admin-assign rejection codes with tailored copy (TaskService.AdminAssignWorkerAsync).
+// v2 admin-assign refusals. The gate codes arrive as 403 WITH a body and are about
+// the WORKER's contract cover, not the admin's permission; an empty 403 body is a
+// permission problem instead. `worker_not_approved` no longer exists.
 const KNOWN_ASSIGN_ERRORS = new Set([
-  "worker_not_approved",
+  "onboarding_incomplete",
+  "contract_expired",
+  "contract_not_yet_active",
+  "worker_contract_ends_before_task",
   "worker_below_rating_floor",
   "worker_profession_not_eligible",
   "worker_limit_reached",
@@ -243,6 +248,7 @@ function WorkersTable({
 
 function WorkersCalendar() {
   const t = useTranslations("workers");
+  const tOnboarding = useTranslations("onboarding");
   const locale = useLocale();
   const [today, setToday] = useState<Date>(() => {
     const d = new Date(0); // epoch — stable placeholder for SSR
@@ -324,10 +330,16 @@ function WorkersCalendar() {
   const assignError =
     selectedCell && assignWorker.isError
       ? (() => {
-          const code = getApiErrorCode(assignWorker.error);
-          return code && KNOWN_ASSIGN_ERRORS.has(code)
-            ? t(`assignErrors.${code}`)
-            : t("calendar.assignFailed");
+          if (isPermissionDenied(assignWorker.error)) {
+            return tOnboarding("permissionDenied");
+          }
+          const info = describeApiError(assignWorker.error);
+          // Gate/contract codes are already covered by the shared onboarding catalog
+          // (info.labelKey !== "unknown"); the four legacy assign-specific codes are
+          // not in that catalog, so they keep resolving through workers.assignErrors.
+          return info && info.labelKey !== "unknown" && KNOWN_ASSIGN_ERRORS.has(info.code)
+            ? tOnboarding(`apiErrors.${info.labelKey}`)
+            : t(`assignErrors.${info?.code ?? "unknown"}`);
         })()
       : null;
 
