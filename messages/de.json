@@ -390,32 +390,13 @@
     "columns": {
       "owner": "Eigentümer",
       "email": "E-Mail",
-      "kycStatus": "KYC-Status",
       "documents": "Dokumente",
       "actions": "Aktionen",
       "onboardingStatus": "Phase"
     },
-    "kyc": {
-      "allTab": "Alle",
-      "documents": "KYC-Dokumente",
-      "documentsEmpty": "Keine Dokumente gefunden",
-      "approveTitle": "KYC genehmigen",
-      "approveConfirm": "Möchten Sie diesen KYC-Antrag genehmigen?",
-      "rejectTitle": "KYC ablehnen",
-      "rejectReason": "Ablehnungsgrund (mindestens {min} Zeichen, erforderlich).",
-      "rejectPlaceholder": "Ablehnungsgrund...",
-      "rejectReasonMin": "Mindestens {min} Zeichen eingeben.",
-      "reviewedAt": "Geprüft am",
-      "rejectReasonLabel": "Ablehnungsgrund",
-      "submittedDocuments": "Eingereichte Dokumente",
-      "docLoadError": "Dokumente konnten nicht geladen werden.",
-      "markWrong": "Als falsch markieren",
-      "markWrongNote": "Warum ist dieses Dokument falsch?"
-    },
     "detail": {
       "documents": "Dokumente",
       "uploadedFiles": "Hochgeladene Dateien",
-      "kycStatus": "KYC-Status",
       "activeOwner": "Aktiver Eigentümer",
       "underReview": "In Prüfung",
       "reviewedAt": "Geprüft",

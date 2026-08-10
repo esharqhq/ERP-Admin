@@ -30,14 +30,6 @@ export const kycService = {
     return data;
   },
 
-  /** Same profile, looked up by the owner **account** id. */
-  getProfileByUser: async (ownerUserId: string): Promise<KycProfileDto> => {
-    const { data } = await apiClient.get<KycProfileDto>(
-      `/api/admin/kyc/owner/${ownerUserId}`,
-    );
-    return data;
-  },
-
   /** `Review → Approved`. Legal only from `Review`; else 400 invalid_onboarding_transition. */
   approve: async (ownerProfileId: string): Promise<KycApprovalDto> => {
     const { data } = await apiClient.post<KycApprovalDto>(

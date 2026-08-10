@@ -390,32 +390,13 @@
     "columns": {
       "owner": "Owner",
       "email": "Email",
-      "kycStatus": "KYC Status",
       "documents": "Documents",
       "actions": "Actions",
       "onboardingStatus": "Stage"
     },
-    "kyc": {
-      "allTab": "All",
-      "documents": "KYC Documents",
-      "documentsEmpty": "No documents found",
-      "approveTitle": "Approve KYC",
-      "approveConfirm": "Do you want to approve this KYC application?",
-      "rejectTitle": "Reject KYC",
-      "rejectReason": "Rejection reason (at least {min} characters, required).",
-      "rejectPlaceholder": "Rejection reason...",
-      "rejectReasonMin": "Enter at least {min} characters.",
-      "reviewedAt": "Reviewed At",
-      "rejectReasonLabel": "Rejection Reason",
-      "submittedDocuments": "Submitted documents",
-      "docLoadError": "Couldn't load documents.",
-      "markWrong": "Mark wrong",
-      "markWrongNote": "Why is this document wrong?"
-    },
     "detail": {
       "documents": "Documents",
       "uploadedFiles": "Uploaded files",
-      "kycStatus": "KYC Status",
       "activeOwner": "Active owner",
       "underReview": "Under review",
       "reviewedAt": "Reviewed",
