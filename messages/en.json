@@ -123,6 +123,9 @@
       "companyLicenseNumberRequired": "A licence number is required.",
       "companyNotFound": "No company record exists for this owner.",
       "requiresBoss": "Only the account owner (BOSS) can do this.",
+      "incompleteDocumentSet": "The document set is incomplete. An identity document is required — passport, ID card or residence permit — and a company registration document if a company is declared. A business licence does not replace the registration document.",
+      "invalidDocumentType": "One of the documents has an unrecognised type. Nothing was saved.",
+      "validation": "{detail}",
       "unknown": "Something went wrong. Please try again."
     }
   },

@@ -36,9 +36,15 @@ export function ErrorNotice({
   if (!error) return null;
 
   const described = describeApiError(error);
+  // `apiErrors.validation` is the only key with an ICU placeholder ("{detail}"),
+  // so `values` must only be supplied when a `detail` actually exists — next-intl
+  // requires the argument whenever the message declares the placeholder, and
+  // errors if it's passed to a key that doesn't.
   const message = isPermissionDenied(error)
     ? t("permissionDenied")
-    : t(`apiErrors.${described?.labelKey ?? "unknown"}`);
+    : described?.detail
+      ? t(`apiErrors.${described.labelKey}`, { detail: described.detail })
+      : t(`apiErrors.${described?.labelKey ?? "unknown"}`);
 
   const settingKey = described?.code
     ? SETTINGS_LINK_TARGET[described.code]

@@ -1,5 +1,5 @@
 import { AxiosError } from "axios";
-import { getApiErrorCode } from "@/lib/http/api-error";
+import { getApiErrorCode, getValidationMessage, looksLikeLeakedMessage } from "@/lib/http/api-error";
 
 /**
  * How the UI should react to a machine error code. The caller decides the
@@ -26,6 +26,14 @@ export interface ApiErrorInfo {
   /** Key under the `onboarding.apiErrors` i18n namespace. */
   labelKey: string;
   reaction: ErrorReaction;
+  /**
+   * A server-supplied value to interpolate into the message (via the `{detail}`
+   * ICU placeholder), used for the two shapes that carry a field- or value-specific
+   * message: problem-details validation ("validation") and the interpolated
+   * `invalid_document_type: <value>` code. The server's own wording is more useful
+   * than any generic string we could write, even in English on a German screen.
+   */
+  detail?: string;
 }
 
 /**
@@ -62,6 +70,11 @@ const CATALOG: Record<string, Omit<ApiErrorInfo, "code">> = {
   worker_not_found: { labelKey: "subjectNotFound", reaction: "not-found" },
   worker_doc_not_found: { labelKey: "documentNotFound", reaction: "not-found" },
   kyc_doc_not_found: { labelKey: "documentNotFound", reaction: "not-found" },
+
+  // ── KYC document intake (backend 2026-08-07) ─────────────────────────────
+  // Distinct from kyc_documents_required, which still means ZERO documents.
+  incomplete_document_set: { labelKey: "incompleteDocumentSet", reaction: "toast" },
+  invalid_document_type: { labelKey: "invalidDocumentType", reaction: "toast" },
 
   // ── F-03·1 structured document data ─────────────────────────────────────
   incomplete_identity_data: { labelKey: "incompleteIdentityData", reaction: "toast" },
@@ -130,15 +143,46 @@ function forbiddenDetail(err: unknown): string | null {
   return typeof data?.detail === "string" ? data.detail : null;
 }
 
+/**
+ * Some services interpolate the offending value into the code:
+ * `WorkerDocService.cs:75` throws `$"invalid_document_type: {req.DocumentType}"`
+ * while `KycService.cs:395` throws the bare code for the same failure. Splitting
+ * on the first `": "` lets one catalog entry serve both, and keeps the value as
+ * detail — which is the useful half, since "which type was wrong" is the question
+ * the admin has.
+ */
+function splitCode(raw: string): { code: string; detail: string | null } {
+  const at = raw.indexOf(": ");
+  return at === -1
+    ? { code: raw, detail: null }
+    : { code: raw.slice(0, at), detail: raw.slice(at + 2) };
+}
+
 export function describeApiError(err: unknown): ApiErrorInfo | null {
   // `{"error":"forbidden","detail":"<code>"}` — read the code out of `detail`.
-  const detail = forbiddenDetail(err);
-  const code = detail ?? getApiErrorCode(err);
-  if (!code) return null;
+  const forbidden = forbiddenDetail(err);
+  const raw = forbidden ?? getApiErrorCode(err);
+
+  if (!raw) {
+    // Problem-details: no code, but a usable field message.
+    const validation = getValidationMessage(err);
+    return validation
+      ? { code: "validation", labelKey: "validation", reaction: "toast", detail: validation }
+      : null;
+  }
+
+  // Split before the leaked-message check — the interpolated tail's colon and
+  // capital would otherwise make a real code look like leaked prose.
+  const { code, detail } = splitCode(raw);
+
+  // A leaked library sentence is not a code and must not be matched or displayed.
+  if (looksLikeLeakedMessage(code)) {
+    return { code: "unknown", labelKey: "unknown", reaction: "toast" };
+  }
+
   const known = CATALOG[code];
-  return known
-    ? { code, ...known }
-    : { code, labelKey: "unknown", reaction: "toast" };
+  if (!known) return { code, labelKey: "unknown", reaction: "toast" };
+  return detail ? { code, ...known, detail } : { code, ...known };
 }
 
 /**

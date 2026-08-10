@@ -123,6 +123,9 @@
       "companyLicenseNumberRequired": "Eine Lizenznummer ist erforderlich.",
       "companyNotFound": "Für diesen Eigentümer existiert kein Unternehmenseintrag.",
       "requiresBoss": "Nur der Kontoinhaber (BOSS) kann dies tun.",
+      "incompleteDocumentSet": "Der Dokumentensatz ist unvollständig. Ein Identitätsdokument ist erforderlich — Pass, Personalausweis oder Aufenthaltstitel — und ein Handelsregisterauszug, wenn ein Unternehmen angegeben ist. Eine Gewerbeerlaubnis ersetzt den Registerauszug nicht.",
+      "invalidDocumentType": "Eines der Dokumente hat einen unbekannten Typ. Es wurde nichts gespeichert.",
+      "validation": "{detail}",
       "unknown": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
     }
   },
