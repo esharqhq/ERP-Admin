@@ -217,7 +217,10 @@
       "terminateBody": "Cover ends now instead of on {date}. The contract is kept and marked as ended early — it is not deleted, and this is recorded in the audit log. The subject loses access to anything that requires active cover.",
       "withdrawTitle": "Withdraw this contract?",
       "withdrawBody": "The contract is retired without ever taking effect. Use this for a contract that should not have been authored; to correct one that was sent, recall it instead and edit the draft.",
-      "terminateConfirm": "Yes, end it"
+      "terminateConfirm": "Yes, end it",
+      "cancelUpcoming": "Cancel upcoming cover",
+      "cancelUpcomingTitle": "Cancel this upcoming cover?",
+      "cancelUpcomingBody": "This contract was due to start on {date} and will not take effect. It is kept and marked as ended early — not deleted — and this is recorded in the audit log. The subject's current access is unaffected."
     },
     "backToOwnerDocs": "Back to owner documents",
     "ownerListTitle": "Owner documents",

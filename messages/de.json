@@ -217,7 +217,10 @@
       "terminateBody": "Die Deckung endet jetzt statt am {date}. Der Vertrag bleibt erhalten und wird als vorzeitig beendet markiert — er wird nicht gelöscht, und der Vorgang wird im Audit-Log erfasst. Die betroffene Person verliert den Zugriff auf alles, was aktive Deckung erfordert.",
       "withdrawTitle": "Diesen Vertrag zurückziehen?",
       "withdrawBody": "Der Vertrag wird zurückgezogen, ohne jemals wirksam geworden zu sein. Verwenden Sie dies für einen Vertrag, der nicht hätte erstellt werden dürfen; um einen gesendeten Vertrag zu korrigieren, rufen Sie ihn stattdessen zurück und bearbeiten den Entwurf.",
-      "terminateConfirm": "Ja, beenden"
+      "terminateConfirm": "Ja, beenden",
+      "cancelUpcoming": "Geplante Deckung stornieren",
+      "cancelUpcomingTitle": "Diese geplante Deckung stornieren?",
+      "cancelUpcomingBody": "Dieser Vertrag sollte am {date} beginnen und wird nicht wirksam. Er bleibt erhalten und wird als vorzeitig beendet markiert — nicht gelöscht — und der Vorgang wird im Audit-Log erfasst. Der aktuelle Zugriff der Person bleibt unverändert."
     },
     "backToOwnerDocs": "Zurück zu Eigentümerdokumenten",
     "ownerListTitle": "Eigentümerdokumente",

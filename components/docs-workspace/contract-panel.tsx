@@ -59,6 +59,24 @@ function isoToDateInput(iso: string | null): string {
 }
 
 /**
+ * Day, abbreviated month, year — `28 Feb 2026`, `28. Feb. 2026` in German. Same
+ * shape as `subject-docs-table.tsx`'s `formatDate`, kept local rather than
+ * extracted: this is the only other caller, and both dialogs it feeds are on a
+ * destructive path where an all-numeric, locale-dependent date
+ * (`toLocaleDateString("en")` → `12/8/2026`) is genuinely ambiguous — 12
+ * August or 8 December — which is the worst place in the product for that.
+ */
+function formatDialogDate(iso: string, locale: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleDateString(locale, {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+/**
  * The left column: author the contract that actually unlocks the account.
  *
  * The form stays fillable while the admin reads the documents — that is how the work
@@ -104,7 +122,7 @@ export function ContractPanel({
   onSend: (contractId: string) => void;
   onRecall: (contractId: string, reason: string) => void;
   onRenew: () => void;
-  /** Force-deactivate this contract. Same endpoint whatever the phase — see `isWithdraw` below. */
+  /** Force-deactivate this contract. Same endpoint whatever the phase — see `terminateCopyKind` below. */
   onTerminate: (contractId: string) => void;
 }) {
   const t = useTranslations("docsWorkspace");
@@ -128,11 +146,16 @@ export function ContractPanel({
     variant === "owner" ? "owner_contract:deactivate_any" : "worker_contract:deactivate_any",
   );
   const showTerminate = canDeactivate && !!contract && canTerminate(contract.phase);
-  // Same endpoint, genuinely different meaning to the admin: cover that already
-  // started is "terminated" early; a Draft/Sent contract that never took effect
-  // is "withdrawn". Never call either one "expired" — that's a different, later
-  // outcome the backend computes on its own.
-  const isWithdraw = phase === "Draft" || phase === "Sent";
+  // Same endpoint, three genuinely different meanings to the admin, because
+  // "ends now" is only true once cover has actually started:
+  //  - InForce:            cover is live — "terminate" it early.
+  //  - Scheduled:          cover hasn't started yet — nothing "ends", so this is
+  //                        "cancel upcoming cover", not a terminate.
+  //  - Draft / Sent:       never took effect at all — "withdraw" it.
+  // Never call any of these "expired" — that's a different, later outcome the
+  // backend computes on its own.
+  const terminateCopyKind: "terminate" | "cancelUpcoming" | "withdraw" =
+    phase === "InForce" ? "terminate" : phase === "Scheduled" ? "cancelUpcoming" : "withdraw";
 
   const terminateAction = showTerminate && contract && (
     <>
@@ -143,7 +166,7 @@ export function ContractPanel({
           className="text-destructive hover:text-destructive"
           onClick={() => setConfirmingTerminate(true)}
         >
-          {t(isWithdraw ? "contract.withdraw" : "contract.terminate")}
+          {t(`contract.${terminateCopyKind}`)}
         </Button>
       </div>
       <ConfirmDialog
@@ -154,12 +177,20 @@ export function ContractPanel({
           setConfirmingTerminate(false);
         }}
         isPending={terminating}
-        title={t(isWithdraw ? "contract.withdrawTitle" : "contract.terminateTitle")}
+        title={t(`contract.${terminateCopyKind}Title`)}
         description={
-          isWithdraw
+          terminateCopyKind === "withdraw"
             ? t("contract.withdrawBody")
-            : t("contract.terminateBody", {
-                date: new Date(contract.eligibleTo).toLocaleDateString(locale),
+            : t(`contract.${terminateCopyKind}Body`, {
+                // Scheduled cover never started, so the date that matters is when
+                // it was due to start (eligibleFrom); live cover is ending early,
+                // so the date that matters is when it was due to end (eligibleTo).
+                date: formatDialogDate(
+                  terminateCopyKind === "cancelUpcoming"
+                    ? contract.eligibleFrom
+                    : contract.eligibleTo,
+                  locale,
+                ),
               })
         }
         confirmLabel={t("contract.terminateConfirm")}
