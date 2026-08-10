@@ -13,6 +13,7 @@ import {
 import { DocumentsPanel } from "@/components/docs-workspace/documents-panel";
 import { IdentityPanel } from "@/components/docs-workspace/identity-panel";
 import { SubjectDetail } from "@/components/docs-workspace/subject-detail";
+import { ErrorNotice } from "@/components/onboarding/error-notice";
 import { deriveStep } from "@/components/docs-workspace/onboarding-stepper";
 import {
   useApproveKyc,
@@ -54,7 +55,7 @@ export default function OwnerDocsDetailPage() {
   const send = useSendContract("owner");
   const recall = useRecallContract("owner");
   const renew = useRenewOwnerContract();
-  const terminate = useTerminateContract("owner");
+  const terminate = useTerminateContract("owner", profile.data?.ownerUserId ?? undefined);
   const upload = useUpload("contract-sources");
 
   const renewKey = useRef<string | null>(null);
@@ -100,14 +101,6 @@ export default function OwnerDocsDetailPage() {
     terminate.error ??
     upload.error ??
     null;
-
-  const errorMessage = mutationError
-    ? isPermissionDenied(mutationError)
-      ? tOnboarding("permissionDenied")
-      : tOnboarding(
-          `apiErrors.${describeApiError(mutationError)?.labelKey ?? "unknown"}`,
-        )
-    : null;
 
   if (profile.isLoading) {
     return (
@@ -197,7 +190,7 @@ export default function OwnerDocsDetailPage() {
           }
           sending={send.isPending}
           terminating={terminate.isPending}
-          error={errorMessage}
+          error={<ErrorNotice error={mutationError} />}
           onSaveDraft={saveDraft}
           onSend={(contractId) => send.mutate(contractId)}
           onRecall={(contractId, reason) =>

@@ -1068,7 +1068,7 @@
     "viewFile": "PDF anzeigen",
     "deactivate": "Deaktivieren",
     "deactivateTitle": "Vertrag deaktivieren?",
-    "deactivateConfirm": "Den aktiven Vertrag für {name} zwangsweise deaktivieren? Dies wird protokolliert.",
+    "deactivateConfirm": "Diesen Vertrag für {name} zwangsweise deaktivieren? Dies wird protokolliert.",
     "tabs": {
       "owner": "Eigentümerverträge",
       "worker": "Mitarbeiterverträge"

@@ -1,6 +1,11 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type QueryClient,
+} from "@tanstack/react-query";
 import { contractService } from "@/lib/services/contract.service";
 import type {
   AdminOwnerContractDto,
@@ -171,6 +176,53 @@ export function useRecallContract(type: ContractType) {
 }
 
 /**
+ * The invalidation list for a successful terminate, pulled out of the mutation
+ * so it can be exercised directly against a real `QueryClient` — see
+ * `hooks/use-contracts.test.ts` — without rendering anything.
+ *
+ * Terminating changes the subject's cover, not just the contract row, so this
+ * invalidates:
+ *  - `keyFor(type)`: the contract list on this side — the terminated row's phase
+ *    changes.
+ *  - `["kyc"]` (owner) / `["workers"]` (worker): the subject queue — onboarding
+ *    status may follow — and the Docs table's cover column, which is joined
+ *    from the contract list client-side. `["kyc"]` also covers the owner
+ *    profile detail query (`["kyc", "profile", id]`) by prefix, but this
+ *    function invalidates that key explicitly too rather than leaning on the
+ *    coincidence — see `subjectId` below.
+ *  - `["notifications"]`: other admins get a bell row for
+ *    `OWNER_CONTRACT_FORCE_DEACTIVATED` / the worker equivalent.
+ *  - the subject's own Docs detail query, when `subjectId` is given: `["kyc",
+ *    "profile", subjectId]` for owner, `["worker", subjectId]` for worker. The
+ *    worker one is not a prefix of anything above — singular `"worker"` vs.
+ *    plural `"workers"` — so without this, terminating a worker's contract
+ *    from the Docs detail left that screen's status and stepper stale until a
+ *    reload. `subjectId` is optional because not every caller has one (the
+ *    legacy registry at `app/[locale]/dashboard/contracts/page.tsx` doesn't
+ *    keep a mounted subject-detail query to refresh); when omitted, this step
+ *    is simply skipped.
+ *
+ * ⚠ A terminate never deletes the subject record (contrast the trap documented
+ * in `hooks/use-owners.ts`), so invalidating the subject's own detail query is
+ * safe here. Do not widen this to a caller where the mutation might remove the
+ * subject entirely — that would refetch a now-404ing query.
+ */
+export function invalidateAfterTerminate(
+  qc: QueryClient,
+  type: ContractType,
+  subjectId?: string,
+) {
+  qc.invalidateQueries({ queryKey: keyFor(type) });
+  qc.invalidateQueries({ queryKey: [type === "owner" ? "kyc" : "workers"] });
+  qc.invalidateQueries({ queryKey: ["notifications"] });
+  if (subjectId) {
+    qc.invalidateQueries({
+      queryKey: type === "owner" ? ["kyc", "profile", subjectId] : ["worker", subjectId],
+    });
+  }
+}
+
+/**
  * Force-deactivate, either side. Legal from every phase that hasn't already
  * ended — `Draft`/`Sent` included, so a bad contract can be withdrawn rather
  * than merely recalled (see `canTerminate` in `lib/contracts/registry-row.ts`).
@@ -181,31 +233,16 @@ export function useRecallContract(type: ContractType) {
  * later phase, not this one.
  *
  * Replaces the former `useDeactivateOwnerContract` / `useDeactivateWorkerContract`,
- * whose invalidation was too narrow (their own contract list only). Terminating
- * changes the subject's cover, not just the contract row, so this invalidates:
- *  - `keyFor(type)`: the contract list on this side — the terminated row's phase
- *    changes.
- *  - `["kyc"]` (owner) / `["workers"]` (worker): the subject queue — onboarding
- *    status may follow — and the Docs table's cover column, which is joined
- *    from the contract list client-side. `["kyc"]` also covers the owner
- *    profile detail query (`["kyc", "profile", id]`) by prefix.
- *  - `["notifications"]`: other admins get a bell row for
- *    `OWNER_CONTRACT_FORCE_DEACTIVATED` / the worker equivalent.
+ * whose invalidation was too narrow (their own contract list only).
  *
- * ⚠ A terminate never deletes the subject record (contrast the trap documented
- * in `hooks/use-owners.ts`), so invalidating the subject's own detail query is
- * safe here — it just isn't reachable generically: this hook only ever sees a
- * `contractId`, never the owner/worker id the detail screens key their own
- * queries on.
+ * `subjectId` is the owner/worker id the caller's own detail query is keyed
+ * on (do not derive it from cached contract data — pass what the caller
+ * already knows). See `invalidateAfterTerminate` for what it unlocks.
  */
-export function useTerminateContract(type: ContractType) {
+export function useTerminateContract(type: ContractType, subjectId?: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (contractId: string) => contractService.terminate(type, contractId),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: keyFor(type) });
-      qc.invalidateQueries({ queryKey: [type === "owner" ? "kyc" : "workers"] });
-      qc.invalidateQueries({ queryKey: ["notifications"] });
-    },
+    onSuccess: () => invalidateAfterTerminate(qc, type, subjectId),
   });
 }

@@ -13,6 +13,7 @@ import {
 import { DocumentsPanel } from "@/components/docs-workspace/documents-panel";
 import { IdentityPanel } from "@/components/docs-workspace/identity-panel";
 import { SubjectDetail } from "@/components/docs-workspace/subject-detail";
+import { ErrorNotice } from "@/components/onboarding/error-notice";
 import { deriveStep } from "@/components/docs-workspace/onboarding-stepper";
 import { useWorkerDetail } from "@/hooks/use-worker-detail";
 import { useApproveWorker, useRejectWorker } from "@/hooks/use-worker-actions";
@@ -55,7 +56,7 @@ export default function WorkerDocsDetailPage() {
   const send = useSendContract("worker");
   const recall = useRecallContract("worker");
   const renew = useRenewWorkerContract();
-  const terminate = useTerminateContract("worker");
+  const terminate = useTerminateContract("worker", workerId);
   const upload = useUpload("contract-sources");
 
   /**
@@ -101,14 +102,6 @@ export default function WorkerDocsDetailPage() {
     terminate.error ??
     upload.error ??
     null;
-
-  const errorMessage = mutationError
-    ? isPermissionDenied(mutationError)
-      ? tOnboarding("permissionDenied")
-      : tOnboarding(
-          `apiErrors.${describeApiError(mutationError)?.labelKey ?? "unknown"}`,
-        )
-    : null;
 
   if (detail.isLoading) {
     return (
@@ -188,7 +181,7 @@ export default function WorkerDocsDetailPage() {
           }
           sending={send.isPending}
           terminating={terminate.isPending}
-          error={errorMessage}
+          error={<ErrorNotice error={mutationError} />}
           onSaveDraft={saveDraft}
           onSend={(contractId) => send.mutate(contractId)}
           onRecall={(contractId, reason) =>

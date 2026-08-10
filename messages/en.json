@@ -1068,7 +1068,7 @@
     "viewFile": "View PDF",
     "deactivate": "Deactivate",
     "deactivateTitle": "Deactivate contract?",
-    "deactivateConfirm": "Force-deactivate the active contract for {name}? This is audited.",
+    "deactivateConfirm": "Force-deactivate this contract for {name}? This is audited.",
     "tabs": {
       "owner": "Owner contracts",
       "worker": "Worker contracts"

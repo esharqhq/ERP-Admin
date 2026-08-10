@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useState, type ReactNode } from "react";
 import { ExternalLink, Lock } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
@@ -126,7 +126,16 @@ export function ContractPanel({
   sending: boolean;
   /** Pending state of the force-deactivate mutation, owned by the page. */
   terminating: boolean;
-  error: string | null;
+  /**
+   * Whatever the page wants shown for the current mutation error, or `null`.
+   * A `ReactNode`, not a string — the page renders `<ErrorNotice>` here so its
+   * `settings-link` reaction (and the server's field-level detail) reach the
+   * admin, which a plain string could not carry. This component stays
+   * presentational: it just places the node, twice in its own layout branches
+   * (never both at once, since only one branch renders per phase), and does
+   * not know or care what produced it.
+   */
+  error: ReactNode;
   onSaveDraft: (values: ContractFormValues, file: File | null) => void;
   onSend: (contractId: string) => void;
   onRecall: (contractId: string, reason: string) => void;
@@ -333,7 +342,9 @@ export function ContractPanel({
           {terminateButton}
         </div>
         {documentPdf.missing && (
-          <p className="text-sm text-destructive">{t("contract.pdfMissing")}</p>
+          <p role="status" className="text-sm text-destructive">
+            {t("contract.pdfMissing")}
+          </p>
         )}
         <p className="text-xs text-muted-foreground">{t("contract.renewNote")}</p>
         {terminateDialog}
@@ -382,7 +393,9 @@ export function ContractPanel({
           {terminateButton}
         </div>
         {previewPdf.missing && (
-          <p className="text-sm text-destructive">{t("contract.pdfMissing")}</p>
+          <p role="status" className="text-sm text-destructive">
+            {t("contract.pdfMissing")}
+          </p>
         )}
 
         {recalling && (
@@ -414,7 +427,7 @@ export function ContractPanel({
           </div>
         )}
 
-        {error && <p className="text-sm text-destructive">{error}</p>}
+        {error}
         {terminateDialog}
       </div>
     );
@@ -533,7 +546,7 @@ export function ContractPanel({
         </div>
       </div>
 
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error}
 
       {/* Same rule as the signed-contract row: withdraw belongs in the row, at
           the far end of it, never beside Send. */}
