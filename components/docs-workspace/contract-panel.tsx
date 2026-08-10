@@ -341,6 +341,7 @@ export function ContractPanel({
           </Button>
           {terminateButton}
         </div>
+        {error}
         {documentPdf.missing && (
           <p role="status" className="text-sm text-destructive">
             {t("contract.pdfMissing")}
