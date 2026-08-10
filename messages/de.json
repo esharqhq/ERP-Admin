@@ -148,7 +148,7 @@
       "licenseExpiry": "Lizenz gültig bis",
       "expired": "Abgelaufen",
       "expiresInDays": "{days} Tage übrig",
-      "readOnlyNote": "Nur der Kontoinhaber kann diese Angaben ändern. Lehnen Sie die Einreichung mit einer Begründung ab, damit sie korrigiert und neu eingereicht werden kann.",
+      "readOnlyNote": "Pass- und Firmenangaben kann nur der Kontoinhaber ändern — lehnen Sie zur Korrektur die Einreichung mit einer Begründung ab, damit sie korrigiert und neu eingereicht werden kann. Ein falsch geschriebener Name ist die Ausnahme: Dafür ist keine Ablehnung nötig, er kann korrigiert werden, solange der Kontoinhaber selbst nicht bearbeiten kann.",
       "incomplete": "Identität unvollständig. Alle vier Passfelder müssen ausgefüllt sein, damit zur Prüfung eingereicht werden kann — das Genehmigen von Dateien hebt das nicht auf."
     },
     "company": {

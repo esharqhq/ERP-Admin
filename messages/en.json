@@ -148,7 +148,7 @@
       "licenseExpiry": "Licence expires",
       "expired": "Expired",
       "expiresInDays": "{days} days left",
-      "readOnlyNote": "Only the account holder can change these. To correct them, reject the submission with a reason so they can edit and re-submit.",
+      "readOnlyNote": "Passport and company details can only be changed by the account holder — to correct one, reject the submission with a reason so they can edit and re-submit. A misspelled legal name is the exception: it needs no rejection, and can be corrected while the account holder is locked out of editing.",
       "incomplete": "Identity is incomplete. All four passport fields must be filled before they can submit for review — approving files won't unblock it."
     },
     "company": {

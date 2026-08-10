@@ -58,12 +58,10 @@ export function useSignedPdf(
     // rejects, and `void` is safe here rather than papering over a real bug.
     void (async () => {
       try {
-        // A HEAD is enough to learn whether the signature is still valid, and it
-        // avoids opening a tab onto an error page. Verified against FilesController:
-        // it is GET-only, but ASP.NET Core's routing matches HEAD to a GET action by
-        // default, and its FileStreamResult skips the body (not the status/headers)
-        // for a HEAD request — so a HEAD reports the same 200/404 a GET would, without
-        // downloading the PDF. CORS (`AllowAnyMethod`) covers the cross-origin HEAD too.
+        // Probe first, so an expired signature refreshes silently instead of opening a
+        // tab onto an error page. The probe is a GET whose body is discarded — see
+        // `reachable` for why it cannot be a HEAD. CORS (`AllowAnyMethod`) covers the
+        // cross-origin request.
         if (await reachable(url)) {
           window.open(url, "_blank", "noopener,noreferrer");
           return;
@@ -103,12 +101,41 @@ export function useSignedPdf(
  * authorization — so a plain fetch is right; a failure to reach it at all is
  * treated the same as an expiry, because the next step (re-read and retry) is
  * the correct response either way.
+ *
+ * **Must be `GET`.** This shipped as `HEAD` on the belief that ASP.NET Core routes a
+ * HEAD to the matching GET action. It does not: `FilesController.Get` is
+ * `[HttpGet("{**storageKey}")]`, attribute routing attaches an HTTP-method constraint,
+ * and a HEAD matches the route template but fails that constraint — so the framework
+ * answers **405 before the action runs**, which is what a live probe returned on
+ * 2026-08-10. (The HEAD→GET fallback that belief came from lives in
+ * `StaticFileMiddleware`, not in MVC.) A 405 is not `res.ok`, so the probe reported
+ * *every* URL unreachable — valid or expired — and the button never once opened a PDF.
+ *
+ * Exported for `use-signed-pdf.test.ts`, whose first case pins the verb: a mock that
+ * only returns `{ok: true}` passes with either verb, which is how the defect survived a
+ * green suite in the first place.
  */
-async function reachable(url: string): Promise<boolean> {
+export async function reachable(url: string): Promise<boolean> {
+  let res: Response;
   try {
-    const res = await fetch(url, { method: "HEAD" });
-    return res.ok;
+    // `cache: "no-store"` because the question is whether the signature is valid *now* —
+    // a 200 replayed from the HTTP cache would answer for an instant that has passed.
+    // It is a fetch option rather than a header, so this stays a simple request and
+    // provokes no CORS preflight.
+    res = await fetch(url, { method: "GET", cache: "no-store" });
   } catch {
     return false;
   }
+
+  // Read the verdict before releasing anything: `cancel()` throws on a stream that is
+  // already settled or locked, and that throw must not be allowed to turn a reachable
+  // document into a missing one — which is the shipped bug over again, from the other
+  // side. Hence its own catch rather than sharing the one above.
+  const ok = res.ok;
+  try {
+    await res.body?.cancel();
+  } catch {
+    /* nothing left to release — the verdict is already in hand */
+  }
+  return ok;
 }
