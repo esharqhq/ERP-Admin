@@ -188,8 +188,9 @@ export const contractService = {
    * `hooks/use-contracts.ts`. Legal from `Draft`/`Sent` too, where the UI calls
    * it "withdraw" rather than "terminate": same endpoint, different meaning to
    * the admin depending on whether cover had actually started.
-   * `app/[locale]/dashboard/contracts/page.tsx` also still wires this method,
-   * kept working until Phase 2 removes mutations from that screen.
+   *
+   * That Docs-detail panel is now the **only** caller: the contracts registry
+   * screen that also wired this was deleted as unused.
    */
   terminate: async (type: ContractType, contractId: string): Promise<void> => {
     await apiClient.delete(`/api/contracts/admin/${type}/${contractId}`);

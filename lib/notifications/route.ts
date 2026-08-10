@@ -21,10 +21,14 @@ export function notificationRoute(
       return `/dashboard/properties/${entityId}`;
     case "SupportTicket":
       return `/dashboard/support`;
-    // Contract rows have no dedicated screen until Phase 2's registry exists.
+    // Contract rows have no screen to land on. `/dashboard/contracts` was deleted as
+    // unused, and `entityId` here is a *contract* id — no surviving route is keyed on
+    // one, so there is nothing to redirect to rather than a list. Per this file's rule
+    // above, that makes the row non-clickable; a link to a deleted route would be the
+    // broken route the rule forbids. Restore this the day a contracts screen exists.
     case "OwnerContract":
     case "WorkerContract":
-      return `/dashboard/contracts`;
+      return null;
     // OnboardingRevertedToKyc carries the *subject's* id, which is a worker id or an
     // ownerUserId depending on the side — and neither Docs detail route is keyed on
     // an ownerUserId. Routing it would need the notification to say which side it is,

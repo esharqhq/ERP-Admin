@@ -1058,51 +1058,6 @@
       "leave_request_not_found": "Urlaubsantrag nicht gefunden."
     }
   },
-  "contracts": {
-    "title": "Verträge",
-    "subtitle": "Eigentümer- und Mitarbeiterverträge verwalten",
-    "new": "Neuer Vertrag",
-    "empty": "Keine Verträge gefunden",
-    "active": "Aktiv",
-    "inactive": "Inaktiv",
-    "viewFile": "PDF anzeigen",
-    "deactivate": "Deaktivieren",
-    "deactivateTitle": "Vertrag deaktivieren?",
-    "deactivateConfirm": "Diesen Vertrag für {name} zwangsweise deaktivieren? Dies wird protokolliert.",
-    "tabs": {
-      "owner": "Eigentümerverträge",
-      "worker": "Mitarbeiterverträge"
-    },
-    "columns": {
-      "party": "Partei",
-      "period": "Zeitraum",
-      "status": "Status",
-      "file": "Datei",
-      "created": "Erstellt"
-    },
-    "form": {
-      "createTitle": "Neuer Vertrag",
-      "renewTitle": "Vertrag verlängern",
-      "party": "Partei",
-      "selectParty": "Partei auswählen…",
-      "from": "Gültig ab",
-      "to": "Gültig bis",
-      "dateOrder": "Das Enddatum muss am oder nach dem Startdatum liegen.",
-      "file": "Vertrags-PDF",
-      "choosePdf": "PDF-Datei auswählen…",
-      "uploadFailed": "Datei-Upload fehlgeschlagen. Bitte erneut versuchen.",
-      "create": "Erstellen",
-      "renew": "Verlängern"
-    },
-    "errors": {
-      "generic": "Der Vertrag konnte nicht gespeichert werden. Bitte erneut versuchen.",
-      "no_active_contract_to_renew": "Es gibt keinen aktiven Vertrag zum Verlängern — erstellen Sie zuerst einen.",
-      "owner_profile_not_found": "Für diesen Eigentümer ist kein Profil hinterlegt.",
-      "worker_not_found": "Mitarbeiter nicht gefunden.",
-      "contract_not_found": "Vertrag nicht gefunden.",
-      "contract_already_inactive": "Dieser Vertrag ist bereits inaktiv."
-    }
-  },
   "professions": {
     "title": "Berufe",
     "subtitle": "Gewerke verwalten, auf die sich Mitarbeiter spezialisieren können",

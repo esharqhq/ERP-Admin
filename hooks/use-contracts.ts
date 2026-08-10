@@ -242,9 +242,8 @@ export function invalidateAfterTerminate(
  * than merely recalled (see `canTerminate` in `lib/contracts/registry-row.ts`).
  *
  * The entry point lives in `components/docs-workspace/contract-panel.tsx`
- * (Docs detail) as of this task. `app/[locale]/dashboard/contracts/page.tsx`
- * still wires this same hook too — that screen's mutations are removed in a
- * later phase, not this one.
+ * (Docs detail), and is now the only one — the contracts registry screen that
+ * also wired this hook was deleted as unused.
  *
  * Replaces the former `useDeactivateOwnerContract` / `useDeactivateWorkerContract`,
  * whose invalidation was too narrow (their own contract list only).

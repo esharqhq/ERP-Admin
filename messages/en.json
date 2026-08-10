@@ -1058,51 +1058,6 @@
       "leave_request_not_found": "Leave request not found."
     }
   },
-  "contracts": {
-    "title": "Contracts",
-    "subtitle": "Manage owner and worker contracts",
-    "new": "New contract",
-    "empty": "No contracts found",
-    "active": "Active",
-    "inactive": "Inactive",
-    "viewFile": "View PDF",
-    "deactivate": "Deactivate",
-    "deactivateTitle": "Deactivate contract?",
-    "deactivateConfirm": "Force-deactivate this contract for {name}? This is audited.",
-    "tabs": {
-      "owner": "Owner contracts",
-      "worker": "Worker contracts"
-    },
-    "columns": {
-      "party": "Party",
-      "period": "Period",
-      "status": "Status",
-      "file": "File",
-      "created": "Created"
-    },
-    "form": {
-      "createTitle": "New contract",
-      "renewTitle": "Renew contract",
-      "party": "Party",
-      "selectParty": "Select a party…",
-      "from": "Eligible from",
-      "to": "Eligible to",
-      "dateOrder": "The end date must be on or after the start date.",
-      "file": "Contract PDF",
-      "choosePdf": "Choose a PDF file…",
-      "uploadFailed": "File upload failed. Please try again.",
-      "create": "Create",
-      "renew": "Renew"
-    },
-    "errors": {
-      "generic": "The contract could not be saved. Please try again.",
-      "no_active_contract_to_renew": "There is no active contract to renew — create one first.",
-      "owner_profile_not_found": "This owner has no profile on record.",
-      "worker_not_found": "Worker not found.",
-      "contract_not_found": "Contract not found.",
-      "contract_already_inactive": "This contract is already inactive."
-    }
-  },
   "professions": {
     "title": "Professions",
     "subtitle": "Manage the trades workers can specialise in",
