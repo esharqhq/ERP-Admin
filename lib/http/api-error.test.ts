@@ -49,6 +49,10 @@ describe("getValidationMessage", () => {
     expect(getValidationMessage(axiosErr(400, { errors: { A: [] } }))).toBeNull();
     expect(getValidationMessage(axiosErr(400, { errors: "nope" }))).toBeNull();
   });
+
+  it("rejects a whitespace-only field message", () => {
+    expect(getValidationMessage(axiosErr(400, { errors: { A: ["   "] } }))).toBeNull();
+  });
 });
 
 describe("looksLikeLeakedMessage", () => {
