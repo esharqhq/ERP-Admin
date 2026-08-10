@@ -93,18 +93,35 @@ A gate is a condition, not a ceremony. If it is red, the phase does not start.
 **G2 and G3 are the two things only the user can unblock.** Everything else a worker can satisfy
 alone. If G2 is missing, Phase 0 still completes tasks 1–7 and stops at the gate.
 
-> ### Gate status as of 2026-08-07
+> ### Gate status as of 2026-08-10 — Phase 1 Close is DONE, G4 is green, G5 is waived
 >
-> - **G4 changes meaning after Phase 1 Close Task 6.** It currently reads "no lint finding
->   attributable to this phase", because `lint` has exited 1 since June 2026 over three findings this
->   migration never touched. Task 6 clears all three, after which **G4 is simply `lint` exit 0** and
->   any regression from zero is attributable to whoever caused it. Measuring against a remembered
->   baseline of three was the actual cost of leaving them.
+> - **G4 is green, and it now means what it says.** `npm run test` 37/37 · `npx tsc --noEmit` exit 0 ·
+>   **`npm run lint` exit 0** · `npm run build` ✓ · dead-v1-vocabulary sweep clean ·
+>   `npm run verify:api` **ALL PASS** on the public half. Measured 2026-08-10 on `8ff8077`.
+> - **`lint` exits 0 for the first time since June 2026** (Phase 1 Close Task 6). Every later gate is
+>   therefore the plain check, not a comparison against a remembered baseline of three findings.
+>   ⚠ One caveat for whoever runs the dead-vocabulary sweep: four hits survive and **all four are
+>   comments or docs that record the removal** — `workers/page.tsx:54`, `dispatch/page.tsx:46`,
+>   `worker.service.ts:14`, `FRONTEND-HANDOFF.md:182`. Keep them; they stop someone re-adding the
+>   dead names. Scope the sweep to code, or accept those four by name.
+> - **A test runner now exists.** `npm run test` is part of every gate from here on. Node environment,
+>   `lib/**` + `hooks/**` only — no jsdom, no component tests, deliberately.
 > - **G5 is waived, not met, and does not become met by Phase 2.** The condition is *"Phase 1 merged
 >   and the full owner+worker journey verified once against live"*. G2 and G3 are both unmet, so **no
->   contract has ever been sent, signed, or renewed from this panel.** Phase 1's UI is complete and
->   every static gate is green; that is a different claim and the two must not be conflated in a PR
->   description.
+>   contract has ever been sent, signed, renewed, or terminated from this panel.** Phase 1's UI is
+>   complete and every static gate is green; that is a different claim and the two must not be
+>   conflated in a PR description.
+>
+>   What *was* verified, and it is more than nothing: every new screen was rendered in a real browser
+>   against mock data, in both locales, in light and dark, via temporary harnesses that were deleted
+>   afterwards. That caught six defects no diff review would have found — an off-by-one day count, a
+>   hydration mismatch introduced by a lint fix, ambiguous month-first dates in two places, a
+>   `Scheduled` contract described as "ends now", and an i18n key that rendered its own path to the
+>   admin. **Rendering is verified. The backend round-trip is not.**
+>
+>   The single cheapest thing that would discharge the most risk: the product owner has a real signed
+>   contract on screen (`documentUrl` populated). Opening that panel, waiting ~6 minutes and clicking
+>   "Open signed contract" would settle AL-10 and AL-11 in one action.
 > - **Phases 2, 3 and 4 therefore run on G4 alone**, each under an Assumption Ledger at the foot of
 >   its plan file. Those four ledgers are the consolidated list of what to verify, in order, on the
 >   day credentials arrive — the cheapest single check in the whole set is
@@ -175,9 +192,19 @@ and the four Assumption Ledgers are what the deferral was supposed to avoid need
 
 ## Phase 1 — Docs workspace
 
-> ### Phase 1 was executed without its plan
+> ### Phase 1 is CLOSED — 2026-08-10, commits `2b360a8`…`8ff8077`
 >
-> *Amended 2026-08-07.* The plan file this section calls for —
+> All 11 tasks of `2026-08-07-v2-phase-1-close.md` are complete, each with a task review and, where
+> findings arose, a scoped re-review. **Nine fix rounds across five tasks**, one of which was a
+> Critical caught only by rendering the component (a lint fix that broke SSR hydration in a primitive
+> every dashboard screen mounts). Full record: `.superpowers/sdd/2026-08-07-v2-phase-1-close/progress.md`.
+>
+> Worth carrying forward: **five of the nine fix rounds traced back to defects in the plan itself**,
+> not to the implementers — a miscounted key total, a commit template describing the opposite of what
+> the code did, an i18n value that forced an argument nine call sites don't pass, and two copy
+> instructions that were too narrow. Every one was found by executing the plan, none by re-reading it.
+>
+> *Amended 2026-08-07.* The plan file this section originally called for —
 > `2026-08-XX-v2-phase-1-docs-workspace.md` — **was never written.** The Docs workspace was built
 > directly across commits `bc292f0`…`8a3a9ed`, and the 14-task outline below was used as the working
 > list rather than expanded into a plan.
