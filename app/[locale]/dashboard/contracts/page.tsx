@@ -35,13 +35,20 @@ import {
 import { useOwnerList } from "@/hooks/use-owners";
 import { useWorkers } from "@/hooks/use-workers";
 import { getApiErrorCode } from "@/lib/http/api-error";
-import { canAuthorContract } from "@/lib/onboarding/status";
+import { canAuthorContract, contractPhasePresentation } from "@/lib/onboarding/status";
 import { MAX_PAGE_SIZE } from "@/lib/types/paged.types";
 import { newIdempotencyKey } from "@/lib/services/contract.service";
 import type {
   ContractPeriodFields,
   ContractType,
 } from "@/lib/types/contract.types";
+import {
+  canRenew,
+  canTerminate,
+  ownerRegistryRow,
+  workerRegistryRow,
+  type RegistryRow,
+} from "@/lib/contracts/registry-row";
 
 const KNOWN_ERRORS = new Set([
   "no_active_contract_to_renew",
@@ -51,23 +58,10 @@ const KNOWN_ERRORS = new Set([
   "contract_already_inactive",
 ]);
 
-interface Row {
-  contractId: string;
-  partyId: string;
-  partyName: string | null;
-  partyEmail: string | null;
-  eligibleFrom: string;
-  eligibleTo: string;
-  fileName: string | null;
-  fileUrl: string | null;
-  isActive: boolean;
-  createdAt: string;
-}
-
 type ModalState =
   | { type: "create" }
-  | { type: "renew"; row: Row }
-  | { type: "deactivate"; row: Row }
+  | { type: "renew"; row: RegistryRow }
+  | { type: "deactivate"; row: RegistryRow }
   | null;
 
 function fmtDate(iso: string, locale: string): string {
@@ -80,6 +74,7 @@ function fmtDate(iso: string, locale: string): string {
 export default function ContractsPage() {
   const t = useTranslations("contracts");
   const tCommon = useTranslations("common");
+  const tOnboarding = useTranslations("onboarding");
   const locale = useLocale();
   const [tab, setTab] = useState<ContractType>("owner");
   const [modal, setModal] = useState<ModalState>(null);
@@ -126,34 +121,13 @@ export default function ContractsPage() {
   const renewMut = isOwner ? renewOwner : renewWorker;
   const deactivateMut = isOwner ? deactivateOwner : deactivateWorker;
 
-  const rows = useMemo<Row[]>(() => {
-    if (isOwner) {
-      return (ownerContracts.data ?? []).map((c) => ({
-        contractId: c.id,
-        partyId: c.ownerUserId,
-        partyName: c.ownerFullName,
-        partyEmail: c.ownerEmail,
-        eligibleFrom: c.eligibleFrom,
-        eligibleTo: c.eligibleTo,
-        fileName: c.fileName,
-        fileUrl: c.fileUrl,
-        isActive: c.isActive,
-        createdAt: c.createdAt,
-      }));
-    }
-    return (workerContracts.data ?? []).map((c) => ({
-      contractId: c.id,
-      partyId: c.workerId,
-      partyName: c.workerFullName,
-      partyEmail: c.workerEmail,
-      eligibleFrom: c.eligibleFrom,
-      eligibleTo: c.eligibleTo,
-      fileName: c.fileName,
-      fileUrl: c.fileUrl,
-      isActive: c.isActive,
-      createdAt: c.createdAt,
-    }));
-  }, [isOwner, ownerContracts.data, workerContracts.data]);
+  const rows = useMemo<RegistryRow[]>(
+    () =>
+      isOwner
+        ? (ownerContracts.data ?? []).map(ownerRegistryRow)
+        : (workerContracts.data ?? []).map(workerRegistryRow),
+    [isOwner, ownerContracts.data, workerContracts.data],
+  );
 
   const parties = useMemo<ContractParty[]>(() => {
     if (isOwner) {
@@ -190,7 +164,7 @@ export default function ContractsPage() {
     deactivateMut.reset();
   };
 
-  function openRenew(row: Row) {
+  function openRenew(row: RegistryRow) {
     renewIdempotencyKeyRef.current = newIdempotencyKey();
     setModal({ type: "renew", row });
   }
@@ -305,9 +279,14 @@ export default function ContractsPage() {
                       {fmtDate(r.eligibleFrom, locale)} → {fmtDate(r.eligibleTo, locale)}
                     </TableCell>
                     <TableCell>
-                      <Badge variant={r.isActive ? "default" : "secondary"}>
-                        {r.isActive ? t("active") : t("inactive")}
-                      </Badge>
+                      {(() => {
+                        const p = contractPhasePresentation(r.phase);
+                        return (
+                          <Badge variant={p.variant} className={p.className}>
+                            {tOnboarding(`phase.${p.labelKey}`)}
+                          </Badge>
+                        );
+                      })()}
                     </TableCell>
                     <TableCell>
                       <a
@@ -325,7 +304,7 @@ export default function ContractsPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-0.5">
-                        {r.isActive ? (
+                        {canRenew(r.phase) ? (
                           <Can permission={renewPerm}>
                             <Button
                               variant="ghost"
@@ -337,7 +316,7 @@ export default function ContractsPage() {
                             </Button>
                           </Can>
                         ) : null}
-                        {r.isActive ? (
+                        {canTerminate(r.phase) ? (
                           <Can permission={deactivatePerm}>
                             <Button
                               variant="ghost"
