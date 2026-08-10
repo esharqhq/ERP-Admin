@@ -26,24 +26,42 @@ describe("invalidateAfterTerminate", () => {
     expect(keys).toContainEqual(["worker", "worker-1"]);
   });
 
-  it("invalidates the owner contract list, the kyc queue, notifications, and the profile detail query", () => {
+  /**
+   * A second, real bug shipped after the one above was fixed: the owner Docs
+   * detail page passed `ownerUserId` here instead of the KYC profile id
+   * `useKycProfile` actually keys its query on, so this step silently built a
+   * key nothing was ever cached under — invisible in the running app because
+   * the `["kyc"]` prefix invalidation above happened to refresh the same
+   * query anyway. `ownerProfileId` and `ownerUserId` are deliberately given
+   * different, realistic-looking values below (not near-identical strings) so
+   * a call site that passes the wrong one produces a key this test does not
+   * expect, and the `.not` assertion catches it even if `toContainEqual`
+   * above it were loosened or removed.
+   */
+  it("invalidates the owner profile detail query keyed on the profile id, not the user id", () => {
+    const ownerProfileId = "profile-owner-abc";
+    const ownerUserId = "user-owner-xyz";
     const qc = new QueryClient();
     const spy = vi.spyOn(qc, "invalidateQueries");
 
-    invalidateAfterTerminate(qc, "owner", "owner-1");
+    invalidateAfterTerminate(qc, "owner", ownerProfileId);
 
     const keys = spy.mock.calls.map((call) => call[0]?.queryKey);
     expect(keys).toContainEqual(["owner-contracts"]);
     expect(keys).toContainEqual(["kyc"]);
     expect(keys).toContainEqual(["notifications"]);
-    expect(keys).toContainEqual(["kyc", "profile", "owner-1"]);
+    expect(keys).toContainEqual(["kyc", "profile", ownerProfileId]);
+    expect(keys).not.toContainEqual(["kyc", "profile", ownerUserId]);
   });
 
-  it("skips the subject detail invalidation when no subject id is given, without throwing", () => {
+  it("skips the subject detail invalidation when the caller has no subject id to give, without throwing", () => {
     const qc = new QueryClient();
     const spy = vi.spyOn(qc, "invalidateQueries");
 
-    invalidateAfterTerminate(qc, "worker", undefined);
+    // Required, not optional — "" is how a caller with no mounted
+    // subject-detail query (the legacy registry page) opts out explicitly,
+    // rather than a forgetful caller omitting the argument by accident.
+    invalidateAfterTerminate(qc, "worker", "");
 
     expect(spy).toHaveBeenCalledTimes(3);
     const keys = spy.mock.calls.map((call) => call[0]?.queryKey);

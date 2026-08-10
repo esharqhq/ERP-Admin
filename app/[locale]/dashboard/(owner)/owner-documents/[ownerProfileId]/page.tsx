@@ -55,7 +55,10 @@ export default function OwnerDocsDetailPage() {
   const send = useSendContract("owner");
   const recall = useRecallContract("owner");
   const renew = useRenewOwnerContract();
-  const terminate = useTerminateContract("owner", profile.data?.ownerUserId ?? undefined);
+  // `ownerProfileId` (the route param), not `ownerUserId` — the KYC profile
+  // detail query this is meant to invalidate (`useKycProfile`, below) is keyed
+  // on the profile id. See the ownerUserId/ownerProfileId note a few lines down.
+  const terminate = useTerminateContract("owner", ownerProfileId);
   const upload = useUpload("contract-sources");
 
   const renewKey = useRef<string | null>(null);

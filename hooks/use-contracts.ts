@@ -192,15 +192,24 @@ export function useRecallContract(type: ContractType) {
  *    coincidence — see `subjectId` below.
  *  - `["notifications"]`: other admins get a bell row for
  *    `OWNER_CONTRACT_FORCE_DEACTIVATED` / the worker equivalent.
- *  - the subject's own Docs detail query, when `subjectId` is given: `["kyc",
- *    "profile", subjectId]` for owner, `["worker", subjectId]` for worker. The
- *    worker one is not a prefix of anything above — singular `"worker"` vs.
- *    plural `"workers"` — so without this, terminating a worker's contract
- *    from the Docs detail left that screen's status and stepper stale until a
- *    reload. `subjectId` is optional because not every caller has one (the
- *    legacy registry at `app/[locale]/dashboard/contracts/page.tsx` doesn't
- *    keep a mounted subject-detail query to refresh); when omitted, this step
- *    is simply skipped.
+ *  - the subject's own Docs detail query: `["kyc", "profile", subjectId]` for
+ *    owner, `["worker", subjectId]` for worker. The worker one is not a prefix
+ *    of anything above — singular `"worker"` vs. plural `"workers"` — so
+ *    without this, terminating a worker's contract from the Docs detail left
+ *    that screen's status and stepper stale until a reload.
+ *
+ * ⚠ `subjectId` for "owner" is the **KYC profile id** (`useKycProfile`'s key,
+ * and the Docs detail route param), **not** `ownerUserId` — a real bug here:
+ * an earlier version of the owner call site passed `ownerUserId` (the id
+ * contract-authoring routes use), which built a key nothing in the cache
+ * matches, silently making this whole explicit step dead code — masked
+ * because the `["kyc"]` prefix invalidation above happened to still refresh
+ * the same query by accident, which is the exact failure mode this function
+ * exists to stop relying on. `subjectId` is required (not optional) precisely
+ * so a caller cannot forget to pass one; it cannot, on its own, stop a caller
+ * from passing the *wrong* one — that needs branded id types, judged too wide
+ * a change for this fix. Get the id from `hooks/use-contracts.test.ts` if
+ * unsure which one is expected.
  *
  * ⚠ A terminate never deletes the subject record (contrast the trap documented
  * in `hooks/use-owners.ts`), so invalidating the subject's own detail query is
@@ -210,11 +219,16 @@ export function useRecallContract(type: ContractType) {
 export function invalidateAfterTerminate(
   qc: QueryClient,
   type: ContractType,
-  subjectId?: string,
+  subjectId: string,
 ) {
   qc.invalidateQueries({ queryKey: keyFor(type) });
   qc.invalidateQueries({ queryKey: [type === "owner" ? "kyc" : "workers"] });
   qc.invalidateQueries({ queryKey: ["notifications"] });
+  // A caller with no mounted subject-detail query to refresh (the legacy
+  // registry, below) passes "" rather than omitting the argument — required,
+  // not optional, so a forgetful caller fails to compile instead of silently
+  // skipping this step. "" is falsy, so it still skips the query-key build
+  // below rather than invalidating a key nothing could ever be cached under.
   if (subjectId) {
     qc.invalidateQueries({
       queryKey: type === "owner" ? ["kyc", "profile", subjectId] : ["worker", subjectId],
@@ -237,9 +251,10 @@ export function invalidateAfterTerminate(
  *
  * `subjectId` is the owner/worker id the caller's own detail query is keyed
  * on (do not derive it from cached contract data — pass what the caller
- * already knows). See `invalidateAfterTerminate` for what it unlocks.
+ * already knows), and is required for exactly that reason. See
+ * `invalidateAfterTerminate` for what it unlocks and the id mix-up to avoid.
  */
-export function useTerminateContract(type: ContractType, subjectId?: string) {
+export function useTerminateContract(type: ContractType, subjectId: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (contractId: string) => contractService.terminate(type, contractId),

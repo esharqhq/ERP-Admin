@@ -112,8 +112,11 @@ export default function ContractsPage() {
   const createWorker = useCreateWorkerContract();
   const renewWorker = useRenewWorkerContract();
   // Single hook parameterized on the active tab — see useSendContract/useRecallContract
-  // for the same idiom.
-  const deactivateMut = useTerminateContract(tab);
+  // for the same idiom. No single row is "the" subject here (one hook instance
+  // covers whichever row's dialog is open), and this screen keeps no mounted
+  // subject-detail query to refresh anyway, so "" — required, not omitted —
+  // tells invalidateAfterTerminate there is nothing to invalidate on that front.
+  const deactivateMut = useTerminateContract(tab, "");
 
   const isOwner = tab === "owner";
   const query = isOwner ? ownerContracts : workerContracts;
