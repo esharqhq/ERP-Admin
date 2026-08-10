@@ -1,10 +1,12 @@
 "use client";
 
-import { useCallback, useState } from "react";
-
-export type SignedPdfKind = "preview" | "document";
+import { useCallback, useRef, useState } from "react";
 
 export interface SignedPdfState {
+  /**
+   * Never rejects — every terminal path either opens a tab or sets `missing`.
+   * Safe to call from an `onClick` without an `await`/`.catch()`.
+   */
   open(): void;
   isOpening: boolean;
   /** Set when the artifact is genuinely missing after one refresh. */
@@ -32,31 +34,64 @@ export function useSignedPdf(
 ): SignedPdfState {
   const [isOpening, setIsOpening] = useState(false);
   const [missing, setMissing] = useState(false);
+  /**
+   * Re-entrancy guard. A `useRef` rather than reading `isOpening` in the closure:
+   * a state read can be stale (state updates are async/batched), so two
+   * synchronous calls to `open()` in the same tick could both observe
+   * `isOpening === false` and both proceed. A ref mutates immediately, so the
+   * second call in the same tick sees it already held. `disabled={isOpening}`
+   * on the button covers today's only caller; this guard is defense-in-depth
+   * for whichever caller doesn't gate on it next.
+   */
+  const openingRef = useRef(false);
 
-  const open = useCallback(async () => {
-    if (!url) return;
+  const open = useCallback(() => {
+    if (!url || openingRef.current) return;
+    openingRef.current = true;
     setIsOpening(true);
     setMissing(false);
-    try {
-      // A HEAD is enough to learn whether the signature is still valid, and it
-      // avoids opening a tab onto an error page. Verified against FilesController:
-      // it is GET-only, but ASP.NET Core's routing matches HEAD to a GET action by
-      // default, and its FileStreamResult skips the body (not the status/headers)
-      // for a HEAD request — so a HEAD reports the same 200/404 a GET would, without
-      // downloading the PDF. CORS (`AllowAnyMethod`) covers the cross-origin HEAD too.
-      if (await reachable(url)) {
-        window.open(url, "_blank", "noopener,noreferrer");
-        return;
+
+    // `open()` is declared `(): void`, not `(): Promise<void>` — it is fired from
+    // an `onClick` with no `await`/`.catch()`, so it must never reject. Every
+    // branch below is guarded (`reachable()` catches its own errors; `refetch()`
+    // is guarded explicitly just below) so this IIFE always resolves, never
+    // rejects, and `void` is safe here rather than papering over a real bug.
+    void (async () => {
+      try {
+        // A HEAD is enough to learn whether the signature is still valid, and it
+        // avoids opening a tab onto an error page. Verified against FilesController:
+        // it is GET-only, but ASP.NET Core's routing matches HEAD to a GET action by
+        // default, and its FileStreamResult skips the body (not the status/headers)
+        // for a HEAD request — so a HEAD reports the same 200/404 a GET would, without
+        // downloading the PDF. CORS (`AllowAnyMethod`) covers the cross-origin HEAD too.
+        if (await reachable(url)) {
+          window.open(url, "_blank", "noopener,noreferrer");
+          return;
+        }
+
+        let fresh: string | null = null;
+        try {
+          fresh = await refetch();
+        } catch {
+          // A failed re-read is indistinguishable, from here, from a genuinely
+          // missing document: either way there is no fresh URL to follow, and the
+          // admin needs to be told rather than left with a button that silently
+          // did nothing (a contract deleted between mount and click, or a
+          // transient 500 on the re-read, both land here).
+          setMissing(true);
+          return;
+        }
+
+        if (fresh && (await reachable(fresh))) {
+          window.open(fresh, "_blank", "noopener,noreferrer");
+          return;
+        }
+        setMissing(true);
+      } finally {
+        setIsOpening(false);
+        openingRef.current = false;
       }
-      const fresh = await refetch();
-      if (fresh && (await reachable(fresh))) {
-        window.open(fresh, "_blank", "noopener,noreferrer");
-        return;
-      }
-      setMissing(true);
-    } finally {
-      setIsOpening(false);
-    }
+    })();
   }, [url, refetch]);
 
   return { open, isOpening, missing };
