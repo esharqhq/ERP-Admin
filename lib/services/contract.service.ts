@@ -180,13 +180,16 @@ export const contractService = {
   },
 
   /**
-   * Force-deactivate by contract id (writes audit). Contract termination is not
-   * exposed as a UI concept — the brief's Non-goals list it explicitly — but
-   * `app/[locale]/dashboard/contracts/page.tsx` still wires a deactivate action
-   * through `useDeactivateOwnerContract` / `useDeactivateWorkerContract`, so a
-   * single `terminate` method is kept (rather than two: `deactivateOwner` /
-   * `deactivateWorker`) instead of deleting that UI entry point outright.
-   * Follow-up: remove this call site in the Phase 2 plan.
+   * Force-deactivate by contract id (writes audit; sets `status = Terminated`,
+   * not `Expired` — the period hadn't elapsed). The entry point lives in
+   * `components/docs-workspace/contract-panel.tsx` (Docs detail), gated on
+   * `{owner|worker}_contract:deactivate_any` and `canTerminate(phase)` from
+   * `lib/contracts/registry-row.ts` — reached via `useTerminateContract` in
+   * `hooks/use-contracts.ts`. Legal from `Draft`/`Sent` too, where the UI calls
+   * it "withdraw" rather than "terminate": same endpoint, different meaning to
+   * the admin depending on whether cover had actually started.
+   * `app/[locale]/dashboard/contracts/page.tsx` also still wires this method,
+   * kept working until Phase 2 removes mutations from that screen.
    */
   terminate: async (type: ContractType, contractId: string): Promise<void> => {
     await apiClient.delete(`/api/contracts/admin/${type}/${contractId}`);

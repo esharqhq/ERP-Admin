@@ -27,10 +27,9 @@ import {
   useWorkerContracts,
   useCreateOwnerContract,
   useRenewOwnerContract,
-  useDeactivateOwnerContract,
   useCreateWorkerContract,
   useRenewWorkerContract,
-  useDeactivateWorkerContract,
+  useTerminateContract,
 } from "@/hooks/use-contracts";
 import { useOwnerList } from "@/hooks/use-owners";
 import { useWorkers } from "@/hooks/use-workers";
@@ -110,16 +109,16 @@ export default function ContractsPage() {
 
   const createOwner = useCreateOwnerContract();
   const renewOwner = useRenewOwnerContract();
-  const deactivateOwner = useDeactivateOwnerContract();
   const createWorker = useCreateWorkerContract();
   const renewWorker = useRenewWorkerContract();
-  const deactivateWorker = useDeactivateWorkerContract();
+  // Single hook parameterized on the active tab — see useSendContract/useRecallContract
+  // for the same idiom.
+  const deactivateMut = useTerminateContract(tab);
 
   const isOwner = tab === "owner";
   const query = isOwner ? ownerContracts : workerContracts;
   const createMut = isOwner ? createOwner : createWorker;
   const renewMut = isOwner ? renewOwner : renewWorker;
-  const deactivateMut = isOwner ? deactivateOwner : deactivateWorker;
 
   const rows = useMemo<RegistryRow[]>(
     () =>

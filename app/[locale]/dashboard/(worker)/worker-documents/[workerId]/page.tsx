@@ -26,6 +26,7 @@ import {
   useRecallContract,
   useRenewWorkerContract,
   useSendContract,
+  useTerminateContract,
   useUpdateWorkerContractDraft,
   useWorkerContracts,
 } from "@/hooks/use-contracts";
@@ -54,6 +55,7 @@ export default function WorkerDocsDetailPage() {
   const send = useSendContract("worker");
   const recall = useRecallContract("worker");
   const renew = useRenewWorkerContract();
+  const terminate = useTerminateContract("worker");
   const upload = useUpload("contract-sources");
 
   /**
@@ -94,6 +96,7 @@ export default function WorkerDocsDetailPage() {
     send.error ??
     recall.error ??
     renew.error ??
+    terminate.error ??
     upload.error ??
     null;
 
@@ -182,6 +185,7 @@ export default function WorkerDocsDetailPage() {
             createContract.isPending || updateDraft.isPending || renew.isPending || upload.isPending
           }
           sending={send.isPending}
+          terminating={terminate.isPending}
           error={errorMessage}
           onSaveDraft={saveDraft}
           onSend={(contractId) => send.mutate(contractId)}
@@ -192,6 +196,7 @@ export default function WorkerDocsDetailPage() {
             renewKey.current = newIdempotencyKey();
             setRenewing(true);
           }}
+          onTerminate={(contractId) => terminate.mutate(contractId)}
         />
       }
       documents={

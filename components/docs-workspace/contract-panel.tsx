@@ -8,6 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { ConfirmDialog } from "@/components/tasks/confirm-dialog";
+import { useHasPermission } from "@/hooks/use-current-permissions";
+import { canTerminate } from "@/lib/contracts/registry-row";
 import { contractPhasePresentation } from "@/lib/onboarding/status";
 import type {
   ContractPhase,
@@ -74,11 +77,13 @@ export function ContractPanel({
   locale,
   saving,
   sending,
+  terminating,
   error,
   onSaveDraft,
   onSend,
   onRecall,
   onRenew,
+  onTerminate,
 }: {
   variant: "owner" | "worker";
   subjectName: string;
@@ -92,11 +97,15 @@ export function ContractPanel({
   locale: string;
   saving: boolean;
   sending: boolean;
+  /** Pending state of the force-deactivate mutation, owned by the page. */
+  terminating: boolean;
   error: string | null;
   onSaveDraft: (values: ContractFormValues, file: File | null) => void;
   onSend: (contractId: string) => void;
   onRecall: (contractId: string, reason: string) => void;
   onRenew: () => void;
+  /** Force-deactivate this contract. Same endpoint whatever the phase — see `isWithdraw` below. */
+  onTerminate: (contractId: string) => void;
 }) {
   const t = useTranslations("docsWorkspace");
   // Phase labels are wire-value maps and live in the shared onboarding namespace.
@@ -105,11 +114,59 @@ export function ContractPanel({
   const [file, setFile] = useState<File | null>(null);
   const [recalling, setRecalling] = useState(false);
   const [recallReason, setRecallReason] = useState("");
+  const [confirmingTerminate, setConfirmingTerminate] = useState(false);
 
   const phase = contract?.phase ?? null;
   const isDraft = phase === null || phase === "Draft";
   const awaitingSignature = phase === "Sent";
   const live = phase === "InForce" || phase === "Scheduled";
+
+  // Permission-aware, not 403-driven, AND phase-aware. Both gates, not either:
+  // canTerminate is legal from Draft/Sent too (a bad contract can be withdrawn),
+  // so the permission alone would over-show it on phases the backend refuses.
+  const canDeactivate = useHasPermission(
+    variant === "owner" ? "owner_contract:deactivate_any" : "worker_contract:deactivate_any",
+  );
+  const showTerminate = canDeactivate && !!contract && canTerminate(contract.phase);
+  // Same endpoint, genuinely different meaning to the admin: cover that already
+  // started is "terminated" early; a Draft/Sent contract that never took effect
+  // is "withdrawn". Never call either one "expired" — that's a different, later
+  // outcome the backend computes on its own.
+  const isWithdraw = phase === "Draft" || phase === "Sent";
+
+  const terminateAction = showTerminate && contract && (
+    <>
+      <div className="border-t border-border pt-3">
+        <Button
+          variant="outline"
+          size="sm"
+          className="text-destructive hover:text-destructive"
+          onClick={() => setConfirmingTerminate(true)}
+        >
+          {t(isWithdraw ? "contract.withdraw" : "contract.terminate")}
+        </Button>
+      </div>
+      <ConfirmDialog
+        open={confirmingTerminate}
+        onClose={() => setConfirmingTerminate(false)}
+        onConfirm={() => {
+          onTerminate(contract.id);
+          setConfirmingTerminate(false);
+        }}
+        isPending={terminating}
+        title={t(isWithdraw ? "contract.withdrawTitle" : "contract.terminateTitle")}
+        description={
+          isWithdraw
+            ? t("contract.withdrawBody")
+            : t("contract.terminateBody", {
+                date: new Date(contract.eligibleTo).toLocaleDateString(locale),
+              })
+        }
+        confirmLabel={t("contract.terminateConfirm")}
+        destructive
+      />
+    </>
+  );
 
   /**
    * Re-seed the period from the server whenever it changes, because the API **snaps**
@@ -190,6 +247,7 @@ export function ContractPanel({
           </Button>
         </div>
         <p className="text-xs text-muted-foreground">{t("contract.renewNote")}</p>
+        {terminateAction}
       </div>
     );
   }
@@ -257,6 +315,7 @@ export function ContractPanel({
         )}
 
         {error && <p className="text-sm text-destructive">{error}</p>}
+        {terminateAction}
       </div>
     );
   }
@@ -392,6 +451,7 @@ export function ContractPanel({
         </Button>
       </div>
       <p className="text-xs text-muted-foreground">{t("contract.sendNote")}</p>
+      {terminateAction}
     </div>
   );
 }

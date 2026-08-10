@@ -27,6 +27,7 @@ import {
   useRecallContract,
   useRenewOwnerContract,
   useSendContract,
+  useTerminateContract,
   useUpdateOwnerContractDraft,
 } from "@/hooks/use-contracts";
 import { useUpload } from "@/hooks/use-upload";
@@ -53,6 +54,7 @@ export default function OwnerDocsDetailPage() {
   const send = useSendContract("owner");
   const recall = useRecallContract("owner");
   const renew = useRenewOwnerContract();
+  const terminate = useTerminateContract("owner");
   const upload = useUpload("contract-sources");
 
   const renewKey = useRef<string | null>(null);
@@ -93,6 +95,7 @@ export default function OwnerDocsDetailPage() {
     send.error ??
     recall.error ??
     renew.error ??
+    terminate.error ??
     upload.error ??
     null;
 
@@ -191,6 +194,7 @@ export default function OwnerDocsDetailPage() {
             upload.isPending
           }
           sending={send.isPending}
+          terminating={terminate.isPending}
           error={errorMessage}
           onSaveDraft={saveDraft}
           onSend={(contractId) => send.mutate(contractId)}
@@ -201,6 +205,7 @@ export default function OwnerDocsDetailPage() {
             renewKey.current = newIdempotencyKey();
             setRenewing(true);
           }}
+          onTerminate={(contractId) => terminate.mutate(contractId)}
         />
       }
       documents={

@@ -82,21 +82,6 @@ export function useUpdateOwnerContractDraft() {
   });
 }
 
-/**
- * Kept as a single `terminate` call under the hood (see contract.service.ts) —
- * `app/[locale]/dashboard/contracts/page.tsx` still wires this hook to a
- * deactivate action in the UI. Follow-up: remove that UI entry point in the
- * Phase 2 plan, since contract termination is not meant to be exposed here.
- */
-export function useDeactivateOwnerContract() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (contractId: string) =>
-      contractService.terminate("owner", contractId),
-    onSuccess: () => qc.invalidateQueries({ queryKey: OWNER_KEY }),
-  });
-}
-
 // ── Worker ───────────────────────────────────────────────────────────────────
 /** See `useOwnerContracts` — same shape, same reason for `enabled`. */
 export function useWorkerContracts(enabled = true) {
@@ -152,17 +137,7 @@ export function useUpdateWorkerContractDraft() {
   });
 }
 
-/** See `useDeactivateOwnerContract` — same rationale, worker side. */
-export function useDeactivateWorkerContract() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (contractId: string) =>
-      contractService.terminate("worker", contractId),
-    onSuccess: () => qc.invalidateQueries({ queryKey: WORKER_KEY }),
-  });
-}
-
-// ── Lifecycle: send / recall, either side ───────────────────────────────────
+// ── Lifecycle: send / recall / terminate, either side ───────────────────────
 /** Draft → Sent, either side. */
 export function useSendContract(type: ContractType) {
   const qc = useQueryClient();
@@ -192,5 +167,45 @@ export function useRecallContract(type: ContractType) {
         ? contractService.recallOwner(contractId, body)
         : contractService.recallWorker(contractId, body),
     onSuccess: () => qc.invalidateQueries({ queryKey: keyFor(type) }),
+  });
+}
+
+/**
+ * Force-deactivate, either side. Legal from every phase that hasn't already
+ * ended — `Draft`/`Sent` included, so a bad contract can be withdrawn rather
+ * than merely recalled (see `canTerminate` in `lib/contracts/registry-row.ts`).
+ *
+ * The entry point lives in `components/docs-workspace/contract-panel.tsx`
+ * (Docs detail) as of this task. `app/[locale]/dashboard/contracts/page.tsx`
+ * still wires this same hook too — that screen's mutations are removed in a
+ * later phase, not this one.
+ *
+ * Replaces the former `useDeactivateOwnerContract` / `useDeactivateWorkerContract`,
+ * whose invalidation was too narrow (their own contract list only). Terminating
+ * changes the subject's cover, not just the contract row, so this invalidates:
+ *  - `keyFor(type)`: the contract list on this side — the terminated row's phase
+ *    changes.
+ *  - `["kyc"]` (owner) / `["workers"]` (worker): the subject queue — onboarding
+ *    status may follow — and the Docs table's cover column, which is joined
+ *    from the contract list client-side. `["kyc"]` also covers the owner
+ *    profile detail query (`["kyc", "profile", id]`) by prefix.
+ *  - `["notifications"]`: other admins get a bell row for
+ *    `OWNER_CONTRACT_FORCE_DEACTIVATED` / the worker equivalent.
+ *
+ * ⚠ A terminate never deletes the subject record (contrast the trap documented
+ * in `hooks/use-owners.ts`), so invalidating the subject's own detail query is
+ * safe here — it just isn't reachable generically: this hook only ever sees a
+ * `contractId`, never the owner/worker id the detail screens key their own
+ * queries on.
+ */
+export function useTerminateContract(type: ContractType) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (contractId: string) => contractService.terminate(type, contractId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: keyFor(type) });
+      qc.invalidateQueries({ queryKey: [type === "owner" ? "kyc" : "workers"] });
+      qc.invalidateQueries({ queryKey: ["notifications"] });
+    },
   });
 }

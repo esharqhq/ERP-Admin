@@ -210,7 +210,14 @@
       "renewNote": "Renewing writes a new contract that takes over when this one ends.",
       "continuesFrom": "Cover continues from {date}.",
       "notSubmittedNote": "They haven't submitted their documents for review yet, so there is nothing to approve and no contract to write.",
-      "rejectedNote": "You rejected this submission. A contract can be written once they re-submit and you approve it."
+      "rejectedNote": "You rejected this submission. A contract can be written once they re-submit and you approve it.",
+      "terminate": "Terminate cover",
+      "withdraw": "Withdraw contract",
+      "terminateTitle": "End this contract early?",
+      "terminateBody": "Cover ends now instead of on {date}. The contract is kept and marked as ended early — it is not deleted, and this is recorded in the audit log. The subject loses access to anything that requires active cover.",
+      "withdrawTitle": "Withdraw this contract?",
+      "withdrawBody": "The contract is retired without ever taking effect. Use this for a contract that should not have been authored; to correct one that was sent, recall it instead and edit the draft.",
+      "terminateConfirm": "Yes, end it"
     },
     "backToOwnerDocs": "Back to owner documents",
     "ownerListTitle": "Owner documents",

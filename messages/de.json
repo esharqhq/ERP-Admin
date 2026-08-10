@@ -210,7 +210,14 @@
       "renewNote": "Beim Verlängern wird ein neuer Vertrag erstellt, der übernimmt, wenn dieser endet.",
       "continuesFrom": "Deckung läuft ab {date} weiter.",
       "notSubmittedNote": "Die Dokumente wurden noch nicht zur Prüfung eingereicht — es gibt nichts zu genehmigen und keinen Vertrag zu erstellen.",
-      "rejectedNote": "Sie haben diese Einreichung abgelehnt. Ein Vertrag kann erstellt werden, sobald erneut eingereicht und genehmigt wurde."
+      "rejectedNote": "Sie haben diese Einreichung abgelehnt. Ein Vertrag kann erstellt werden, sobald erneut eingereicht und genehmigt wurde.",
+      "terminate": "Deckung beenden",
+      "withdraw": "Vertrag zurückziehen",
+      "terminateTitle": "Diesen Vertrag vorzeitig beenden?",
+      "terminateBody": "Die Deckung endet jetzt statt am {date}. Der Vertrag bleibt erhalten und wird als vorzeitig beendet markiert — er wird nicht gelöscht, und der Vorgang wird im Audit-Log erfasst. Die betroffene Person verliert den Zugriff auf alles, was aktive Deckung erfordert.",
+      "withdrawTitle": "Diesen Vertrag zurückziehen?",
+      "withdrawBody": "Der Vertrag wird zurückgezogen, ohne jemals wirksam geworden zu sein. Verwenden Sie dies für einen Vertrag, der nicht hätte erstellt werden dürfen; um einen gesendeten Vertrag zu korrigieren, rufen Sie ihn stattdessen zurück und bearbeiten den Entwurf.",
+      "terminateConfirm": "Ja, beenden"
     },
     "backToOwnerDocs": "Zurück zu Eigentümerdokumenten",
     "ownerListTitle": "Eigentümerdokumente",
