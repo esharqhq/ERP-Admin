@@ -30,7 +30,7 @@ export function ApproveWorkerModal({ open, onClose, onConfirm, isPending, worker
         <DialogHeader>
           <DialogTitle>{t("approveTitle")}</DialogTitle>
           <DialogDescription>
-            {t("approveConfirm")}
+            {t("approveConfirm")} <strong>{workerName}</strong>
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
