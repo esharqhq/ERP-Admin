@@ -376,13 +376,41 @@ already happened: `messages/en.json:396` has `onboardingStatus` sitting directly
 
 **Files:**
 - Modify: `messages/en.json` — remove `owners.columns.kycStatus` (`:393`), the whole `owners.kyc`
-  block (`:398-414`, 17 keys), and `owners.detail.kycStatus` (`:418`)
+  block (`:398-414`, **15 keys** — `allTab` through `markWrongNote`), and `owners.detail.kycStatus`
+  (`:418`). **17 keys per locale in total.**
 - Modify: `messages/de.json` — the same three sites, same line region
+- Modify: `lib/services/kyc.service.ts` — delete the uncalled `getProfileByUser` (Step 1b)
+
+> **Corrected 2026-08-10, mid-execution.** This section first said "17 keys" for the `owners.kyc`
+> block and "19" in total. Both were wrong: the block holds **15** keys, so the total is **17**. The
+> 17 was a line count (the block's braces included), not a key count. The implementer caught it and
+> the task reviewer confirmed it against the diff — recorded here rather than quietly amended, because
+> a plan that miscounts is a plan whose other numbers deserve checking.
 
 **Interfaces:**
 - Consumes: nothing.
 - Produces: nothing. This task only removes. If a later task needs one of these strings, it writes a
   new key under the namespace that owns the screen — it does not resurrect `owners.kyc.*`.
+
+- [ ] **Step 1b: Delete one piece of dead code found in the 2026-08-10 backend sweep**
+
+> **Moved here 2026-08-10.** This step was mistakenly filed under Task 11's gate, whose second step is
+> also called "dead-vocabulary sweep". It belongs with the i18n deletion — same sweep, same reasoning,
+> and Task 11 is a gate that should not be deleting code.
+
+`lib/services/kyc.service.ts:34` `getProfileByUser(ownerUserId)` wraps
+`GET /api/admin/kyc/owner/{ownerUserId}` and **has no caller** — verify with
+`rg 'getProfileByUser' --glob '*.ts' --glob '*.tsx'`, which should match only its own definition.
+
+It looks like the missing piece for `lib/notifications/route.ts:32`, where `entityType: "Onboarding"`
+returns `null` because the id is a subject id and neither Docs route is keyed on an `ownerUserId`.
+**It is not.** Spec §10 (`:695`) states that `OnboardingRevertedToKyc` (55) goes to the **subject,
+never to admins**, so an `Onboarding` bell row never reaches this panel — `route.ts` returning `null`
+is correct and defensive, not a gap.
+
+Delete the method and its doc comment together. If a future feature needs the by-user lookup it is two
+lines to restore, and an uncalled service method reads as a capability the panel has. Do not touch
+`getProfile` or any other method.
 
 - [ ] **Step 1: Prove every key is dead before deleting anything**
 
@@ -441,7 +469,8 @@ console.log('PARITY OK');
 "
 ```
 
-Expected: `PARITY OK`, and both counts down by exactly 19 from their pre-edit values.
+Expected: `PARITY OK`, and both counts down by exactly **17** from their pre-edit values. (Measured
+2026-08-10: 1023 → 1006 in both locales.)
 
 - [ ] **Step 5: Confirm nothing broke**
 
@@ -2210,21 +2239,6 @@ npm run test && npx tsc --noEmit && npm run lint && npm run build
 ```
 
 Expected: tests green; `tsc` exit 0; **lint exit 0** (new, from Task 6); build compiles.
-
-- [ ] **Step 1b: Remove one piece of dead code found during the 2026-08-10 backend sweep**
-
-`lib/services/kyc.service.ts:34` `getProfileByUser(ownerUserId)` wraps
-`GET /api/admin/kyc/owner/{ownerUserId}` and **has no caller** — verified:
-`rg 'getProfileByUser' --glob '*.ts' --glob '*.tsx'` matches only its own definition.
-
-It looked like the missing piece for `lib/notifications/route.ts:32`, where `entityType: "Onboarding"`
-returns `null` because the id is a subject id and neither Docs route is keyed on an `ownerUserId`.
-**It is not.** Spec §10 (`:695`) states that `OnboardingRevertedToKyc` (55) goes to the **subject,
-never to admins**, so an `Onboarding` bell row never reaches this panel. `route.ts` returning `null`
-is correct and defensive, not a gap.
-
-Delete the method. If a future feature needs the by-user lookup it is two lines to restore, and an
-uncalled service method reads as a capability the panel has.
 
 - [ ] **Step 2: Run the dead-vocabulary sweep**
 
