@@ -7,8 +7,14 @@
 **Spec:** `docs/superpowers/specs/2026-08-04-erp-admin-v2-migration-design.md` (amended 2026-08-04 for
 F-03·1 — see its §18; the canonical backend guides live at `D:\projekts\ERP-Uyer\Backend\docs\handoff\`)
 **Branch:** `feat/v2-migration` (spec commit `520bc5f`)
-**Phase 0 plan:** `docs/superpowers/plans/2026-08-04-v2-phase-0-foundation.md` ← written, ready to execute
-**Phases 1–4 plans:** written at the start of each phase (see "Why the later plans are written later")
+**Phase 0 plan:** `docs/superpowers/plans/2026-08-04-v2-phase-0-foundation.md` ← executed
+**Phase 1:** built **without a plan file** across commits `bc292f0`…`8a3a9ed`. Its unfinished tail is
+`docs/superpowers/plans/2026-08-07-v2-phase-1-close.md`, which opens with a task-by-task
+reconciliation of what actually shipped. See "Phase 1 was executed without its plan" below.
+**Phases 2–4 plans:** all written 2026-08-07 —
+`2026-08-07-v2-phase-2-contracts-registry.md`,
+`2026-08-07-v2-phase-3-paged-tables.md`,
+`2026-08-07-v2-phase-4-lookups-ticket-notifications.md`.
 
 ---
 
@@ -87,6 +93,25 @@ A gate is a condition, not a ceremony. If it is red, the phase does not start.
 **G2 and G3 are the two things only the user can unblock.** Everything else a worker can satisfy
 alone. If G2 is missing, Phase 0 still completes tasks 1–7 and stops at the gate.
 
+> ### Gate status as of 2026-08-07
+>
+> - **G4 changes meaning after Phase 1 Close Task 6.** It currently reads "no lint finding
+>   attributable to this phase", because `lint` has exited 1 since June 2026 over three findings this
+>   migration never touched. Task 6 clears all three, after which **G4 is simply `lint` exit 0** and
+>   any regression from zero is attributable to whoever caused it. Measuring against a remembered
+>   baseline of three was the actual cost of leaving them.
+> - **G5 is waived, not met, and does not become met by Phase 2.** The condition is *"Phase 1 merged
+>   and the full owner+worker journey verified once against live"*. G2 and G3 are both unmet, so **no
+>   contract has ever been sent, signed, or renewed from this panel.** Phase 1's UI is complete and
+>   every static gate is green; that is a different claim and the two must not be conflated in a PR
+>   description.
+> - **Phases 2, 3 and 4 therefore run on G4 alone**, each under an Assumption Ledger at the foot of
+>   its plan file. Those four ledgers are the consolidated list of what to verify, in order, on the
+>   day credentials arrive — the cheapest single check in the whole set is
+>   `GET /api/property-categories`, which is open to any authenticated user and settles two entries
+>   that between them block four of Phase 4's tasks.
+> - **G6 remains unconfirmed** and blocks only Phase 4 Task 6.
+
 **Signing as the subject does not need the Owner or Worker app.** G3 only has to provide credentials;
 the verification signs over the API, which keeps Phase 1's end-to-end check inside one terminal:
 
@@ -119,28 +144,55 @@ same with `userType=Worker` and `/api/contracts/worker/…`.
 
 ---
 
-## Why the later plans are written later
+## Why the later plans were written later — and how that resolved
 
-Each phase plan is written at that phase's kickoff, not now — for a concrete reason per phase, not
-as a scheduling preference:
+*Amended 2026-08-07. All four remaining plans are now written. Each deferral reason is recorded here
+with what actually happened, because two of them dissolved and two turned into documented
+assumptions rather than answers.*
 
-- **Phase 1** needs the `{{token}}` names inside `contract.template.owner.en`, which live only in
-  the deployed database. Phase 0 Task 8 Step 5 reads them. Writing the contract-form task before
-  that means inventing token names and correcting them later.
-- **Phase 2** renders `phase` values observed in real rows (how many `Scheduled`, whether any
-  `Lapsed` exist), and its Settings screen writes keys whose current values Phase 0 Task 8 records.
-- **Phase 3** reuses `use-paged-table`, whose exact shape is decided by Phase 1's Docs table — the
-  first real consumer. Designing the hook twice is the failure mode to avoid.
-- **Phase 4** needs G6 confirmed, and its notification deep links point at routes Phase 1 creates.
+- **Phase 1** needed the `{{token}}` names inside `contract.template.owner.en`, readable only from the
+  deployed database. **Moot** — Phase 1 was built without its plan file, and the contract form
+  shipped. What remains is a four-item tail with no token dependency.
+- **Phase 2** was to render `phase` values observed in real rows. **Not resolved.** G2 never arrived,
+  so nothing was observed. The plan is written against DTO types instead, and every rendering
+  decision is listed in that plan's Assumption Ledger. Its Settings screen also writes keys whose
+  current values were never read, which is ledger entry AL-3.
+- **Phase 3** was to reuse `use-paged-table`, "whose exact shape is decided by Phase 1's Docs table —
+  the first real consumer". **The premise was wrong.** Phase 1's Docs table never built that hook:
+  the owner side filters in memory and the worker side passes `pageSize` straight through. So Phase 3
+  Task 1 designs the hook fresh, now with two known consumers instead of one — a better position than
+  the deferral was protecting.
+- **Phase 4** needed G6 confirmed. **Still unconfirmed.** The owner-side `targetUserType` literal is
+  isolated behind one exported constant, and Phase 4 Task 6 — the three entry points — does not
+  start until a single live call settles it.
 
-What is **not** deferred: the endpoints, DTOs, error codes, IA decisions and phase boundaries are
-all fixed in the spec now. The per-phase plans add task decomposition and code, not decisions.
+What was **never** deferred, and held: the endpoints, DTOs, error codes, IA decisions and phase
+boundaries were fixed in the spec, and writing the plans required no new decisions about any of them.
+The reading that did not hold is that deferring a plan buys accuracy — **without G2 it buys nothing**,
+and the four Assumption Ledgers are what the deferral was supposed to avoid needing.
 
 ---
 
 ## Phase 1 — Docs workspace
 
-**Plan file to write:** `docs/superpowers/plans/2026-08-XX-v2-phase-1-docs-workspace.md`
+> ### Phase 1 was executed without its plan
+>
+> *Amended 2026-08-07.* The plan file this section calls for —
+> `2026-08-XX-v2-phase-1-docs-workspace.md` — **was never written.** The Docs workspace was built
+> directly across commits `bc292f0`…`8a3a9ed`, and the 14-task outline below was used as the working
+> list rather than expanded into a plan.
+>
+> It is not being written retroactively; that would manufacture a record of planning that did not
+> happen. Ten of the fourteen tasks are verified complete in the working tree, and the tail is
+> **`2026-08-07-v2-phase-1-close.md`**, which opens with the task-by-task reconciliation and the
+> evidence for each.
+>
+> Two things went differently from this outline and both are merged and fine:
+> tasks 1–3 became **one** normalizer (`lib/onboarding/subject-row.ts`) with two adapter functions
+> instead of three adapter files, and task 4's table serves both sides from one component. Constraint
+> 3 (`isActive` on the registry), constraint 10's i18n sweep, task 13 and task 14 are what remain.
+
+**Plan file:** `docs/superpowers/plans/2026-08-07-v2-phase-1-close.md` (the tail only)
 **Gates:** G4 required; G2 required; G3 required only for the send/sign verification task.
 
 ### Phase 1 Global Constraints — copy these verbatim into that plan's header
@@ -178,8 +230,18 @@ if missing, not a nice-to-have.
 8. **One `useSignedPdf` helper for `previewUrl` / `documentUrl`.** Follow the URL, never persist it;
    on 404 re-read the contract once and retry with the fresh URL; on the second 404 stop and surface
    "this document is missing" (it means a genuine backend problem). No retry loops.
-9. **Every date leaves through one `toUtcIso()` helper.** A naive datetime is a 500 with no parseable
-   body, so there must be exactly one place that serializes contract dates.
+9. **Every date leaves through one `toUtcIso()` helper.** ~~A naive datetime is a 500 with no parseable
+   body~~, so there must be exactly one place that serializes contract dates.
+
+   > **Amended 2026-08-10 — the stated reason is no longer true.** A naive datetime is **accepted**
+   > now. A global `UtcDateTimeConverter` reads an offset-less body value as UTC
+   > (`G_NaiveDatetimeReturns500`, closed 2026-08-08) and a model binder does the same for
+   > query/route/form values (`G_QueryBoundDatesRejectOffsetless`, closed 2026-08-09), so all of
+   > `"2026-08-01T00:00:00"`, `"…Z"`, `"…+02:00"` and `"2026-08-01"` are valid and store the same
+   > instant. `index/dtos/contracts.md:35-43`: *"Sending the `Z` remains the clearest habit; it is no
+   > longer load-bearing on either path."* There is also **no 500 left anywhere for a naive datetime**
+   > (`G_HandoffClaims500HasNoErrorBody`, closed moot). Keep the single helper — one serializer is still
+   > right — but it is hygiene now, not a defence.
 10. **Deleting `/dashboard/kyc` requires two follow-ups in the same task:** a redirect from
    `/dashboard/kyc` → `/dashboard/owner-documents` so existing bookmarks and any external link keep
    working, and repointing `notificationRoute`'s `OwnerProfile` case to
@@ -238,8 +300,9 @@ if missing, not a nice-to-have.
 
 ## Phase 2 — Contracts registry + Settings
 
-**Plan file:** `docs/superpowers/plans/2026-08-XX-v2-phase-2-contracts-registry.md`
-**Gate:** G5.
+**Plan file:** `docs/superpowers/plans/2026-08-07-v2-phase-2-contracts-registry.md` ← written
+**Gate:** G5 — **waived, not met.** See the gates table. The plan proceeds under an explicit waiver and
+an Assumption Ledger; no contract row has ever been rendered from live data.
 
 | # | Task | Agent |
 |---|---|---|
@@ -255,8 +318,13 @@ if missing, not a nice-to-have.
 
 ## Phase 3 — FND-3 paged tables and export
 
-**Plan file:** `docs/superpowers/plans/2026-08-XX-v2-phase-3-paged-tables.md`
+**Plan file:** `docs/superpowers/plans/2026-08-07-v2-phase-3-paged-tables.md` ← written
 **Gate:** G4. May run in parallel with Phase 2.
+
+⚠ **Two of the eight tasks below are already done.** Phase 0 built `WorkerListQuery` with every FND-3
+filter (`lib/types/worker.types.ts:60-78`), the `WORKER_SORT_COLUMNS` whitelist, and the paged worker
+service with repeated-key serialization. Task 5 is UI only. The **owner** half has none of it — the
+directory still reads the unpaged `bosses` picker as if it were the table.
 
 | # | Task | Agent |
 |---|---|---|
@@ -273,8 +341,13 @@ if missing, not a nice-to-have.
 
 ## Phase 4 — Lookups, admin ticket, notifications
 
-**Plan file:** `docs/superpowers/plans/2026-08-XX-v2-phase-4-lookups-ticket-notifications.md`
-**Gates:** G4; G6 for task 5.
+**Plan file:** `docs/superpowers/plans/2026-08-07-v2-phase-4-lookups-ticket-notifications.md` ← written
+**Gates:** G4; **G6 for task 6** (the three entry points), not task 5 — the service and dialog can ship
+with the owner literal behind one constant; only the owner-side entry point would 400 on every attempt.
+
+⚠ **Task 7 is already done.** Phase 0 widened both notification unions
+(`lib/types/notification.types.ts:7-24`) and `lib/notifications/route.ts` exists. What is missing is
+`metadata.sourceKey` routing, which the plan makes its own task.
 
 | # | Task | Agent |
 |---|---|---|
@@ -299,25 +372,48 @@ if missing, not a nice-to-have.
 - Every cover statement derives from `phase === "InForce"`.
 - An admin can take an owner and a worker from submitted documents to a signed, in-force contract
   without leaving the admin panel, and can see who was sent a contract and never signed it.
-- `npx tsc --noEmit`, `npm run lint`, `npm run build` clean; `npm run verify:api`
+- `npm run test`, `npx tsc --noEmit`, `npm run lint`, `npm run build` clean; `npm run verify:api`
   `ALL PASS`.
 - The eight backend asks are filed.
 
-## Known pre-existing issues, deliberately out of scope
+*Amended 2026-08-07:* `npm run test` is new. Phase 1 Close Task 1 adds `vitest` for **pure logic
+only** — node environment, a `lib/**` + `hooks/**` include glob, no jsdom and no testing-library, so
+component tests cannot creep in without a config change. The reason is specific rather than general:
+the remaining phases turn on logic that compiles cleanly while being wrong — URL round-tripping,
+range validation, phase selection, day arithmetic — and a real off-by-one shipped on 2026-08-07 that
+`tsc` could not see and only a screenshot caught.
 
-Found while planning; not caused by and not fixed by this migration. Listed so nobody mistakes them
-for migration fallout:
+**One thing this list cannot claim.** Every item above is a static check. None of them, and nothing in
+Phases 1–4, establishes that the product works: no contract has been sent, signed or renewed, and no
+FND-3 query or export has run. Discharging G5 is a separate piece of work that needs credentials.
 
-- **`npm run lint` has exited 1 since June 2026** — three findings in files this migration never
+## Known pre-existing issues
+
+Found while planning; not caused by this migration. Listed so nobody mistakes them for migration
+fallout. **Amended 2026-08-07:** the product owner brought two of the three into scope; the third
+stays out by their decision.
+
+- ✅ **Now in scope — Phase 1 Close Task 6.** **`npm run lint` has exited 1 since June 2026** — three findings in files this migration never
   touches: `components/ui/sidebar.tsx:610` (error, `react-hooks/set-state-in-effect`, last changed
   `6724399` 2026-06-05), `global.d.ts:7` (error, `no-empty-object-type`, `379bef7` 2026-06-14), and an
   unused `workerName` warning in `components/workers/approve-modal.tsx:23` (`8f1fb8a` 2026-06-01).
   Every phase gate therefore measures **"no lint finding attributable to this phase"**, never "lint
-  exits 0". Fixing those three is a separate, small cleanup for the product owner to schedule.
-- **Two dead sidebar links.** `lib/nav-items.ts` declares an `agency` group pointing at
+  exits 0" — *until Task 6 clears them, after which the gate becomes plain `lint` exit 0.*
+- ❌ **Stays out of scope, by the product owner's decision on 2026-08-07.** **Two dead sidebar
+  links.** `lib/nav-items.ts:71-79` declares an `agency` group pointing at
   `/dashboard/agency-requests` and `/dashboard/agencies`; neither route exists under
-  `app/[locale]/dashboard/`. Both 404 today. Fixing them (or hiding the group) is a separate,
-  one-line decision for the product owner.
+  `app/[locale]/dashboard/`. **Both 404 today** and will continue to. No phase may touch that group —
+  Phase 4 Task 4 adds two nav entries beside them and is instructed to leave them alone.
+- ✅ **Now in scope — Phase 1 Close Task 7.** **Two directories of stale backend-doc copies.**
+  `docs/superpowers/index/` duplicates `Backend/index/` (26 files) and `ERP-Uyer/docs/` holds 8 of 18
+  handoff guides. That partial copy already cost a review cycle: a shipped feature looked
+  undocumented and a blocker that did not exist was reported to the backend team.
+- 🆕 **Added 2026-08-07 — a real bug, fixed in Phase 3 Task 1.** `components/ui/table-pagination.tsx:30`
+  offers page sizes `[50, 100, 200]` against a server ceiling of `MAX_PAGE_SIZE = 100`. The server
+  clamps silently, so choosing 200 returns 100 rows while the component computes
+  `pageCount = ceil(total / 200)` — **half the real page count, making the tail of every paged table
+  unreachable with no error anywhere.** Affects every current consumer of the component, not just the
+  FND-3 tables.
 - **The audit screen will show unfamiliar action codes** once Phase 3 lands, because exports write
   `OWNER_TABLE_EXPORTED` / `WORKER_TABLE_EXPORTED` rows. F-03·1 adds three more —
   `OWNER_KYC_DOC_APPROVED`, `OWNER_KYC_DOC_REJECTED`, and `ONBOARDING_REVERTED_TO_KYC` (whose metadata
