@@ -78,6 +78,7 @@
       "unknown": "Unbekannt"
     },
     "permissionDenied": "Ihre Rolle hat keine Berechtigung für diese Aktion.",
+    "goToSettings": "Einstellungen öffnen",
     "apiErrors": {
       "invalidOnboardingTransition": "Dieser Status wurde an anderer Stelle geändert — die Ansicht wurde aktualisiert.",
       "rejectionReasonRequired": "Ein Ablehnungsgrund ist erforderlich.",
@@ -1196,6 +1197,8 @@
     "count": "{count} Einstellungen",
     "noSettings": "Keine Einstellungen konfiguriert",
     "loading": "Einstellungen werden geladen...",
+    "on": "Ein",
+    "off": "Aus",
     "editValue": "Bearbeiten",
     "lastUpdated": "Geändert {date}",
     "neverUpdated": "Noch nicht geändert",

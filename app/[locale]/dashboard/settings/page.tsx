@@ -1,15 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useLocale } from "next-intl";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Pencil, Check, X, Plus, Loader2, Paperclip, ListChecks, SlidersHorizontal,
+  Pencil, Check, X, Plus, Loader2, Paperclip, ListChecks, SlidersHorizontal, FileSignature,
 } from "lucide-react";
 import { useSettings, useUpsertSetting } from "@/hooks/use-settings";
 import type { SystemSettingDto } from "@/lib/services/setting.service";
@@ -37,6 +39,7 @@ interface NewSetting {
 const CATEGORY_ICONS: Record<string, React.ElementType> = {
   attachment: Paperclip,
   task: ListChecks,
+  contract: FileSignature,
 };
 
 // Some settings hold prose, not a scalar — contract templates run to thousands
@@ -45,6 +48,17 @@ const CATEGORY_ICONS: Record<string, React.ElementType> = {
 // flatten the template. They get a textarea, and a truncated chip when idle.
 function isProse(value: string): boolean {
   return value.includes("\n") || value.length > 60;
+}
+
+/**
+ * A boolean setting must not be a text field. `contract.template.approved`
+ * gates every contract send in the product: while it is false, every send
+ * returns 409. Asking an admin to type the word `true` into a box invites
+ * `True`, `1`, `yes` — and the server compares strings.
+ */
+function isBoolean(value: string): boolean {
+  const v = value.trim().toLowerCase();
+  return v === "true" || v === "false";
 }
 
 // Turn a raw key/segment like "worker_threshold.lead_hours" into readable words.
@@ -83,6 +97,20 @@ export default function SettingsPage() {
   const [editing, setEditing] = useState<EditingRow | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [newSetting, setNewSetting] = useState<NewSetting>({ key: "", value: "", description: "" });
+
+  // A `settings-link` error (e.g. contract_template_not_approved) deep-links here
+  // with `?highlight=<key>`. The row is one of dozens across collapsed-by-default
+  // categories, so it needs to scroll into view and carry a ring, not just exist.
+  const searchParams = useSearchParams();
+  const highlight = searchParams.get("highlight");
+  const highlightRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    // `settings.length` stays in the deps on purpose: the ref is null on the
+    // first render because the list is still loading, so this must re-run
+    // once rows actually exist.
+    highlightRef.current?.scrollIntoView({ block: "center", behavior: "smooth" });
+  }, [highlight, settings.length]);
 
   // Group settings under a readable category (the key prefix before the first dot).
   const groups = useMemo(() => {
@@ -210,9 +238,11 @@ export default function SettingsPage() {
                       return (
                         <div
                           key={s.key}
+                          ref={s.key === highlight ? highlightRef : undefined}
                           className={cn(
                             "flex flex-col gap-3 px-4 py-4 transition-colors hover:bg-accent/20 sm:px-5",
                             !(isEditing && prose) && "sm:flex-row sm:items-center sm:gap-4",
+                            s.key === highlight && "bg-primary/5 ring-1 ring-inset ring-primary/40",
                           )}
                         >
                           <div className="flex min-w-0 flex-1 flex-col gap-1">
@@ -226,7 +256,21 @@ export default function SettingsPage() {
                             </span>
                           </div>
 
-                          {isEditing && prose ? (
+                          {isBoolean(s.value) ? (
+                            <div className="flex shrink-0 items-center gap-3">
+                              <span className="text-sm text-muted-foreground">
+                                {s.value.trim().toLowerCase() === "true" ? t("on") : t("off")}
+                              </span>
+                              <Switch
+                                checked={s.value.trim().toLowerCase() === "true"}
+                                disabled={isPending}
+                                aria-label={s.description || s.key}
+                                onCheckedChange={(next) =>
+                                  upsert({ key: s.key, value: next ? "true" : "false" })
+                                }
+                              />
+                            </div>
+                          ) : isEditing && prose ? (
                             <div className="flex flex-col gap-2">
                               {/* Enter has to insert a newline here, so Escape is the only shortcut. */}
                               <Textarea

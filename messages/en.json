@@ -78,6 +78,7 @@
       "unknown": "Unknown"
     },
     "permissionDenied": "Your role does not have permission for this action.",
+    "goToSettings": "Open Settings",
     "apiErrors": {
       "invalidOnboardingTransition": "This status changed elsewhere — the screen has been refreshed.",
       "rejectionReasonRequired": "A rejection reason is required.",
@@ -1199,6 +1200,8 @@
     "editValue": "Edit",
     "lastUpdated": "Updated {date}",
     "neverUpdated": "Not changed yet",
+    "on": "On",
+    "off": "Off",
     "categories": {
       "attachment": "Attachments",
       "task": "Tasks",

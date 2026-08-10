@@ -29,6 +29,20 @@ export interface ApiErrorInfo {
 }
 
 /**
+ * Where a `settings-link` reaction sends the admin. The Settings page reads
+ * `?highlight=` and scrolls that key's row into view with a ring, because the
+ * page renders every system setting grouped by prefix — without the highlight,
+ * "go to Settings" means "find one row among dozens".
+ */
+export const SETTINGS_DEEP_LINK = "/dashboard/settings?highlight=";
+
+/** The setting each `settings-link` error is actually blocked on. */
+export const SETTINGS_LINK_TARGET: Record<string, string> = {
+  contract_template_not_approved: "contract.template.approved",
+  contract_template_missing: "contract.template.owner.en",
+};
+
+/**
  * Every code this app can receive from the onboarding, contract, table, lookup and
  * admin-ticket routes. Sources: onboarding-and-active-gate.md §13,
  * contract-lifecycle.md §11, fnd-1 §8, fnd-2 §9, fnd-3 §8.
