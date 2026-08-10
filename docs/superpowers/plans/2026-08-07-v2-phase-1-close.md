@@ -994,9 +994,12 @@ The row type now omits isActive entirely rather than leaving it available, and
 the badge renders all seven phases through contractPhasePresentation instead of
 collapsing them into active/inactive.
 
-Renew and Terminate move behind canRenew/canTerminate, which allow only InForce
-and Scheduled: an ended period has nothing to extend, and an unsigned draft is
-recalled rather than renewed.
+Renew and Terminate move behind canRenew and canTerminate, and the two rules are
+deliberately different. Renew allows only InForce and Scheduled — an ended period
+has nothing to extend, and the server refuses with no_active_contract_to_renew.
+Terminate allows every phase that has not already ended, Draft and Sent included:
+contracts.md:37 permits it "so a bad contract can be withdrawn", and recall is
+for correcting a contract rather than retiring one.
 
 Normalization lives in lib/contracts/registry-row.ts so Phase 2's registry
 reuses it and so the affordance rules are covered by tests.
