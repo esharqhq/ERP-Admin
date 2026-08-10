@@ -36,15 +36,16 @@ export function ErrorNotice({
   if (!error) return null;
 
   const described = describeApiError(error);
-  // `apiErrors.validation` is the only key with an ICU placeholder ("{detail}"),
-  // so `values` must only be supplied when a `detail` actually exists — next-intl
-  // requires the argument whenever the message declares the placeholder, and
-  // errors if it's passed to a key that doesn't.
   const message = isPermissionDenied(error)
     ? t("permissionDenied")
-    : described?.detail
-      ? t(`apiErrors.${described.labelKey}`, { detail: described.detail })
-      : t(`apiErrors.${described?.labelKey ?? "unknown"}`);
+    : t(`apiErrors.${described?.labelKey ?? "unknown"}`);
+
+  // The server's field message (problem-details, or the tail of the worker-side
+  // interpolated code) is English-only — it is never translated — so it may show
+  // in English on a German screen. That is deliberate: it is still more useful
+  // than the generic sentence alone, which names the failure kind but not which
+  // field or value caused it.
+  const detail = isPermissionDenied(error) ? undefined : described?.detail;
 
   const settingKey = described?.code
     ? SETTINGS_LINK_TARGET[described.code]
@@ -61,7 +62,10 @@ export function ErrorNotice({
     >
       <div className="flex items-start gap-2.5">
         <AlertTriangle className="mt-0.5 size-4 shrink-0 text-destructive" />
-        <p className="text-sm leading-snug text-foreground">{message}</p>
+        <div className="flex flex-col gap-0.5">
+          <p className="text-sm leading-snug text-foreground">{message}</p>
+          {detail ? <p className="text-xs text-muted-foreground">{detail}</p> : null}
+        </div>
       </div>
       {showLink ? (
         <Button
