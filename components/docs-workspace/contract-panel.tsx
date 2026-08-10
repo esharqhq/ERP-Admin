@@ -61,12 +61,13 @@ function isoToDateInput(iso: string | null): string {
 /**
  * Day, abbreviated month, year — `28 Feb 2026`, `28. Feb. 2026` in German. Same
  * shape as `subject-docs-table.tsx`'s `formatDate`, kept local rather than
- * extracted: this is the only other caller, and both dialogs it feeds are on a
- * destructive path where an all-numeric, locale-dependent date
- * (`toLocaleDateString("en")` → `12/8/2026`) is genuinely ambiguous — 12
- * August or 8 December — which is the worst place in the product for that.
+ * extracted: this is the only other caller. Every date this panel shows an
+ * admin is a contract boundary that drives a decision — including, but not
+ * limited to, the destructive-confirm dialogs — so none of them may render as
+ * an all-numeric, locale-dependent date (`toLocaleDateString("en")` →
+ * `12/8/2026`, genuinely ambiguous between 12 August and 8 December).
  */
-function formatDialogDate(iso: string, locale: string): string {
+function formatDate(iso: string, locale: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "—";
   return d.toLocaleDateString(locale, {
@@ -157,46 +158,49 @@ export function ContractPanel({
   const terminateCopyKind: "terminate" | "cancelUpcoming" | "withdraw" =
     phase === "InForce" ? "terminate" : phase === "Scheduled" ? "cancelUpcoming" : "withdraw";
 
-  const terminateAction = showTerminate && contract && (
-    <>
-      <div className="border-t border-border pt-3">
-        <Button
-          variant="outline"
-          size="sm"
-          className="text-destructive hover:text-destructive"
-          onClick={() => setConfirmingTerminate(true)}
-        >
-          {t(`contract.${terminateCopyKind}`)}
-        </Button>
-      </div>
-      <ConfirmDialog
-        open={confirmingTerminate}
-        onClose={() => setConfirmingTerminate(false)}
-        onConfirm={() => {
-          onTerminate(contract.id);
-          setConfirmingTerminate(false);
-        }}
-        isPending={terminating}
-        title={t(`contract.${terminateCopyKind}Title`)}
-        description={
-          terminateCopyKind === "withdraw"
-            ? t("contract.withdrawBody")
-            : t(`contract.${terminateCopyKind}Body`, {
-                // Scheduled cover never started, so the date that matters is when
-                // it was due to start (eligibleFrom); live cover is ending early,
-                // so the date that matters is when it was due to end (eligibleTo).
-                date: formatDialogDate(
-                  terminateCopyKind === "cancelUpcoming"
-                    ? contract.eligibleFrom
-                    : contract.eligibleTo,
-                  locale,
-                ),
-              })
-        }
-        confirmLabel={t("contract.terminateConfirm")}
-        destructive
-      />
-    </>
+  // Split in two: the button joins whatever action row is already on screen
+  // (pushed to the far end of it with `ml-auto`, away from Renew/Recall/Send —
+  // a destructive control immediately beside a primary one invites the wrong
+  // click), while the dialog itself renders once per branch, position-independent.
+  const terminateButton = showTerminate && contract && (
+    <Button
+      variant="outline"
+      size="sm"
+      className="ml-auto text-destructive hover:text-destructive"
+      onClick={() => setConfirmingTerminate(true)}
+    >
+      {t(`contract.${terminateCopyKind}`)}
+    </Button>
+  );
+
+  const terminateDialog = showTerminate && contract && (
+    <ConfirmDialog
+      open={confirmingTerminate}
+      onClose={() => setConfirmingTerminate(false)}
+      onConfirm={() => {
+        onTerminate(contract.id);
+        setConfirmingTerminate(false);
+      }}
+      isPending={terminating}
+      title={t(`contract.${terminateCopyKind}Title`)}
+      description={
+        terminateCopyKind === "withdraw"
+          ? t("contract.withdrawBody")
+          : t(`contract.${terminateCopyKind}Body`, {
+              // Scheduled cover never started, so the date that matters is when
+              // it was due to start (eligibleFrom); live cover is ending early,
+              // so the date that matters is when it was due to end (eligibleTo).
+              date: formatDate(
+                terminateCopyKind === "cancelUpcoming"
+                  ? contract.eligibleFrom
+                  : contract.eligibleTo,
+                locale,
+              ),
+            })
+      }
+      confirmLabel={t("contract.terminateConfirm")}
+      destructive
+    />
   );
 
   /**
@@ -244,23 +248,26 @@ export function ContractPanel({
         <dl className="grid grid-cols-2 gap-3 text-sm">
           <div>
             <dt className="text-xs text-muted-foreground">{t("contract.from")}</dt>
-            <dd>{new Date(contract.eligibleFrom).toLocaleDateString(locale)}</dd>
+            <dd className="tabular-nums">{formatDate(contract.eligibleFrom, locale)}</dd>
           </div>
           <div>
             <dt className="text-xs text-muted-foreground">{t("contract.to")}</dt>
-            <dd>{new Date(contract.eligibleTo).toLocaleDateString(locale)}</dd>
+            <dd className="tabular-nums">{formatDate(contract.eligibleTo, locale)}</dd>
           </div>
         </dl>
 
         {contract.renewalStartsAt && (
           <p className="text-sm text-muted-foreground">
             {t("contract.continuesFrom", {
-              date: new Date(contract.renewalStartsAt).toLocaleDateString(locale),
+              date: formatDate(contract.renewalStartsAt, locale),
             })}
           </p>
         )}
 
-        <div className="flex flex-wrap gap-2">
+        {/* The destructive action shares this row but sits at the far end of it:
+            adjacent to Renew it would collect mis-clicks, and the gap is what
+            prevents that. `ml-auto` is what puts the space there. */}
+        <div className="flex flex-wrap items-center gap-2">
           {contract.documentUrl && (
             <Button
               variant="outline"
@@ -276,9 +283,10 @@ export function ContractPanel({
           <Button size="sm" onClick={onRenew}>
             {t("contract.renew")}
           </Button>
+          {terminateButton}
         </div>
         <p className="text-xs text-muted-foreground">{t("contract.renewNote")}</p>
-        {terminateAction}
+        {terminateDialog}
       </div>
     );
   }
@@ -296,7 +304,10 @@ export function ContractPanel({
 
         <p className="text-sm text-muted-foreground">{t("contract.awaitingNote")}</p>
 
-        <div className="flex flex-wrap gap-2">
+        {/* Recall and withdraw are different acts and must not read as a pair:
+            recall keeps the contract and asks for an edit, withdraw retires it.
+            Same row, opposite ends. */}
+        <div className="flex flex-wrap items-center gap-2">
           {contract.previewUrl && (
             <Button
               variant="outline"
@@ -314,6 +325,7 @@ export function ContractPanel({
               {t("contract.recall")}
             </Button>
           )}
+          {terminateButton}
         </div>
 
         {recalling && (
@@ -346,7 +358,7 @@ export function ContractPanel({
         )}
 
         {error && <p className="text-sm text-destructive">{error}</p>}
-        {terminateAction}
+        {terminateDialog}
       </div>
     );
   }
@@ -466,7 +478,9 @@ export function ContractPanel({
 
       {error && <p className="text-sm text-destructive">{error}</p>}
 
-      <div className="flex flex-wrap gap-2">
+      {/* Same rule as the signed-contract row: withdraw belongs in the row, at
+          the far end of it, never beside Send. */}
+      <div className="flex flex-wrap items-center gap-2">
         <Button
           variant="outline"
           disabled={!canAuthor || !datesValid || saving}
@@ -480,9 +494,10 @@ export function ContractPanel({
         >
           {t("contract.send")}
         </Button>
+        {terminateButton}
       </div>
       <p className="text-xs text-muted-foreground">{t("contract.sendNote")}</p>
-      {terminateAction}
+      {terminateDialog}
     </div>
   );
 }
