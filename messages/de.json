@@ -214,8 +214,30 @@
     "backToOwnerDocs": "Zurück zu Eigentümerdokumenten",
     "ownerListTitle": "Eigentümerdokumente",
     "ownerListSubtitle": "Prüfen Sie die eingereichten Unterlagen und erstellen Sie den Vertrag, der das Konto aktiviert.",
+    "workerListTitle": "Mitarbeiterdokumente",
+    "workerListSubtitle": "Prüfen Sie die eingereichten Unterlagen und erstellen Sie den Vertrag, der den Einsatz freigibt.",
     "searchPlaceholder": "Nach Name oder E-Mail suchen",
-    "ownerCount": "{count, plural, =0 {Keine Eigentümer} one {# Eigentümer} other {# Eigentümer}}"
+    "filterLabel": "Nach Onboarding-Phase filtern",
+    "allTab": "Alle",
+    "ownerCount": "{count, plural, =0 {Keine Eigentümer} one {# Eigentümer} other {# Eigentümer}}",
+    "workerCount": "{count, plural, =0 {Keine Mitarbeiter} one {# Mitarbeiter} other {# Mitarbeiter}}",
+    "empty": "Es wurden noch keine Unterlagen eingereicht.",
+    "emptyFiltered": "Keine Treffer für diesen Filter.",
+    "noContract": "Kein Vertrag",
+    "columns": {
+      "fullName": "Name",
+      "status": "Status",
+      "coverFrom": "Deckung ab",
+      "coverTo": "Deckung bis"
+    },
+    "cover": {
+      "daysLeft": "{days, plural, one {noch # Tag} other {noch # Tage}}",
+      "startsIn": "{days, plural, one {beginnt in # Tag} other {beginnt in # Tagen}}",
+      "endsToday": "Endet heute",
+      "expired": "Abgelaufen",
+      "endedEarly": "Vorzeitig beendet",
+      "awaitingSignature": "Warten auf Signatur"
+    }
   },
   "nav": {
     "dashboard": "Dashboard",

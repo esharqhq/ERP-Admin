@@ -214,8 +214,30 @@
     "backToOwnerDocs": "Back to owner documents",
     "ownerListTitle": "Owner documents",
     "ownerListSubtitle": "Review what owners submitted, then write the contract that activates them.",
+    "workerListTitle": "Worker documents",
+    "workerListSubtitle": "Review what workers submitted, then write the contract that puts them to work.",
     "searchPlaceholder": "Search by name or email",
-    "ownerCount": "{count, plural, =0 {No owners} one {# owner} other {# owners}}"
+    "filterLabel": "Filter by onboarding stage",
+    "allTab": "All",
+    "ownerCount": "{count, plural, =0 {No owners} one {# owner} other {# owners}}",
+    "workerCount": "{count, plural, =0 {No workers} one {# worker} other {# workers}}",
+    "empty": "No one has submitted documents yet.",
+    "emptyFiltered": "No one matches this filter.",
+    "noContract": "No contract",
+    "columns": {
+      "fullName": "Name",
+      "status": "Status",
+      "coverFrom": "Cover from",
+      "coverTo": "Cover to"
+    },
+    "cover": {
+      "daysLeft": "{days, plural, one {# day left} other {# days left}}",
+      "startsIn": "{days, plural, one {Starts in # day} other {Starts in # days}}",
+      "endsToday": "Ends today",
+      "expired": "Expired",
+      "endedEarly": "Ended early",
+      "awaitingSignature": "Awaiting signature"
+    }
   },
   "nav": {
     "dashboard": "Dashboard",

@@ -1,6 +1,10 @@
 # Backend Asks — ERP-Admin Panel
 
-These are the backend changes required to unblock the remaining ERP-Admin (Next.js super-admin panel) features. The FE for every other admin-facing capability is complete and verified; each item below is **blocked on a backend change** — the FE cannot proceed until the backend ships it.
+These are the backend changes required to unblock ERP-Admin (Next.js super-admin panel) features.
+
+> ⚠ **Items #1–6 and (a)–(f) below all shipped** and were wired in commit `9d36d4b` — see
+> `FRONTEND-HANDOFF.md`, which is the live contract for them. They are kept here as the record of what
+> was asked and why. **Only the section dated 2026-08-07 at the bottom is open.**
 
 Backend repo: `D:\Victus\Projects\Backend\Germany ERP` (.NET 10). Two admin roles: `SUPER_ADMIN`, `MODERATOR`.
 
@@ -70,4 +74,41 @@ There is **no admin endpoint to read one task group by id**. The owner route `GE
 
 ---
 
-*Generated from the master gap-analysis plan + per-domain build findings. Everything not listed here is implemented and verified in the ERP-Admin panel.*
+*Generated from the master gap-analysis plan + per-domain build findings.*
+
+---
+
+# Open — raised 2026-08-07
+
+## 7. `profilePictureUrl` on the two admin list row DTOs — *unblocks the avatar column in the Docs queue*
+
+The Docs queue tables show a person per row, and a picture is the fastest way an operator recognises
+one. Both list DTOs omit it while both **detail** DTOs carry it:
+
+| | Has a picture? |
+|---|---|
+| `KycProfileSummaryDto` — `GermanyERP.Domain/Models/DTOs/Kyc/KycDtos.cs:42-50` | ❌ |
+| `WorkerRowDto` — `.../Workers/WorkerDtos.cs:48-67` | ❌ |
+| `OwnerRowDto` (FND-3 paged owners) — `.../Owners/OwnerDtos.cs:37-50` | ❌ |
+| `WorkerDetailDto` — `.../Workers/WorkerDtos.cs:74` | ✅ `ProfilePictureUrl` |
+| owner detail — `.../Owners/OwnerDtos.cs:83` | ✅ `ProfilePictureUrl` |
+
+**Need:** `profilePictureUrl` (nullable string) added to `KycProfileSummaryDto`, `WorkerRowDto` and
+`OwnerRowDto`. The data is already on the entity — this is a projection change, not a schema one.
+
+**Does it block?** **No.** The FE renders an initials monogram in the meantime, and
+`SubjectRow.avatarUrl` (`lib/onboarding/subject-row.ts`) already exists and is wired into
+`<AvatarImage>` — the day the field appears, mapping it in the two adapters is the only change. One
+detail request per row was rejected as an N+1 a table must not do.
+
+## 8. Contract period on the two admin list row DTOs — *would remove a client-side join*
+
+The Docs queue also shows each subject's cover period, which no list endpoint returns. The FE joins
+`GET /api/contracts/admin/{side}` — unpaginated, every subject's rows — once per screen and indexes it
+by subject id.
+
+**This works and is not a blocker.** Raising it only because that list has no ceiling: it grows with
+every contract ever authored, on both sides, and every Docs screen open pays for all of it. If it is
+ever paginated, the join breaks silently — rows would simply stop showing cover dates. Either
+`eligibleFrom`/`eligibleTo`/`phase` of the governing contract on the row DTOs, or a commitment that
+the admin contract list stays unpaginated, closes it.

@@ -19,10 +19,21 @@ function keyFor(type: ContractType) {
 }
 
 // ── Owner ──────────────────────────────────────────────────────────────────
-export function useOwnerContracts() {
+/**
+ * Every owner's contract rows, unpaginated, under one query key — so a screen that
+ * needs one subject's period per row joins this list client-side instead of issuing
+ * a request per row.
+ *
+ * `enabled` exists so a caller that already knows the admin lacks
+ * `owner_contract:read_any` can skip the request rather than provoke a 403 and let
+ * the error path decide the UI (an API 403 also forces a permission refetch, see
+ * `lib/http/on-forbidden.ts`).
+ */
+export function useOwnerContracts(enabled = true) {
   return useQuery({
     queryKey: OWNER_KEY,
     queryFn: contractService.listOwner,
+    enabled,
   });
 }
 
@@ -87,10 +98,12 @@ export function useDeactivateOwnerContract() {
 }
 
 // ── Worker ───────────────────────────────────────────────────────────────────
-export function useWorkerContracts() {
+/** See `useOwnerContracts` — same shape, same reason for `enabled`. */
+export function useWorkerContracts(enabled = true) {
   return useQuery({
     queryKey: WORKER_KEY,
     queryFn: contractService.listWorker,
+    enabled,
   });
 }
 
