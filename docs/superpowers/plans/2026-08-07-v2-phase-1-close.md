@@ -1442,21 +1442,41 @@ done
 `docs/superpowers/` is otherwise this app's own specs and plans, which stay. Only the `index/`
 subtree is a copy.
 
-- [ ] **Step 3: Delete what Step 1 and Step 2 cleared**
+- [ ] **Step 3: Delete what Step 1 and Step 2 cleared — two different mechanisms**
+
+⚠ **The two directories live on opposite sides of a repository boundary, and one command does not
+work for both.** `D:\projekts\ERP-Uyer` is **not a git repository** (verified 2026-08-10:
+`git -C D:\projekts\ERP-Uyer rev-parse` → *"not a git repository"*). So `../docs` is outside
+ERP-Admin's worktree and `git rm` refuses it.
+
+`docs/superpowers/index/` is inside the repo — but note `/docs` is in `.gitignore` (line 12), so only
+a force-added subset is tracked. `git ls-files docs` returns **9** files. Use `git rm` for whatever is
+tracked and a plain delete for the rest:
 
 ```bash
-git rm -r docs/superpowers/index
-git rm -r ../docs        # omit any NO SOURCE file identified above
+# Inside the repo. --cached-safe: git rm errors on untracked paths, so split them.
+git ls-files docs/superpowers/index | wc -l          # how many are tracked?
+git rm -r --quiet docs/superpowers/index 2>/dev/null || true
+rm -rf docs/superpowers/index                         # the untracked remainder
 ```
 
-If a file was kept, move it somewhere that says what it is rather than leaving it in a directory
-named `docs/` beside deleted copies.
+```bash
+# OUTSIDE the repo — a filesystem delete only. There is nothing to stage.
+rm -rf "D:/projekts/ERP-Uyer/docs"    # omit any NO SOURCE file identified in Step 1
+```
 
-- [ ] **Step 4: Update `INTEGRATION.md`**
+If a file was kept, move it somewhere that names what it is rather than leaving it in a directory
+called `docs/` beside deleted copies.
+
+- [ ] **Step 4: Update `INTEGRATION.md`** — a file edit, not a commit
 
 In the "Known stale copies — delete these" table, mark the `ERP-Uyer/docs/` row resolved with the
-date and this commit. Leave every `Worker/` row untouched — that repo was mid-work on
-`feat/worker-chat-v2-groups` with uncommitted changes, and it is not this plan's to clean.
+date. Leave every `Worker/` row untouched — that repo was mid-work on `feat/worker-chat-v2-groups`
+with uncommitted changes, and it is not this plan's to clean.
+
+⚠ **`D:\projekts\ERP-Uyer\INTEGRATION.md` is not under version control** — its directory is not a git
+repo. Edit it and stop there; do **not** try to stage it, and do not report it as committed. The
+commit in Step 6 covers only the in-repo deletion.
 
 - [ ] **Step 5: Confirm nothing referenced the deleted paths**
 
@@ -1469,8 +1489,11 @@ reference must be repointed at `Backend/` before this task is done.
 
 - [ ] **Step 6: Commit**
 
+Only the in-repo deletion is committable. `/docs` is gitignored, so the removal of tracked files needs
+`-A` on the path; `../INTEGRATION.md` is not in any repo and is deliberately absent from this command.
+
 ```bash
-git add -A docs ../INTEGRATION.md
+git add -A docs
 git commit -m "$(cat <<'EOF'
 chore(docs): delete the stale copies of the backend's own documentation
 
