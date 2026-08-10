@@ -206,6 +206,12 @@
       "recallReason": "Why are you recalling it?",
       "recallConfirm": "Recall contract",
       "openSigned": "Open signed contract",
+      "pdfMissing": "This document isn't available. That's a problem on the server, not something you can retry.",
+      "signedLine": "Signed {date} · {method}",
+      "signatureMethodUnknownLabel": "signature method not recorded",
+      "signatureMethodLabel": {
+        "Drawn": "drawn signature"
+      },
       "renew": "Renew",
       "renewNote": "Renewing writes a new contract that takes over when this one ends.",
       "continuesFrom": "Cover continues from {date}.",

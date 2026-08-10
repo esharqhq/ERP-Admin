@@ -86,6 +86,8 @@ export default function WorkerDocsDetailPage() {
           documentUrl: newest.documentUrl,
           revisionReason: newest.revisionReason,
           renewalStartsAt: newest.renewalStartsAt,
+          signedAt: newest.signedAt,
+          signatureMethod: newest.signatureMethod,
         }
       : null;
   }, [contracts.data, workerId]);

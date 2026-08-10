@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { ExternalLink, Lock } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
@@ -10,8 +10,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ConfirmDialog } from "@/components/tasks/confirm-dialog";
 import { useHasPermission } from "@/hooks/use-current-permissions";
+import { useSignedPdf } from "@/hooks/use-signed-pdf";
 import { canTerminate } from "@/lib/contracts/registry-row";
 import { contractPhasePresentation } from "@/lib/onboarding/status";
+import { contractService } from "@/lib/services/contract.service";
 import type {
   ContractPhase,
   OnboardingStatus,
@@ -36,6 +38,12 @@ export interface ContractSummary {
   documentUrl: string | null;
   revisionReason: string | null;
   renewalStartsAt: string | null;
+  signedAt: string | null;
+  /**
+   * `null` means either "not signed yet" or "signed before F-03·3" —
+   * disambiguated by `signedAt`. See `lib/types/contract.types.ts`.
+   */
+  signatureMethod: "Drawn" | null;
 }
 
 const EMPTY: ContractFormValues = {
@@ -134,6 +142,28 @@ export function ContractPanel({
   const [recalling, setRecalling] = useState(false);
   const [recallReason, setRecallReason] = useState("");
   const [confirmingTerminate, setConfirmingTerminate] = useState(false);
+
+  /**
+   * One fresh read of this contract, not a list refetch — `GET
+   * /api/contracts/admin/{side}/{contractId}` exists precisely for this and returns
+   * one row instead of every contract in the system. Bound to `contract.id`/`variant`
+   * so a renewal (a different contract id) or a side switch always reads the right row.
+   */
+  const rereadContract = useCallback(async () => {
+    if (!contract) return null;
+    return variant === "owner"
+      ? contractService.getOwner(contract.id)
+      : contractService.getWorker(contract.id);
+  }, [contract, variant]);
+
+  const documentPdf = useSignedPdf(
+    contract?.documentUrl ?? null,
+    useCallback(async () => (await rereadContract())?.documentUrl ?? null, [rereadContract]),
+  );
+  const previewPdf = useSignedPdf(
+    contract?.previewUrl ?? null,
+    useCallback(async () => (await rereadContract())?.previewUrl ?? null, [rereadContract]),
+  );
 
   const phase = contract?.phase ?? null;
   const isDraft = phase === null || phase === "Draft";
@@ -264,17 +294,34 @@ export function ContractPanel({
           </p>
         )}
 
+        {contract.signedAt && (
+          <p className="text-xs text-muted-foreground">
+            {t("contract.signedLine", {
+              date: formatDate(contract.signedAt, locale),
+              method: contract.signatureMethod
+                ? t(`contract.signatureMethodLabel.${contract.signatureMethod}`)
+                : t("contract.signatureMethodUnknownLabel"),
+            })}
+          </p>
+        )}
+
         {/* The destructive action shares this row but sits at the far end of it:
             adjacent to Renew it would collect mis-clicks, and the gap is what
             prevents that. `ml-auto` is what puts the space there. */}
         <div className="flex flex-wrap items-center gap-2">
           {contract.documentUrl && (
+            // A real <a> was traded for a click handler on purpose: the URL is
+            // short-lived, so it must be resolved (and, if expired, refreshed)
+            // at click time rather than baked into a static href at render time.
+            // The cost is real — no more middle-click / right-click "open in new
+            // tab" — and it is accepted because a stale link is worse than a lost
+            // middle-click.
             <Button
               variant="outline"
               size="sm"
-              nativeButton={false}
               className="gap-1.5"
-              render={<a href={contract.documentUrl} target="_blank" rel="noreferrer" />}
+              disabled={documentPdf.isOpening}
+              onClick={() => documentPdf.open()}
             >
               <ExternalLink className="size-3.5" />
               {t("contract.openSigned")}
@@ -285,6 +332,9 @@ export function ContractPanel({
           </Button>
           {terminateButton}
         </div>
+        {documentPdf.missing && (
+          <p className="text-sm text-destructive">{t("contract.pdfMissing")}</p>
+        )}
         <p className="text-xs text-muted-foreground">{t("contract.renewNote")}</p>
         {terminateDialog}
       </div>
@@ -309,12 +359,16 @@ export function ContractPanel({
             Same row, opposite ends. */}
         <div className="flex flex-wrap items-center gap-2">
           {contract.previewUrl && (
+            // Same trade-off as the signed-document button below: a click handler
+            // replaces the static <a>, resolving (and, if expired, refreshing) the
+            // short-lived URL at click time rather than at render time, at the cost
+            // of middle-click / right-click "open in new tab".
             <Button
               variant="outline"
               size="sm"
-              nativeButton={false}
               className="gap-1.5"
-              render={<a href={contract.previewUrl} target="_blank" rel="noreferrer" />}
+              disabled={previewPdf.isOpening}
+              onClick={() => previewPdf.open()}
             >
               <ExternalLink className="size-3.5" />
               {t("contract.openPreview")}
@@ -327,6 +381,9 @@ export function ContractPanel({
           )}
           {terminateButton}
         </div>
+        {previewPdf.missing && (
+          <p className="text-sm text-destructive">{t("contract.pdfMissing")}</p>
+        )}
 
         {recalling && (
           <div className="flex flex-col gap-2">

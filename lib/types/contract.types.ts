@@ -35,6 +35,16 @@ interface ContractRowBase {
    * the artifact is genuinely missing.
    */
   previewUrl: string | null;
+  /**
+   * How the subject signed. `"Drawn"` is the only shipped member — SMS was ruled
+   * out 2026-08-07 (`index/gaps/closed/2026-08-07-sms-signature.md`) and the enum
+   * seam is reserved, not pending.
+   *
+   * `null` means either "not signed yet" **or** "signed before F-03·3 shipped" —
+   * the two are told apart by `signedAt`. Present on the admin DTOs deliberately:
+   * "was this properly signed?" is a compliance question and this is its answer.
+   */
+  signatureMethod: "Drawn" | null;
   /** Why this contract came back — admin recall or the subject's rejection. */
   revisionReason: string | null;
   revisionRequestedByUserId: string | null;

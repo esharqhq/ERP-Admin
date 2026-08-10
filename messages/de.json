@@ -206,6 +206,12 @@
       "recallReason": "Warum ziehen Sie ihn zurück?",
       "recallConfirm": "Vertrag zurückziehen",
       "openSigned": "Unterschriebenen Vertrag öffnen",
+      "pdfMissing": "Dieses Dokument ist nicht verfügbar. Das ist ein Problem auf dem Server, keines, das Sie durch einen erneuten Versuch beheben können.",
+      "signedLine": "Unterschrieben am {date} · {method}",
+      "signatureMethodUnknownLabel": "Unterschriftsart nicht erfasst",
+      "signatureMethodLabel": {
+        "Drawn": "handschriftliche Unterschrift"
+      },
       "renew": "Verlängern",
       "renewNote": "Beim Verlängern wird ein neuer Vertrag erstellt, der übernimmt, wenn dieser endet.",
       "continuesFrom": "Deckung läuft ab {date} weiter.",
