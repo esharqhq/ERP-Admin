@@ -604,8 +604,17 @@ function SidebarMenuSkeleton({
                              }: React.ComponentProps<"div"> & {
     showIcon?: boolean
 }) {
-    // Random width between 50 to 90%.
-    const [width] = React.useState(() => `${Math.floor(Math.random() * 40) + 50}%`)
+    // Varied width per row, 50-90%. Derived from useId rather than Math.random
+    // because a lazy initializer runs on BOTH sides of SSR and picks a different
+    // number on each, which React reports as a hydration mismatch — measured.
+    // useId is stable across server and client by contract, so this is not merely
+    // lint-clean, it is correct.
+    const id = React.useId()
+    const width = React.useMemo(() => {
+        let h = 0
+        for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) | 0
+        return `${(Math.abs(h) % 41) + 50}%`
+    }, [id])
 
     return (
         <div
