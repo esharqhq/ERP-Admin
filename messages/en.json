@@ -1202,6 +1202,7 @@
     "neverUpdated": "Not changed yet",
     "on": "On",
     "off": "Off",
+    "saveFailed": "Couldn't save. Try again.",
     "categories": {
       "attachment": "Attachments",
       "task": "Tasks",

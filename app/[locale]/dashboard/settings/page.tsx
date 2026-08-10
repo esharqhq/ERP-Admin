@@ -53,8 +53,10 @@ function isProse(value: string): boolean {
 /**
  * A boolean setting must not be a text field. `contract.template.approved`
  * gates every contract send in the product: while it is false, every send
- * returns 409. Asking an admin to type the word `true` into a box invites
- * `True`, `1`, `yes` — and the server compares strings.
+ * returns 409. The server parses this with .NET `bool.TryParse`
+ * (`ContractPdfRenderer.cs:131`), which — case- and whitespace-insensitively —
+ * accepts only `"true"`/`"false"`; those are therefore the only two values
+ * that are meaningfully boolean here.
  */
 function isBoolean(value: string): boolean {
   const v = value.trim().toLowerCase();
@@ -97,6 +99,10 @@ export default function SettingsPage() {
   const [editing, setEditing] = useState<EditingRow | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [newSetting, setNewSetting] = useState<NewSetting>({ key: "", value: "", description: "" });
+  // `useUpsertSetting` is one mutation shared by every row on this page, so its
+  // `isPending`/error are page-wide. A failed toggle must not paint every row
+  // as failed — track the one key that actually failed, in local state.
+  const [failedKey, setFailedKey] = useState<string | null>(null);
 
   // A `settings-link` error (e.g. contract_template_not_approved) deep-links here
   // with `?highlight=<key>`. The row is one of dozens across collapsed-by-default
@@ -257,19 +263,38 @@ export default function SettingsPage() {
                           </div>
 
                           {isBoolean(s.value) ? (
-                            <div className="flex shrink-0 items-center gap-3">
-                              <span className="text-sm text-muted-foreground">
-                                {s.value.trim().toLowerCase() === "true" ? t("on") : t("off")}
-                              </span>
-                              <Switch
-                                checked={s.value.trim().toLowerCase() === "true"}
-                                disabled={isPending}
-                                aria-label={s.description || s.key}
-                                onCheckedChange={(next) =>
-                                  upsert({ key: s.key, value: next ? "true" : "false" })
-                                }
-                              />
-                            </div>
+                            (() => {
+                              const isOn = s.value.trim().toLowerCase() === "true";
+                              return (
+                                <div className="flex shrink-0 flex-col items-end gap-1">
+                                  <div className="flex items-center gap-3">
+                                    <span className="text-sm text-muted-foreground">
+                                      {isOn ? t("on") : t("off")}
+                                    </span>
+                                    <Switch
+                                      checked={isOn}
+                                      disabled={isPending}
+                                      aria-label={s.description || s.key}
+                                      onCheckedChange={(next) =>
+                                        upsert(
+                                          { key: s.key, value: next ? "true" : "false" },
+                                          {
+                                            onSuccess: () =>
+                                              setFailedKey((k) => (k === s.key ? null : k)),
+                                            onError: () => setFailedKey(s.key),
+                                          },
+                                        )
+                                      }
+                                    />
+                                  </div>
+                                  {failedKey === s.key ? (
+                                    <span className="text-xs text-destructive">
+                                      {t("saveFailed")}
+                                    </span>
+                                  ) : null}
+                                </div>
+                              );
+                            })()
                           ) : isEditing && prose ? (
                             <div className="flex flex-col gap-2">
                               {/* Enter has to insert a newline here, so Escape is the only shortcut. */}

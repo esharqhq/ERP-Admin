@@ -1199,6 +1199,7 @@
     "loading": "Einstellungen werden geladen...",
     "on": "Ein",
     "off": "Aus",
+    "saveFailed": "Konnte nicht gespeichert werden. Bitte erneut versuchen.",
     "editValue": "Bearbeiten",
     "lastUpdated": "Geändert {date}",
     "neverUpdated": "Noch nicht geändert",
