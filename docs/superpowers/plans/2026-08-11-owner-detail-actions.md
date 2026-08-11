@@ -1233,17 +1233,21 @@ git commit -m "feat(owners): Owner Detail stops offering what the server always 
 
 ### Task 8: Verify in a browser
 
+> **Steps 1-3 confirmed by the user on 2026-08-11**, not by an agent — the Chrome
+> extension never reconnected. Recorded as the user reported it: the three
+> read-only checks render as designed.
+
 Static gates cannot see any of this. The last five commits on this branch are already unverified visually because the Chrome extension has been disconnected since 2026-08-11 — do not add a sixth.
 
-- [ ] **Step 1: Check the walk-in account**
+- [x] **Step 1: Check the walk-in account**
 
 Open `/dashboard/owners`, switch to the **Walk-in** tab, click the row. Confirm: no Edit button, no Delete button, no email button, and the banner is present.
 
-- [ ] **Step 2: Check a regular Active owner**
+- [x] **Step 2: Check a regular Active owner**
 
 Open any owner from the **Active** tab. Confirm: Edit and Delete both present, the legal-name row shows in the contact card (or is absent if that owner never filled it), and the dialog opens prefilled with editable fields.
 
-- [ ] **Step 3: Check a locked owner**
+- [x] **Step 3: Check a locked owner**
 
 Open an owner in the **In review** tab whose stage is `Kyc` or `Rejected`. Confirm: Edit is present, the dialog opens, the name fields are read-only, the explanation is shown, and Save is disabled.
 
