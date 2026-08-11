@@ -73,6 +73,11 @@ export default function OwnerDetailPage({
    * otherwise appear as soon as `useOwner` resolves, showing Edit and Delete on
    * the walk-in account — clickable — until these two land. A guard that is
    * only usually applied is not a guard.
+   *
+   * Scoped to the action row, not the page: nothing else here depends on these
+   * two reads, and blocking the hero card, properties and timeline on them
+   * would slow every owner view to buy safety only the buttons need. Both
+   * queries carry `retry: false`, so this always resolves.
    */
   const guardsReady = !kyc.isPending && !walkIn.isPending;
 
@@ -89,7 +94,7 @@ export default function OwnerDetailPage({
     </Button>
   );
 
-  if (isLoading || !guardsReady) {
+  if (isLoading) {
     return (
       <div className="flex flex-col gap-6">
         {backButton}
@@ -116,16 +121,21 @@ export default function OwnerDetailPage({
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         {backButton}
-        <OwnerActions
-          owner={owner}
-          actions={actions}
-          identity={identity ?? { firstName: null, lastName: null }}
-        />
+        {guardsReady ? (
+          <OwnerActions
+            owner={owner}
+            actions={actions}
+            identity={identity ?? { firstName: null, lastName: null }}
+          />
+        ) : (
+          <Skeleton className="h-8 w-40 rounded-md" />
+        )}
       </div>
 
       {/* Stated once, rather than letting the admin discover four separate
-          refusals by clicking. */}
-      {actions.isWalkIn ? (
+          refusals by clicking. Guarded on `guardsReady` too, so it appears with
+          the actions rather than flashing in a moment later. */}
+      {guardsReady && actions.isWalkIn ? (
         <div className="flex items-start gap-2.5 rounded-xl border border-border bg-muted/40 px-4 py-3">
           <Info className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
           <p className="text-sm text-muted-foreground">{t("systemHint")}</p>
