@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { Trash2, Loader2 } from "lucide-react";
+import { Trash2, Loader2, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -13,18 +13,34 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Can } from "@/components/auth/can";
+import { OwnerEditDialog } from "@/components/owners/owner-edit-dialog";
 import { useRouter } from "@/i18n/navigation";
-import { useSoftDeleteOwner } from "@/hooks/use-owners";
+import { useSoftDeleteOwner, useUpdateOwner } from "@/hooks/use-owners";
 import { getApiErrorCode } from "@/lib/http/api-error";
+import { isPermissionDenied } from "@/lib/onboarding/errors";
+import type { OwnerDetailActions, OwnerUpdateBody } from "@/lib/owners/detail-actions";
 import type { OwnerSummaryDto } from "@/lib/types/owner.types";
 
 /**
- * Soft-delete action for an owner account. Gated on `owner:soft_delete` — a plain
- * [RequirePermission] with no Admin-collapse branch (unlike PropertyController), so
- * SUPER_ADMIN sees it and MODERATOR does not. The optional reason is recorded in the
- * OWNER_DEACTIVATED audit entry.
+ * Edit and soft-delete for an owner account.
+ *
+ * Both are plain [RequirePermission] routes with no Admin-collapse branch
+ * (unlike PropertyController), so SUPER_ADMIN sees them and MODERATOR does not.
+ * Each is gated twice over: on its permission, and on `actions`, which encodes
+ * the targets the server always refuses. The permission gate alone is not
+ * enough — a SUPER_ADMIN holds both codes and would still be shown two buttons
+ * that answer `409 owner_is_system` on the walk-in account.
  */
-export function OwnerActions({ owner }: { owner: OwnerSummaryDto }) {
+export function OwnerActions({
+  owner,
+  actions,
+  identity,
+}: {
+  owner: OwnerSummaryDto;
+  actions: OwnerDetailActions;
+  /** Legal name pair; both null when the KYC read 404'd or was refused. */
+  identity: { firstName: string | null; lastName: string | null };
+}) {
   const t = useTranslations("owners");
   const tCommon = useTranslations("common");
   const router = useRouter();
@@ -33,7 +49,11 @@ export function OwnerActions({ owner }: { owner: OwnerSummaryDto }) {
   const [reason, setReason] = useState("");
   const [error, setError] = useState<string | null>(null);
 
+  const [editOpen, setEditOpen] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+
   const softDelete = useSoftDeleteOwner();
+  const update = useUpdateOwner(owner.id);
 
   /**
    * `boss_has_active_properties` used to be handled here and no longer exists —
@@ -49,6 +69,35 @@ export function OwnerActions({ owner }: { owner: OwnerSummaryDto }) {
     if (code === "owner_has_open_tasks") return t("delete.errors.hasOpenTasks");
     if (code === "owner_is_system") return t("delete.errors.isSystem");
     return t("delete.errors.generic");
+  }
+
+  /**
+   * Mapped here rather than through `ErrorNotice`/`describeApiError`: the
+   * shared catalog maps `owner_profile_not_found` to "subject not found",
+   * which is right on the contract routes it was written for and wrong on this
+   * one, where it means "this account has no identity record" about an owner
+   * the admin is looking at. The guide tables these per route for exactly that
+   * reason. The catalog also has no entry for `reason_required` or
+   * `owner_can_self_edit`, both of which would degrade to "unknown".
+   */
+  function mapEditError(err: unknown): string {
+    // This route's 403 carries an empty body, so there is no code to read.
+    if (isPermissionDenied(err)) return t("edit.errors.forbidden");
+    const code = getApiErrorCode(err);
+    if (code === "reason_required") return t("edit.errors.reasonRequired");
+    if (code === "owner_profile_not_found") return t("edit.errors.noProfile");
+    if (code === "owner_can_self_edit") return t("edit.errors.canSelfEdit");
+    if (code === "owner_is_system") return t("edit.errors.isSystem");
+    if (code === "owner_not_found") return t("edit.errors.notFound");
+    return t("edit.errors.generic");
+  }
+
+  function handleEditSubmit(body: OwnerUpdateBody) {
+    setEditError(null);
+    update.mutate(body, {
+      onSuccess: () => setEditOpen(false),
+      onError: (err) => setEditError(mapEditError(err)),
+    });
   }
 
   function handleClose() {
@@ -73,56 +122,95 @@ export function OwnerActions({ owner }: { owner: OwnerSummaryDto }) {
   }
 
   return (
-    <Can permission="owner:soft_delete">
-      <Button
-        variant="ghost"
-        size="sm"
-        className="gap-1.5 text-destructive hover:text-destructive"
-        onClick={() => {
-          setReason("");
-          setError(null);
-          setOpen(true);
-        }}
-      >
-        <Trash2 className="size-4" />
-        {t("delete.action")}
-      </Button>
+    <div className="flex items-center gap-1">
+      {actions.canEdit ? (
+        <Can permission="owner:profile:update_any">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-1.5"
+            onClick={() => {
+              setEditError(null);
+              setEditOpen(true);
+            }}
+          >
+            <Pencil className="size-4" />
+            {t("edit.action")}
+          </Button>
 
-      <Dialog open={open} onOpenChange={(v) => !v && handleClose()}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("delete.title")}</DialogTitle>
-            <DialogDescription>
-              {t("delete.description", { name: owner.fullName || "—" })}
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="owner-delete-reason" className="text-sm font-medium">
-              {t("delete.reasonLabel")}
-            </label>
-            <textarea
-              id="owner-delete-reason"
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              placeholder={t("delete.reasonPlaceholder")}
-              className="min-h-[72px] w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          {/* Mounted only while open: the dialog seeds its fields from
+              `identity` once and never resynchronises. */}
+          {editOpen ? (
+            <OwnerEditDialog
+              open={editOpen}
+              onClose={() => !update.isPending && setEditOpen(false)}
+              identity={identity}
+              nameLock={actions.nameLock}
+              pending={update.isPending}
+              error={editError}
+              onSubmit={handleEditSubmit}
             />
-          </div>
+          ) : null}
+        </Can>
+      ) : null}
 
-          {error ? <p className="text-sm text-destructive">{error}</p> : null}
+      {actions.canDelete ? (
+        <Can permission="owner:soft_delete">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-1.5 text-destructive hover:text-destructive"
+            onClick={() => {
+              setReason("");
+              setError(null);
+              setOpen(true);
+            }}
+          >
+            <Trash2 className="size-4" />
+            {t("delete.action")}
+          </Button>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={handleClose} disabled={softDelete.isPending}>
-              {tCommon("cancel")}
-            </Button>
-            <Button variant="destructive" onClick={handleConfirm} disabled={softDelete.isPending}>
-              {softDelete.isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
-              {t("delete.confirm")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </Can>
+          <Dialog open={open} onOpenChange={(v) => !v && handleClose()}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{t("delete.title")}</DialogTitle>
+                <DialogDescription>
+                  {t("delete.description", { name: owner.fullName || "—" })}
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="owner-delete-reason" className="text-sm font-medium">
+                  {t("delete.reasonLabel")}
+                </label>
+                <textarea
+                  id="owner-delete-reason"
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  placeholder={t("delete.reasonPlaceholder")}
+                  className="min-h-[72px] w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+
+              {error ? <p className="text-sm text-destructive">{error}</p> : null}
+
+              <DialogFooter>
+                <Button variant="outline" onClick={handleClose} disabled={softDelete.isPending}>
+                  {tCommon("cancel")}
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={handleConfirm}
+                  disabled={softDelete.isPending}
+                >
+                  {softDelete.isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
+                  {t("delete.confirm")}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </Can>
+      ) : null}
+    </div>
   );
 }
