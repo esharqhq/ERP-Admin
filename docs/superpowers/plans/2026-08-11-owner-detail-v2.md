@@ -36,7 +36,7 @@ Removes the stat row, resolves three duplications, moves Properties into the rig
 - Consumes: `onboardingStatusPresentation` from `lib/onboarding/status.ts`; `identity`/`kyc` already wired by A1.
 - Produces: `<HeroCard owner isWalkIn onboardingStatus />` where `onboardingStatus: string | null`.
 
-- [ ] **Step 1: Add the copy**
+- [x] **Step 1: Add the copy**
 
 In `messages/en.json` under `owners.account`, add:
 
@@ -62,7 +62,7 @@ console.log('call:', en.owners.account.call, '|', de.owners.account.call);
 ```
 Expected: `account match: true`, then both words.
 
-- [ ] **Step 2: Rewrite the hero card**
+- [x] **Step 2: Rewrite the hero card**
 
 Replace `components/owners/hero-card.tsx` entirely:
 
@@ -186,7 +186,7 @@ export function HeroCard({
 
 `components/ui/avatar.tsx` exports `AvatarImage` — verified, no substitution needed.
 
-- [ ] **Step 3: Rewrite the page body**
+- [x] **Step 3: Rewrite the page body**
 
 In `app/[locale]/dashboard/(owner)/owners/[id]/page.tsx`:
 
@@ -225,7 +225,7 @@ Replace the two-column block so Properties sits in the right column between Cont
       </div>
 ```
 
-- [ ] **Step 4: Run the gates**
+- [x] **Step 4: Run the gates**
 
 ```bash
 npx tsc --noEmit
@@ -237,7 +237,7 @@ Expected: `tsc` silent · lint clean · 100 tests pass · build succeeds.
 
 If `tsc` reports `locale` or `formatJoined` unused, delete them — they existed only for the stat row.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add components/owners/hero-card.tsx "app/[locale]/dashboard/(owner)/owners/[id]/page.tsx" messages/en.json messages/de.json
@@ -261,7 +261,7 @@ git commit -m "feat(owners): one fact in one place on Owner Detail, plus a call 
 - Consumes: `OwnerDetailActions` from `lib/owners/detail-actions.ts` (A1).
 - Produces: `AdminCreateTicketRequest`; `supportService.createForUser(body) → Promise<SupportTicketDto>`; `useCreateTicketForUser()`; `<MessageOwnerDialog open onClose pending error onSubmit />`.
 
-- [ ] **Step 1: Add the request type**
+- [x] **Step 1: Add the request type**
 
 Append to `lib/types/support.types.ts`:
 
@@ -303,7 +303,7 @@ export interface AdminCreateTicketRequest {
 }
 ```
 
-- [ ] **Step 2: Add the service call**
+- [x] **Step 2: Add the service call**
 
 In `lib/services/support.service.ts`, add inside `supportService`:
 
@@ -329,7 +329,7 @@ In `lib/services/support.service.ts`, add inside `supportService`:
 
 Add `AdminCreateTicketRequest` to the existing type import at the top of the file.
 
-- [ ] **Step 3: Add the hook**
+- [x] **Step 3: Add the hook**
 
 In `hooks/use-support.ts`, add:
 
@@ -355,7 +355,7 @@ Both keys are real — `hooks/use-support.ts` already registers `["support-ticke
 
 Add `useMutation`/`useQueryClient` to the `@tanstack/react-query` import if absent, and import `AdminCreateTicketRequest`.
 
-- [ ] **Step 4: Add the copy**
+- [x] **Step 4: Add the copy**
 
 In `messages/en.json` under `owners`, beside `edit`:
 
@@ -451,7 +451,7 @@ for (const p of ['message','message.categories','message.priorities','message.er
 ```
 Expected: four `true` lines.
 
-- [ ] **Step 5: Build the dialog**
+- [x] **Step 5: Build the dialog**
 
 Create `components/owners/message-owner-dialog.tsx`:
 
@@ -631,7 +631,7 @@ export function MessageOwnerDialog({ open, onClose, pending, error, onSubmit }: 
 
 The `items` prop on `Select` is required in this codebase for `<SelectValue>` to resolve a label — omitting it makes the trigger show the raw value. That was fixed once already in the property edit dialog; do not reintroduce it.
 
-- [ ] **Step 6: Wire it into OwnerActions**
+- [x] **Step 6: Wire it into OwnerActions**
 
 In `components/owners/owner-actions.tsx`, add imports:
 
@@ -704,7 +704,7 @@ Add the button as the **first** child of the wrapping `<div className="flex item
       ) : null}
 ```
 
-- [ ] **Step 7: Verify the target literal against the live API**
+- [x] **Step 7: Verify the target literal against the live API**
 
 The backend's `index/` says `targetUserType` is *"normalized to `OWNER_USER`/`WORKER`"*; its handoff guide says *"`Owner` is accepted; `OwnerUser` is not"*. Both cannot be the whole truth. Check the live contract before trusting either:
 
@@ -718,7 +718,7 @@ Then read the deployed schema directly. If the enum is exposed in swagger, use t
 
 Record whichever literal worked in a comment on `handleMessageSubmit`.
 
-- [ ] **Step 8: Assert the shape in the contract gate**
+- [x] **Step 8: Assert the shape in the contract gate**
 
 In `scripts/verify-v2.mjs`, inside `EXPECTED_FIELDS`:
 
@@ -731,7 +731,7 @@ In `scripts/verify-v2.mjs`, inside `EXPECTED_FIELDS`:
 
 If the live schema names that DTO differently, use the real name — `verify-v2` reports `schema <name> missing from live swagger`, which tells you immediately.
 
-- [ ] **Step 9: Run the gates and commit**
+- [x] **Step 9: Run the gates and commit**
 
 ```bash
 npx tsc --noEmit
@@ -762,7 +762,7 @@ Read-only, from data A1 already fetches. No new request.
 - Consumes: `KycProfileDto` from `lib/types/kyc.types.ts`; `kyc.data` already on the page.
 - Produces: `<OwnerDocumentsCard ownerProfileId documents />`.
 
-- [ ] **Step 1: Add the copy**
+- [x] **Step 1: Add the copy**
 
 In `messages/en.json` under `owners`:
 
@@ -806,7 +806,7 @@ In `messages/de.json`:
 
 Verify parity with the same `node -e` pattern used in Task 2 Step 4, for `documents` and `documents.types`.
 
-- [ ] **Step 2: Build the card**
+- [x] **Step 2: Build the card**
 
 Create `components/owners/owner-documents-card.tsx`:
 
@@ -906,7 +906,7 @@ export function OwnerDocumentsCard({
 
 If `t()` throws on an unrecognised `doc.type`, the enum grew server-side. Guard it: `TICKET`-style, fall back to `doc.type` when the key is missing — check how `onboardingStatusPresentation` degrades and mirror that shape.
 
-- [ ] **Step 3: Add it to the page**
+- [x] **Step 3: Add it to the page**
 
 In the right column of `app/[locale]/dashboard/(owner)/owners/[id]/page.tsx`, after `<PropertyList …/>`:
 
@@ -919,7 +919,7 @@ In the right column of `app/[locale]/dashboard/(owner)/owners/[id]/page.tsx`, af
 
 Import it at the top.
 
-- [ ] **Step 4: Run the gates and commit**
+- [x] **Step 4: Run the gates and commit**
 
 ```bash
 npx tsc --noEmit
@@ -952,7 +952,7 @@ Replaces `ActivityTimeline`. Two views over one query.
 - Consumes: `TaskGroupDto`, `TaskItemDto`, `TaskWorkerDto`, `normalizeStatus` from `lib/types/task.types.ts`; `useWeekNavigation` from `hooks/use-week-navigation.ts`; `useOwnerTaskGroups` from `hooks/use-owners.ts`.
 - Produces: `toLocalDateKey(d)`, `flattenTaskRows(groups, propertyNames)`, `rowsInWeek(rows, dateKeys)`, `filterRowsByStatus(rows, status)`, `workerSummary(row)`, and the `WeeklyTaskRow` type.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `lib/tasks/weekly-rows.test.ts`:
 
@@ -1150,12 +1150,12 @@ describe("workerSummary", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run lib/tasks/weekly-rows.test.ts`
 Expected: FAIL — `Cannot find package '@/lib/tasks/weekly-rows'`
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 Create `lib/tasks/weekly-rows.ts`:
 
@@ -1279,12 +1279,12 @@ export function workerSummary(row: WeeklyTaskRow): { names: string[]; extra: num
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `npx vitest run lib/tasks/weekly-rows.test.ts`
 Expected: PASS
 
-- [ ] **Step 5: Commit the logic before touching any component**
+- [x] **Step 5: Commit the logic before touching any component**
 
 ```bash
 npx tsc --noEmit
@@ -1292,7 +1292,7 @@ git add lib/tasks/weekly-rows.ts lib/tasks/weekly-rows.test.ts
 git commit -m "feat(tasks): weekly row logic, where a silently dropped job would hide"
 ```
 
-- [ ] **Step 6: Open up TasksCalendar**
+- [x] **Step 6: Open up TasksCalendar**
 
 In `components/tasks/tasks-calendar.tsx`, change the signature and the two hardcoded queries:
 
@@ -1332,7 +1332,7 @@ Replace the two query calls:
 
 `useProperties` is `useProperties(enabled = true)` — verified. Its single argument is the enabled flag, not a filter.
 
-- [ ] **Step 7: Add the copy**
+- [x] **Step 7: Add the copy**
 
 In `messages/en.json` under `owners`:
 
@@ -1394,7 +1394,7 @@ In `messages/de.json` under `owners`:
 
 Verify parity for `work`, `work.columns` and `work.status` with the `node -e` pattern from Task 2 Step 4.
 
-- [ ] **Step 8: Build the weekly card**
+- [x] **Step 8: Build the weekly card**
 
 Create `components/owners/weekly-work-card.tsx`:
 
@@ -1609,7 +1609,7 @@ export function WeeklyWorkCard({
 
 `RowLink({ href, label })` renders an absolutely-positioned overlay, so it must be the **first child of the first cell** in a row carrying `relative` — which is why the date cell above opens with it. Verified against `components/ui/row-link.tsx`.
 
-- [ ] **Step 9: Swap it onto the page and delete what it replaces**
+- [x] **Step 9: Swap it onto the page and delete what it replaces**
 
 In `app/[locale]/dashboard/(owner)/owners/[id]/page.tsx`, replace the `ActivityTimeline` block in the left column:
 
@@ -1627,7 +1627,7 @@ git rm components/owners/activity-timeline.tsx components/owners/stat-card.tsx
 
 Both are imported only by this page — verified before writing this plan. Worker Detail has its own `components/workers/stat-card.tsx` and is untouched.
 
-- [ ] **Step 10: Run every gate**
+- [x] **Step 10: Run every gate**
 
 ```bash
 npx tsc --noEmit
@@ -1638,7 +1638,7 @@ node scripts/verify-v2.mjs
 ```
 Expected: `tsc` silent · lint clean · all tests pass · build succeeds · `verify-v2 ALL PASS`.
 
-- [ ] **Step 11: Commit**
+- [x] **Step 11: Commit**
 
 ```bash
 git add -A
