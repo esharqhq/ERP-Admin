@@ -6,7 +6,13 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useTranslations } from "next-intl";
 import type { OwnerSummaryDto } from "@/lib/types/owner.types";
 
-export function HeroCard({ owner }: { owner: OwnerSummaryDto }) {
+export function HeroCard({
+  owner,
+  isWalkIn = false,
+}: {
+  owner: OwnerSummaryDto;
+  isWalkIn?: boolean;
+}) {
   const t = useTranslations("owners");
   const initials = (owner.fullName || "??").slice(0, 2).toUpperCase();
 
@@ -50,7 +56,10 @@ export function HeroCard({ owner }: { owner: OwnerSummaryDto }) {
             </div>
           </div>
 
-          {owner.email && (
+          {/* The walk-in account's address is a bootstrap config value on an
+              account that cannot log in and is never sent anything. Offering
+              to mail it is the same dead affordance as offering to edit it. */}
+          {owner.email && !isWalkIn && (
             <Button
               variant="outline"
               size="sm"

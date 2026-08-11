@@ -2,13 +2,17 @@
 
 import { use } from "react";
 import Link from "next/link";
-import { ArrowLeft, ShieldCheck, CalendarDays, Home, UserCog } from "lucide-react";
+import { ArrowLeft, ShieldCheck, CalendarDays, Home, UserCog, Info } from "lucide-react";
 import { useTranslations, useLocale } from "next-intl";
 import {
   useOwner,
+  useOwnerKyc,
   useOwnerProperties,
   useOwnerTaskGroups,
+  useWalkInOwnerId,
 } from "@/hooks/use-owners";
+import { ownerDetailActions } from "@/lib/owners/detail-actions";
+import type { KycRead } from "@/lib/owners/detail-actions";
 import { HeroCard } from "@/components/owners/hero-card";
 import { StatCard } from "@/components/owners/stat-card";
 import { PropertyList } from "@/components/owners/property-list";
@@ -40,6 +44,38 @@ export default function OwnerDetailPage({
   const { data: properties = [] } = useOwnerProperties(id);
   const { data: taskGroups = [] } = useOwnerTaskGroups(id);
 
+  const kyc = useOwnerKyc(id);
+  const walkIn = useWalkInOwnerId();
+
+  /**
+   * Only a `404` is a statement about the owner — it means no profile row
+   * exists. Everything else, including a `500` or a dropped connection,
+   * resolves to `forbidden`: failing closed hides a button that might have
+   * worked, failing open offers one that will not.
+   */
+  const kycRead: KycRead = kyc.isSuccess
+    ? "visible"
+    : (kyc.error as { response?: { status?: number } })?.response?.status === 404
+      ? "absent"
+      : "forbidden";
+
+  const actions = ownerDetailActions({
+    ownerId: id,
+    walkInId: walkIn.data ?? null,
+    kycRead,
+    onboardingStatus: kyc.data?.onboardingStatus ?? null,
+  });
+
+  const identity = kyc.data?.identity ?? null;
+
+  /**
+   * Both guards must settle before any action renders. `OwnerActions` would
+   * otherwise appear as soon as `useOwner` resolves, showing Edit and Delete on
+   * the walk-in account — clickable — until these two land. A guard that is
+   * only usually applied is not a guard.
+   */
+  const guardsReady = !kyc.isPending && !walkIn.isPending;
+
   const backButton = (
     <Button
       variant="ghost"
@@ -53,7 +89,7 @@ export default function OwnerDetailPage({
     </Button>
   );
 
-  if (isLoading) {
+  if (isLoading || !guardsReady) {
     return (
       <div className="flex flex-col gap-6">
         {backButton}
@@ -80,10 +116,23 @@ export default function OwnerDetailPage({
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         {backButton}
-        <OwnerActions owner={owner} />
+        <OwnerActions
+          owner={owner}
+          actions={actions}
+          identity={identity ?? { firstName: null, lastName: null }}
+        />
       </div>
 
-      <HeroCard owner={owner} />
+      {/* Stated once, rather than letting the admin discover four separate
+          refusals by clicking. */}
+      {actions.isWalkIn ? (
+        <div className="flex items-start gap-2.5 rounded-xl border border-border bg-muted/40 px-4 py-3">
+          <Info className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">{t("systemHint")}</p>
+        </div>
+      ) : null}
+
+      <HeroCard owner={owner} isWalkIn={actions.isWalkIn} />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard
@@ -128,7 +177,7 @@ export default function OwnerDetailPage({
         </div>
 
         <div className="flex flex-col gap-6">
-          <ContactCard owner={owner} />
+          <ContactCard owner={owner} identity={identity} />
           <SubAccountsCard ownerId={id} />
         </div>
       </div>
