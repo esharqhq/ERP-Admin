@@ -490,7 +490,34 @@
       "unverifiedHint": "Not yet verified",
       "joinedHint": "Registration date",
       "roleHint": "Account role",
-      "propertiesHint": "Owned properties"
+      "propertiesHint": "Owned properties",
+      "legalName": "Legal name",
+      "legalNameHint": "From the passport — separate from the display name above"
+    },
+    "edit": {
+      "action": "Edit name",
+      "title": "Correct the legal name",
+      "description": "This is the name on the owner's passport. It is separate from the display name they chose, and the two are deliberately not reconciled.",
+      "firstName": "Legal first name",
+      "lastName": "Legal last name",
+      "reasonLabel": "Reason",
+      "reasonPlaceholder": "Why is this being corrected? Recorded in the audit log.",
+      "reasonRequired": "A reason is required.",
+      "nothingToSave": "Enter at least one name.",
+      "confirm": "Save",
+      "locks": {
+        "selfEditable": "The owner can correct this themselves at this stage, so admin edits are refused. It becomes editable once their documents go to review.",
+        "noProfile": "This account has no identity record, so there is no legal name to correct."
+      },
+      "errors": {
+        "reasonRequired": "A reason is required.",
+        "noProfile": "This account has no identity record, so there is no legal name to correct.",
+        "canSelfEdit": "The owner can correct this themselves right now, so the admin route is refused.",
+        "isSystem": "The permanent walk-in account cannot be edited.",
+        "notFound": "Owner not found.",
+        "forbidden": "You do not have permission to edit owner names.",
+        "generic": "Could not save this change. Please try again."
+      }
     },
     "delete": {
       "action": "Delete owner",

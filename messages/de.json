@@ -490,7 +490,34 @@
       "unverifiedHint": "Noch nicht verifiziert",
       "joinedHint": "Registrierungsdatum",
       "roleHint": "Kontorolle",
-      "propertiesHint": "Eigene Objekte"
+      "propertiesHint": "Eigene Objekte",
+      "legalName": "Rechtlicher Name",
+      "legalNameHint": "Aus dem Reisepass — getrennt vom Anzeigenamen oben"
+    },
+    "edit": {
+      "action": "Namen bearbeiten",
+      "title": "Rechtlichen Namen korrigieren",
+      "description": "Dies ist der Name im Reisepass des Eigentümers. Er ist getrennt vom selbst gewählten Anzeigenamen; beide werden bewusst nicht abgeglichen.",
+      "firstName": "Rechtlicher Vorname",
+      "lastName": "Rechtlicher Nachname",
+      "reasonLabel": "Grund",
+      "reasonPlaceholder": "Warum wird dies korrigiert? Wird im Audit-Log erfasst.",
+      "reasonRequired": "Ein Grund ist erforderlich.",
+      "nothingToSave": "Geben Sie mindestens einen Namen ein.",
+      "confirm": "Speichern",
+      "locks": {
+        "selfEditable": "In dieser Phase kann der Eigentümer dies selbst korrigieren, daher werden Admin-Änderungen abgelehnt. Bearbeitbar, sobald die Dokumente zur Prüfung gehen.",
+        "noProfile": "Dieses Konto hat keinen Identitätsdatensatz, es gibt also keinen rechtlichen Namen zu korrigieren."
+      },
+      "errors": {
+        "reasonRequired": "Ein Grund ist erforderlich.",
+        "noProfile": "Dieses Konto hat keinen Identitätsdatensatz, es gibt also keinen rechtlichen Namen zu korrigieren.",
+        "canSelfEdit": "Der Eigentümer kann dies derzeit selbst korrigieren, daher wird die Admin-Route abgelehnt.",
+        "isSystem": "Das dauerhafte Laufkundschafts-Konto kann nicht bearbeitet werden.",
+        "notFound": "Eigentümer nicht gefunden.",
+        "forbidden": "Sie haben keine Berechtigung, Eigentümernamen zu bearbeiten.",
+        "generic": "Änderung konnte nicht gespeichert werden. Bitte erneut versuchen."
+      }
     },
     "delete": {
       "action": "Eigentümer löschen",
