@@ -3,21 +3,17 @@ import { Home } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import { categoryName } from "@/lib/properties/table-rows";
 import type { PropertyDto } from "@/lib/types/property.types";
 
 interface PropertyListProps {
   properties: PropertyDto[];
 }
 
-function docsStatusVariant(status: string | null): "default" | "secondary" | "destructive" {
-  if (status === "Approved") return "default";
-  if (status === "Rejected") return "destructive";
-  return "secondary";
-}
-
 export function PropertyList({ properties }: PropertyListProps) {
   const t = useTranslations("owners");
+  const locale = useLocale();
 
   return (
     <Card>
@@ -57,17 +53,16 @@ export function PropertyList({ properties }: PropertyListProps) {
               </div>
               <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <span className="truncate text-[13px] font-medium leading-tight">
-                  {property.name ?? t("properties.unnamed")}
+                  {property.name || t("properties.unnamed")}
                 </span>
                 <span className="truncate text-[11px] text-muted-foreground">
-                  {property.address ?? "—"}
+                  {property.address}
                 </span>
-                {property.type && (
-                  <span className="text-[10px] text-muted-foreground/70">{property.type}</span>
-                )}
               </div>
-              <Badge variant={docsStatusVariant(property.docsStatus)} className="shrink-0 text-[10px]">
-                {property.docsStatus ?? "Pending"}
+              {/* Was a docs-status badge; a property has no review status since
+                  F-02c, so the slot shows what it actually is instead. */}
+              <Badge variant="secondary" className="shrink-0 text-[10px] font-normal">
+                {categoryName(property.category, locale)}
               </Badge>
             </Link>
           ))}

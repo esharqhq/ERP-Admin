@@ -92,52 +92,22 @@ export function useSoftDeleteProperty() {
 }
 
 /**
- * Admin property-docs bundle. `enabled` should be gated on `property:doc:read_any`
- * so an admin on a custom-override role without it doesn't trigger a 403 on page
- * load (mirrors the worker-docs / worker-rating defensive gating).
+ * A property's photo gallery, read-only. Needs no `enabled` permission gate the
+ * way the other defensive hooks here do: an admin reaches this endpoint through
+ * its `property:list` branch, which is the same permission that gates the whole
+ * properties section — a caller who got this far already holds it.
  */
-export function useAdminPropertyDocs(propertyId: string, enabled = true) {
+export function usePropertyMedia(propertyId: string) {
   return useQuery({
-    queryKey: ["property-docs", propertyId],
-    queryFn: () => propertyService.getAdminPropertyDocs(propertyId),
-    enabled: !!propertyId && enabled,
+    queryKey: ["property-media", propertyId],
+    queryFn: () => propertyService.getPropertyMedia(propertyId),
+    enabled: !!propertyId,
   });
 }
 
-export function useApprovePropertyDocs() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (propertyId: string) => propertyService.approvePropertyDocs(propertyId),
-    onSuccess: (_, propertyId) => {
-      qc.invalidateQueries({ queryKey: ["property-docs", propertyId] });
-      qc.invalidateQueries({ queryKey: ["property", propertyId] });
-      qc.invalidateQueries({ queryKey: ["properties"] });
-    },
-  });
-}
-
-export function useRejectPropertyDocs() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: ({ propertyId, reason }: { propertyId: string; reason: string }) =>
-      propertyService.rejectPropertyDocs(propertyId, reason),
-    onSuccess: (_, { propertyId }) => {
-      qc.invalidateQueries({ queryKey: ["property-docs", propertyId] });
-      qc.invalidateQueries({ queryKey: ["property", propertyId] });
-      qc.invalidateQueries({ queryKey: ["properties"] });
-    },
-  });
-}
-
-export function useResetPropertyDocs() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: ({ propertyId, reason }: { propertyId: string; reason: string }) =>
-      propertyService.resetPropertyDocs(propertyId, reason),
-    onSuccess: (_, { propertyId }) => {
-      qc.invalidateQueries({ queryKey: ["property-docs", propertyId] });
-      qc.invalidateQueries({ queryKey: ["property", propertyId] });
-      qc.invalidateQueries({ queryKey: ["properties"] });
-    },
-  });
-}
+// The four property-docs hooks (useAdminPropertyDocs / useApprove / useReject /
+// useReset) were deleted with the backend feature they called — see the note at
+// the bottom of `lib/services/property.service.ts`. They had already stopped
+// firing before deletion: their call site gated on `property:doc:read_any`, a
+// permission F-02c hard-deleted, so `useHasPermission` returned false and the
+// request was never issued. Dead code, not a live 404.

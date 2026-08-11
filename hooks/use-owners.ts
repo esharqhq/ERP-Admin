@@ -14,10 +14,20 @@ export function useOwnerList(status?: string) {
 
 // ── Owner-account directory (GET /api/owners) — distinct from the KYC queue ──
 
-export function useOwnerDirectory(search?: string) {
+/**
+ * BOSS-owner directory. `enabled` should be gated on `owner:list` when this is
+ * used as a *supporting* read on a page gated by a different permission — the
+ * properties table joins it purely to resolve owner names, and a custom-override
+ * admin holding `property:list` but not `owner:list` must get a dash in that
+ * column rather than a 403 on page load (an API 403 also forces a permission
+ * refetch — see `lib/http/on-forbidden.ts`). The owners page itself, which is
+ * already gated on `owner:list`, can leave it at the default.
+ */
+export function useOwnerDirectory(search?: string, enabled = true) {
   return useQuery({
     queryKey: ["owner-directory", search ?? ""],
     queryFn: () => ownerService.listOwners(search),
+    enabled,
   });
 }
 

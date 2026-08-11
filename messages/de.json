@@ -104,7 +104,6 @@
       "gateContractExpiringImminently": "Der Vertrag dieses Kontos endet innerhalb von 24 Stunden — es kann nichts Neues angelegt werden.",
       "taskDateBeyondContract": "Mindestens ein Datum liegt nach dem Vertragsende.",
       "workerContractEndsBeforeTask": "Dieses Datum liegt nach dem Vertragsende des Mitarbeiters.",
-      "propertyDocsNotApproved": "Die Dokumente des Objekts müssen zuerst genehmigt werden.",
       "invalidSortColumn": "Diese Spalte kann nicht sortiert werden.",
       "invalidFilterValue": "Prüfen Sie die Filterwerte — ein Bereich ist inkonsistent.",
       "invalidFormat": "Nicht unterstütztes Exportformat.",
@@ -126,7 +125,11 @@
       "incompleteDocumentSet": "Der Dokumentensatz ist unvollständig. Ein Identitätsdokument ist erforderlich — Pass, Personalausweis oder Aufenthaltstitel — und ein Handelsregisterauszug, wenn ein Unternehmen angegeben ist. Eine Gewerbeerlaubnis ersetzt den Registerauszug nicht.",
       "invalidDocumentType": "Eines der Dokumente hat einen unbekannten Typ. Es wurde nichts gespeichert.",
       "validation": "Einige Angaben wurden nicht akzeptiert. Bitte prüfen Sie die markierten Felder und versuchen Sie es erneut.",
-      "unknown": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
+      "unknown": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.",
+      "propertyCategoryNotFound": "Wählen Sie eine Objektkategorie — die übermittelte existiert nicht.",
+      "propertyCategoryInactive": "Diese Kategorie wurde deaktiviert. Bitte wählen Sie eine aktive.",
+      "targetOwnerMustBeBoss": "Objekte können nur für einen BOSS-Eigentümer angelegt werden.",
+      "propertyNotFound": "Dieses Objekt existiert nicht mehr."
     }
   },
   "docsWorkspace": {
@@ -497,19 +500,21 @@
   },
   "properties": {
     "title": "Objekte",
-    "subtitle": "Villen, Hotels, Büros und Geschäftszentren in der Liste.",
+    "subtitle": "Alle Objekte im System, mit Eigentümer und Kategorie.",
     "list": "Objektliste",
-    "searchPlaceholder": "Objekt suchen...",
+    "searchPlaceholder": "Nach Name, Adresse oder Eigentümer suchen…",
     "notFound": "Objekt nicht gefunden oder ein Fehler ist aufgetreten.",
     "errorConnect": "Verbindungsfehler mit dem Server",
     "errorLoad": "Fehler beim Laden der Daten",
     "columns": {
       "name": "Name",
       "address": "Adresse",
-      "type": "Typ",
-      "docsStatus": "Dokumentenstatus",
       "createdAt": "Erstellt",
-      "actions": "Aktionen"
+      "actions": "Aktionen",
+      "owner": "Eigentümer",
+      "category": "Kategorie",
+      "area": "Fläche",
+      "rooms": "Zimmer"
     },
     "deleted": {
       "title": "Gelöschte Immobilien",
@@ -531,10 +536,10 @@
       "title": "Immobilie erstellen",
       "ownerLabel": "Eigentümer (BOSS)",
       "ownerPlaceholder": "Eigentümer auswählen…",
-      "noEligibleOwners": "Keine Eigentümer mit genehmigter KYC verfügbar.",
+      "noEligibleOwners": "Keine berechtigten Eigentümer. Ein Objekt kann nur für einen BOSS-Eigentümer mit unterzeichnetem, aktuell gültigem Vertrag angelegt werden.",
       "submit": "Erstellen",
       "errors": {
-        "generic": "Immobilie konnte nicht erstellt werden. Der Eigentümer muss ein BOSS mit genehmigter KYC sein."
+        "generic": "Objekt konnte nicht angelegt werden. Der Eigentümer muss ein BOSS mit unterzeichnetem, aktuell gültigem Vertrag sein."
       }
     },
     "info": {
@@ -543,7 +548,8 @@
       "coordinates": "Koordinaten",
       "floors": "Stockwerkanzahl",
       "floorUnit": "Stockwerke",
-      "entryInstructions": "Zugangsanweisungen"
+      "entryInstructions": "Zugangsanweisungen",
+      "roomUnit": "Zimmer"
     },
     "map": {
       "title": "Standort",
@@ -554,53 +560,23 @@
       "ownerId": "Eigentümer-ID",
       "viewProfile": "Profil anzeigen"
     },
-    "docsStatus": {
-      "title": "Dokumentenstatus",
-      "reviewedAt": "Geprüft am",
-      "rejectReason": "Ablehnungsgrund",
-      "approved": "Genehmigt",
-      "docsApproved": "Dokumente genehmigt",
-      "pending": "Ausstehend",
-      "docsPending": "Dokumente in Prüfung",
-      "rejected": "Abgelehnt",
-      "docsRejected": "Dokumente abgelehnt",
-      "unknown": "Unbekannt"
-    },
-    "docs": {
-      "title": "Objektdokumente",
-      "empty": "Keine Dokumente hochgeladen",
-      "document": "Dokument",
-      "open": "Öffnen",
-      "rejectReason": "Ablehnungsgrund",
-      "approveBtn": "Genehmigen",
-      "rejectBtn": "Ablehnen",
-      "resetBtn": "Erneut prüfen",
-      "rejectTitle": "Dokumente ablehnen",
-      "rejectSubtitle": "Ablehnungsgrund (mindestens {min} Zeichen, erforderlich).",
-      "rejectPlaceholder": "Ablehnungsgrund...",
-      "rejectReasonMin": "Mindestens {min} Zeichen eingeben.",
-      "resetTitle": "Dokumente erneut prüfen",
-      "resetPlaceholder": "Grund für erneute Prüfung...",
-      "resetReasonMin": "Mindestens {min} Zeichen eingeben."
-    },
     "form": {
       "name": "Name",
       "namePlaceholder": "Objektname",
       "address": "Adresse",
       "addressPlaceholder": "Straße, Stadt, Postleitzahl",
-      "type": "Typ",
-      "types": {
-        "Villa": "Villa",
-        "Hotel": "Hotel",
-        "Office": "Büro",
-        "Other": "Sonstiges"
-      },
       "floorCount": "Anzahl Etagen",
-      "floorRange": "Geben Sie eine ganze Zahl zwischen {min} und {max} ein.",
       "lat": "Breitengrad",
       "long": "Längengrad",
       "entryInstructions": "Zutrittshinweise",
-      "entryInstructionsPlaceholder": "Wie das Objekt betreten wird..."
+      "entryInstructionsPlaceholder": "Wie das Objekt betreten wird...",
+      "category": "Kategorie",
+      "categoryPlaceholder": "Kategorie wählen…",
+      "noCategories": "Keine aktiven Kategorien. Legen Sie zuerst eine in den Einstellungen an.",
+      "roomCount": "Zimmer",
+      "areaSqm": "Fläche (m²)",
+      "optional": "Optional",
+      "range": "Geben Sie eine Zahl zwischen {min} und {max} ein."
     },
     "edit": {
       "action": "Bearbeiten",
@@ -623,6 +599,21 @@
     "actions": {
       "backToList": "Zurück zur Objektliste",
       "more": "Mehr"
+    },
+    "ownerUnknown": "Unbekannter Eigentümer",
+    "areaBands": {
+      "unset": "Nicht erfasst",
+      "lt100": "Unter 100 m²",
+      "from100": "100–500 m²",
+      "from500": "500–2.000 m²",
+      "gt2000": "Über 2.000 m²"
+    },
+    "createdBands": {
+      "week": "Letzte 7 Tage",
+      "month": "Vor 7–30 Tagen",
+      "year": "Vor 30 Tagen – 1 Jahr",
+      "older": "Vor über einem Jahr",
+      "unknown": "Unbekanntes Datum"
     }
   },
   "admins": {

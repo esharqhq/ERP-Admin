@@ -1,8 +1,7 @@
 import { apiClient } from "@/lib/http/client";
 import type {
   PropertyDto,
-  PropertyDocsBundleDto,
-  PropertyDocsApprovalDto,
+  PropertyMediaDto,
   UpdatePropertyRequest,
   CreateAdminPropertyRequest,
 } from "@/lib/types/property.types";
@@ -32,8 +31,17 @@ export const propertyService = {
   },
 
   /**
-   * Admin create-on-behalf-of-owner (`property:create_any`). Idempotent — sends
-   * X-Idempotency-Key so a retried submit replays the cached 201.
+   * Admin create-on-behalf-of-owner (`property:create_any`).
+   *
+   * ⚠ **The idempotency key below is wrong and does not do its job.** The route
+   * is `[Idempotent]` (24 h Redis cache) so that a *retried* submit replays the
+   * cached 201 instead of authoring a second property — which requires the key
+   * to stay the same across retries of one intent. Minting it here gives every
+   * attempt a fresh key, so a retry creates a duplicate: exactly what the header
+   * exists to prevent. The correct shape is `contract.service.ts`'s — the caller
+   * mints one key per user-initiated attempt (a ref, not state) and passes it in.
+   * Deferred to the create-dialog rework rather than fixed here, because that is
+   * where the call site that must hold the key is being rebuilt anyway.
    */
   createAdminProperty: async (
     body: CreateAdminPropertyRequest,
@@ -64,39 +72,27 @@ export const propertyService = {
     await apiClient.delete(`/api/properties/${id}`);
   },
 
-  getAdminPropertyDocs: async (propertyId: string): Promise<PropertyDocsBundleDto> => {
-    const { data } = await apiClient.get<PropertyDocsBundleDto>(
-      `/api/admin/properties/${propertyId}/docs`,
-    );
-    return data;
-  },
-
-  approvePropertyDocs: async (propertyId: string): Promise<PropertyDocsApprovalDto> => {
-    const { data } = await apiClient.post<PropertyDocsApprovalDto>(
-      `/api/admin/properties/${propertyId}/docs/approve`,
-    );
-    return data;
-  },
-
-  rejectPropertyDocs: async (
-    propertyId: string,
-    reason: string,
-  ): Promise<PropertyDocsApprovalDto> => {
-    const { data } = await apiClient.post<PropertyDocsApprovalDto>(
-      `/api/admin/properties/${propertyId}/docs/reject`,
-      { reason },
-    );
-    return data;
-  },
-
-  resetPropertyDocs: async (
-    propertyId: string,
-    reason: string,
-  ): Promise<PropertyDocsApprovalDto> => {
-    const { data } = await apiClient.post<PropertyDocsApprovalDto>(
-      `/api/admin/properties/${propertyId}/docs/reset`,
-      { reason },
+  /**
+   * A property's photo gallery. Admins reach it through branch 1 of the
+   * endpoint's three-branch check (an Admin-type caller holding global
+   * `property:list`); the owner-side and worker branches do not apply here.
+   *
+   * **Read-only for this app.** There is deliberately no upload or delete
+   * counterpart — see `PropertyMediaDto` for why an admin cannot mutate a
+   * gallery, and note there is currently no admin takedown path for a photo an
+   * owner uploaded.
+   */
+  getPropertyMedia: async (propertyId: string): Promise<PropertyMediaDto[]> => {
+    const { data } = await apiClient.get<PropertyMediaDto[]>(
+      `/api/properties/${propertyId}/media`,
     );
     return data;
   },
 };
+
+// The property-document review feature was deleted outright by F-02c (2026-08-07),
+// not re-gated: `PropertyDocsController` and `AdminPropertyDocsController` are gone
+// and all seven of their routes 404. The four methods that called them
+// (getAdminPropertyDocs / approve / reject / reset) were removed with it. Their
+// eight `property:doc:*` permission codes are hard-deleted and must never be
+// recycled, so nothing here can be revived by granting a permission.

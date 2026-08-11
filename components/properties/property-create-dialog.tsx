@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Loader2 } from "lucide-react";
 import {
   Dialog,
@@ -20,11 +20,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useOwnerList } from "@/hooks/use-owners";
+import { usePropertyCategories } from "@/hooks/use-lookups";
+import { categoryName } from "@/lib/properties/table-rows";
 import {
-  PROPERTY_TYPES,
-  type PropertyType,
-  type CreateAdminPropertyRequest,
-} from "@/lib/types/property.types";
+  AREA_MAX,
+  FLOOR_MAX,
+  ROOM_MAX,
+  parseOptionalNumber,
+} from "@/lib/properties/form-fields";
+import type { CreateAdminPropertyRequest } from "@/lib/types/property.types";
 
 interface Props {
   open: boolean;
@@ -35,16 +39,10 @@ interface Props {
   onSubmit: (body: CreateAdminPropertyRequest) => void;
 }
 
-const FLOOR_MIN = 0;
-const FLOOR_MAX = 500;
-
-function isType(v: string): v is PropertyType {
-  return (PROPERTY_TYPES as string[]).includes(v);
-}
-
 export function PropertyCreateDialog({ open, onClose, pending, error, onSubmit }: Props) {
   const t = useTranslations("properties");
   const tCommon = useTranslations("common");
+  const locale = useLocale();
 
   // KYC-profile owners are the BOSS owners. Creating a property for an owner
   // whose contract isn't covering today is refused by the server's live ACTIVE
@@ -60,40 +58,49 @@ export function PropertyCreateDialog({ open, onClose, pending, error, onSubmit }
       value: o.ownerUserId,
       label: o.ownerName ?? o.ownerEmail ?? o.ownerUserId.slice(0, 8),
     }));
-  const typeItems = PROPERTY_TYPES.map((pt) => ({
-    value: pt,
-    label: t(`form.types.${pt}` as Parameters<typeof t>[0]),
+  // Active-only, which is what the server accepts: assigning a deactivated
+  // category is `400 property_category_inactive`. (The edit dialog has to be
+  // more forgiving — see the note there.)
+  const { data: categories = [], isLoading: categoriesLoading } = usePropertyCategories();
+  const categoryItems = categories.map((c) => ({
+    value: c.id,
+    label: categoryName(c, locale),
   }));
 
   const [ownerUserId, setOwnerUserId] = useState("");
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
-  const [type, setType] = useState<PropertyType>("Other");
+  const [propertyCategoryId, setPropertyCategoryId] = useState("");
   const [entryInstructions, setEntryInstructions] = useState("");
   const [lat, setLat] = useState("");
   const [long, setLong] = useState("");
   const [floorCount, setFloorCount] = useState("");
+  const [roomCount, setRoomCount] = useState("");
+  const [areaSqm, setAreaSqm] = useState("");
 
   const latNum = Number(lat);
   const longNum = Number(long);
-  const floorNum = Number(floorCount);
-
   const latValid = lat.trim() !== "" && Number.isFinite(latNum);
   const longValid = long.trim() !== "" && Number.isFinite(longNum);
-  const floorValid =
-    floorCount.trim() !== "" &&
-    Number.isInteger(floorNum) &&
-    floorNum >= FLOOR_MIN &&
-    floorNum <= FLOOR_MAX;
+
+  const floor = parseOptionalNumber(floorCount, { max: FLOOR_MAX, integer: true });
+  const room = parseOptionalNumber(roomCount, { max: ROOM_MAX, integer: true });
+  const area = parseOptionalNumber(areaSqm, { max: AREA_MAX, integer: false });
 
   const canSubmit =
     ownerUserId !== "" &&
     name.trim().length > 0 &&
     address.trim().length > 0 &&
     entryInstructions.trim().length > 0 &&
+    // Required, and enforced here rather than left to the server: an omitted
+    // category binds to Guid.Empty and comes back as a confusing
+    // `property_category_not_found` instead of "pick a category".
+    propertyCategoryId !== "" &&
     latValid &&
     longValid &&
-    floorValid &&
+    floor.ok &&
+    room.ok &&
+    area.ok &&
     !pending;
 
   function handleSubmit() {
@@ -104,10 +111,11 @@ export function PropertyCreateDialog({ open, onClose, pending, error, onSubmit }
       address: address.trim(),
       lat: latNum,
       long: longNum,
-      type,
+      propertyCategoryId,
       entryInstructions: entryInstructions.trim(),
-      floorCount: floorNum,
-      docs: null,
+      floorCount: floor.value,
+      roomCount: room.value,
+      areaSqm: area.value,
     });
   }
 
@@ -164,39 +172,79 @@ export function PropertyCreateDialog({ open, onClose, pending, error, onSubmit }
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-medium">{t("form.type")}</label>
-              <Select
-                value={type}
-                onValueChange={(v) => v && isType(v) && setType(v)}
-                items={typeItems}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {typeItems.map((it) => (
-                    <SelectItem key={it.value} value={it.value}>
-                      {it.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium">{t("form.category")}</label>
+            <Select
+              value={propertyCategoryId}
+              onValueChange={(v) => setPropertyCategoryId(v ?? "")}
+              items={categoryItems}
+              disabled={categoriesLoading}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={t("form.categoryPlaceholder")} />
+              </SelectTrigger>
+              <SelectContent>
+                {categoryItems.map((it) => (
+                  <SelectItem key={it.value} value={it.value}>
+                    {it.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {!categoriesLoading && categoryItems.length === 0 ? (
+              <p className="text-xs text-muted-foreground">{t("form.noCategories")}</p>
+            ) : null}
+          </div>
+
+          <div className="grid grid-cols-3 gap-3">
             <div className="flex flex-col gap-1">
               <label className="text-sm font-medium">{t("form.floorCount")}</label>
               <Input
                 type="number"
-                min={FLOOR_MIN}
+                min={0}
                 max={FLOOR_MAX}
                 step={1}
                 value={floorCount}
                 onChange={(e) => setFloorCount(e.target.value)}
+                placeholder={t("form.optional")}
               />
-              {floorCount.trim() !== "" && !floorValid ? (
+              {!floor.ok ? (
                 <p className="text-xs text-destructive">
-                  {t("form.floorRange", { min: FLOOR_MIN, max: FLOOR_MAX })}
+                  {t("form.range", { min: 0, max: FLOOR_MAX })}
+                </p>
+              ) : null}
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-medium">{t("form.roomCount")}</label>
+              <Input
+                type="number"
+                min={0}
+                max={ROOM_MAX}
+                step={1}
+                value={roomCount}
+                onChange={(e) => setRoomCount(e.target.value)}
+                placeholder={t("form.optional")}
+              />
+              {!room.ok ? (
+                <p className="text-xs text-destructive">
+                  {t("form.range", { min: 0, max: ROOM_MAX })}
+                </p>
+              ) : null}
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-medium">{t("form.areaSqm")}</label>
+              <Input
+                type="number"
+                min={0}
+                max={AREA_MAX}
+                step="any"
+                value={areaSqm}
+                onChange={(e) => setAreaSqm(e.target.value)}
+                placeholder={t("form.optional")}
+              />
+              {!area.ok ? (
+                <p className="text-xs text-destructive">
+                  {t("form.range", { min: 0, max: AREA_MAX })}
                 </p>
               ) : null}
             </div>

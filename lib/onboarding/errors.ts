@@ -111,7 +111,19 @@ const CATALOG: Record<string, Omit<ApiErrorInfo, "code">> = {
   contract_expiring_imminently: { labelKey: "gateContractExpiringImminently", reaction: "gate" },
   task_date_beyond_contract: { labelKey: "taskDateBeyondContract", reaction: "toast" },
   worker_contract_ends_before_task: { labelKey: "workerContractEndsBeforeTask", reaction: "toast" },
-  property_docs_not_approved: { labelKey: "propertyDocsNotApproved", reaction: "toast" },
+  // `property_docs_not_approved` used to sit here. F-02c deleted the gate *and*
+  // the whole property-document feature on 2026-08-07 — every property is
+  // task-ready the moment it exists — so the code can never arrive again.
+
+  // ── properties (F-02c) ──────────────────────────────────────────────────
+  // Both arrive as 400 on create and update. `not_found` is also what an
+  // *omitted* propertyCategoryId produces: it binds to Guid.Empty, which then
+  // fails the existence lookup — so this message must read as "pick a
+  // category", not as "that category was deleted".
+  property_category_not_found: { labelKey: "propertyCategoryNotFound", reaction: "toast" },
+  property_category_inactive: { labelKey: "propertyCategoryInactive", reaction: "toast" },
+  target_owner_must_be_boss: { labelKey: "targetOwnerMustBeBoss", reaction: "toast" },
+  property_not_found: { labelKey: "propertyNotFound", reaction: "not-found" },
 
   // ── tables, exports, lookups, tickets ───────────────────────────────────
   invalid_sort_column: { labelKey: "invalidSortColumn", reaction: "toast" },

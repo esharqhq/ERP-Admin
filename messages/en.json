@@ -104,7 +104,6 @@
       "gateContractExpiringImminently": "This account's contract ends within 24 hours — nothing new can be created.",
       "taskDateBeyondContract": "At least one date falls after the contract ends.",
       "workerContractEndsBeforeTask": "This date falls after the worker's contract ends.",
-      "propertyDocsNotApproved": "The property's documents must be approved first.",
       "invalidSortColumn": "This column cannot be sorted.",
       "invalidFilterValue": "Check the filter values — a range is inconsistent.",
       "invalidFormat": "Unsupported export format.",
@@ -126,7 +125,11 @@
       "incompleteDocumentSet": "The document set is incomplete. An identity document is required — passport, ID card or residence permit — and a company registration document if a company is declared. A business licence does not replace the registration document.",
       "invalidDocumentType": "One of the documents has an unrecognised type. Nothing was saved.",
       "validation": "Some of the details weren't accepted. Check the highlighted fields and try again.",
-      "unknown": "Something went wrong. Please try again."
+      "unknown": "Something went wrong. Please try again.",
+      "propertyCategoryNotFound": "Select a property category — the one sent doesn't exist.",
+      "propertyCategoryInactive": "That category has been deactivated. Pick an active one.",
+      "targetOwnerMustBeBoss": "Properties can only be created for a BOSS owner.",
+      "propertyNotFound": "This property no longer exists."
     }
   },
   "docsWorkspace": {
@@ -497,19 +500,21 @@
   },
   "properties": {
     "title": "Properties",
-    "subtitle": "Villas, hotels, offices and business centers in the list.",
+    "subtitle": "All properties in the system, with their owner and category.",
     "list": "Properties list",
-    "searchPlaceholder": "Search property...",
+    "searchPlaceholder": "Search by name, address or owner…",
     "notFound": "Property not found or an error occurred.",
     "errorConnect": "Connection error with server",
     "errorLoad": "Error loading data",
     "columns": {
       "name": "Name",
       "address": "Address",
-      "type": "Type",
-      "docsStatus": "Docs Status",
       "createdAt": "Created",
-      "actions": "Actions"
+      "actions": "Actions",
+      "owner": "Owner",
+      "category": "Category",
+      "area": "Area",
+      "rooms": "Rooms"
     },
     "deleted": {
       "title": "Deleted Properties",
@@ -531,10 +536,10 @@
       "title": "Create Property",
       "ownerLabel": "Owner (BOSS)",
       "ownerPlaceholder": "Select an owner…",
-      "noEligibleOwners": "No owners with approved KYC available.",
+      "noEligibleOwners": "No eligible owners. A property can only be created for a BOSS owner whose contract is signed and currently in force.",
       "submit": "Create",
       "errors": {
-        "generic": "Couldn't create the property. The owner must be a BOSS with approved KYC."
+        "generic": "Couldn't create the property. The owner must be a BOSS with a signed, currently in-force contract."
       }
     },
     "info": {
@@ -543,7 +548,8 @@
       "coordinates": "Coordinates",
       "floors": "Floor Count",
       "floorUnit": "floors",
-      "entryInstructions": "Entry Instructions"
+      "entryInstructions": "Entry Instructions",
+      "roomUnit": "rooms"
     },
     "map": {
       "title": "Location",
@@ -554,53 +560,23 @@
       "ownerId": "Owner ID",
       "viewProfile": "View Profile"
     },
-    "docsStatus": {
-      "title": "Docs Status",
-      "reviewedAt": "Reviewed At",
-      "rejectReason": "Rejection Reason",
-      "approved": "Approved",
-      "docsApproved": "Documents approved",
-      "pending": "Pending",
-      "docsPending": "Documents under review",
-      "rejected": "Rejected",
-      "docsRejected": "Documents rejected",
-      "unknown": "Unknown"
-    },
-    "docs": {
-      "title": "Property Documents",
-      "empty": "No documents uploaded",
-      "document": "Document",
-      "open": "Open",
-      "rejectReason": "Rejection Reason",
-      "approveBtn": "Approve",
-      "rejectBtn": "Reject",
-      "resetBtn": "Re-review",
-      "rejectTitle": "Reject Documents",
-      "rejectSubtitle": "Rejection reason (at least {min} characters, required).",
-      "rejectPlaceholder": "Rejection reason...",
-      "rejectReasonMin": "Enter at least {min} characters.",
-      "resetTitle": "Re-review Documents",
-      "resetPlaceholder": "Reset reason...",
-      "resetReasonMin": "Enter at least {min} characters."
-    },
     "form": {
       "name": "Name",
       "namePlaceholder": "Property name",
       "address": "Address",
       "addressPlaceholder": "Street, city, postal code",
-      "type": "Type",
-      "types": {
-        "Villa": "Villa",
-        "Hotel": "Hotel",
-        "Office": "Office",
-        "Other": "Other"
-      },
       "floorCount": "Floor count",
-      "floorRange": "Enter a whole number between {min} and {max}.",
       "lat": "Latitude",
       "long": "Longitude",
       "entryInstructions": "Entry instructions",
-      "entryInstructionsPlaceholder": "How to access the property..."
+      "entryInstructionsPlaceholder": "How to access the property...",
+      "category": "Category",
+      "categoryPlaceholder": "Select a category…",
+      "noCategories": "No active categories. Create one in Settings first.",
+      "roomCount": "Rooms",
+      "areaSqm": "Area (m²)",
+      "optional": "Optional",
+      "range": "Enter a number between {min} and {max}."
     },
     "edit": {
       "action": "Edit",
@@ -623,6 +599,21 @@
     "actions": {
       "backToList": "Back to Properties list",
       "more": "More"
+    },
+    "ownerUnknown": "Unknown owner",
+    "areaBands": {
+      "unset": "Not recorded",
+      "lt100": "Under 100 m²",
+      "from100": "100–500 m²",
+      "from500": "500–2,000 m²",
+      "gt2000": "Over 2,000 m²"
+    },
+    "createdBands": {
+      "week": "Last 7 days",
+      "month": "7–30 days ago",
+      "year": "30 days – 1 year ago",
+      "older": "Over a year ago",
+      "unknown": "Unknown date"
     }
   },
   "admins": {
