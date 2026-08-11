@@ -1,26 +1,33 @@
 import { Mail, Phone } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTranslations } from "next-intl";
+import { onboardingStatusPresentation } from "@/lib/onboarding/status";
 import type { OwnerSummaryDto } from "@/lib/types/owner.types";
 
 /**
- * Who the owner is, at a glance: photo, display name, and the two ways to reach
- * them.
+ * The one place this screen states who the owner is: photo, display name, role,
+ * and onboarding stage.
  *
- * Role and onboarding stage are deliberately **not** here — they are labelled
- * rows on the contact card, where they read as facts rather than as decoration
- * beside a name. Repeating them was what the removed stat row did.
+ * Each of those used to appear twice — here and again in a stat card — so the
+ * stat row is gone and this is the single source. The verified/unverified badge
+ * went with it: it is a narrower fact than the onboarding stage, and two status
+ * badges side by side read as contradictory rather than complementary.
  */
 export function HeroCard({
   owner,
   isWalkIn = false,
+  onboardingStatus,
 }: {
   owner: OwnerSummaryDto;
   isWalkIn?: boolean;
+  /** `null` when the KYC read 404'd or was refused — the badge is then omitted. */
+  onboardingStatus?: string | null;
 }) {
   const t = useTranslations("owners");
+  const tOnboarding = useTranslations("onboarding");
   const initials = (owner.fullName || "??").slice(0, 2).toUpperCase();
 
   // `OwnerSummaryDto` does not carry profilePictureUrl yet: GET /api/owners/{id}
@@ -29,6 +36,10 @@ export function HeroCard({
   // show initials until then — which is also the correct fallback afterwards.
   const pictureUrl =
     (owner as { profilePictureUrl?: string | null }).profilePictureUrl ?? null;
+
+  const presentation = onboardingStatus
+    ? onboardingStatusPresentation(onboardingStatus)
+    : null;
 
   return (
     <Card className="overflow-hidden">
@@ -50,10 +61,20 @@ export function HeroCard({
                 {initials}
               </AvatarFallback>
             </Avatar>
-            <div className="flex flex-col pb-1">
+            <div className="flex flex-col gap-1.5 pb-1">
               <h1 className="font-heading text-2xl font-bold tracking-tight leading-tight sm:text-[28px]">
                 {owner.fullName || "—"}
               </h1>
+              <div className="flex flex-wrap items-center gap-2">
+                {owner.roleCode && <Badge variant="secondary">{owner.roleCode}</Badge>}
+                {presentation ? (
+                  <Badge variant={presentation.variant} className={presentation.className}>
+                    {tOnboarding(
+                      `status.${presentation.labelKey}` as Parameters<typeof tOnboarding>[0],
+                    )}
+                  </Badge>
+                ) : null}
+              </div>
             </div>
           </div>
 
