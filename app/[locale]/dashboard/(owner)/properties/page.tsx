@@ -213,7 +213,11 @@ export default function PropertiesPage() {
     { label: t("columns.name") },
     { label: t("columns.owner") },
     { label: t("columns.category") },
-    { label: t("columns.area"), className: "text-right" },
+    // Right-aligned so the figures line up column-wise, but with its own right
+    // padding: `TableCell`'s default `px-2` leaves 8px between a right-aligned
+    // number and the left-aligned date beside it, which reads as one run-on
+    // value rather than two columns.
+    { label: t("columns.area"), className: "text-right pr-8" },
     { label: t("columns.createdAt") },
   ];
 
@@ -329,7 +333,7 @@ export default function PropertiesPage() {
               </Badge>
             </TableCell>
 
-            <TableCell className="text-right text-sm tabular-nums text-muted-foreground">
+            <TableCell className="pr-8 text-right text-sm tabular-nums text-muted-foreground">
               {formatArea(p.areaSqm, locale)}
             </TableCell>
 
