@@ -120,8 +120,11 @@ export function PropertyCreateDialog({ open, onClose, pending, error, onSubmit }
     <Dialog open={open} onOpenChange={(v) => !v && !pending && onClose()}>
       {/* Wider than the default `sm:max-w-sm` and scrolled internally: the map
           needs the width to be usable, and the form is now taller than a short
-          viewport. The header and footer stay put while the body scrolls. */}
-      <DialogContent className="sm:max-w-2xl">
+          viewport. The header and footer stay put while the body scrolls.
+          682px is `max-w-2xl` (672px) plus the ~10px this form was asked for —
+          an arbitrary value rather than the next scale step, which would jump
+          to 768px. */}
+      <DialogContent className="sm:max-w-[682px]">
         <DialogHeader>
           <DialogTitle>{t("create.title")}</DialogTitle>
         </DialogHeader>
