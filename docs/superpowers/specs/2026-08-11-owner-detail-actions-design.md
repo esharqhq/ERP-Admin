@@ -52,6 +52,12 @@ over name/email/phone and has no id filter.
 1. **Now:** resolve the walk-in id client-side with `GET /api/admin/owners?ownerType=Default&pageSize=1`,
    cached at `staleTime: Infinity`. One request per session; a bootstrap account id cannot change under a
    running session.
+
+   This leans on the account existing at all. It does — the "Walk-in / Manual Orders" owner **and** its
+   property were both observed in this panel's own data on 2026-08-11, in read-only browser checks against
+   the API the panel targets, hours after PR #63 merged. The seed has run there. If a *different*
+   environment is ever pointed at without the seed, the query returns `total: 0`, `walkInId` stays `null`,
+   and gating is inert — see §11.
 2. **Ask the backend** to add `ownerType` (or `isSystem`) to `OwnerSummaryDto`. When it lands, the lookup
    is deleted and `ownerDetailActions` takes the field directly — the pure function is the only consumer,
    so the change is one call site.
@@ -65,7 +71,7 @@ OwnerDetailPage(id)
 ├─ useOwner(id)              OwnerSummaryDto        existing
 ├─ useOwnerKyc(id)           KycProfileDto          NEW
 │     └→ onboardingStatus · identity.firstName · identity.lastName
-│        404 ⇒ no identity record (sub-account, or the walk-in account)
+│        200 / 404 / 403 are three different facts — see §5
 ├─ useWalkInOwnerId()        string | null          NEW · staleTime: Infinity
 ├─ useOwnerProperties(id)                           existing
 └─ useOwnerTaskGroups(id)                           existing
@@ -88,6 +94,7 @@ Logic left inside a component is logic left unverified.
 
 ```ts
 // lib/owners/detail-actions.ts
+export type KycRead = "visible" | "forbidden" | "absent";
 export type NameLock = "self-editable" | "no-profile" | "system" | null;
 
 export interface OwnerDetailActions {
@@ -100,10 +107,24 @@ export interface OwnerDetailActions {
 export function ownerDetailActions(input: {
   ownerId: string;
   walkInId: string | null;
-  onboardingStatus: string | null;   // null when the KYC read 404s
-  hasIdentityRecord: boolean;
+  kycRead: KycRead;
+  onboardingStatus: string | null;   // meaningful only when kycRead === "visible"
 }): OwnerDetailActions;
 ```
+
+`kycRead` is a three-state discriminant, not a boolean, because that one call has three distinct
+outcomes and two of them are not the same fact:
+
+| Outcome | Means |
+|---|---|
+| `200` | the owner has an `OwnerProfile`. Its `identity` fields may still be **all null** — `OwnerIdentityDto` is documented as "always present, its own fields null until filled" |
+| `404` | no profile row at all — a `MANAGER`/`PROPERTY_ADMIN` sub-account. This is the state that produces `400 owner_profile_not_found` |
+| `403` | the caller lacks `kyc:review` (40011). Says nothing about the owner |
+
+**An empty identity is not a missing profile.** An owner at `Kyc` who has not filled the form yet returns
+`200` with `firstName: null` — `owner_profile_not_found` would *not* fire for them, so their `nameLock` is
+`"self-editable"` (they can fill it themselves), never `"no-profile"`. Collapsing the two into a boolean
+would put the wrong message on that row.
 
 `nameLock` is a union rather than a boolean because the three reasons need three different messages:
 "the owner can correct this themselves" is not "this account has no name record" is not "this is a system
@@ -118,9 +139,19 @@ other check on both routes.
 | State | Edit | Delete | Name fields | `nameLock` |
 |---|---|---|---|---|
 | Walk-in account | hidden | hidden | — | `"system"` |
-| Sub-account (KYC `404`) | hidden | shown | no record exists | `"no-profile"` |
-| `Kyc` / `Rejected` | **shown** | shown | read-only | `"self-editable"` |
-| `Review` / `Approved` / `Contract` / `Active` | shown | shown | editable | `null` |
+| `kycRead: "absent"` — sub-account | hidden | shown | no record exists | `"no-profile"` |
+| `kycRead: "forbidden"` | hidden | shown | — | `null` |
+| `visible` + `Kyc` / `Rejected` | **shown** | shown | read-only | `"self-editable"` |
+| `visible` + `Kyc`, identity all null | **shown** | shown | read-only, empty | `"self-editable"` |
+| `visible` + `Review` / `Approved` / `Contract` / `Active` | shown | shown | editable | `null` |
+
+`"forbidden"` hides Edit rather than showing a fourth message: without the read there is no way to
+prefill the form or to know whether the name is currently editable, so opening it would be guessing.
+
+**The blank-field hazard.** An empty string is read by the endpoint as "leave unchanged", never as
+"clear". A form prefilled from a null identity and saved untouched therefore sends `""`, changes nothing,
+writes no audit entry, and still returns `200` — a silent no-op that looks like success. The dialog must
+send only fields that hold a non-empty value, and must refuse to submit when both are empty.
 
 ## 6. Two consequences that shape the UI
 
@@ -147,8 +178,19 @@ the hero card, not in the owners table.
 **Requirement:** Owner Detail must render the legal name as its own labelled row in `ContactCard`, visually
 distinct from the display name. This is not optional polish; without it the feature's result is invisible.
 
-For the same reason the success handler invalidates `["owner", id]` and `["owner-kyc", id]` but **not**
-`["owners-table"]` — the table renders `fullName`, which this endpoint never touches.
+### 6.3 The success handler merges the response; it does not refetch
+
+`["owners-table"]` is **not** invalidated — the table renders `fullName`, which this endpoint never
+touches, so a refetch would return byte-identical rows.
+
+`["owner-kyc", id]` is **not** invalidated either. The `200` body (`AdminOwnerProfileDto`) already carries
+`firstName`, `lastName` and `onboardingStatus`, so the handler merges those three into the cached
+`KycProfileDto` with `setQueryData`, leaving `documents` and `company` untouched.
+
+This is not an optimisation. Refetching that key requires `kyc:review` (40011), and §11 records that an
+admin can hold `owner:profile:update_any` (30005) without it. Invalidating would mean such an admin saves
+successfully and is then shown a `403` where the result should be — the edit works, and the screen says it
+failed. Merging keeps the write self-sufficient.
 
 ## 7. Error handling
 
@@ -210,11 +252,16 @@ next one. It is a regression gate, not a change-detection gate.
 
 ## 11. Risks
 
-- **The walk-in id lookup needs `owner:list`.** An admin holding `owner:read` but not `owner:list` gets a
-  `403` on it. The query must degrade to `walkInId = null` rather than failing the page — with the
-  consequence that gating silently stops working for that admin. Acceptable: the server still refuses the
-  action, so the failure mode is the current behaviour, not a worse one.
-- **`GET /api/admin/kyc/owner/{id}` needs `kyc:review` (40011).** Same treatment: a `403` is handled like a
-  `404` — no identity record visible, so Edit is hidden.
+- **`walkInId` can be `null` for two unrelated reasons**, and both leave gating inert — the buttons render
+  and the admin discovers the `409`, exactly the defect this section exists to fix. The causes are an
+  admin holding `owner:read` but not `owner:list` (the lookup `403`s), and an unseeded environment
+  (`total: 0`). The query must degrade to `null` rather than failing the page, and the degradation is
+  worth logging, because a silently inert guard is indistinguishable from a working one until someone
+  clicks. Both causes disappear when the backend adds `ownerType` to `OwnerSummaryDto` (§3), which is the
+  real fix and the reason to ask for it rather than treat the client-side lookup as permanent.
+- **`GET /api/admin/kyc/owner/{id}` needs `kyc:review` (40011),** which `owner:profile:update_any` (30005)
+  does not imply. A custom role granted 30005 alone sees no Edit button at all — `kycRead: "forbidden"`
+  hides it. That is deliberate (§5), but it means the two permissions should be granted together; worth
+  saying in the role documentation rather than leaving to discovery.
 - **No visual verification.** The Chrome extension has been disconnected since 2026-08-11; the last five
   commits are unverified in a browser. This section should be checked visually before it is called done.
