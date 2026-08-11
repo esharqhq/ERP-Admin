@@ -520,6 +520,30 @@
         "generic": "Could not save this change. Please try again."
       }
     },
+    "work": {
+      "title": "Booked work",
+      "viewCalendar": "Calendar",
+      "viewTable": "Table",
+      "empty": "No work booked for this week.",
+      "unstaffed": "—",
+      "more": "+{count}",
+      "columns": {
+        "date": "Date",
+        "property": "Property",
+        "time": "Time",
+        "worker": "Workers",
+        "booking": "Booking",
+        "status": "Status"
+      },
+      "status": {
+        "all": "All",
+        "Pending": "Scheduled",
+        "Active": "In progress",
+        "Review": "Under review",
+        "Done": "Completed",
+        "Cancelled": "Cancelled"
+      }
+    },
     "documents": {
       "title": "Documents",
       "empty": "This owner has not submitted any documents yet.",

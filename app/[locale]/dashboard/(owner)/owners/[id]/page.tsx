@@ -8,14 +8,13 @@ import {
   useOwner,
   useOwnerKyc,
   useOwnerProperties,
-  useOwnerTaskGroups,
   useWalkInOwnerId,
 } from "@/hooks/use-owners";
 import { ownerDetailActions } from "@/lib/owners/detail-actions";
 import type { KycRead } from "@/lib/owners/detail-actions";
 import { HeroCard } from "@/components/owners/hero-card";
 import { PropertyList } from "@/components/owners/property-list";
-import { ActivityTimeline } from "@/components/owners/activity-timeline";
+import { WeeklyWorkCard } from "@/components/owners/weekly-work-card";
 import { ContactCard } from "@/components/owners/contact-card";
 import { OwnerDocumentsCard } from "@/components/owners/owner-documents-card";
 import { SubAccountsCard } from "@/components/owners/sub-accounts-card";
@@ -31,8 +30,9 @@ export default function OwnerDetailPage({
   const { id } = use(params);
   const t = useTranslations("owners");
   const { data: owner, isLoading, isError } = useOwner(id);
+  // Task groups are fetched by WeeklyWorkCard itself, on the same query key —
+  // the page does not need its own observer.
   const { data: properties = [] } = useOwnerProperties(id);
-  const { data: taskGroups = [] } = useOwnerTaskGroups(id);
 
   const kyc = useOwnerKyc(id);
   const walkIn = useWalkInOwnerId();
@@ -144,12 +144,7 @@ export default function OwnerDetailPage({
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="flex flex-col gap-6 lg:col-span-2">
-          <ActivityTimeline
-            taskGroups={taskGroups}
-            propertyNames={Object.fromEntries(
-              properties.map((p) => [p.id, p.name ?? "—"]),
-            )}
-          />
+          <WeeklyWorkCard ownerUserId={id} properties={properties} />
         </div>
 
         <div className="flex flex-col gap-6">

@@ -520,6 +520,30 @@
         "generic": "Änderung konnte nicht gespeichert werden. Bitte erneut versuchen."
       }
     },
+    "work": {
+      "title": "Gebuchte Arbeit",
+      "viewCalendar": "Kalender",
+      "viewTable": "Tabelle",
+      "empty": "Für diese Woche ist keine Arbeit gebucht.",
+      "unstaffed": "—",
+      "more": "+{count}",
+      "columns": {
+        "date": "Datum",
+        "property": "Objekt",
+        "time": "Zeit",
+        "worker": "Mitarbeiter",
+        "booking": "Buchung",
+        "status": "Status"
+      },
+      "status": {
+        "all": "Alle",
+        "Pending": "Geplant",
+        "Active": "Läuft",
+        "Review": "In Prüfung",
+        "Done": "Abgeschlossen",
+        "Cancelled": "Storniert"
+      }
+    },
     "documents": {
       "title": "Dokumente",
       "empty": "Dieser Eigentümer hat noch keine Dokumente eingereicht.",
