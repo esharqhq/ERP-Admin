@@ -81,3 +81,46 @@ export interface OwnerListQuery extends PagedQuery {
   propertyCountMin?: number;
   propertyCountMax?: number;
 }
+
+// ── Admin owner profile edit (F-02b·7, PUT /api/owners/{id}) ────────────────
+
+/**
+ * Body of `PUT /api/owners/{id}`.
+ *
+ * Every field is optional and an omitted or blank one means **leave
+ * unchanged** — there is deliberately no way to clear a value here, so a form
+ * that sends all fields on every save cannot wipe the ones it did not touch.
+ *
+ * `reason` is typed as required even though the schema marks it optional: it
+ * is validated in the service rather than by model attributes, specifically so
+ * the failure keeps this API's `{error}` envelope, and a blank one is
+ * `400 reason_required`.
+ */
+export interface AdminUpdateOwnerProfileRequest {
+  firstName?: string;
+  lastName?: string;
+  profilePictureUrl?: string;
+  reason: string;
+}
+
+/**
+ * Response of `PUT /api/owners/{id}`.
+ *
+ * `fullName` is the **display** name the owner chose at registration. It is
+ * returned for context, is not editable here, and is deliberately never
+ * reconciled with the legal `firstName`/`lastName` pair — expect the two to
+ * differ legitimately; that is not a data error.
+ *
+ * `firstName`, `lastName` and `onboardingStatus` are all `null` for a
+ * sub-account, which has no identity record at all.
+ */
+export interface AdminOwnerProfileDto {
+  id: string;
+  fullName: string;
+  firstName: string | null;
+  lastName: string | null;
+  profilePictureUrl: string | null;
+  /** Serialized by name (`"Kyc"` … `"Active"`), never as a number. */
+  onboardingStatus: string | null;
+  updatedAt: string | null;
+}

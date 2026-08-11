@@ -36,8 +36,15 @@ for (const [name, expected] of Object.entries(EXPECTED_ENUMS)) {
 const EXPECTED_FIELDS = {
   KycProfileSummaryDto: ["ownerProfileId", "ownerUserId", "ownerName", "ownerEmail",
     "onboardingStatus", "onboardingRejectReason", "onboardingReviewedAt", "documentCount"],
+  // `identity` carries the legal name pair the admin edit prefills from and
+  // writes back to — the only source for it on the Owner Detail screen.
   KycProfileDto: ["ownerProfileId", "ownerUserId", "onboardingStatus",
-    "onboardingRejectReason", "onboardingReviewedAt", "documents"],
+    "onboardingRejectReason", "onboardingReviewedAt", "documents", "identity"],
+  // F-02b·7. The panel had no client for PUT /api/owners/{id} at all until
+  // 2026-08-11, so neither of its shapes was ever asserted here.
+  AdminOwnerProfileDto: ["id", "fullName", "firstName", "lastName",
+    "profilePictureUrl", "onboardingStatus", "updatedAt"],
+  AdminUpdateOwnerProfileRequest: ["firstName", "lastName", "profilePictureUrl", "reason"],
   KycDocDto: ["id", "type", "fileName", "fileUrl", "createdAt"],
   KycApprovalDto: ["ownerProfileId", "onboardingStatus", "onboardingRejectReason", "prefill"],
   WorkerApprovalDto: ["id", "onboardingStatus", "onboardingRejectReason", "prefill"],

@@ -1,6 +1,8 @@
 import { apiClient } from "@/lib/http/client";
 import type { KycProfileSummaryDto } from "@/lib/types/kyc.types";
 import type {
+  AdminOwnerProfileDto,
+  AdminUpdateOwnerProfileRequest,
   OwnerListQuery,
   OwnerRowDto,
   OwnerSummaryDto,
@@ -63,6 +65,24 @@ export const ownerService = {
   deleteOwner: async (ownerUserId: string, reason?: string): Promise<void> => {
     const params = reason ? { reason } : {};
     await apiClient.delete(`/api/owners/${ownerUserId}`, { params });
+  },
+
+  /**
+   * Admin corrects an owner's **legal** name (F-02b·7). SUPER_ADMIN-only —
+   * `owner:profile:update_any` (30005), which MODERATOR does not hold.
+   *
+   * A `200` does not prove anything changed: a no-op edit returns the current
+   * values and writes no audit entry. Compare the response if you need to know.
+   */
+  updateOwner: async (
+    ownerUserId: string,
+    body: AdminUpdateOwnerProfileRequest,
+  ): Promise<AdminOwnerProfileDto> => {
+    const { data } = await apiClient.put<AdminOwnerProfileDto>(
+      `/api/owners/${ownerUserId}`,
+      body,
+    );
+    return data;
   },
 
   // ── Cross-domain reads used on the owner-account detail page (keyed on OwnerUser id) ──

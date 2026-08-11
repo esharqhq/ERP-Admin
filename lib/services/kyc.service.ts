@@ -30,6 +30,23 @@ export const kycService = {
     return data;
   },
 
+  /**
+   * ⚠ Takes the **OwnerUser** id, not the KYC profile id — `getProfile` above
+   * takes the other one and hits a different route. The two are different
+   * values and confusing them has already shipped a bug here (`0872669`).
+   *
+   * Two failures are answers rather than errors, and the caller branches on
+   * them: `404` means the owner has no profile row at all (a sub-account, or
+   * the walk-in account), and `403` means the caller lacks `kyc:review`
+   * (40011) — which `owner:profile:update_any` (30005) does **not** imply.
+   */
+  getProfileByOwner: async (ownerUserId: string): Promise<KycProfileDto> => {
+    const { data } = await apiClient.get<KycProfileDto>(
+      `/api/admin/kyc/owner/${ownerUserId}`,
+    );
+    return data;
+  },
+
   /** `Review → Approved`. Legal only from `Review`; else 400 invalid_onboarding_transition. */
   approve: async (ownerProfileId: string): Promise<KycApprovalDto> => {
     const { data } = await apiClient.post<KycApprovalDto>(
