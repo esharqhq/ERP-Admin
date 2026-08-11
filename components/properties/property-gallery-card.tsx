@@ -189,12 +189,22 @@ export function PropertyGalleryCard({ propertyId }: { propertyId: string }) {
                 </div>
               </DialogHeader>
 
-              <div className="relative">
+              {/* A square frame, like the thumbnails. It is also what stops the
+                  dialog resizing under the cursor when stepping between a
+                  portrait and a landscape photo — the frame is fixed and the
+                  photo fits inside it.
+
+                  `max-w` rather than `max-h` caps the size: with `aspect-square`
+                  a max-height leaves the width at 100% and the box stops being
+                  square, whereas bounding the width bounds both. */}
+              <div className="relative mx-auto aspect-square w-full max-w-[70vh] overflow-hidden rounded-lg bg-muted">
+                {/* `object-contain`, never `cover`: this is the view where the
+                    whole photo has to be visible, so letterboxing beats cropping. */}
                 {/* eslint-disable-next-line @next/next/no-img-element -- full-size preview of the same photo */}
                 <img
                   src={current.url}
                   alt={current.originalFileName}
-                  className="max-h-[70vh] w-full rounded-lg object-contain"
+                  className="size-full object-contain"
                 />
                 {media.length > 1 && (
                   <>
