@@ -127,29 +127,59 @@ export function PropertyCreateDialog({ open, onClose, pending, error, onSubmit }
         </DialogHeader>
 
         <div className="flex max-h-[65vh] flex-col gap-4 overflow-y-auto pr-1">
-          <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium">{t("create.ownerLabel")}</label>
-            <Select
-              value={ownerUserId}
-              onValueChange={(v) => setOwnerUserId(v ?? "")}
-              items={ownerItems}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={t("create.ownerPlaceholder")} />
-              </SelectTrigger>
-              <SelectContent>
-                {ownerItems.map((o) => (
-                  <SelectItem key={o.value} value={o.value}>
-                    {o.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {!ownersLoading && ownerItems.length === 0 ? (
-              <p className="text-xs text-muted-foreground">
-                {t("create.noEligibleOwners")}
-              </p>
-            ) : null}
+          {/* Owner and category side by side: the two choices that decide what
+              this property *is*, before any of its details. Both are selects of
+              the same height, so the row stays even; their hint lines sit under
+              their own column rather than pushing the other one down. */}
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-medium">{t("create.ownerLabel")}</label>
+              <Select
+                value={ownerUserId}
+                onValueChange={(v) => setOwnerUserId(v ?? "")}
+                items={ownerItems}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={t("create.ownerPlaceholder")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {ownerItems.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>
+                      {o.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {!ownersLoading && ownerItems.length === 0 ? (
+                <p className="text-xs text-muted-foreground">
+                  {t("create.noEligibleOwners")}
+                </p>
+              ) : null}
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-medium">{t("form.category")}</label>
+              <Select
+                value={propertyCategoryId}
+                onValueChange={(v) => setPropertyCategoryId(v ?? "")}
+                items={categoryItems}
+                disabled={categoriesLoading}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={t("form.categoryPlaceholder")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {categoryItems.map((it) => (
+                    <SelectItem key={it.value} value={it.value}>
+                      {it.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {!categoriesLoading && categoryItems.length === 0 ? (
+                <p className="text-xs text-muted-foreground">{t("form.noCategories")}</p>
+              ) : null}
+            </div>
           </div>
 
           <div className="flex flex-col gap-1">
@@ -179,30 +209,6 @@ export function PropertyCreateDialog({ open, onClose, pending, error, onSubmit }
             value={location}
             onChange={(lat, long) => setLocation({ lat, long })}
           />
-
-          <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium">{t("form.category")}</label>
-            <Select
-              value={propertyCategoryId}
-              onValueChange={(v) => setPropertyCategoryId(v ?? "")}
-              items={categoryItems}
-              disabled={categoriesLoading}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={t("form.categoryPlaceholder")} />
-              </SelectTrigger>
-              <SelectContent>
-                {categoryItems.map((it) => (
-                  <SelectItem key={it.value} value={it.value}>
-                    {it.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {!categoriesLoading && categoryItems.length === 0 ? (
-              <p className="text-xs text-muted-foreground">{t("form.noCategories")}</p>
-            ) : null}
-          </div>
 
           <div className="grid grid-cols-3 gap-3">
             <div className="flex flex-col gap-1">
