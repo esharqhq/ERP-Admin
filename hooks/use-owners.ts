@@ -2,7 +2,12 @@
 
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ownerService } from "@/lib/services/owner.service";
-import type { OwnerListQuery } from "@/lib/types/owner.types";
+import { kycService } from "@/lib/services/kyc.service";
+import type {
+  AdminUpdateOwnerProfileRequest,
+  OwnerListQuery,
+} from "@/lib/types/owner.types";
+import type { KycProfileDto } from "@/lib/types/kyc.types";
 
 // ── The owners TABLE (FND-3) ────────────────────────────────────────────────
 
@@ -60,11 +65,101 @@ export function useSoftDeleteOwner() {
   return useMutation({
     mutationFn: ({ ownerUserId, reason }: { ownerUserId: string; reason?: string }) =>
       ownerService.deleteOwner(ownerUserId, reason),
-    // Invalidate the list only — never the still-mounted ["owner", id] detail observer
+    // Invalidate the lists only — never the still-mounted ["owner", id] detail observer
     // (delete-then-navigate: removing/invalidating it would refetch the now-deleted id → 404).
     // The caller router.push()es back to the list; the detail query GCs on unmount.
+    //
+    // Both list keys are named. c4458ee moved the owners page off the unpaged
+    // picker onto ["owners-table"] and left this pointing at the old key alone,
+    // so a deleted owner stayed on screen for the 60s global staleTime.
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["owner-directory"] });
+      qc.invalidateQueries({ queryKey: ["owners-table"] });
+    },
+  });
+}
+
+/**
+ * The owner's KYC profile, keyed on the **OwnerUser** id. Supplies the two
+ * things Owner Detail otherwise has no source for: `onboardingStatus`, which
+ * decides whether the legal name is admin-editable, and `identity`, which
+ * prefills the edit form.
+ *
+ * `retry: false` because the two interesting outcomes are terminal — a `404`
+ * (no profile row) and a `403` (no `kyc:review`) are answers, not failures, and
+ * retrying them only delays the guard that reads them.
+ */
+export function useOwnerKyc(ownerUserId: string) {
+  return useQuery({
+    queryKey: ["owner-kyc", ownerUserId],
+    queryFn: () => kycService.getProfileByOwner(ownerUserId),
+    enabled: !!ownerUserId,
+    retry: false,
+  });
+}
+
+/**
+ * The id of the permanent "Walk-in / Manual Orders" account, or `null`.
+ *
+ * `GET /api/owners/{id}` carries no `ownerType`/`isSystem` and the owners table
+ * has no id filter, so this is the only way the detail page can recognise that
+ * account today. **Temporary** — delete this hook and read the field directly
+ * once the backend adds it to `OwnerSummaryDto`.
+ *
+ * `staleTime: Infinity` because a bootstrap account id cannot change under a
+ * running session: this costs one request per session, not one per owner.
+ *
+ * Resolves to `null` rather than throwing when the lookup is refused (the admin
+ * lacks `owner:list`) or the environment is unseeded. Both leave the walk-in
+ * guard inert, which is the reason the backend field is worth asking for.
+ */
+export function useWalkInOwnerId() {
+  return useQuery({
+    queryKey: ["walk-in-owner-id"],
+    queryFn: async () => {
+      const page = await ownerService.getOwners({ ownerType: "Default", pageSize: 1 });
+      // `items` is nullable on the envelope, and an unseeded environment
+      // legitimately returns an empty page — both resolve to null, not a throw.
+      return page.items?.[0]?.id ?? null;
+    },
+    staleTime: Infinity,
+    retry: false,
+  });
+}
+
+/**
+ * The admin legal-name correction (F-02b·7).
+ *
+ * The `200` body already carries the three fields that can have changed, so it
+ * is merged into the cached KYC profile rather than invalidating it.
+ * Invalidating would refetch a route needing `kyc:review` (40011) — which
+ * `owner:profile:update_any` (30005) does not imply — so an admin holding only
+ * 30005 would save successfully and then be shown a `403` where the result
+ * belongs.
+ *
+ * `["owners-table"]` is deliberately left alone: the table renders `fullName`,
+ * the display name, which this endpoint never writes.
+ */
+export function useUpdateOwner(ownerUserId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: AdminUpdateOwnerProfileRequest) =>
+      ownerService.updateOwner(ownerUserId, body),
+    onSuccess: (updated) => {
+      qc.setQueryData<KycProfileDto>(["owner-kyc", ownerUserId], (prev) =>
+        prev
+          ? {
+              ...prev,
+              onboardingStatus: (updated.onboardingStatus ??
+                prev.onboardingStatus) as KycProfileDto["onboardingStatus"],
+              identity: {
+                ...prev.identity,
+                firstName: updated.firstName,
+                lastName: updated.lastName,
+              },
+            }
+          : prev,
+      );
     },
   });
 }
