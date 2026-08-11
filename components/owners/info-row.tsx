@@ -9,7 +9,8 @@ export function InfoRow({
 }: {
   icon: React.ReactNode
   label: string
-  value: string
+  /** Text, or a node — a badge reads as a value here as well as a string does. */
+  value: React.ReactNode
   mono?: boolean
   /** One line under the value, for when the label alone is ambiguous. */
   hint?: string
@@ -21,7 +22,14 @@ export function InfoRow({
       </span>
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="text-[11px] font-medium uppercase tracking-[0.06em] text-muted-foreground">{label}</span>
-        <span className={cn("text-[13px] leading-snug text-foreground break-words", mono && "font-mono")}>
+        {/* `flex` rather than plain inline text so a badge sits on its own
+            baseline instead of stretching to the row's full width. */}
+        <span
+          className={cn(
+            "flex flex-wrap items-center gap-1.5 text-[13px] leading-snug text-foreground break-words",
+            mono && "font-mono",
+          )}
+        >
           {value}
         </span>
         {hint ? (

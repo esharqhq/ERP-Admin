@@ -132,15 +132,11 @@ export default function OwnerDetailPage({
         </div>
       ) : null}
 
-      {/* Role and onboarding stage live here and nowhere else — the stat row
-          that repeated them is gone, along with a `joined` card the contact
-          card already carried and a property count the Properties card states
-          in its own header. */}
-      <HeroCard
-        owner={owner}
-        isWalkIn={actions.isWalkIn}
-        onboardingStatus={kyc.data?.onboardingStatus ?? null}
-      />
+      {/* Role, onboarding stage and joined date are all rows on the contact
+          card — one fact, one place. The stat row that repeated them is gone,
+          and so is the property count, which the Properties card states in its
+          own header. */}
+      <HeroCard owner={owner} isWalkIn={actions.isWalkIn} />
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="flex flex-col gap-6 lg:col-span-2">
@@ -148,7 +144,11 @@ export default function OwnerDetailPage({
         </div>
 
         <div className="flex flex-col gap-6">
-          <ContactCard owner={owner} identity={identity} />
+          <ContactCard
+            owner={owner}
+            identity={identity}
+            onboardingStatus={kyc.data?.onboardingStatus ?? null}
+          />
           <PropertyList properties={properties} />
           <OwnerDocumentsCard
             ownerProfileId={kyc.data?.ownerProfileId ?? null}
