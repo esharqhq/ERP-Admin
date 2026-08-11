@@ -547,8 +547,6 @@
     },
     "info": {
       "title": "General Information",
-      "address": "Address",
-      "coordinates": "Coordinates",
       "floors": "Floor Count",
       "floorUnit": "floors",
       "entryInstructions": "Entry Instructions",
@@ -569,8 +567,6 @@
       "address": "Address",
       "addressPlaceholder": "Street, city, postal code",
       "floorCount": "Floor count",
-      "lat": "Latitude",
-      "long": "Longitude",
       "entryInstructions": "Entry instructions",
       "entryInstructionsPlaceholder": "How to access the property...",
       "category": "Category",
@@ -621,6 +617,14 @@
       "year": "30 days – 1 year ago",
       "older": "Over a year ago",
       "unknown": "Unknown date"
+    },
+    "gallery": {
+      "title": "Photos",
+      "count": "{count} of 10",
+      "empty": "No photos yet",
+      "emptyHint": "Photos are added by the owner from their own app.",
+      "error": "Could not load the photos.",
+      "close": "Close"
     }
   },
   "admins": {

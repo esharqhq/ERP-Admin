@@ -62,24 +62,39 @@ function Recenter({ point }: { point: [number, number] | null }) {
 export interface LocationMapProps {
   /** The placed point, or null when nothing has been picked yet. */
   value: { lat: number; long: number } | null;
-  onChange: (lat: number, long: number) => void;
+  /** Required when `readOnly` is false; never called when it is true. */
+  onChange?: (lat: number, long: number) => void;
+  /**
+   * Display a point rather than pick one: no click-to-place, no draggable
+   * marker, and panning/zooming off, so the card cannot be scrolled out of
+   * alignment by a stray wheel event. The zoom buttons stay, since "let me see
+   * the surrounding streets" is the one thing a viewer legitimately wants.
+   */
+  readOnly?: boolean;
   className?: string;
 }
 
-export function LocationMap({ value, onChange, className }: LocationMapProps) {
+export function LocationMap({
+  value,
+  onChange,
+  readOnly = false,
+  className,
+}: LocationMapProps) {
   const point = useMemo<[number, number] | null>(
     () => (value ? [value.lat, value.long] : null),
     [value],
   );
 
+  const pick = (lat: number, lng: number) => onChange?.(lat, lng);
+
   return (
     <MapContainer
       center={point ?? GERMANY}
       zoom={point ? PIN_ZOOM : COUNTRY_ZOOM}
-      scrollWheelZoom
+      scrollWheelZoom={!readOnly}
+      dragging={!readOnly}
+      doubleClickZoom={!readOnly}
       className={className}
-      // Leaflet's own control sits over the tiles; the surrounding dialog already
-      // provides the frame, so only the zoom buttons are kept.
       attributionControl
     >
       <TileLayer
@@ -88,19 +103,23 @@ export function LocationMap({ value, onChange, className }: LocationMapProps) {
         maxZoom={19}
       />
       <FixSize />
-      <ClickToPlace onPick={onChange} />
+      {!readOnly && <ClickToPlace onPick={pick} />}
       <Recenter point={point} />
       {point && (
         <Marker
           position={point}
           icon={pinIcon}
-          draggable
-          eventHandlers={{
-            dragend(e) {
-              const { lat, lng } = (e.target as L.Marker).getLatLng();
-              onChange(lat, lng);
-            },
-          }}
+          draggable={!readOnly}
+          eventHandlers={
+            readOnly
+              ? undefined
+              : {
+                  dragend(e) {
+                    const { lat, lng } = (e.target as L.Marker).getLatLng();
+                    pick(lat, lng);
+                  },
+                }
+          }
         />
       )}
     </MapContainer>

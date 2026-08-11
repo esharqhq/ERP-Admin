@@ -8,6 +8,7 @@ import { PropertyHero } from "@/components/properties/property-hero";
 import { PropertyInfo } from "@/components/properties/property-info";
 import { PropertyMapCard } from "@/components/properties/property-map-card";
 import { PropertyOwnerCard } from "@/components/properties/property-owner-card";
+import { PropertyGalleryCard } from "@/components/properties/property-gallery-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePropertyById } from "@/hooks/use-properties";
 
@@ -52,16 +53,17 @@ export default function PropertyDetailPage({
       <ActionBar actions={<PropertyActions property={property} />} />
       <PropertyHero property={property} />
       <div className="grid gap-6 lg:grid-cols-3">
+        {/* The gallery leads the main column: photos are what an admin opening
+            a property actually wants to see, and the measurements below are
+            reference. It replaced the docs-review and docs-status cards F-02c
+            deleted — a property has no review state left to show. */}
         <div className="flex flex-col gap-6 lg:col-span-2">
-          <PropertyInfo property={property} />
+          <PropertyGalleryCard propertyId={property.id} />
           <PropertyMapCard property={property} />
         </div>
-        {/* The docs-review card and the docs-status card that used to sit above
-            the owner card are gone with F-02c — a property has no review state
-            left to show. The photo gallery that replaced the feature is a
-            separate build; `usePropertyMedia` is ready for it. */}
         <div className="flex flex-col gap-6">
           <PropertyOwnerCard property={property} />
+          <PropertyInfo property={property} />
         </div>
       </div>
     </div>

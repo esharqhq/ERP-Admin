@@ -1,18 +1,27 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { MapPin, ExternalLink } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslations } from "next-intl";
 import type { PropertyDto } from "@/lib/types/property.types";
+
+// Was an OpenStreetMap `export/embed.html` iframe. Now the same Leaflet map the
+// create/edit picker uses, in read-only mode: leaflet is already bundled for
+// those, so this costs no new weight and the two maps finally look alike — the
+// iframe rendered OSM's own controls and styling, which matched nothing else.
+// Client-only for the same reason as the picker: leaflet touches `window` while
+// its module is evaluating.
+const LocationMap = dynamic(
+  () => import("@/components/properties/location-map").then((m) => m.LocationMap),
+  { ssr: false, loading: () => <Skeleton className="h-full w-full" /> },
+);
 
 export function PropertyMapCard({ property }: { property: PropertyDto }) {
   const t = useTranslations("properties");
   const { lat, long } = property;
 
-  // Small bounding box around the point so the marker renders at a street-level zoom.
-  const delta = 0.0025;
-  const bbox = [long - delta, lat - delta, long + delta, lat + delta].join(",");
-  const embedSrc = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${long}`;
   const externalUrl = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${long}#map=16/${lat}/${long}`;
 
   return (
@@ -32,16 +41,16 @@ export function PropertyMapCard({ property }: { property: PropertyDto }) {
           <ExternalLink className="size-3.5" />
         </a>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex flex-col gap-2">
         <div className="overflow-hidden rounded-lg border">
-          <iframe
-            title={t("map.title")}
-            src={embedSrc}
-            className="h-72 w-full"
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-          />
+          <LocationMap value={{ lat, long }} readOnly className="h-72 w-full" />
         </div>
+        {/* The coordinates moved here from the info card: they belong to the
+            map, and repeating them as a plain row beside it was the same fact
+            twice. */}
+        <p className="text-[11px] tabular-nums text-muted-foreground">
+          {lat.toFixed(6)}, {long.toFixed(6)}
+        </p>
       </CardContent>
     </Card>
   );

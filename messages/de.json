@@ -547,8 +547,6 @@
     },
     "info": {
       "title": "Allgemeine Informationen",
-      "address": "Adresse",
-      "coordinates": "Koordinaten",
       "floors": "Stockwerkanzahl",
       "floorUnit": "Stockwerke",
       "entryInstructions": "Zugangsanweisungen",
@@ -569,8 +567,6 @@
       "address": "Adresse",
       "addressPlaceholder": "Straße, Stadt, Postleitzahl",
       "floorCount": "Anzahl Etagen",
-      "lat": "Breitengrad",
-      "long": "Längengrad",
       "entryInstructions": "Zutrittshinweise",
       "entryInstructionsPlaceholder": "Wie das Objekt betreten wird...",
       "category": "Kategorie",
@@ -621,6 +617,14 @@
       "year": "Vor 30 Tagen – 1 Jahr",
       "older": "Vor über einem Jahr",
       "unknown": "Unbekanntes Datum"
+    },
+    "gallery": {
+      "title": "Fotos",
+      "count": "{count} von 10",
+      "empty": "Noch keine Fotos",
+      "emptyHint": "Fotos werden vom Eigentümer in seiner eigenen App hinzugefügt.",
+      "error": "Fotos konnten nicht geladen werden.",
+      "close": "Schließen"
     }
   },
   "admins": {

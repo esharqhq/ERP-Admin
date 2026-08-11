@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { usePropertyCategories } from "@/hooks/use-lookups";
+import { LocationPicker } from "@/components/properties/location-picker";
 import { categoryName } from "@/lib/properties/table-rows";
 import {
   AREA_MAX,
@@ -57,8 +58,12 @@ export function PropertyEditDialog({
   const [address, setAddress] = useState(property.address);
   const [categoryId, setCategoryId] = useState(property.category.id);
   const [entryInstructions, setEntryInstructions] = useState(property.entryInstructions);
-  const [lat, setLat] = useState(String(property.lat));
-  const [long, setLong] = useState(String(property.long));
+  // Unlike create, this always starts with a point — an existing property
+  // cannot lack coordinates — so the picker opens focused on it.
+  const [location, setLocation] = useState<{ lat: number; long: number } | null>({
+    lat: property.lat,
+    long: property.long,
+  });
   const [floorCount, setFloorCount] = useState(property.floorCount?.toString() ?? "");
   const [roomCount, setRoomCount] = useState(property.roomCount?.toString() ?? "");
   const [areaSqm, setAreaSqm] = useState(property.areaSqm?.toString() ?? "");
@@ -68,16 +73,11 @@ export function PropertyEditDialog({
   // property legitimately sitting on a deactivated category must keep it as a
   // selectable option, or this form would silently force a change on save.
   const options = categories.some((c) => c.id === property.category.id)
-    ? categories.map((c) => ({ id: c.id, label: categoryName(c, locale) }))
+    ? categories.map((c) => ({ value: c.id, label: categoryName(c, locale) }))
     : [
-        { id: property.category.id, label: categoryName(property.category, locale) },
-        ...categories.map((c) => ({ id: c.id, label: categoryName(c, locale) })),
+        { value: property.category.id, label: categoryName(property.category, locale) },
+        ...categories.map((c) => ({ value: c.id, label: categoryName(c, locale) })),
       ];
-
-  const latNum = Number(lat);
-  const longNum = Number(long);
-  const latValid = lat.trim() !== "" && Number.isFinite(latNum);
-  const longValid = long.trim() !== "" && Number.isFinite(longNum);
 
   const floor = parseOptionalNumber(floorCount, { max: FLOOR_MAX, integer: true });
   const room = parseOptionalNumber(roomCount, { max: ROOM_MAX, integer: true });
@@ -88,20 +88,19 @@ export function PropertyEditDialog({
     address.trim().length > 0 &&
     entryInstructions.trim().length > 0 &&
     categoryId !== "" &&
-    latValid &&
-    longValid &&
+    location !== null &&
     floor.ok &&
     room.ok &&
     area.ok &&
     !pending;
 
   function handleSubmit() {
-    if (!canSubmit) return;
+    if (!canSubmit || !location) return;
     onSubmit({
       name: name.trim(),
       address: address.trim(),
-      lat: latNum,
-      long: longNum,
+      lat: location.lat,
+      long: location.long,
       propertyCategoryId: categoryId,
       entryInstructions: entryInstructions.trim(),
       floorCount: floor.value,
@@ -112,12 +111,14 @@ export function PropertyEditDialog({
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && !pending && onClose()}>
-      <DialogContent>
+      {/* Same frame as the create dialog — both carry a map and the same fields,
+          so they should not be two different sizes. */}
+      <DialogContent className="sm:max-w-[682px]">
         <DialogHeader>
           <DialogTitle>{t("edit.title")}</DialogTitle>
         </DialogHeader>
 
-        <div className="flex flex-col gap-4">
+        <div className="flex max-h-[65vh] flex-col gap-4 overflow-y-auto pr-1">
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium">{t("form.name")}</label>
             <Input
@@ -139,19 +140,28 @@ export function PropertyEditDialog({
             />
           </div>
 
+          <LocationPicker
+            value={location}
+            onChange={(lat, long) => setLocation({ lat, long })}
+          />
+
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium">{t("form.category")}</label>
+            {/* `items` is load-bearing, not decoration: without it <SelectValue>
+                cannot resolve the selected id to its label and the trigger
+                renders the raw category UUID. */}
             <Select
               value={categoryId}
               onValueChange={(v) => v && setCategoryId(v as string)}
+              items={options}
               disabled={categoriesLoading}
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder={t("form.categoryPlaceholder")} />
               </SelectTrigger>
               <SelectContent>
                 {options.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
+                  <SelectItem key={c.value} value={c.value}>
                     {c.label}
                   </SelectItem>
                 ))}
@@ -210,27 +220,6 @@ export function PropertyEditDialog({
                   {t("form.range", { min: 0, max: AREA_MAX })}
                 </p>
               ) : null}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-medium">{t("form.lat")}</label>
-              <Input
-                type="number"
-                step="any"
-                value={lat}
-                onChange={(e) => setLat(e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-medium">{t("form.long")}</label>
-              <Input
-                type="number"
-                step="any"
-                value={long}
-                onChange={(e) => setLong(e.target.value)}
-              />
             </div>
           </div>
 

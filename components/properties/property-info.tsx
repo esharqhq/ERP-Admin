@@ -1,15 +1,21 @@
-import { MapPin, Layers, Key, Navigation, DoorOpen, Ruler, Tag } from "lucide-react";
+import { Layers, Key, DoorOpen, Ruler } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { InfoRow } from "@/components/owners/info-row";
 import { useLocale, useTranslations } from "next-intl";
-import { categoryName } from "@/lib/properties/table-rows";
 import type { PropertyDto } from "@/lib/types/property.types";
 
+/**
+ * The property's measurements and access notes.
+ *
+ * Three rows that used to be here are gone rather than restyled: `address` and
+ * the category are both already in the hero directly above, and the raw
+ * coordinates now sit under the map that renders them. Each was the same fact
+ * printed twice on one screen.
+ */
 export function PropertyInfo({ property }: { property: PropertyDto }) {
   const t = useTranslations("properties");
   const locale = useLocale();
-  const coords = `${property.lat.toFixed(6)}, ${property.long.toFixed(6)}`;
 
   // All three measures are nullable since F-02c. Rendered unguarded, a missing
   // one printed the literal "null" next to its unit.
@@ -24,21 +30,6 @@ export function PropertyInfo({ property }: { property: PropertyDto }) {
         </h2>
       </CardHeader>
       <CardContent className="flex flex-col gap-3.5">
-        <InfoRow
-          icon={<MapPin className="size-3.5" />}
-          label={t("info.address")}
-          value={property.address}
-        />
-        <InfoRow
-          icon={<Tag className="size-3.5" />}
-          label={t("columns.category")}
-          value={categoryName(property.category, locale)}
-        />
-        <InfoRow
-          icon={<Navigation className="size-3.5" />}
-          label={t("info.coordinates")}
-          value={coords}
-        />
         <InfoRow
           icon={<Layers className="size-3.5" />}
           label={t("info.floors")}
