@@ -1,5 +1,9 @@
 import { apiClient } from "@/lib/http/client";
-import type { PropertyCategoryDto } from "@/lib/types/lookup.types";
+import type {
+  CreatePropertyCategoryRequest,
+  PropertyCategoryDto,
+  UpdatePropertyCategoryRequest,
+} from "@/lib/types/lookup.types";
 
 export const lookupService = {
   /**
@@ -21,6 +25,33 @@ export const lookupService = {
     const { data } = await apiClient.get<PropertyCategoryDto[]>(
       "/api/property-categories",
       { params },
+    );
+    return data;
+  },
+
+  /** `property_category:create` (160001). 201; `400 code_exists` on a duplicate code. */
+  createPropertyCategory: async (
+    body: CreatePropertyCategoryRequest,
+  ): Promise<PropertyCategoryDto> => {
+    const { data } = await apiClient.post<PropertyCategoryDto>(
+      "/api/property-categories",
+      body,
+    );
+    return data;
+  },
+
+  /**
+   * `property_category:update` (160002). A patch — omitted fields keep their
+   * value. Also the deactivate/reactivate path (`isActive`), since the resource
+   * has no DELETE.
+   */
+  updatePropertyCategory: async (
+    id: string,
+    body: UpdatePropertyCategoryRequest,
+  ): Promise<PropertyCategoryDto> => {
+    const { data } = await apiClient.put<PropertyCategoryDto>(
+      `/api/property-categories/${id}`,
+      body,
     );
     return data;
   },

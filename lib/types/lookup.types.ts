@@ -39,3 +39,34 @@ export interface PropertyCategoryRefDto {
   nameDe: string;
   nameEn: string;
 }
+
+/** Body for `POST /api/property-categories` (`property_category:create`, 160001). */
+export interface CreatePropertyCategoryRequest {
+  /** Unique and **immutable once created** — a clash is `400 code_exists`. Max 50. */
+  code: string;
+  nameDe: string;
+  nameEn: string;
+  icon: string | null;
+  color: string | null;
+  description: string | null;
+}
+
+/**
+ * Body for `PUT /api/property-categories/{id}` (`property_category:update`, 160002).
+ *
+ * Every field is nullable and **null leaves the value unchanged** — this is a
+ * patch, not a replace. `code` is absent by design: it cannot be edited, and
+ * sending it is silently ignored rather than refused.
+ *
+ * `isActive: false` is the **only** way to retire a category. There is no
+ * DELETE route: a category is deactivated, never deleted, so that the
+ * properties already pointing at it keep resolving.
+ */
+export interface UpdatePropertyCategoryRequest {
+  nameDe?: string | null;
+  nameEn?: string | null;
+  icon?: string | null;
+  color?: string | null;
+  description?: string | null;
+  isActive?: boolean | null;
+}

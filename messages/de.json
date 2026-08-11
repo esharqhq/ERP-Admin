@@ -32,7 +32,9 @@
       "title": "Seite nicht gefunden",
       "description": "Die gesuchte Seite existiert nicht oder Sie haben keine Berechtigung, sie anzuzeigen.",
       "back": "Zurück zum Dashboard"
-    }
+    },
+    "clearFilters": "Filter zurücksetzen",
+    "clear": "Leeren"
   },
   "status": {
     "pending": "Ausstehend",
@@ -287,7 +289,8 @@
     "notifications": "Benachrichtigungen",
     "agency": "Agentur",
     "agencyRequests": "Anfragen",
-    "agencies": "Agenturen"
+    "agencies": "Agenturen",
+    "propertyCategories": "Objektkategorien"
   },
   "auth": {
     "logout": "Abmelden",
@@ -1290,6 +1293,54 @@
         "mismatch": "Passwörter stimmen nicht überein.",
         "generic": "Passwort konnte nicht geändert werden. Bitte versuchen Sie es erneut."
       }
+    }
+  },
+  "propertyCategories": {
+    "title": "Objektkategorien",
+    "subtitle": "Die Kategorien, denen ein Objekt zugeordnet werden kann. Deaktivieren Sie eine, um sie für neue Objekte auszublenden, ohne bestehende zu verändern.",
+    "new": "Neue Kategorie",
+    "empty": "Noch keine Kategorien.",
+    "counts": "{active} von {total} aktiv",
+    "columns": {
+      "code": "Code",
+      "name": "Name",
+      "description": "Beschreibung",
+      "state": "Status"
+    },
+    "state": {
+      "active": "Aktiv",
+      "inactive": "Inaktiv"
+    },
+    "form": {
+      "createTitle": "Neue Kategorie",
+      "editTitle": "Kategorie bearbeiten",
+      "create": "Anlegen",
+      "code": "Code",
+      "codePlaceholder": "OFFICE",
+      "codeHint": "Nach dem Anlegen dauerhaft — er kann nicht mehr geändert werden.",
+      "codeImmutable": "Der Code kann nicht geändert werden.",
+      "nameEn": "Name (Englisch)",
+      "nameDe": "Name (Deutsch)",
+      "color": "Farbe",
+      "colorHint": "Optional. Wird als Punkt neben der Kategorie in der Objekttabelle angezeigt.",
+      "colorInvalid": "Geben Sie eine Hex-Farbe wie #64748b ein oder lassen Sie das Feld leer.",
+      "description": "Beschreibung",
+      "descriptionPlaceholder": "Was gehört in diese Kategorie…"
+    },
+    "deactivate": {
+      "action": "Deaktivieren",
+      "title": "Kategorie deaktivieren?",
+      "confirm": "„{name}“ wird beim Anlegen und Bearbeiten von Objekten nicht mehr angeboten. Objekte, die sie bereits nutzen, behalten sie und bleiben bearbeitbar."
+    },
+    "activate": {
+      "action": "Aktivieren",
+      "title": "Kategorie aktivieren?",
+      "confirm": "„{name}“ wird beim Anlegen und Bearbeiten von Objekten wieder angeboten."
+    },
+    "errors": {
+      "code_exists": "Dieser Code ist bereits vergeben. Codes müssen eindeutig sein.",
+      "generic": "Kategorie konnte nicht gespeichert werden. Bitte erneut versuchen.",
+      "toggleGeneric": "Status konnte nicht geändert werden. Bitte erneut versuchen."
     }
   }
 }

@@ -111,6 +111,7 @@ const EXTRA_ROUTE_GATES: { prefix: string; permission?: string; anyOf?: string[]
   { prefix: "/dashboard/settings/admins/presets", permission: "system:permission:read" },
   { prefix: "/dashboard/settings/audit",       permission: "system:audit:read" },
   { prefix: "/dashboard/settings/professions", permission: "profession:create" },
+  { prefix: "/dashboard/settings/property-categories", permission: "property_category:update" },
 ]
 
 /** Routes always visible to any authenticated admin (no permission needed). */

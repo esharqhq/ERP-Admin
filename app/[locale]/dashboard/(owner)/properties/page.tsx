@@ -6,12 +6,15 @@ import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { RowLink } from "@/components/ui/row-link";
 import { DataTableCard } from "@/components/ui/data-table-card";
-import { FilterMenu, type FilterGroup, type FilterOption } from "@/components/ui/filter-menu";
+import { FilterBar } from "@/components/ui/filter-bar";
+import type { FilterGroup, FilterOption } from "@/components/ui/filter-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Plus } from "lucide-react";
 import { useProperties, useCreateAdminProperty } from "@/hooks/use-properties";
 import { useOwnerDirectory } from "@/hooks/use-owners";
+import { usePropertyCategories } from "@/hooks/use-lookups";
 import { useHasPermission } from "@/hooks/use-current-permissions";
+import { normalizeHexColor } from "@/lib/properties/category-color";
 import { useTableFilters, type TableFilterConfig } from "@/hooks/use-table-filters";
 import { useLocale, useTranslations } from "next-intl";
 import { Can } from "@/components/auth/can";
@@ -94,6 +97,20 @@ export default function PropertiesPage() {
   const ownerNames = useMemo(() => ownerNameById(owners), [owners]);
   const ownersPending = canListOwners && ownersLoading;
 
+  // Colour lives on the full category DTO, not on the slim ref a property
+  // carries — so the badge's dot needs the lookup. Active-only, which is the
+  // same cache entry the create dialog fills: a property on a deactivated
+  // category simply resolves no colour and shows no dot.
+  const { data: categoryList } = usePropertyCategories();
+  const categoryColors = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const c of categoryList ?? []) {
+      const hex = normalizeHexColor(c.color);
+      if (hex) map.set(c.code, hex);
+    }
+    return map;
+  }, [categoryList]);
+
   // Frozen once per mount: the age bands must not shift under the user
   // mid-session, and `useTableFilters` memoizes on the config's identity.
   const [now] = useState(() => Date.now());
@@ -112,7 +129,7 @@ export default function PropertiesPage() {
     [now],
   );
 
-  const { values, setFilter, filtered } = useTableFilters(properties, filterConfig);
+  const { values, setFilter, reset, filtered } = useTableFilters(properties, filterConfig);
 
   const filterGroups = useMemo<FilterGroup[]>(() => {
     const ownerIds = new Set<string>();
@@ -262,12 +279,14 @@ export default function PropertiesPage() {
         searchPlaceholder={t("searchPlaceholder")}
         searchValue={search}
         onSearchChange={setSearch}
-        filter={
-          <FilterMenu
+        filters={
+          <FilterBar
             groups={filterGroups}
             values={values}
             onChange={setFilter}
+            onReset={reset}
             allLabel={tc("all")}
+            clearLabel={tc("clearFilters")}
           />
         }
         columns={columns}
@@ -298,7 +317,14 @@ export default function PropertiesPage() {
             </TableCell>
 
             <TableCell>
-              <Badge variant="secondary" className="font-normal">
+              <Badge variant="secondary" className="gap-1.5 font-normal">
+                {categoryColors.has(p.category.code) && (
+                  <span
+                    aria-hidden
+                    className="size-2 shrink-0 rounded-full ring-1 ring-inset ring-black/10"
+                    style={{ backgroundColor: categoryColors.get(p.category.code) }}
+                  />
+                )}
                 {categoryName(p.category, locale)}
               </Badge>
             </TableCell>

@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useLocale, useTranslations } from "next-intl"
-import { Settings, UserCog, ShieldCheck, Briefcase } from "lucide-react"
+import { Settings, UserCog, ShieldCheck, Briefcase, Tag } from "lucide-react"
 import { useCurrentPermissions } from "@/hooks/use-current-permissions"
 import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
@@ -20,6 +20,9 @@ const NAV_ITEMS: SettingsNavItem[] = [
   { href: "/dashboard/settings",        labelKey: "general",  icon: Settings,    permission: "system:settings:read",   exact: true  },
   { href: "/dashboard/settings/admins", labelKey: "admins",   icon: UserCog,     permission: "admin:list",             exact: false },
   { href: "/dashboard/settings/professions", labelKey: "professions", icon: Briefcase,  permission: "profession:create",      exact: false },
+  // Gated on :update rather than :create — update is what the deactivate toggle
+  // needs, and it is also what makes the inactive rows visible at all.
+  { href: "/dashboard/settings/property-categories", labelKey: "propertyCategories", icon: Tag, permission: "property_category:update", exact: false },
   { href: "/dashboard/settings/audit",       labelKey: "auditLog",    icon: ShieldCheck, permission: "system:audit:read",      exact: false },
 ]
 

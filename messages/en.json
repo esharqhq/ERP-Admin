@@ -32,7 +32,9 @@
       "title": "Page not found",
       "description": "The page you're looking for doesn't exist or you don't have permission to view it.",
       "back": "Back to dashboard"
-    }
+    },
+    "clearFilters": "Clear filters",
+    "clear": "Clear"
   },
   "status": {
     "pending": "Pending",
@@ -287,7 +289,8 @@
     "notifications": "Notifications",
     "agency": "Agency",
     "agencyRequests": "Requests",
-    "agencies": "Agencies"
+    "agencies": "Agencies",
+    "propertyCategories": "Property categories"
   },
   "auth": {
     "logout": "Logout",
@@ -1290,6 +1293,54 @@
         "mismatch": "Passwords do not match.",
         "generic": "Could not change your password. Please try again."
       }
+    }
+  },
+  "propertyCategories": {
+    "title": "Property categories",
+    "subtitle": "The categories a property can be assigned to. Deactivate one to keep it out of new properties without touching the ones already using it.",
+    "new": "New category",
+    "empty": "No categories yet.",
+    "counts": "{active} active of {total}",
+    "columns": {
+      "code": "Code",
+      "name": "Name",
+      "description": "Description",
+      "state": "State"
+    },
+    "state": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "form": {
+      "createTitle": "New category",
+      "editTitle": "Edit category",
+      "create": "Create",
+      "code": "Code",
+      "codePlaceholder": "OFFICE",
+      "codeHint": "Permanent once created — it cannot be changed afterwards.",
+      "codeImmutable": "The code cannot be changed.",
+      "nameEn": "Name (English)",
+      "nameDe": "Name (German)",
+      "color": "Colour",
+      "colorHint": "Optional. Shown as a dot beside the category in the properties table.",
+      "colorInvalid": "Enter a hex colour such as #64748b, or leave it empty.",
+      "description": "Description",
+      "descriptionPlaceholder": "What belongs in this category…"
+    },
+    "deactivate": {
+      "action": "Deactivate",
+      "title": "Deactivate category?",
+      "confirm": "“{name}” will stop being offered when creating or editing a property. Properties already using it keep it and stay editable."
+    },
+    "activate": {
+      "action": "Activate",
+      "title": "Activate category?",
+      "confirm": "“{name}” will be offered again when creating or editing a property."
+    },
+    "errors": {
+      "code_exists": "That code is already taken. Codes must be unique.",
+      "generic": "Could not save the category. Please try again.",
+      "toggleGeneric": "Could not change the category state. Please try again."
     }
   }
 }
