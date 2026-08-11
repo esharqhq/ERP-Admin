@@ -217,7 +217,7 @@ export default function PropertiesPage() {
     // padding: `TableCell`'s default `px-2` leaves 8px between a right-aligned
     // number and the left-aligned date beside it, which reads as one run-on
     // value rather than two columns.
-    { label: t("columns.area"), className: "text-right pr-8" },
+    { label: t("columns.area"), className: "text-right pr-16" },
     { label: t("columns.createdAt") },
   ];
 
@@ -333,7 +333,7 @@ export default function PropertiesPage() {
               </Badge>
             </TableCell>
 
-            <TableCell className="pr-8 text-right text-sm tabular-nums text-muted-foreground">
+            <TableCell className="pr-16 text-right text-sm tabular-nums text-muted-foreground">
               {formatArea(p.areaSqm, locale)}
             </TableCell>
 
