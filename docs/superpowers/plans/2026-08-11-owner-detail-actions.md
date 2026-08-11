@@ -1233,9 +1233,11 @@ git commit -m "feat(owners): Owner Detail stops offering what the server always 
 
 ### Task 8: Verify in a browser
 
-> **Steps 1-3 confirmed by the user on 2026-08-11**, not by an agent — the Chrome
-> extension never reconnected. Recorded as the user reported it: the three
-> read-only checks render as designed.
+> **All five steps confirmed by the user on 2026-08-11**, not by an agent — the
+> Chrome extension never reconnected. Recorded as the user reported it: the three
+> read-only checks render as designed, and a real edit saved and updated the
+> legal-name row without a page reload, which is the only evidence that the PUT
+> and the setQueryData merge both work.
 
 Static gates cannot see any of this. The last five commits on this branch are already unverified visually because the Chrome extension has been disconnected since 2026-08-11 — do not add a sixth.
 
@@ -1251,13 +1253,13 @@ Open any owner from the **Active** tab. Confirm: Edit and Delete both present, t
 
 Open an owner in the **In review** tab whose stage is `Kyc` or `Rejected`. Confirm: Edit is present, the dialog opens, the name fields are read-only, the explanation is shown, and Save is disabled.
 
-- [ ] **Step 4: Save a real edit**
+- [x] **Step 4: Save a real edit**
 
 On a regular `Active` or `Review` owner, change one name, enter a reason, save. Confirm the dialog closes and the contact card's legal-name row updates **without a page reload** — that proves the `setQueryData` merge, not a refetch.
 
 ⚠ This writes to the live backend and records an audit entry. Use an owner whose name you can restore, and restore it afterwards.
 
-- [ ] **Step 5: Report**
+- [x] **Step 5: Report**
 
 State plainly which of the four checks passed and which did not. Do not describe unverified behaviour as working.
 
