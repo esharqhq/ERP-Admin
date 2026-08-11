@@ -4,6 +4,7 @@ import { useEffect, useMemo } from "react";
 import { MapContainer, Marker, TileLayer, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { cn } from "@/lib/utils";
 
 /** Roughly the centre of Germany, at country zoom — the view before a pin exists. */
 const GERMANY: [number, number] = [51.1657, 10.4515];
@@ -94,7 +95,14 @@ export function LocationMap({
       scrollWheelZoom={!readOnly}
       dragging={!readOnly}
       doubleClickZoom={!readOnly}
-      className={className}
+      // `isolate` is load-bearing. Leaflet stacks its own panes with absolute
+      // z-indexes — 400 for the tiles, 800 for the controls, 1000 for popups —
+      // and a dialog in this app sits at z-50. Without a stacking context of
+      // its own the map therefore paints straight over any open modal, which is
+      // exactly what it did: the photo viewer opened *under* the location card.
+      // Isolating keeps Leaflet's internal layering intact while confining all
+      // of it below anything outside the map.
+      className={cn("isolate", className)}
       attributionControl
     >
       <TileLayer
