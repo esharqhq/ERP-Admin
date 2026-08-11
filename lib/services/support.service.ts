@@ -1,5 +1,6 @@
 import { apiClient } from "@/lib/http/client";
 import type {
+  AdminOpenTicketRequest,
   SupportTicketDto,
   ConversationMessageDto,
   ConversationSummaryDto,
@@ -114,6 +115,24 @@ export const supportService = {
     const { data } = await apiClient.post<PresignAttachmentResult>(
       `/api/conversations/${conversationId}/attachments/presign`,
       req,
+    );
+    return data;
+  },
+
+  /**
+   * Admin opens a ticket addressed to an owner or worker (FND-2). The recipient
+   * sees a support thread rather than a chat message, so the exchange keeps a
+   * status and a full history instead of scrolling away.
+   *
+   * `400 owner_is_system` for the walk-in account — it cannot sign in, so a
+   * ticket addressed to it could never be read.
+   */
+  createForUser: async (
+    body: AdminOpenTicketRequest,
+  ): Promise<SupportTicketDto> => {
+    const { data } = await apiClient.post<SupportTicketDto>(
+      "/api/support-tickets/admin/for-user",
+      body,
     );
     return data;
   },

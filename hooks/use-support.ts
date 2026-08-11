@@ -8,6 +8,7 @@ import {
 } from "@tanstack/react-query";
 import { supportService } from "@/lib/services/support.service";
 import type {
+  AdminOpenTicketRequest,
   ConversationMessageDto,
   SendMessageRequest,
 } from "@/lib/types/support.types";
@@ -120,5 +121,22 @@ export function useSendMessage(conversationId: string) {
     mutationFn: (body: SendMessageRequest) =>
       supportService.sendMessage(conversationId, body),
     onSuccess: (dto) => appendMessageToCache(qc, conversationId, dto),
+  });
+}
+
+/**
+ * Admin opens a ticket for an owner or worker (FND-2).
+ *
+ * A new ticket appears in every support list, so both are invalidated. The
+ * screen that opens it displays no tickets of its own, so it needs no refetch.
+ */
+export function useCreateTicketForUser() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: AdminOpenTicketRequest) => supportService.createForUser(body),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["support-tickets"] });
+      qc.invalidateQueries({ queryKey: ["support-inbox"] });
+    },
   });
 }

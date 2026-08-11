@@ -148,3 +148,43 @@ export interface SupportInboxQuery {
   category?: string;
   search?: string;
 }
+
+// ── Admin-initiated ticket (FND-2, POST /api/support-tickets/admin/for-user) ──
+
+/** Live `SupportTicketCategory` enum, verified against swagger 2026-08-11. */
+export const TICKET_CATEGORIES = [
+  "Payment",
+  "Task",
+  "Property",
+  "Technical",
+  "Account",
+  "Other",
+] as const;
+export type TicketCategory = (typeof TICKET_CATEGORIES)[number];
+
+/** Live `SupportTicketPriority` enum, verified against swagger 2026-08-11. */
+export const TICKET_PRIORITIES = ["Low", "Normal", "High", "Urgent"] as const;
+export type TicketPriority = (typeof TICKET_PRIORITIES)[number];
+
+/**
+ * Body of `POST /api/support-tickets/admin/for-user`, permission
+ * `support_ticket:create_for_user` (120015). Named after the live schema
+ * (`AdminOpenTicketRequest`), not after the route.
+ *
+ * `targetUserType` is a plain string on the wire, not an enum, and the
+ * accepted literal is decided by `UserTypeNormalizer.Normalize`: it maps
+ * `"Owner" → "OWNER_USER"` and passes anything else through untouched. So
+ * `"Owner"` and `"OWNER_USER"` both work and **`"OwnerUser"` does not** — it
+ * falls through the map unrecognised.
+ */
+export interface AdminOpenTicketRequest {
+  targetUserType: string;
+  targetUserId: string;
+  subject: string;
+  initialMessage: string;
+  category: TicketCategory;
+  priority?: TicketPriority;
+  relatedPropertyId?: string;
+  relatedTaskGroupId?: string;
+  relatedTaskId?: string;
+}

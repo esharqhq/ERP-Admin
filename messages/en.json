@@ -520,6 +520,40 @@
         "generic": "Could not save this change. Please try again."
       }
     },
+    "message": {
+      "action": "Message",
+      "title": "Open a ticket for this owner",
+      "description": "The owner sees this as a support ticket, not a chat — it keeps a status and a full history, so nothing gets lost in a scroll.",
+      "category": "Type",
+      "subject": "Subject",
+      "subjectPlaceholder": "What is this about?",
+      "body": "Message",
+      "bodyPlaceholder": "Write the first message of the ticket...",
+      "priority": "Priority",
+      "confirm": "Create ticket",
+      "required": "Subject and message are both required.",
+      "categories": {
+        "Payment": "Payment",
+        "Task": "Task",
+        "Property": "Property",
+        "Technical": "Technical",
+        "Account": "Account",
+        "Other": "Other"
+      },
+      "priorities": {
+        "Low": "Low",
+        "Normal": "Normal",
+        "High": "High",
+        "Urgent": "Urgent"
+      },
+      "errors": {
+        "invalidTarget": "This recipient type is not accepted for a ticket.",
+        "notFound": "This owner no longer exists, or has been deleted.",
+        "isSystem": "The permanent walk-in account cannot be messaged — it cannot sign in, so nobody would read it.",
+        "forbidden": "You do not have permission to open tickets for other users.",
+        "generic": "Could not create the ticket. Please try again."
+      }
+    },
     "delete": {
       "action": "Delete owner",
       "title": "Delete this owner?",

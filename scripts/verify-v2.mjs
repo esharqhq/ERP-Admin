@@ -45,6 +45,11 @@ const EXPECTED_FIELDS = {
   AdminOwnerProfileDto: ["id", "fullName", "firstName", "lastName",
     "profilePictureUrl", "onboardingStatus", "updatedAt"],
   AdminUpdateOwnerProfileRequest: ["firstName", "lastName", "profilePictureUrl", "reason"],
+  // FND-2 admin-initiated ticket. The panel had no client for this route until
+  // 2026-08-11. Note the schema is named after the action, not the route —
+  // `AdminOpenTicketRequest`, not `AdminCreateTicketRequest`.
+  AdminOpenTicketRequest: ["targetUserType", "targetUserId", "subject",
+    "initialMessage", "category", "priority"],
   KycDocDto: ["id", "type", "fileName", "fileUrl", "createdAt"],
   KycApprovalDto: ["ownerProfileId", "onboardingStatus", "onboardingRejectReason", "prefill"],
   WorkerApprovalDto: ["id", "onboardingStatus", "onboardingRejectReason", "prefill"],

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { Trash2, Loader2, Pencil } from "lucide-react";
+import { Trash2, Loader2, Pencil, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -14,8 +14,13 @@ import {
 } from "@/components/ui/dialog";
 import { Can } from "@/components/auth/can";
 import { OwnerEditDialog } from "@/components/owners/owner-edit-dialog";
+import {
+  MessageOwnerDialog,
+  type MessageDraft,
+} from "@/components/owners/message-owner-dialog";
 import { useRouter } from "@/i18n/navigation";
 import { useSoftDeleteOwner, useUpdateOwner } from "@/hooks/use-owners";
+import { useCreateTicketForUser } from "@/hooks/use-support";
 import { getApiErrorCode } from "@/lib/http/api-error";
 import { isPermissionDenied } from "@/lib/onboarding/errors";
 import type { OwnerDetailActions, OwnerUpdateBody } from "@/lib/owners/detail-actions";
@@ -52,8 +57,12 @@ export function OwnerActions({
   const [editOpen, setEditOpen] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
 
+  const [messageOpen, setMessageOpen] = useState(false);
+  const [messageError, setMessageError] = useState<string | null>(null);
+
   const softDelete = useSoftDeleteOwner();
   const update = useUpdateOwner(owner.id);
+  const createTicket = useCreateTicketForUser();
 
   /**
    * `boss_has_active_properties` used to be handled here and no longer exists —
@@ -100,6 +109,30 @@ export function OwnerActions({
     });
   }
 
+  function mapMessageError(err: unknown): string {
+    if (isPermissionDenied(err)) return t("message.errors.forbidden");
+    const code = getApiErrorCode(err);
+    if (code === "invalid_target_type") return t("message.errors.invalidTarget");
+    if (code === "target_not_found") return t("message.errors.notFound");
+    if (code === "owner_is_system") return t("message.errors.isSystem");
+    return t("message.errors.generic");
+  }
+
+  function handleMessageSubmit(draft: MessageDraft) {
+    setMessageError(null);
+    createTicket.mutate(
+      // `"Owner"` rather than `"OwnerUser"`: the server runs the value through
+      // UserTypeNormalizer, which maps "Owner" → "OWNER_USER" and passes
+      // anything unrecognised straight through. "OwnerUser" would survive that
+      // map unchanged and then fail to match.
+      { ...draft, targetUserType: "Owner", targetUserId: owner.id },
+      {
+        onSuccess: () => setMessageOpen(false),
+        onError: (err) => setMessageError(mapMessageError(err)),
+      },
+    );
+  }
+
   function handleClose() {
     if (softDelete.isPending) return;
     setOpen(false);
@@ -123,6 +156,37 @@ export function OwnerActions({
 
   return (
     <div className="flex items-center gap-1">
+      {/* Gated on the walk-in check rather than a per-action guard: the ticket
+          route refuses that account with `400 owner_is_system` for the same
+          reason the other three do — it cannot sign in, so nobody would read
+          it. */}
+      {!actions.isWalkIn ? (
+        <Can permission="support_ticket:create_for_user">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-1.5"
+            onClick={() => {
+              setMessageError(null);
+              setMessageOpen(true);
+            }}
+          >
+            <MessageSquare className="size-4" />
+            {t("message.action")}
+          </Button>
+
+          {messageOpen ? (
+            <MessageOwnerDialog
+              open={messageOpen}
+              onClose={() => !createTicket.isPending && setMessageOpen(false)}
+              pending={createTicket.isPending}
+              error={messageError}
+              onSubmit={handleMessageSubmit}
+            />
+          ) : null}
+        </Can>
+      ) : null}
+
       {actions.canEdit ? (
         <Can permission="owner:profile:update_any">
           <Button

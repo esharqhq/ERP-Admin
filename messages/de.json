@@ -520,6 +520,40 @@
         "generic": "Änderung konnte nicht gespeichert werden. Bitte erneut versuchen."
       }
     },
+    "message": {
+      "action": "Nachricht",
+      "title": "Ticket für diesen Eigentümer öffnen",
+      "description": "Der Eigentümer sieht dies als Support-Ticket, nicht als Chat — mit Status und vollständigem Verlauf, sodass nichts im Scrollen verloren geht.",
+      "category": "Typ",
+      "subject": "Betreff",
+      "subjectPlaceholder": "Worum geht es?",
+      "body": "Nachricht",
+      "bodyPlaceholder": "Erste Nachricht des Tickets schreiben...",
+      "priority": "Priorität",
+      "confirm": "Ticket erstellen",
+      "required": "Betreff und Nachricht sind beide erforderlich.",
+      "categories": {
+        "Payment": "Zahlung",
+        "Task": "Auftrag",
+        "Property": "Objekt",
+        "Technical": "Technisch",
+        "Account": "Konto",
+        "Other": "Sonstiges"
+      },
+      "priorities": {
+        "Low": "Niedrig",
+        "Normal": "Normal",
+        "High": "Hoch",
+        "Urgent": "Dringend"
+      },
+      "errors": {
+        "invalidTarget": "Dieser Empfängertyp wird für ein Ticket nicht akzeptiert.",
+        "notFound": "Dieser Eigentümer existiert nicht mehr oder wurde gelöscht.",
+        "isSystem": "Das dauerhafte Laufkundschafts-Konto kann nicht angeschrieben werden — es kann sich nicht anmelden, niemand würde es lesen.",
+        "forbidden": "Sie haben keine Berechtigung, Tickets für andere Benutzer zu öffnen.",
+        "generic": "Ticket konnte nicht erstellt werden. Bitte erneut versuchen."
+      }
+    },
     "delete": {
       "action": "Eigentümer löschen",
       "title": "Diesen Eigentümer löschen?",
