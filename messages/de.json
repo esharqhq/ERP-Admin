@@ -520,6 +520,12 @@
         "generic": "Änderung konnte nicht gespeichert werden. Bitte erneut versuchen."
       }
     },
+    "documents": {
+      "title": "Dokumente",
+      "empty": "Dieser Eigentümer hat noch keine Dokumente eingereicht.",
+      "openAll": "Prüfen",
+      "unavailable": "Dokumente sind mit Ihren Berechtigungen nicht sichtbar."
+    },
     "message": {
       "action": "Nachricht",
       "title": "Ticket für diesen Eigentümer öffnen",

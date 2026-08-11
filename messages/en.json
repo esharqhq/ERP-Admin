@@ -520,6 +520,12 @@
         "generic": "Could not save this change. Please try again."
       }
     },
+    "documents": {
+      "title": "Documents",
+      "empty": "This owner has not submitted any documents yet.",
+      "openAll": "Review",
+      "unavailable": "Documents are not visible with your permissions."
+    },
     "message": {
       "action": "Message",
       "title": "Open a ticket for this owner",
