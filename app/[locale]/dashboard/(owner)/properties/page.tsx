@@ -64,6 +64,15 @@ function formatArea(areaSqm: number | null, locale: string): string {
 }
 
 /**
+ * Shared by the area column's header and its cells, because they have to carry
+ * the *same* right padding to line up: the header is right-aligned too, so any
+ * difference between the two shows up directly as the label sitting off to one
+ * side of the figures beneath it. Held in one place so changing the gap cannot
+ * move only half of the column.
+ */
+const AREA_COLUMN = "pr-26 text-right";
+
+/**
  * Options for one filter dimension, derived from the rows actually present and
  * ordered by a canonical key list.
  *
@@ -217,7 +226,7 @@ export default function PropertiesPage() {
     // padding: `TableCell`'s default `px-2` leaves 8px between a right-aligned
     // number and the left-aligned date beside it, which reads as one run-on
     // value rather than two columns.
-    { label: t("columns.area"), className: "text-right pr-16" },
+    { label: t("columns.area"), className: AREA_COLUMN },
     { label: t("columns.createdAt") },
   ];
 
@@ -333,7 +342,9 @@ export default function PropertiesPage() {
               </Badge>
             </TableCell>
 
-            <TableCell className="pr-16 text-right text-sm tabular-nums text-muted-foreground">
+            <TableCell
+              className={`${AREA_COLUMN} text-sm tabular-nums text-muted-foreground`}
+            >
               {formatArea(p.areaSqm, locale)}
             </TableCell>
 
