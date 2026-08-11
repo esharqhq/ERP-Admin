@@ -524,7 +524,6 @@
       "title": "Booked work",
       "viewCalendar": "Calendar",
       "viewTable": "Table",
-      "empty": "No work booked for this week.",
       "unstaffed": "—",
       "more": "+{count}",
       "columns": {
@@ -546,6 +545,7 @@
     },
     "documents": {
       "title": "Documents",
+      "subtitle": "Submitted for verification",
       "empty": "This owner has not submitted any documents yet.",
       "openAll": "Review",
       "unavailable": "Documents are not visible with your permissions."

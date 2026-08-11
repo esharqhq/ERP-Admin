@@ -524,7 +524,6 @@
       "title": "Gebuchte Arbeit",
       "viewCalendar": "Kalender",
       "viewTable": "Tabelle",
-      "empty": "Für diese Woche ist keine Arbeit gebucht.",
       "unstaffed": "—",
       "more": "+{count}",
       "columns": {
@@ -546,6 +545,7 @@
     },
     "documents": {
       "title": "Dokumente",
+      "subtitle": "Zur Verifizierung eingereicht",
       "empty": "Dieser Eigentümer hat noch keine Dokumente eingereicht.",
       "openAll": "Prüfen",
       "unavailable": "Dokumente sind mit Ihren Berechtigungen nicht sichtbar."
