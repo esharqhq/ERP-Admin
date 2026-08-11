@@ -2,8 +2,8 @@
 
 import { use } from "react";
 import Link from "next/link";
-import { ArrowLeft, ShieldCheck, CalendarDays, Home, UserCog, Info } from "lucide-react";
-import { useTranslations, useLocale } from "next-intl";
+import { ArrowLeft, Info } from "lucide-react";
+import { useTranslations } from "next-intl";
 import {
   useOwner,
   useOwnerKyc,
@@ -14,7 +14,6 @@ import {
 import { ownerDetailActions } from "@/lib/owners/detail-actions";
 import type { KycRead } from "@/lib/owners/detail-actions";
 import { HeroCard } from "@/components/owners/hero-card";
-import { StatCard } from "@/components/owners/stat-card";
 import { PropertyList } from "@/components/owners/property-list";
 import { ActivityTimeline } from "@/components/owners/activity-timeline";
 import { ContactCard } from "@/components/owners/contact-card";
@@ -23,14 +22,6 @@ import { OwnerActions } from "@/components/owners/owner-actions";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
-function formatJoined(iso: string, locale: string): string {
-  return new Date(iso).toLocaleDateString(locale, {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-}
-
 export default function OwnerDetailPage({
   params,
 }: {
@@ -38,8 +29,6 @@ export default function OwnerDetailPage({
 }) {
   const { id } = use(params);
   const t = useTranslations("owners");
-  const locale = useLocale();
-
   const { data: owner, isLoading, isError } = useOwner(id);
   const { data: properties = [] } = useOwnerProperties(id);
   const { data: taskGroups = [] } = useOwnerTaskGroups(id);
@@ -142,42 +131,18 @@ export default function OwnerDetailPage({
         </div>
       ) : null}
 
-      <HeroCard owner={owner} isWalkIn={actions.isWalkIn} />
-
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard
-          label={t("directory.columns.role")}
-          value={owner.roleCode ?? "—"}
-          hint={t("account.roleHint")}
-          icon={<UserCog className="size-4" />}
-          tone="blue"
-        />
-        <StatCard
-          label={t("directory.columns.status")}
-          value={owner.isVerified ? t("account.verified") : t("account.unverified")}
-          hint={owner.isVerified ? t("account.verifiedHint") : t("account.unverifiedHint")}
-          icon={<ShieldCheck className="size-4" />}
-          tone={owner.isVerified ? "emerald" : "amber"}
-        />
-        <StatCard
-          label={t("account.joined")}
-          value={formatJoined(owner.createdAt, locale)}
-          hint={t("account.joinedHint")}
-          icon={<CalendarDays className="size-4" />}
-          tone="violet"
-        />
-        <StatCard
-          label={t("properties.title")}
-          value={properties.length}
-          hint={t("account.propertiesHint")}
-          icon={<Home className="size-4" />}
-          tone="amber"
-        />
-      </div>
+      {/* Role and onboarding stage live here and nowhere else — the stat row
+          that repeated them is gone, along with a `joined` card the contact
+          card already carried and a property count the Properties card states
+          in its own header. */}
+      <HeroCard
+        owner={owner}
+        isWalkIn={actions.isWalkIn}
+        onboardingStatus={kyc.data?.onboardingStatus ?? null}
+      />
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="flex flex-col gap-6 lg:col-span-2">
-          <PropertyList properties={properties} />
           <ActivityTimeline
             taskGroups={taskGroups}
             propertyNames={Object.fromEntries(
@@ -188,6 +153,7 @@ export default function OwnerDetailPage({
 
         <div className="flex flex-col gap-6">
           <ContactCard owner={owner} identity={identity} />
+          <PropertyList properties={properties} />
           <SubAccountsCard ownerId={id} />
         </div>
       </div>

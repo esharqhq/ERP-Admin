@@ -492,7 +492,8 @@
       "roleHint": "Account role",
       "propertiesHint": "Owned properties",
       "legalName": "Legal name",
-      "legalNameHint": "From the passport — separate from the display name above"
+      "legalNameHint": "From the passport — separate from the display name above",
+      "call": "Call"
     },
     "edit": {
       "action": "Edit name",

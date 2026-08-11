@@ -492,7 +492,8 @@
       "roleHint": "Kontorolle",
       "propertiesHint": "Eigene Objekte",
       "legalName": "Rechtlicher Name",
-      "legalNameHint": "Aus dem Reisepass — getrennt vom Anzeigenamen oben"
+      "legalNameHint": "Aus dem Reisepass — getrennt vom Anzeigenamen oben",
+      "call": "Anrufen"
     },
     "edit": {
       "action": "Namen bearbeiten",
