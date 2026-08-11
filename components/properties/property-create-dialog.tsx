@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { useOwnerList } from "@/hooks/use-owners";
 import { usePropertyCategories } from "@/hooks/use-lookups";
+import { LocationPicker } from "@/components/properties/location-picker";
 import { categoryName } from "@/lib/properties/table-rows";
 import {
   AREA_MAX,
@@ -72,16 +73,13 @@ export function PropertyCreateDialog({ open, onClose, pending, error, onSubmit }
   const [address, setAddress] = useState("");
   const [propertyCategoryId, setPropertyCategoryId] = useState("");
   const [entryInstructions, setEntryInstructions] = useState("");
-  const [lat, setLat] = useState("");
-  const [long, setLong] = useState("");
+  // The map is now the only source of coordinates, so "not placed" is null
+  // rather than two empty strings — and `lat`/`long` are non-nullable
+  // server-side, which makes a null here a hard block on submit.
+  const [location, setLocation] = useState<{ lat: number; long: number } | null>(null);
   const [floorCount, setFloorCount] = useState("");
   const [roomCount, setRoomCount] = useState("");
   const [areaSqm, setAreaSqm] = useState("");
-
-  const latNum = Number(lat);
-  const longNum = Number(long);
-  const latValid = lat.trim() !== "" && Number.isFinite(latNum);
-  const longValid = long.trim() !== "" && Number.isFinite(longNum);
 
   const floor = parseOptionalNumber(floorCount, { max: FLOOR_MAX, integer: true });
   const room = parseOptionalNumber(roomCount, { max: ROOM_MAX, integer: true });
@@ -96,21 +94,20 @@ export function PropertyCreateDialog({ open, onClose, pending, error, onSubmit }
     // category binds to Guid.Empty and comes back as a confusing
     // `property_category_not_found` instead of "pick a category".
     propertyCategoryId !== "" &&
-    latValid &&
-    longValid &&
+    location !== null &&
     floor.ok &&
     room.ok &&
     area.ok &&
     !pending;
 
   function handleSubmit() {
-    if (!canSubmit) return;
+    if (!canSubmit || !location) return;
     onSubmit({
       ownerUserId,
       name: name.trim(),
       address: address.trim(),
-      lat: latNum,
-      long: longNum,
+      lat: location.lat,
+      long: location.long,
       propertyCategoryId,
       entryInstructions: entryInstructions.trim(),
       floorCount: floor.value,
@@ -121,12 +118,15 @@ export function PropertyCreateDialog({ open, onClose, pending, error, onSubmit }
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && !pending && onClose()}>
-      <DialogContent>
+      {/* Wider than the default `sm:max-w-sm` and scrolled internally: the map
+          needs the width to be usable, and the form is now taller than a short
+          viewport. The header and footer stay put while the body scrolls. */}
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{t("create.title")}</DialogTitle>
         </DialogHeader>
 
-        <div className="flex flex-col gap-4">
+        <div className="flex max-h-[65vh] flex-col gap-4 overflow-y-auto pr-1">
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium">{t("create.ownerLabel")}</label>
             <Select
@@ -171,6 +171,14 @@ export function PropertyCreateDialog({ open, onClose, pending, error, onSubmit }
               maxLength={500}
             />
           </div>
+
+          {/* Directly under the address: the admin types the street, then points
+              at it. Splitting the two apart made the old lat/long pair feel like
+              unrelated data entry. */}
+          <LocationPicker
+            value={location}
+            onChange={(lat, long) => setLocation({ lat, long })}
+          />
 
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium">{t("form.category")}</label>
@@ -247,17 +255,6 @@ export function PropertyCreateDialog({ open, onClose, pending, error, onSubmit }
                   {t("form.range", { min: 0, max: AREA_MAX })}
                 </p>
               ) : null}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-medium">{t("form.lat")}</label>
-              <Input type="number" step="any" value={lat} onChange={(e) => setLat(e.target.value)} />
-            </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-medium">{t("form.long")}</label>
-              <Input type="number" step="any" value={long} onChange={(e) => setLong(e.target.value)} />
             </div>
           </div>
 

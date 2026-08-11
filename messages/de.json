@@ -579,7 +579,11 @@
       "roomCount": "Zimmer",
       "areaSqm": "Fläche (m²)",
       "optional": "Optional",
-      "range": "Geben Sie eine Zahl zwischen {min} und {max} ein."
+      "range": "Geben Sie eine Zahl zwischen {min} und {max} ein.",
+      "location": "Standort",
+      "locationEmpty": "Kein Punkt gewählt",
+      "locationHint": "Klicken Sie auf die Karte, um das Objekt zu setzen",
+      "locationAdjust": "Ziehen Sie die Markierung zum Anpassen oder klicken Sie erneut an eine andere Stelle."
     },
     "edit": {
       "action": "Bearbeiten",

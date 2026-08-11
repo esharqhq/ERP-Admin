@@ -579,7 +579,11 @@
       "roomCount": "Rooms",
       "areaSqm": "Area (m²)",
       "optional": "Optional",
-      "range": "Enter a number between {min} and {max}."
+      "range": "Enter a number between {min} and {max}.",
+      "location": "Location",
+      "locationEmpty": "No point selected",
+      "locationHint": "Click the map to place the property",
+      "locationAdjust": "Drag the pin to adjust, or click again elsewhere."
     },
     "edit": {
       "action": "Edit",
