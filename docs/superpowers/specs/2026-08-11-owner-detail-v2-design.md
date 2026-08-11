@@ -49,15 +49,19 @@ Week navigation comes from `useWeekNavigation` in both, so switching views keeps
 
 **A task has many workers, not one.** `TaskItemDto.workers` is an array with `requiredWorkerCount` beside it. The mockup shows a single name. The table renders the first two and `+N`; an unstaffed task shows an em dash, which is a real and common state — that is what `Kutilmoqda` means in the brief.
 
-### 3.2 Three traps in the filters this rides on
+### 3.2 One query, two renderings — and why F-02a·1 is not needed here
 
-F-02a·1 shipped the date window and status filter this needs, and the guide names three hazards:
+**Amended while planning.** This section originally had the table ride F-02a·1's `scheduledFrom`/`scheduledTo`/`status` filters on `GET /api/tasks/admin`. It does not need to.
 
-- **`scheduledTo` is inclusive on a *timestamp*.** A week ending at Sunday `00:00` silently drops all of Sunday. The end bound must be the Sunday `23:59:59.999`, or Monday `00:00` exclusive — `useWeekNavigation.weekEnd` is documented as *"Sunday 00:00 local (start of Sunday)"*, so it cannot be passed through unchanged.
-- **Its `400`s are `application/problem+json`**, not this API's `{error}` envelope. `getApiErrorCode` returns `null` for them; `getValidationMessage` is the reader.
-- **`ownerUserId` is BOSS-only.** A sub-account returns `200 []` — "no work" rather than "wrong question". Owner Detail is only reachable for BOSS accounts today (the owners table is BOSS-only), so this is latent rather than live, but it must not be read as an empty state if that ever changes.
+`TasksCalendar` reads **task groups** from `GET /api/tasks/admin/groups`, with their tasks already nested, and slices the week client-side. Owner Detail fetches the same thing through `useOwnerTaskGroups(id)` and has been doing so all along. So the table flattens the data the calendar already holds: **one query, two renderings**, and toggling between them cannot show two different answers.
 
-> The client-side week bucketing stands: there is no weekly server shape, by design.
+That also removes the worst hazard the F-02a·1 guide warns about. `scheduledTo` is inclusive on a **timestamp**, and `useWeekNavigation.weekEnd` is *"Sunday 00:00 local (start of Sunday)"* — passed through unchanged it would silently delete every Sunday from the view, with no error. Client-side bucketing compares `scheduledDate`, a `"yyyy-MM-dd"` string, which is exact and has no boundary to get wrong.
+
+Week navigation and the status filter both work on the flattened rows.
+
+**Still true, and still worth knowing** if this screen ever moves to the flat route: `ownerUserId` is BOSS-only there and a sub-account returns `200 []` — "no work" rather than "wrong question" — and its `400`s are `application/problem+json`, which `getApiErrorCode` reads as `null`.
+
+**The cost of this choice:** the groups list is not date-filtered, so an owner with years of history transfers all of it. For a single owner that is tens of groups, not thousands, and the page already pays it today. If it ever becomes a problem, the fix is the flat route with its date window — and the Sunday trap above becomes live at that moment.
 
 ## 4. Documents
 
@@ -136,7 +140,7 @@ So the hero card is written to render `profilePictureUrl` when present and fall 
 
 | File | Change |
 |---|---|
-| `lib/tasks/weekly-rows.ts` + test | **new** — flatten groups → task rows, bucket by day, format the week bound so `scheduledTo` does not drop Sunday |
+| `lib/tasks/weekly-rows.ts` + test | **new** — flatten groups → task rows, filter to the week's date keys, filter by status, summarise workers |
 | `components/tasks/tasks-calendar.tsx` | accept `ownerUserId?` and an optional preset property filter |
 | `components/owners/weekly-work-card.tsx` | **new** — the view toggle, week nav, and the flat table |
 | `components/owners/owner-documents-card.tsx` | **new** — read-only list + link |
@@ -176,6 +180,6 @@ Each is independently useful and independently reviewable:
 
 `tsc` · `eslint` · `vitest` · `next build` · `verify-v2`.
 
-Only `lib/tasks/weekly-rows.ts` is unit-testable — vitest here is node-only over `lib/**` and `hooks/**`. That is where the week-bound arithmetic goes, because an off-by-one there deletes a day of work from the screen without erroring.
+Only `lib/tasks/weekly-rows.ts` is unit-testable — vitest here is node-only over `lib/**` and `hooks/**`. Flattening, week membership, status filtering and the worker summary all go there, because each of them fails by *showing less* rather than by throwing: a row that silently vanishes from a schedule looks exactly like a quiet week.
 
 Everything else needs the browser, and this repo has no gate that can see whether a card rendered.
