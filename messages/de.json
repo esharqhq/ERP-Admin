@@ -624,7 +624,9 @@
       "empty": "Noch keine Fotos",
       "emptyHint": "Fotos werden vom Eigentümer in seiner eigenen App hinzugefügt.",
       "error": "Fotos konnten nicht geladen werden.",
-      "close": "Schließen"
+      "close": "Schließen",
+      "previous": "Vorheriges Foto",
+      "next": "Nächstes Foto"
     }
   },
   "admins": {

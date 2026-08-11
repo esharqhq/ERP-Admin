@@ -624,7 +624,9 @@
       "empty": "No photos yet",
       "emptyHint": "Photos are added by the owner from their own app.",
       "error": "Could not load the photos.",
-      "close": "Close"
+      "close": "Close",
+      "previous": "Previous photo",
+      "next": "Next photo"
     }
   },
   "admins": {
