@@ -120,6 +120,18 @@ const CATALOG: Record<string, Omit<ApiErrorInfo, "code">> = {
   // *omitted* propertyCategoryId produces: it binds to Guid.Empty, which then
   // fails the existence lookup — so this message must read as "pick a
   // category", not as "that category was deleted".
+  // ── owners (F-02b·7, F-02b·6) ────────────────────────────────────────────
+  // Blocks a delete while the owner has a Pending/Active/Review task. Replaced
+  // `boss_has_active_properties`, which no longer exists — and means something
+  // different: owning properties never blocked deletion again, only open work
+  // does. There is no admin action that clears it (an Active/Review task cannot
+  // be cancelled by anyone), so the copy must say "wait", not "cancel them".
+  owner_has_open_tasks: { labelKey: "ownerHasOpenTasks", reaction: "toast" },
+  // The permanent "Walk-in / Manual Orders" account. One code, four refusals:
+  // 409 on edit and delete (acting *on* the owner), 400 on ticket and contract
+  // (the owner is an invalid argument to something else).
+  owner_is_system: { labelKey: "ownerIsSystem", reaction: "toast" },
+
   property_category_not_found: { labelKey: "propertyCategoryNotFound", reaction: "toast" },
   property_category_inactive: { labelKey: "propertyCategoryInactive", reaction: "toast" },
   target_owner_must_be_boss: { labelKey: "targetOwnerMustBeBoss", reaction: "toast" },

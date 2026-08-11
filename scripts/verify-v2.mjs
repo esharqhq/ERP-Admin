@@ -42,8 +42,12 @@ const EXPECTED_FIELDS = {
   KycApprovalDto: ["ownerProfileId", "onboardingStatus", "onboardingRejectReason", "prefill"],
   WorkerApprovalDto: ["id", "onboardingStatus", "onboardingRejectReason", "prefill"],
   ContractPrefillDto: ["subjectType", "subjectId", "fullName", "email", "phoneNumber"],
+  // `ownerType` is F-02b·6's addition and the field the UI keys the walk-in
+  // account's four refusals on; the paged envelope was never asserted here,
+  // which is how the owners page went on using the unpaged picker endpoint.
   OwnerRowDto: ["id", "fullName", "email", "phoneNumber", "status", "onboardingStatus",
-    "isVerified", "propertyCount", "createdAt"],
+    "isVerified", "propertyCount", "createdAt", "ownerType"],
+  OwnerRowDtoPagedResult: ["items", "total", "page", "pageSize", "totalPages"],
   WorkerRowDto: ["id", "fullName", "email", "phoneNumber", "status", "onboardingStatus",
     "employeeType", "skills", "rating", "experience", "completedTasks",
     "hasActiveContract", "onTask", "createdAt"],

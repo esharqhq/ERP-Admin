@@ -51,7 +51,8 @@
       "approved": "Approved",
       "contract": "Contract sent",
       "active": "Active",
-      "unknown": "Unknown"
+      "unknown": "Unknown",
+      "notApplicable": "Not applicable"
     },
     "phase": {
       "draft": "Draft",
@@ -131,7 +132,9 @@
       "propertyCategoryNotFound": "Select a property category — the one sent doesn't exist.",
       "propertyCategoryInactive": "That category has been deactivated. Pick an active one.",
       "targetOwnerMustBeBoss": "Properties can only be created for a BOSS owner.",
-      "propertyNotFound": "This property no longer exists."
+      "propertyNotFound": "This property no longer exists.",
+      "ownerHasOpenTasks": "This owner has work in flight — wait for their open tasks to finish.",
+      "ownerIsSystem": "This is the permanent walk-in account — it cannot be edited, deleted, messaged or given a contract."
     }
   },
   "docsWorkspace": {
@@ -418,7 +421,9 @@
       "email": "Email",
       "documents": "Documents",
       "actions": "Actions",
-      "onboardingStatus": "Stage"
+      "onboardingStatus": "Stage",
+      "onboarding": "Onboarding",
+      "properties": "Properties"
     },
     "detail": {
       "documents": "Documents",
@@ -496,10 +501,18 @@
       "reasonPlaceholder": "Why is this owner being removed?",
       "errors": {
         "notFound": "Owner not found.",
-        "hasActiveProperties": "This owner still has active properties and cannot be deleted.",
-        "generic": "Could not delete this owner. Please try again."
+        "generic": "Could not delete this owner. Please try again.",
+        "hasOpenTasks": "This owner has work in flight — a task that is pending, active or under review. Wait for it to finish; there is no admin action that clears it.",
+        "isSystem": "The permanent walk-in account cannot be deleted."
       }
-    }
+    },
+    "tabs": {
+      "all": "All",
+      "review": "In review",
+      "active": "Active",
+      "walkIn": "Walk-in"
+    },
+    "systemHint": "This is the permanent walk-in account. It cannot be edited, deleted, messaged or given a contract."
   },
   "properties": {
     "title": "Properties",

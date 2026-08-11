@@ -51,7 +51,8 @@
       "approved": "Genehmigt",
       "contract": "Vertrag gesendet",
       "active": "Aktiv",
-      "unknown": "Unbekannt"
+      "unknown": "Unbekannt",
+      "notApplicable": "Nicht zutreffend"
     },
     "phase": {
       "draft": "Entwurf",
@@ -131,7 +132,9 @@
       "propertyCategoryNotFound": "Wählen Sie eine Objektkategorie — die übermittelte existiert nicht.",
       "propertyCategoryInactive": "Diese Kategorie wurde deaktiviert. Bitte wählen Sie eine aktive.",
       "targetOwnerMustBeBoss": "Objekte können nur für einen BOSS-Eigentümer angelegt werden.",
-      "propertyNotFound": "Dieses Objekt existiert nicht mehr."
+      "propertyNotFound": "Dieses Objekt existiert nicht mehr.",
+      "ownerHasOpenTasks": "Dieser Eigentümer hat laufende Arbeit — warten Sie, bis die offenen Aufgaben abgeschlossen sind.",
+      "ownerIsSystem": "Dies ist das dauerhafte Laufkundschafts-Konto — es kann nicht bearbeitet, gelöscht, angeschrieben oder mit einem Vertrag versehen werden."
     }
   },
   "docsWorkspace": {
@@ -418,7 +421,9 @@
       "email": "E-Mail",
       "documents": "Dokumente",
       "actions": "Aktionen",
-      "onboardingStatus": "Phase"
+      "onboardingStatus": "Phase",
+      "onboarding": "Onboarding",
+      "properties": "Objekte"
     },
     "detail": {
       "documents": "Dokumente",
@@ -496,10 +501,18 @@
       "reasonPlaceholder": "Warum wird dieser Eigentümer entfernt?",
       "errors": {
         "notFound": "Eigentümer nicht gefunden.",
-        "hasActiveProperties": "Dieser Eigentümer hat noch aktive Objekte und kann nicht gelöscht werden.",
-        "generic": "Eigentümer konnte nicht gelöscht werden. Bitte erneut versuchen."
+        "generic": "Eigentümer konnte nicht gelöscht werden. Bitte erneut versuchen.",
+        "hasOpenTasks": "Dieser Eigentümer hat laufende Arbeit — eine Aufgabe ist offen, aktiv oder in Prüfung. Warten Sie, bis sie abgeschlossen ist; es gibt keine Admin-Aktion, die das auflöst.",
+        "isSystem": "Das dauerhafte Laufkundschafts-Konto kann nicht gelöscht werden."
       }
-    }
+    },
+    "tabs": {
+      "all": "Alle",
+      "review": "In Prüfung",
+      "active": "Aktiv",
+      "walkIn": "Laufkundschaft"
+    },
+    "systemHint": "Dies ist das dauerhafte Laufkundschafts-Konto. Es kann nicht bearbeitet, gelöscht, angeschrieben oder mit einem Vertrag versehen werden."
   },
   "properties": {
     "title": "Objekte",

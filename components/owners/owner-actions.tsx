@@ -35,10 +35,19 @@ export function OwnerActions({ owner }: { owner: OwnerSummaryDto }) {
 
   const softDelete = useSoftDeleteOwner();
 
+  /**
+   * `boss_has_active_properties` used to be handled here and no longer exists —
+   * F-02b·7 swapped the guard, so this had been catching a code that could
+   * never arrive while the two that do arrive fell through to the generic
+   * message. Its copy was worse than useless: it told the admin to reassign or
+   * delete the owner's properties, which was never the blocker and would not
+   * have helped.
+   */
   function mapError(err: unknown): string {
     const code = getApiErrorCode(err);
     if (code === "owner_not_found") return t("delete.errors.notFound");
-    if (code === "boss_has_active_properties") return t("delete.errors.hasActiveProperties");
+    if (code === "owner_has_open_tasks") return t("delete.errors.hasOpenTasks");
+    if (code === "owner_is_system") return t("delete.errors.isSystem");
     return t("delete.errors.generic");
   }
 

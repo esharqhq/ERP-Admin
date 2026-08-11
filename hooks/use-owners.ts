@@ -1,7 +1,23 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ownerService } from "@/lib/services/owner.service";
+import type { OwnerListQuery } from "@/lib/types/owner.types";
+
+// ── The owners TABLE (FND-3) ────────────────────────────────────────────────
+
+/**
+ * Paged, filtered owner rows. `keepPreviousData` holds the current page on
+ * screen while the next one loads, so paging and tab changes do not blank the
+ * table and collapse its height under the cursor.
+ */
+export function useOwners(query: OwnerListQuery = {}) {
+  return useQuery({
+    queryKey: ["owners-table", query],
+    queryFn: () => ownerService.getOwners(query),
+    placeholderData: keepPreviousData,
+  });
+}
 
 // ── KYC verification queue (GET /api/admin/kyc) — used by the Contracts owner picker ──
 
