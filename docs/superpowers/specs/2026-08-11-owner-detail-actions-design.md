@@ -192,6 +192,27 @@ admin can hold `owner:profile:update_any` (30005) without it. Invalidating would
 successfully and is then shown a `403` where the result should be — the edit works, and the screen says it
 failed. Merging keeps the write self-sufficient.
 
+### 6.4 The guards are async — the actions must wait for them
+
+`OwnerActions` renders as soon as `useOwner` resolves. Both new guards arrive on their own queries, so
+without a wait the walk-in account renders Edit and Delete for as long as those take, and a fast admin can
+click inside that window — which is the exact defect this section exists to remove.
+
+The actions therefore render only once **both** `walkInId` and `kycRead` have settled, showing the
+existing skeleton until then. A guard that is merely *usually* applied is not a guard.
+
+Anything other than `403`/`404` from the KYC read — a `500`, a dropped connection — resolves to
+`"forbidden"`. Failing closed hides a button that might have worked; failing open offers one that will not.
+
+### 6.5 Two smaller consequences
+
+- **`buildOwnerUpdateBody` is a pure, tested function,** not inline dialog code. The `""`-means-unchanged
+  rule (§5) makes body construction the one place a silent no-op can be introduced, and it is the kind of
+  thing that reads correct and behaves wrong.
+- **The hero card's `mailto:` should be dropped for the walk-in account.** Its address is a bootstrap
+  config value on an account that cannot log in and receives no mail. Not in the guide's list of four,
+  because it is our own control, not a backend route — but it is the same dead affordance.
+
 ## 7. Error handling
 
 `PUT /api/owners/{id}`:
@@ -205,10 +226,22 @@ failed. Merging keeps the write self-sufficient.
 | `owner_not_found` | 404 | missing, or already soft-deleted |
 | *(no code)* | **403, empty body** | insufficient permission |
 
-The `403` carries **no body**, so `getApiErrorCode` returns `null` and the response falls through to the
-generic message. It must be branched on HTTP status instead. The Edit button is gated with
-`Can permission="owner:profile:update_any"`, but that is only the first layer — permission 30005 can be
-granted to a custom role, and the gate is a UI convenience, not an authorization boundary.
+The `403` carries **no body**, so `getApiErrorCode` returns `null`. This does not need new code:
+`isPermissionDenied` in `lib/onboarding/errors.ts` already tests `status === 403 && code === null`. Use it.
+
+The Edit button is gated with `Can permission="owner:profile:update_any"`, but that is only the first
+layer — permission 30005 can be granted to a custom role, and the gate is a UI convenience, not an
+authorization boundary.
+
+> **Do not route these through `ErrorNotice`.** The shared catalog maps `owner_profile_not_found` to
+> `subjectNotFound` — "the subject does not exist" — which is correct on the *contract* routes it was
+> written for and **wrong here**, where it means "this account has no identity record" about an owner the
+> admin is currently looking at. `f-02b-7-admin-owner-edit.md` §7 lists its error tables per route for
+> exactly this reason: the same code differs by route. The catalog also has no entry for `reason_required`
+> or `owner_can_self_edit`, which would both degrade to "unknown".
+>
+> `OwnerActions` already owns a local `mapError`; extend it. The reuse worth taking from the shared module
+> is `isPermissionDenied`, not the message catalog.
 
 **A `200` does not prove anything changed.** A no-op edit returns `200` and writes no audit entry. The
 response is not compared; the dialog closes and the two queries refetch.
@@ -225,9 +258,9 @@ This is in the file the section already edits, so it is fixed here rather than l
 
 | File | Change |
 |---|---|
-| `lib/owners/detail-actions.ts` | **new** — the pure decision function |
-| `lib/owners/detail-actions.test.ts` | **new** — the guard matrix |
-| `lib/types/owner.types.ts` | `AdminUpdateOwnerProfileRequest`, `AdminOwnerProfileDto` |
+| `lib/owners/detail-actions.ts` | **new** — the pure decision function + `buildOwnerUpdateBody` |
+| `lib/owners/detail-actions.test.ts` | **new** — the guard matrix and the blank-field rule |
+| `lib/types/owner.types.ts` | `AdminUpdateOwnerProfileRequest`, `AdminOwnerProfileDto`. `KycProfileDto` already carries `identity` — no change there |
 | `lib/services/owner.service.ts` | `updateOwner(id, body)` |
 | `lib/services/kyc.service.ts` | `getProfileByOwner(ownerUserId)` |
 | `hooks/use-owners.ts` | `useOwnerKyc`, `useWalkInOwnerId`, `useUpdateOwner`; fix the stale invalidation key |
@@ -259,6 +292,16 @@ next one. It is a regression gate, not a change-detection gate.
   worth logging, because a silently inert guard is indistinguishable from a working one until someone
   clicks. Both causes disappear when the backend adds `ownerType` to `OwnerSummaryDto` (§3), which is the
   real fix and the reason to ask for it rather than treat the client-side lookup as permanent.
+
+  **It degrades partially rather than completely.** With `walkInId` null the walk-in account falls to
+  `kycRead: "absent"` — it genuinely has no onboarding record — so Edit is still hidden and its message
+  ("no name record on this account") is still true. Only Delete stays exposed. Half the defect survives,
+  not all of it.
+- **`nameLock: "no-profile"` is defensive, not a path the UI reaches.** The owners table is BOSS-only
+  (`fnd-3-table-query.md` §4: sub-accounts never appear), and `SubAccountsCard` renders no links, so no
+  screen navigates to a sub-account's detail page. The branch stays because the URL is hand-constructible
+  and because it is what catches the walk-in account when the guard above is inert — but it should not be
+  described as the sub-account experience, since there is no route to it.
 - **`GET /api/admin/kyc/owner/{id}` needs `kyc:review` (40011),** which `owner:profile:update_any` (30005)
   does not imply. A custom role granted 30005 alone sees no Edit button at all — `kycRead: "forbidden"`
   hides it. That is deliberate (§5), but it means the two permissions should be granted together; worth
