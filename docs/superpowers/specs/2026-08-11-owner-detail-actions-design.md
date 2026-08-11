@@ -198,8 +198,12 @@ failed. Merging keeps the write self-sufficient.
 without a wait the walk-in account renders Edit and Delete for as long as those take, and a fast admin can
 click inside that window — which is the exact defect this section exists to remove.
 
-The actions therefore render only once **both** `walkInId` and `kycRead` have settled, showing the
-existing skeleton until then. A guard that is merely *usually* applied is not a guard.
+The actions therefore render only once **both** `walkInId` and `kycRead` have settled. A guard that is
+merely *usually* applied is not a guard.
+
+The wait is scoped to the **action row alone**, not the page. Nothing else on the screen depends on those
+two reads, and blocking the hero card, properties and timeline on them would slow every owner view to buy
+safety only the buttons need. The slot holds a small skeleton so the header does not jump when they land.
 
 Anything other than `403`/`404` from the KYC read — a `500`, a dropped connection — resolves to
 `"forbidden"`. Failing closed hides a button that might have worked; failing open offers one that will not.
