@@ -34,7 +34,7 @@ Pure logic, no React. This is the only part of the section that vitest can reach
 - Consumes: `AdminUpdateOwnerProfileRequest` from Task 2 — but to keep this task self-contained, declare the return type structurally here and let Task 2's interface satisfy it. The body builder returns `{ firstName?: string; lastName?: string; reason: string } | null`.
 - Produces: `ownerDetailActions(input) → OwnerDetailActions`, `buildOwnerUpdateBody(input) → OwnerUpdateBody | null`, and the exported types `KycRead`, `NameLock`, `OwnerDetailActions`, `OwnerUpdateBody`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `lib/owners/detail-actions.test.ts`:
 
@@ -208,12 +208,12 @@ describe("buildOwnerUpdateBody", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run lib/owners/detail-actions.test.ts`
 Expected: FAIL — `Failed to resolve import "@/lib/owners/detail-actions"`
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 Create `lib/owners/detail-actions.ts`:
 
@@ -325,12 +325,12 @@ export function buildOwnerUpdateBody(input: {
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `npx vitest run lib/owners/detail-actions.test.ts`
 Expected: PASS, 12 tests
 
-- [ ] **Step 5: Typecheck and commit**
+- [x] **Step 5: Typecheck and commit**
 
 ```bash
 npx tsc --noEmit
@@ -352,7 +352,7 @@ git commit -m "feat(owners): the rules for what Owner Detail may offer, as teste
 - Consumes: `OwnerUpdateBody` from Task 1.
 - Produces: `AdminUpdateOwnerProfileRequest`, `AdminOwnerProfileDto`; `ownerService.updateOwner(ownerUserId, body) → Promise<AdminOwnerProfileDto>`; `kycService.getProfileByOwner(ownerUserId) → Promise<KycProfileDto>`.
 
-- [ ] **Step 1: Add the two DTOs**
+- [x] **Step 1: Add the two DTOs**
 
 Append to `lib/types/owner.types.ts`:
 
@@ -395,7 +395,7 @@ export interface AdminOwnerProfileDto {
 }
 ```
 
-- [ ] **Step 2: Add the two service calls**
+- [x] **Step 2: Add the two service calls**
 
 In `lib/services/owner.service.ts`, add after `deleteOwner`:
 
@@ -441,7 +441,7 @@ In `lib/services/kyc.service.ts`, add after `getProfile`:
   },
 ```
 
-- [ ] **Step 3: Assert the new shapes in the contract gate**
+- [x] **Step 3: Assert the new shapes in the contract gate**
 
 In `scripts/verify-v2.mjs`, inside `EXPECTED_FIELDS`, add `"identity"` to the existing `KycProfileDto` line and add two entries:
 
@@ -455,7 +455,7 @@ In `scripts/verify-v2.mjs`, inside `EXPECTED_FIELDS`, add `"identity"` to the ex
   AdminUpdateOwnerProfileRequest: ["firstName", "lastName", "profilePictureUrl", "reason"],
 ```
 
-- [ ] **Step 4: Run the gates**
+- [x] **Step 4: Run the gates**
 
 ```bash
 npx tsc --noEmit
@@ -465,7 +465,7 @@ Expected: `tsc` silent; verify-v2 `ALL PASS`, including three new lines for the 
 
 If `AdminOwnerProfileDto` is reported missing from live swagger, stop and report it — that means the deployed API is older than PR #62 and the rest of this plan cannot be verified against it.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add lib/types/owner.types.ts lib/services/owner.service.ts lib/services/kyc.service.ts scripts/verify-v2.mjs
@@ -483,7 +483,7 @@ git commit -m "feat(owners): client for PUT /api/owners/{id} and the by-owner KY
 - Consumes: `ownerService.updateOwner`, `ownerService.getOwners`, `kycService.getProfileByOwner` (Task 2).
 - Produces: `useOwnerKyc(id)`, `useWalkInOwnerId()`, `useUpdateOwner()`.
 
-- [ ] **Step 1: Add the three hooks**
+- [x] **Step 1: Add the three hooks**
 
 Add to `hooks/use-owners.ts`. Import `kycService` from `@/lib/services/kyc.service` and the two new types.
 
@@ -572,7 +572,7 @@ export function useUpdateOwner(ownerUserId: string) {
 }
 ```
 
-- [ ] **Step 2: Fix the stale invalidation key**
+- [x] **Step 2: Fix the stale invalidation key**
 
 In `useSoftDeleteOwner`, replace the `onSuccess` body and its comment:
 
@@ -591,12 +591,12 @@ In `useSoftDeleteOwner`, replace the `onSuccess` body and its comment:
     },
 ```
 
-- [ ] **Step 3: Typecheck**
+- [x] **Step 3: Typecheck**
 
 Run: `npx tsc --noEmit`
 Expected: silent. If `KycProfileDto["onboardingStatus"]` complains, confirm the import of `KycProfileDto` from `@/lib/types/kyc.types` is present.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add hooks/use-owners.ts
@@ -613,7 +613,7 @@ next-intl throws on a missing key, so every string the next three tasks read mus
 - Modify: `messages/en.json`
 - Modify: `messages/de.json`
 
-- [ ] **Step 1: Add the English keys**
+- [x] **Step 1: Add the English keys**
 
 In `messages/en.json`, inside `owners`, add an `edit` block beside the existing `delete` block, and two keys under `account`:
 
@@ -652,7 +652,7 @@ Under `owners.account`, add:
 "legalNameHint": "From the passport — separate from the display name above",
 ```
 
-- [ ] **Step 2: Add the German keys**
+- [x] **Step 2: Add the German keys**
 
 Add the same structure to `messages/de.json` under `owners`:
 
@@ -691,7 +691,7 @@ Under `owners.account` in `messages/de.json`:
 "legalNameHint": "Aus dem Reisepass — getrennt vom Anzeigenamen oben",
 ```
 
-- [ ] **Step 3: Verify both files parse and match**
+- [x] **Step 3: Verify both files parse and match**
 
 ```bash
 node -e "
@@ -706,7 +706,7 @@ console.log('locks match:', keys(en.owners.edit.locks)===keys(de.owners.edit.loc
 ```
 Expected: three `true` lines.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add messages/en.json messages/de.json
@@ -726,7 +726,7 @@ Presentational only — no mutation, no query. It receives what it may do and re
 - Consumes: `NameLock`, `OwnerUpdateBody`, `buildOwnerUpdateBody` (Task 1); the `owners.edit` copy (Task 4).
 - Produces: `<OwnerEditDialog open onClose identity nameLock pending error onSubmit />` where `onSubmit: (body: OwnerUpdateBody) => void`.
 
-- [ ] **Step 1: Write the component**
+- [x] **Step 1: Write the component**
 
 Create `components/owners/owner-edit-dialog.tsx`:
 
@@ -882,7 +882,7 @@ export function OwnerEditDialog({
 }
 ```
 
-- [ ] **Step 2: Typecheck and lint**
+- [x] **Step 2: Typecheck and lint**
 
 ```bash
 npx tsc --noEmit
@@ -890,7 +890,7 @@ npx next lint
 ```
 Expected: both silent. If `Label` has no `htmlFor` prop, check `components/ui/label.tsx` and use its equivalent.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add components/owners/owner-edit-dialog.tsx
@@ -908,7 +908,7 @@ git commit -m "feat(owners): the legal-name edit dialog, which opens even when l
 - Consumes: `OwnerDetailActions` (Task 1), `useUpdateOwner` (Task 3), `OwnerEditDialog` (Task 5).
 - Produces: `<OwnerActions owner actions identity />`.
 
-- [ ] **Step 1: Change the props and add the Edit button**
+- [x] **Step 1: Change the props and add the Edit button**
 
 Replace the component's signature and add the edit state. The existing delete dialog and its `mapError` stay as they are; add a second dialog beside it.
 
@@ -1020,7 +1020,7 @@ Wrap the returned fragment so both actions render, each behind its own permissio
 
 Move the existing `<Button …Delete…>` and its `<Dialog>` inside the `actions.canDelete` branch, keeping the existing `<Can permission="owner:soft_delete">` wrapper that already surrounds them.
 
-- [ ] **Step 2: Typecheck and lint**
+- [x] **Step 2: Typecheck and lint**
 
 ```bash
 npx tsc --noEmit
@@ -1028,7 +1028,7 @@ npx next lint
 ```
 Expected: `tsc` will now fail at the one call site in `app/[locale]/dashboard/(owner)/owners/[id]/page.tsx`, which Task 7 fixes. Lint must be clean.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add components/owners/owner-actions.tsx
@@ -1050,7 +1050,7 @@ Note: this commit leaves `tsc` failing at one call site. That is resolved by the
 **Interfaces:**
 - Consumes: everything from Tasks 1, 3, 6.
 
-- [ ] **Step 1: Give InfoRow an optional hint**
+- [x] **Step 1: Give InfoRow an optional hint**
 
 `InfoRow` currently takes `icon`, `label`, `value`, `mono` and has no way to qualify a value. The legal name needs one — a bare "Legal name" beside a different name in the hero card invites the reading that one of them is stale.
 
@@ -1081,7 +1081,7 @@ Directly after the `value` span, still inside the flex column:
         ) : null}
 ```
 
-- [ ] **Step 2: Add the legal-name row to ContactCard**
+- [x] **Step 2: Add the legal-name row to ContactCard**
 
 Without this the feature's result is invisible — the edit writes the legal name and every surface on this screen shows the display name.
 
@@ -1111,7 +1111,7 @@ Insert directly after the phone `InfoRow`:
         ) : null}
 ```
 
-- [ ] **Step 3: Suppress the dead mailto on the walk-in account**
+- [x] **Step 3: Suppress the dead mailto on the walk-in account**
 
 In `components/owners/hero-card.tsx`, change the props and the button condition:
 
@@ -1131,7 +1131,7 @@ export function HeroCard({
           {owner.email && !isWalkIn && (
 ```
 
-- [ ] **Step 4: Wire the page**
+- [x] **Step 4: Wire the page**
 
 In `app/[locale]/dashboard/(owner)/owners/[id]/page.tsx`:
 
@@ -1211,7 +1211,7 @@ And pass identity to the contact card:
           <ContactCard owner={owner} identity={identity} />
 ```
 
-- [ ] **Step 5: Run every gate**
+- [x] **Step 5: Run every gate**
 
 ```bash
 npx tsc --noEmit
@@ -1222,7 +1222,7 @@ node scripts/verify-v2.mjs
 ```
 Expected: `tsc` silent · lint 0 errors · vitest all pass (84 existing + 12 new) · build succeeds · verify-v2 `ALL PASS`.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add components/owners/info-row.tsx "app/[locale]/dashboard/(owner)/owners/[id]/page.tsx" components/owners/contact-card.tsx components/owners/hero-card.tsx
