@@ -1,5 +1,7 @@
 import { apiClient } from "@/lib/http/client";
 import type {
+  CityDto,
+  CountryDto,
   CreatePropertyCategoryRequest,
   PropertyCategoryDto,
   UpdatePropertyCategoryRequest,
@@ -52,6 +54,24 @@ export const lookupService = {
     const { data } = await apiClient.put<PropertyCategoryDto>(
       `/api/property-categories/${id}`,
       body,
+    );
+    return data;
+  },
+
+  /** FND-1 §5.2. Open to any authenticated user, like the categories read. */
+  getCountries: async (): Promise<CountryDto[]> => {
+    const { data } = await apiClient.get<CountryDto[]>("/api/countries");
+    return data;
+  },
+
+  /**
+   * FND-1 §5.3. Scoped to a country by necessity — there is no flat all-cities
+   * endpoint. An unknown `countryId` is `404 country_not_found`, so only call this
+   * with an id that came from `getCountries`.
+   */
+  getCities: async (countryId: string): Promise<CityDto[]> => {
+    const { data } = await apiClient.get<CityDto[]>(
+      `/api/countries/${countryId}/cities`,
     );
     return data;
   },

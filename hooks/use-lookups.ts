@@ -51,3 +51,32 @@ export function useUpdatePropertyCategory() {
     onSuccess: () => qc.invalidateQueries({ queryKey: CATEGORY_KEY }),
   });
 }
+
+/**
+ * Countries, for scoping the owner company-city filter. Held for an hour like the
+ * categories above — reference data that changes rarely and is read per screen.
+ */
+export function useCountries() {
+  return useQuery({
+    queryKey: ["countries"],
+    queryFn: () => lookupService.getCountries(),
+    staleTime: 60 * 60 * 1000,
+  });
+}
+
+/**
+ * Cities under one country. **Idle until a country is chosen** — there is no
+ * endpoint that returns cities without one, and calling with `undefined` would
+ * request `/api/countries/undefined/cities` and take a 404.
+ *
+ * `countryId` is part of the key, so switching country serves that country's list
+ * rather than the previous one.
+ */
+export function useCities(countryId?: string) {
+  return useQuery({
+    queryKey: ["cities", countryId ?? null],
+    queryFn: () => lookupService.getCities(countryId as string),
+    enabled: Boolean(countryId),
+    staleTime: 60 * 60 * 1000,
+  });
+}

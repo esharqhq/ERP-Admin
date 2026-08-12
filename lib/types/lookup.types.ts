@@ -1,10 +1,15 @@
 /**
- * FND-1 configurable lookups. Only `PropertyCategory` is modelled here: the
- * Country/City lookups in the same backend family are **not** referenced by
- * `Property` at all (it carries a free-text `address` and no city/country FK —
- * verified in `GermanyERP.Domain/Models/Properties/PropertyEntities.cs`), so
- * building a city picker for a property would wire up a relationship the API
- * does not have.
+ * FND-1 configurable lookups.
+ *
+ * `Property` still does **not** reference Country/City — it carries a free-text
+ * `address` and no city/country FK (verified in
+ * `GermanyERP.Domain/Models/Properties/PropertyEntities.cs`), so a city picker on
+ * a property would wire up a relationship the API does not have. That reasoning
+ * is unchanged and still the rule for properties.
+ *
+ * It does not extend to **owners**, whose *company* record does carry a city —
+ * which is what F-02 #4's `companyCityId` filter selects on. Country and City are
+ * therefore modelled below, for that filter and nothing else.
  */
 
 /**
@@ -69,4 +74,42 @@ export interface UpdatePropertyCategoryRequest {
   color?: string | null;
   description?: string | null;
   isActive?: boolean | null;
+}
+
+// ── Country and City (FND-1 §5.2–5.3) — for the owner company-city filter ──
+
+/**
+ * `GET /api/countries`. The read carries no `[RequirePermission]` — any
+ * authenticated user may call it.
+ *
+ * ⚠ Seeded with Germany (`DE`) and Austria (`AT`) **today**. Do not build against
+ * that count or those codes: this is reference data an admin can add to, and a
+ * hard-coded enumeration of it is the trap that has already cost this app twice.
+ */
+export interface CountryDto {
+  id: string;
+  code: string;
+  nameDe: string;
+  nameEn: string;
+  currencyCode: string;
+  isActive: boolean;
+}
+
+/**
+ * `GET /api/countries/{countryId}/cities`.
+ *
+ * ⚠ **There is no flat "all cities" endpoint.** Cities are always fetched scoped
+ * to a country, which is why a city filter needs a country control beside it. An
+ * unknown `countryId` is `404 country_not_found`.
+ *
+ * City has **no `code`** — it is referenced by id. Uniqueness is
+ * `(countryId, nameEn)` rather than global, so two countries may each hold a city
+ * of the same name and the id is the only safe identity.
+ */
+export interface CityDto {
+  id: string;
+  countryId: string;
+  nameDe: string;
+  nameEn: string;
+  isActive: boolean;
 }

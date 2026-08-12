@@ -29,7 +29,18 @@ import {
   type TaskWorkerDto,
 } from "@/lib/types/task.types";
 
-// Backend caps /api/tasks/admin at the 500 most-recent tasks.
+/**
+ * The cap on `/api/tasks/admin` is **conditional** since F-02a·1 (2026-08-10):
+ * 500 with no date window, 500 with `scheduledFrom` alone, 500 with
+ * `scheduledTo` alone — and 5,000 only on a **fully-closed** window. This page
+ * calls `useAdminTasks()`, which sends no window at all, so 500 is the live
+ * bound. Do not raise this constant without also sending both bounds; a
+ * half-open range still filters correctly but stays capped at 500.
+ *
+ * ⚠ Truncation is silent — no `total`, no `hasMore`, no header. Receiving
+ * exactly this many rows means "at least this many", never "this many", which is
+ * what the notice below exists to say.
+ */
 const ADMIN_TASKS_CAP = 500;
 
 // A worker whose outcome is one of these no longer occupies a slot — the task is

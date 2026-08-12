@@ -16,6 +16,9 @@ const ownerDto = {
   ownerProfileId: "p1",
   ownerUserId: "u1",
   ownerFullName: "Hans Müller",
+  // Deliberately different from the display name — the guide's own example, and
+  // the whole reason both are carried.
+  ownerLegalName: "Johannes Müller-Bauer",
   ownerEmail: "hans@example.de",
   eligibleFrom: "2026-01-01T00:00:00Z",
   eligibleTo: "2026-12-31T00:00:00Z",
@@ -43,6 +46,28 @@ describe("ownerRegistryRow", () => {
     expect(row.phase).toBe("InForce");
     expect(row).not.toHaveProperty("isActive");
   });
+
+  /**
+   * `contract-lifecycle.md` §7.7: the display name and the legal name are two
+   * different names and are allowed to differ. The legal one is what the PDF
+   * prints, so a row carrying only `ownerFullName` can name a different party
+   * than the document it links to.
+   */
+  it("carries the display name and the legal name separately", () => {
+    const row = ownerRegistryRow(ownerDto);
+    expect(row.partyName).toBe("Hans Müller");
+    expect(row.partyLegalName).toBe("Johannes Müller-Bauer");
+  });
+
+  it("leaves a missing legal name null rather than falling back to the display name", () => {
+    const row = ownerRegistryRow({
+      ...ownerDto,
+      ownerLegalName: null,
+    } as unknown as AdminOwnerContractDto);
+    expect(row.partyLegalName).toBeNull();
+    // The fallback the guide explicitly forbids: "Render nothing, not the other name."
+    expect(row.partyLegalName).not.toBe("Hans Müller");
+  });
 });
 
 describe("workerRegistryRow", () => {
@@ -51,10 +76,23 @@ describe("workerRegistryRow", () => {
       ...ownerDto,
       workerId: "w1",
       workerFullName: "Anna Schmidt",
+      workerLegalName: "Anna-Maria Schmidt-Wagner",
       workerEmail: "anna@example.de",
     } as unknown as AdminWorkerContractDto);
     expect(row.partyId).toBe("w1");
     expect(row.partyProfileId).toBeNull();
+  });
+
+  it("carries the worker's legal name separately from the display name", () => {
+    const row = workerRegistryRow({
+      ...ownerDto,
+      workerId: "w1",
+      workerFullName: "Anna Schmidt",
+      workerLegalName: "Anna-Maria Schmidt-Wagner",
+      workerEmail: "anna@example.de",
+    } as unknown as AdminWorkerContractDto);
+    expect(row.partyName).toBe("Anna Schmidt");
+    expect(row.partyLegalName).toBe("Anna-Maria Schmidt-Wagner");
   });
 });
 

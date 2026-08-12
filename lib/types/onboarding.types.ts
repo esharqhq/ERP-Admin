@@ -60,7 +60,19 @@ export interface ContractPrefillDto {
   subjectType: OnboardingSubjectType;
   /** Owner: the ownerProfileId. Worker: the workerId. */
   subjectId: string;
+  /** The account label only — not the name to author the contract against. */
   fullName: string | null;
+  /**
+   * The passport name the contract will actually print — new 2026-08-11
+   * (PR #67). Use **this** for the contracting-party field of an authoring form
+   * and keep `fullName` as the account label; before it existed the prefill
+   * handed over only `fullName`, so an admin authored against one name and
+   * produced a document stating another with nothing on screen showing it.
+   *
+   * ⚠ `null` when no passport name is on file — render nothing rather than
+   * falling back to `fullName` (`onboarding-and-active-gate.md` §10.3).
+   */
+  legalName: string | null;
   email: string | null;
   phoneNumber: string | null;
 }

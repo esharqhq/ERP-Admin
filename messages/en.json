@@ -36,7 +36,10 @@
     "clearFilters": "Clear filters",
     "clear": "Clear",
     "previousMonth": "Previous month",
-    "nextMonth": "Next month"
+    "nextMonth": "Next month",
+    "min": "Min",
+    "max": "Max",
+    "filtersActive": "{count, plural, =0 {No filters applied} one {# filter applied} other {# filters applied}}"
   },
   "status": {
     "pending": "Pending",
@@ -426,7 +429,27 @@
       "actions": "Actions",
       "onboardingStatus": "Stage",
       "onboarding": "Onboarding",
-      "properties": "Properties"
+      "properties": "Properties",
+      "companyCity": "Company city",
+      "lastOrdered": "Last order",
+      "tasks": "Tasks"
+    },
+    "filters": {
+      "country": "Country",
+      "countryHint": "Scopes the city list; filters nothing on its own.",
+      "companyCity": "Company city",
+      "companyCityHint": "Only owners with a company address on file.",
+      "registered": "Registered",
+      "lastOrdered": "Last order",
+      "neverOrdered": "Ordering",
+      "neverOrderedAny": "Any",
+      "neverOrderedTrue": "Never ordered",
+      "neverOrderedFalse": "Has ordered",
+      "propertyCount": "Properties",
+      "taskCount": "Tasks",
+      "rangeOrder": "The start must not be after the end.",
+      "rangeNegative": "A count cannot be negative.",
+      "invalidCombination": "Adjust the highlighted filters — these are not being applied."
     },
     "detail": {
       "documents": "Documents",

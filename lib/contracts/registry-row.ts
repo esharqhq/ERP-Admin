@@ -20,7 +20,18 @@ export interface RegistryRow {
   partyId: string;
   /** Owner only: the Docs detail route is keyed on ownerProfileId, not ownerUserId. */
   partyProfileId: string | null;
+  /** The display name — the account label. */
   partyName: string | null;
+  /**
+   * The legal name off the passport, which is what the linked PDF prints. Carried
+   * **beside** `partyName` rather than replacing it because the two are allowed
+   * to differ and an admin needs to see both (`contract-lifecycle.md` §7.7).
+   *
+   * ⚠ Whatever renders this must show nothing when it is `null` — never fall back
+   * to `partyName`. A row that silently substitutes the display name is the exact
+   * behaviour this field was added to end.
+   */
+  partyLegalName: string | null;
   partyEmail: string | null;
   eligibleFrom: string;
   eligibleTo: string;
@@ -39,6 +50,7 @@ export function ownerRegistryRow(dto: AdminOwnerContractDto): RegistryRow {
     partyId: dto.ownerUserId,
     partyProfileId: dto.ownerProfileId,
     partyName: dto.ownerFullName,
+    partyLegalName: dto.ownerLegalName,
     partyEmail: dto.ownerEmail,
     eligibleFrom: dto.eligibleFrom,
     eligibleTo: dto.eligibleTo,
@@ -58,6 +70,7 @@ export function workerRegistryRow(dto: AdminWorkerContractDto): RegistryRow {
     partyId: dto.workerId,
     partyProfileId: null,
     partyName: dto.workerFullName,
+    partyLegalName: dto.workerLegalName,
     partyEmail: dto.workerEmail,
     eligibleFrom: dto.eligibleFrom,
     eligibleTo: dto.eligibleTo,
