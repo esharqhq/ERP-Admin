@@ -426,7 +426,27 @@
       "actions": "Aktionen",
       "onboardingStatus": "Phase",
       "onboarding": "Onboarding",
-      "properties": "Objekte"
+      "properties": "Objekte",
+      "companyCity": "Firmenstadt",
+      "lastOrdered": "Letzte Bestellung",
+      "tasks": "Aufträge"
+    },
+    "filters": {
+      "country": "Land",
+      "countryHint": "Begrenzt die Städteliste; filtert allein nichts.",
+      "companyCity": "Firmenstadt",
+      "companyCityHint": "Nur Eigentümer mit hinterlegter Firmenadresse.",
+      "registered": "Registriert",
+      "lastOrdered": "Letzte Bestellung",
+      "neverOrdered": "Bestellungen",
+      "neverOrderedAny": "Alle",
+      "neverOrderedTrue": "Nie bestellt",
+      "neverOrderedFalse": "Hat bestellt",
+      "propertyCount": "Objekte",
+      "taskCount": "Aufträge",
+      "rangeOrder": "Der Beginn darf nicht nach dem Ende liegen.",
+      "rangeNegative": "Eine Anzahl kann nicht negativ sein.",
+      "invalidCombination": "Bitte die markierten Filter anpassen — sie werden nicht angewendet."
     },
     "detail": {
       "documents": "Dokumente",

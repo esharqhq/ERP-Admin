@@ -7,10 +7,16 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { RowLink } from "@/components/ui/row-link";
 import { DataTableCard } from "@/components/ui/data-table-card";
+import { FilterBar, type FilterField } from "@/components/ui/filter-bar";
 import { TablePagination } from "@/components/ui/table-pagination";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useOwners } from "@/hooks/use-owners";
+import { useCities, useCountries } from "@/hooks/use-lookups";
+import {
+  buildOwnerFilterQuery,
+  clearCityOnCountryChange,
+} from "@/lib/owners/owner-filter-query";
 import { onboardingStatusPresentation } from "@/lib/onboarding/status";
 import { DEFAULT_PAGE_SIZE } from "@/lib/types/paged.types";
 import type { OwnerListQuery, OwnerRowDto } from "@/lib/types/owner.types";
@@ -53,18 +59,36 @@ function formatJoined(iso: string, locale: string): string {
 export default function OwnersPage() {
   const t = useTranslations("owners");
   const tOnboarding = useTranslations("onboarding");
+  const tCommon = useTranslations("common");
   const locale = useLocale();
 
   const [tab, setTab] = useState<OwnerTab>("all");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+  /** Keyed by wire param name — see `buildOwnerFilterQuery`. */
+  const [filters, setFilters] = useState<Record<string, string>>({});
+
+  const countries = useCountries();
+  // Idle until a country is chosen: cities are only reachable per country.
+  const cities = useCities(filters.countryId || undefined);
+
+  const built = useMemo(() => buildOwnerFilterQuery(filters), [filters]);
 
   // Filtering, searching and paging all happen server-side now, so the query is
   // the whole state of the table.
   const query = useMemo<OwnerListQuery>(
-    () => ({ ...queryFor(tab), search: search || undefined, page, pageSize }),
-    [tab, search, page, pageSize],
+    () => ({
+      ...(built.ok ? built.query : {}),
+      // The tab owns `onboardingStatus` and `ownerType`, so it is spread LAST:
+      // where a tab and a filter address the same param the tab wins, and a query
+      // neither control explains is worse than a narrower one.
+      ...queryFor(tab),
+      search: search || undefined,
+      page,
+      pageSize,
+    }),
+    [built, tab, search, page, pageSize],
   );
 
   const { data, isLoading, isError, error } = useOwners(query);
@@ -77,11 +101,85 @@ export default function OwnersPage() {
     setPage(1);
   };
 
+  const setFilter = (key: string, value: string) => {
+    setFilters((prev) =>
+      key === "countryId"
+        ? clearCityOnCountryChange(prev, value)
+        : { ...prev, [key]: value },
+    );
+    setPage(1);
+  };
+
+  const cityLabel = (c: { nameDe: string; nameEn: string }) =>
+    locale === "de" ? c.nameDe : c.nameEn;
+
+  const fields: FilterField[] = [
+    {
+      key: "countryId",
+      label: t("filters.country"),
+      // It genuinely filters nothing — saying so stops it reading as broken.
+      hint: t("filters.countryHint"),
+      options: (countries.data ?? [])
+        .filter((c) => c.isActive)
+        .map((c) => ({ value: c.id, label: cityLabel(c) })),
+    },
+    {
+      key: "companyCityId",
+      label: t("filters.companyCity"),
+      // §2.1: a city lives only on a company record, so this filter can reach
+      // neither private individuals nor companies with a blank city.
+      hint: t("filters.companyCityHint"),
+      // Empty until a country is chosen, and a select with no options renders
+      // nothing — which is exactly the wanted behaviour, with no extra flag.
+      options: (cities.data ?? [])
+        .filter((c) => c.isActive)
+        .map((c) => ({ value: c.id, label: cityLabel(c) })),
+    },
+    {
+      kind: "dateRange",
+      fromKey: "registeredFrom",
+      toKey: "registeredTo",
+      label: t("filters.registered"),
+    },
+    {
+      kind: "triState",
+      key: "neverOrdered",
+      label: t("filters.neverOrdered"),
+      anyLabel: t("filters.neverOrderedAny"),
+      trueLabel: t("filters.neverOrderedTrue"),
+      falseLabel: t("filters.neverOrderedFalse"),
+    },
+    {
+      kind: "dateRange",
+      fromKey: "lastOrderedFrom",
+      toKey: "lastOrderedTo",
+      label: t("filters.lastOrdered"),
+      // The combination is a 400, so the inputs go dead rather than the request
+      // failing after the admin has filled them in.
+      disabled: filters.neverOrdered === "true",
+    },
+    {
+      kind: "numberRange",
+      minKey: "propertyCountMin",
+      maxKey: "propertyCountMax",
+      label: t("filters.propertyCount"),
+    },
+    {
+      kind: "numberRange",
+      minKey: "taskCountMin",
+      maxKey: "taskCountMax",
+      label: t("filters.taskCount"),
+    },
+  ];
+
   const columns = [
     { label: t("columns.owner") },
     { label: t("directory.columns.phone") },
     { label: t("columns.onboarding") },
+    { label: t("columns.companyCity") },
     { label: t("columns.properties"), className: "text-center" },
+    { label: t("columns.tasks"), className: "text-center" },
+    { label: t("columns.lastOrdered") },
     { label: t("directory.columns.status") },
     { label: t("account.joined") },
   ];
@@ -134,6 +232,13 @@ export default function OwnersPage() {
       <div className="flex flex-col gap-4">
         {TabBar}
 
+        {/* A refused combination must explain itself: the table below is still
+            showing the tab/search result, so without this it reads as "no owners
+            match" rather than "these filters were not applied". */}
+        {!built.ok && (
+          <p className="text-xs text-destructive">{t("filters.invalidCombination")}</p>
+        )}
+
         {isLoading ? (
           <div className="flex flex-col gap-2 rounded-xl border border-border p-4">
             {Array.from({ length: 5 }).map((_, i) => (
@@ -147,6 +252,21 @@ export default function OwnersPage() {
             searchPlaceholder={t("directory.search")}
             searchValue={search}
             onSearchChange={reset(setSearch)}
+            filters={
+              <FilterBar
+                fields={fields}
+                values={filters}
+                onChange={setFilter}
+                onReset={() => {
+                  setFilters({});
+                  setPage(1);
+                }}
+                allLabel={tCommon("all")}
+                clearLabel={tCommon("clearFilters")}
+                orderErrorLabel={t("filters.rangeOrder")}
+                negativeErrorLabel={t("filters.rangeNegative")}
+              />
+            }
             columns={columns}
             data={owners}
             renderRow={(o: OwnerRowDto) => {
@@ -190,11 +310,28 @@ export default function OwnersPage() {
                     </Badge>
                   </TableCell>
 
+                  {/* Blanks are rendered deliberately: these are exactly the rows a
+                      company-city filter can never return, so showing them is what
+                      lets a short filtered list explain itself. */}
+                  <TableCell className="text-sm text-muted-foreground">
+                    {o.companyCity || "—"}
+                  </TableCell>
+
                   <TableCell>
                     <span className="flex items-center justify-center gap-1.5 text-sm tabular-nums text-muted-foreground">
                       <Building2 className="size-3.5" />
                       {o.propertyCount}
                     </span>
+                  </TableCell>
+
+                  <TableCell className="text-center text-sm tabular-nums text-muted-foreground">
+                    {o.taskCount}
+                  </TableCell>
+
+                  {/* "Last order", never "last activity" — it measures ordering, and
+                      this API has no login-recency data for any user type. */}
+                  <TableCell className="text-sm tabular-nums text-muted-foreground">
+                    {o.lastOrderedAt ? formatJoined(o.lastOrderedAt, locale) : "—"}
                   </TableCell>
 
                   <TableCell>
