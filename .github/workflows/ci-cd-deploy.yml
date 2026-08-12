@@ -70,7 +70,7 @@ jobs:
 
             REPO_DIR=~/erp-admin
             COMPOSE_FILE=docker-compose.prod.yml
-            DOMAIN=admin.germany-erp.esharq.com
+            DOMAIN=admin.uyer.app
             HEALTH_URL=https://$DOMAIN
             HEALTH_TIMEOUT_SECONDS=60
             APP_SERVICE=app
@@ -83,10 +83,9 @@ jobs:
             git reset --hard origin/main
 
             # ── 0. Sync nginx site config and reload ─────────────────────
-            NGINX_AVAILABLE="/etc/nginx/sites-available/$DOMAIN"
-            NGINX_ENABLED="/etc/nginx/sites-enabled/$DOMAIN"
-            if [ -f "$NGINX_AVAILABLE" ]; then
-              cp "$REPO_DIR/nginx/$DOMAIN" "$NGINX_AVAILABLE"
+            NGINX_ENABLED="/etc/nginx/sites-enabled/admin"
+            if [ -f "$NGINX_ENABLED" ]; then
+              sudo ln -sf ~/erp-admin/nginx/admin /etc/nginx/sites-enabled/admin
               nginx -t && systemctl reload nginx
             fi
 
