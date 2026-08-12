@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { BadgeCheck, Building2, Headset, ShieldAlert } from "lucide-react";
+import { Building2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { TableCell, TableRow } from "@/components/ui/table";
@@ -29,23 +29,29 @@ import { useLocale, useTranslations } from "next-intl";
  * the admin came from. This picks the onboarding axis, which is the one an
  * admin acts on: `Review` is the queue where approve/reject are legal.
  */
-const TABS = ["all", "review", "active", "walkIn"] as const;
+const TABS = ["all", "review", "active"] as const;
 type OwnerTab = (typeof TABS)[number];
 
+/**
+ * **Every tab pins `ownerType: "Regular"`**, so the permanent "Walk-in / Manual
+ * Orders" account never appears in this directory. It is a system account rather
+ * than a customer: Edit, Delete, Message and Create-contract are all refused
+ * against it (`owner_is_system`), and it is managed from its own page under the
+ * Owner group instead.
+ *
+ * An earlier version left `ownerType` off the "all" tab on the reasoning that an
+ * admin searching for "Walk-in" should find it here. It is reachable through its
+ * own screen, which resolves the account by its own lookup and does not read this
+ * list, so nothing depends on that.
+ */
 function queryFor(tab: OwnerTab): Pick<OwnerListQuery, "onboardingStatus" | "ownerType"> {
   switch (tab) {
     case "review":
       return { onboardingStatus: "Review", ownerType: "Regular" };
     case "active":
       return { onboardingStatus: "Active", ownerType: "Regular" };
-    // The walk-in account has no onboarding stage to filter on — `ownerType` is
-    // the only way to reach it, and `onboardingStatus=NotApplicable` does not exist.
-    case "walkIn":
-      return { ownerType: "Default" };
-    // Omitting `ownerType` deliberately includes the walk-in row: an admin
-    // searching for "Walk-in" on the default tab must find it.
     case "all":
-      return {};
+      return { ownerType: "Regular" };
   }
 }
 
@@ -187,7 +193,6 @@ export default function OwnersPage() {
     { label: t("columns.properties"), className: "text-center" },
     { label: t("columns.tasks"), className: "text-center" },
     { label: t("columns.lastOrdered") },
-    { label: t("directory.columns.status") },
     { label: t("account.joined") },
   ];
 
@@ -291,7 +296,6 @@ export default function OwnersPage() {
             columns={columns}
             data={owners}
             renderRow={(o: OwnerRowDto) => {
-              const isDefault = o.ownerType === "Default";
               const p = onboardingStatusPresentation(o.onboardingStatus);
               return (
                 <TableRow
@@ -303,11 +307,7 @@ export default function OwnersPage() {
                     <div className="flex items-center gap-3">
                       <Avatar className="size-9 ring-1 ring-border">
                         <AvatarFallback className="bg-muted text-[11px] font-semibold">
-                          {isDefault ? (
-                            <Headset className="size-4" />
-                          ) : (
-                            (o.fullName || "??").slice(0, 2).toUpperCase()
-                          )}
+                          {(o.fullName || "??").slice(0, 2).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex min-w-0 flex-col gap-0.5">
@@ -353,20 +353,6 @@ export default function OwnersPage() {
                       this API has no login-recency data for any user type. */}
                   <TableCell className="text-sm tabular-nums text-muted-foreground">
                     {o.lastOrderedAt ? formatJoined(o.lastOrderedAt, locale) : "—"}
-                  </TableCell>
-
-                  <TableCell>
-                    {o.isVerified ? (
-                      <Badge variant="default" className="gap-1">
-                        <BadgeCheck className="size-3.5" />
-                        {t("account.verified")}
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="gap-1 text-muted-foreground">
-                        <ShieldAlert className="size-3.5" />
-                        {t("account.unverified")}
-                      </Badge>
-                    )}
                   </TableCell>
 
                   <TableCell className="text-sm tabular-nums text-muted-foreground">
