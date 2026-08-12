@@ -57,13 +57,28 @@ export interface AdminOwnerContractDto extends ContractRowBase {
   ownerProfileId: string;
   /** Contract-authoring routes are keyed on this, not on ownerProfileId. */
   ownerUserId: string;
+  /** The **display** name, typed at register and changed by the user. */
   ownerFullName: string | null;
+  /**
+   * The **legal** name off the passport — new 2026-08-11 (PR #67), and what the
+   * contract PDF's `CLIENT` party block actually prints. It is allowed to differ
+   * from `ownerFullName`, so a row labelled with the display name alone can name
+   * a different party than the document it links to.
+   *
+   * ⚠ `null` when no passport name is on file, and it **never** falls back to
+   * the display name — render nothing, not the other name
+   * (`contract-lifecycle.md` §7.7). It also does *not* govern
+   * `{{owner.firstName}}` / `{{owner.lastName}}` inside authored clause text.
+   */
+  ownerLegalName: string | null;
   ownerEmail: string | null;
 }
 
 export interface AdminWorkerContractDto extends ContractRowBase {
   workerId: string;
   workerFullName: string | null;
+  /** The worker's passport name. Same rules as `ownerLegalName`. */
+  workerLegalName: string | null;
   workerEmail: string | null;
 }
 

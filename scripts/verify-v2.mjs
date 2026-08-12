@@ -53,7 +53,17 @@ const EXPECTED_FIELDS = {
   KycDocDto: ["id", "type", "fileName", "fileUrl", "createdAt"],
   KycApprovalDto: ["ownerProfileId", "onboardingStatus", "onboardingRejectReason", "prefill"],
   WorkerApprovalDto: ["id", "onboardingStatus", "onboardingRejectReason", "prefill"],
-  ContractPrefillDto: ["subjectType", "subjectId", "fullName", "email", "phoneNumber"],
+  // `legalName` is PR #67 (2026-08-11): the passport name the PDF prints, which
+  // is allowed to differ from `fullName`. Nullable, and it must never be
+  // rendered as a fallback for the other one.
+  ContractPrefillDto: ["subjectType", "subjectId", "fullName", "legalName", "email",
+    "phoneNumber"],
+  // PR #67 again — the same name on all four admin contract reads. Asserted here
+  // because a nullable additive field is exactly what this gate could not see
+  // before: nothing reddens when the server *adds* something we never declared.
+  AdminOwnerContractDto: ["ownerProfileId", "ownerUserId", "ownerFullName",
+    "ownerLegalName", "ownerEmail"],
+  AdminWorkerContractDto: ["workerId", "workerFullName", "workerLegalName", "workerEmail"],
   // `ownerType` is F-02b·6's addition and the field the UI keys the walk-in
   // account's four refusals on; the paged envelope was never asserted here,
   // which is how the owners page went on using the unpaged picker endpoint.
