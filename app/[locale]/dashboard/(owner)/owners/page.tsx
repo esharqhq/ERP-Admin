@@ -110,7 +110,7 @@ export default function OwnersPage() {
     setPage(1);
   };
 
-  const cityLabel = (c: { nameDe: string; nameEn: string }) =>
+  const lookupLabel = (c: { nameDe: string; nameEn: string }) =>
     locale === "de" ? c.nameDe : c.nameEn;
 
   const fields: FilterField[] = [
@@ -121,7 +121,7 @@ export default function OwnersPage() {
       hint: t("filters.countryHint"),
       options: (countries.data ?? [])
         .filter((c) => c.isActive)
-        .map((c) => ({ value: c.id, label: cityLabel(c) })),
+        .map((c) => ({ value: c.id, label: lookupLabel(c) })),
     },
     {
       key: "companyCityId",
@@ -133,7 +133,7 @@ export default function OwnersPage() {
       // nothing — which is exactly the wanted behaviour, with no extra flag.
       options: (cities.data ?? [])
         .filter((c) => c.isActive)
-        .map((c) => ({ value: c.id, label: cityLabel(c) })),
+        .map((c) => ({ value: c.id, label: lookupLabel(c) })),
     },
     {
       kind: "dateRange",
