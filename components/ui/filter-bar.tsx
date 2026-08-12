@@ -440,8 +440,11 @@ export function FilterBar({
 
   const heading = triggerLabel ?? t("filter");
 
+  // A fragment, not a wrapper: this goes into a toolbar row beside search, and an
+  // extra flex container there would fight the parent's own layout. The chips live
+  // in `FilterChips` below for the same reason.
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <>
       <Sheet>
         <SheetTrigger render={<Button variant="outline" size="sm" className="gap-2" />}>
           <SlidersHorizontal className="size-4" />
@@ -462,10 +465,38 @@ export function FilterBar({
           <div className="px-4 pb-6">{grid}</div>
         </SheetContent>
       </Sheet>
+    </>
+  );
+}
 
-      {/* Chips keep the state readable without opening the drawer — the price of
-          collapsing the controls, and what stops "filters are on" from being
-          invisible. */}
+/**
+ * One chip per active filter — the price of collapsing the controls into a drawer,
+ * and what stops "filters are on" from being invisible.
+ *
+ * Deliberately a **separate export** from `FilterBar`: the trigger belongs on the
+ * toolbar row beside search, and chips belong on their own line, so the two cannot
+ * be one node. Rendering nothing when no filter is set lets a caller pass
+ * `undefined` and keep the toolbar a single row.
+ */
+export function FilterChips({
+  groups,
+  fields,
+  values,
+  onChange,
+  onReset,
+  clearLabel,
+}: Pick<
+  FilterBarProps,
+  "groups" | "fields" | "values" | "onChange" | "onReset" | "clearLabel"
+>) {
+  const normalized: FilterField[] =
+    fields ?? (groups ?? []).map((g) => ({ kind: "select" as const, ...g }));
+  const active = normalized.filter((f) => keysOf(f).some((k) => values[k]));
+
+  if (active.length === 0) return null;
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
       {active.map((field) => {
         const text = summarize(field, values);
         if (!text) return null;
@@ -473,6 +504,8 @@ export function FilterBar({
           <button
             key={keysOf(field).join(":")}
             type="button"
+            // Clears every key the dimension owns, so a range goes in one click
+            // rather than needing both bounds emptied.
             onClick={() => keysOf(field).forEach((k) => onChange(k, ""))}
             className="group inline-flex max-w-[18rem] items-center gap-1.5 rounded-full border border-border bg-muted/50 py-1 pl-2.5 pr-2 text-xs text-foreground transition-colors hover:border-destructive/40 hover:bg-destructive/5"
           >
@@ -489,6 +522,7 @@ export function FilterBar({
           onClick={onReset}
           className="h-7 gap-1.5 px-2 text-xs text-muted-foreground hover:text-foreground"
         >
+          <X className="size-3.5" />
           {clearLabel}
         </Button>
       )}

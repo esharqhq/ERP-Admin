@@ -55,6 +55,9 @@ export function DataTableCard<T>({
             <p className="text-xs text-muted-foreground mt-0.5">{t("resultsFound", { count })}</p>
           </div>
           <div className="flex items-center gap-2">
+            {/* Filter sits BEFORE search: narrow the set, then find within it —
+                the order the two are actually used in. */}
+            {filter}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
               <Input
@@ -64,7 +67,6 @@ export function DataTableCard<T>({
                 onChange={(e) => onSearchChange?.(e.target.value)}
               />
             </div>
-            {filter}
             {action}
           </div>
         </div>

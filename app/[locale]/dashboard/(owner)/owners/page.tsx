@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { RowLink } from "@/components/ui/row-link";
 import { DataTableCard } from "@/components/ui/data-table-card";
-import { FilterBar, type FilterField } from "@/components/ui/filter-bar";
+import { FilterBar, FilterChips, type FilterField } from "@/components/ui/filter-bar";
 import { TablePagination } from "@/components/ui/table-pagination";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -109,6 +109,13 @@ export default function OwnersPage() {
     );
     setPage(1);
   };
+
+  const clearFilters = () => {
+    setFilters({});
+    setPage(1);
+  };
+
+  const hasFilters = Object.values(filters).some((v) => v);
 
   const lookupLabel = (c: { nameDe: string; nameEn: string }) =>
     locale === "de" ? c.nameDe : c.nameEn;
@@ -252,24 +259,34 @@ export default function OwnersPage() {
             searchPlaceholder={t("directory.search")}
             searchValue={search}
             onSearchChange={reset(setSearch)}
-            filters={
+            // The trigger belongs on the toolbar row, before search: narrow the
+            // set, then find within it. Seven dimensions never fitted a row of
+            // their own — they ran off the right edge.
+            filter={
               <FilterBar
                 fields={fields}
                 values={filters}
                 onChange={setFilter}
-                onReset={() => {
-                  setFilters({});
-                  setPage(1);
-                }}
+                onReset={clearFilters}
                 allLabel={tCommon("all")}
                 clearLabel={tCommon("clearFilters")}
                 orderErrorLabel={t("filters.rangeOrder")}
                 negativeErrorLabel={t("filters.rangeNegative")}
-                // Seven dimensions do not fit a readable row — they ran off the
-                // right edge. Behind a drawer, with a chip per active filter so
-                // "filters are on" stays visible without opening it.
                 collapsible
               />
+            }
+            // `undefined` rather than an empty node, so the toolbar stays a single
+            // row until something is actually filtered.
+            filters={
+              hasFilters ? (
+                <FilterChips
+                  fields={fields}
+                  values={filters}
+                  onChange={setFilter}
+                  onReset={clearFilters}
+                  clearLabel={tCommon("clearFilters")}
+                />
+              ) : undefined
             }
             columns={columns}
             data={owners}
