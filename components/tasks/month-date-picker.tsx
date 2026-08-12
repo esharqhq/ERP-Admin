@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
   isPastDay,
@@ -36,6 +36,7 @@ export function MonthDatePicker({
   disabled?: boolean;
 }) {
   const locale = useLocale();
+  const tCommon = useTranslations("common");
   const todayKey = toLocalDateKey(new Date());
 
   const [view, setView] = useState<YearMonth>(() => {
@@ -61,7 +62,7 @@ export function MonthDatePicker({
           className="size-8 p-0"
           disabled={disabled}
           onClick={() => setView((v) => shiftMonth(v, -1))}
-          aria-label={monthLabel}
+          aria-label={tCommon("previousMonth")}
         >
           <ChevronLeft className="size-4" />
         </Button>
@@ -73,7 +74,7 @@ export function MonthDatePicker({
           className="size-8 p-0"
           disabled={disabled}
           onClick={() => setView((v) => shiftMonth(v, 1))}
-          aria-label={monthLabel}
+          aria-label={tCommon("nextMonth")}
         >
           <ChevronRight className="size-4" />
         </Button>

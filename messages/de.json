@@ -34,7 +34,9 @@
       "back": "Zurück zum Dashboard"
     },
     "clearFilters": "Filter zurücksetzen",
-    "clear": "Leeren"
+    "clear": "Leeren",
+    "previousMonth": "Vorheriger Monat",
+    "nextMonth": "Nächster Monat"
   },
   "status": {
     "pending": "Ausstehend",

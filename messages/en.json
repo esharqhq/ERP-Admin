@@ -34,7 +34,9 @@
       "back": "Back to dashboard"
     },
     "clearFilters": "Clear filters",
-    "clear": "Clear"
+    "clear": "Clear",
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month"
   },
   "status": {
     "pending": "Pending",
