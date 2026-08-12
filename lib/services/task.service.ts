@@ -32,9 +32,12 @@ export const taskService = {
    * with the same key replays the cached 201 for 24 h instead of filing a second
    * order. Mint it with `newIdempotencyKey()` into a ref, not per call.
    *
-   * The response's `propertyName` is `""` and its `isEnrolled` is `true` on this
-   * route; both are meaningless here. `Location` points at a PROPERTY-scoped read
-   * an admin cannot follow — do not follow it.
+   * Both are meaningless here, and neither sits where this note used to imply:
+   * `propertyName` is `""` on each entry of the response's **`tasks[]`**
+   * (`TaskItemDto`), not on the `TaskGroupDto` itself, and `isEnrolled` is
+   * `true` on the wire but **deliberately not modelled** — it is this one
+   * route's quirk, so do not add it to `TaskGroupDto`. `Location` points at a
+   * PROPERTY-scoped read an admin cannot follow — do not follow it.
    */
   createAdminGroup: async (
     body: CreateTaskGroupRequest,

@@ -55,6 +55,9 @@ export function WeeklyWorkCard({
   properties: PropertyDto[];
 }) {
   const t = useTranslations("owners");
+  // Borrowed rather than re-added: `workers.calendar` already carries a
+  // translated Previous/Next Week pair in both locales.
+  const tNav = useTranslations("workers.calendar");
   const locale = useLocale();
   const nav = useWeekNavigation();
   const [view, setView] = useState<"calendar" | "table">("calendar");
@@ -96,7 +99,9 @@ export function WeeklyWorkCard({
         size="sm"
         className="size-8 p-0"
         onClick={nav.prev}
-        aria-label={nav.dateRangeLabel}
+        // Direction, not the range: an identical label on both buttons leaves
+        // the chevron as the only cue, which AT users cannot see.
+        aria-label={tNav("previousWeek")}
       >
         <ChevronLeft className="size-4" />
       </Button>
@@ -108,7 +113,7 @@ export function WeeklyWorkCard({
         size="sm"
         className="size-8 p-0"
         onClick={nav.next}
-        aria-label={nav.dateRangeLabel}
+        aria-label={tNav("nextWeek")}
       >
         <ChevronRight className="size-4" />
       </Button>

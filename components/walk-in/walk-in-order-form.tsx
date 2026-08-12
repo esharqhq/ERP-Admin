@@ -239,7 +239,20 @@ function TaskStaffingRow({ task, groupId }: { task: TaskItemDto; groupId: string
       {assigned ? (
         <span className="text-[13px] text-muted-foreground">{t("created.assigned")}</span>
       ) : (
-        <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
+        <Button
+          variant="outline"
+          size="sm"
+          // Reset on the way *in*, not on close: `assigned` reads
+          // `assign.isSuccess`, so resetting on close could flip a staffed row
+          // back to offering this button. Here the row is unstaffed by
+          // definition, so the reset can only clear a stale error — without it,
+          // reopening after a failure re-shows the old message before any new
+          // attempt.
+          onClick={() => {
+            assign.reset();
+            setOpen(true);
+          }}
+        >
           {t("created.assign")}
         </Button>
       )}

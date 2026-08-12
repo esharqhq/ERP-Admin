@@ -30,8 +30,24 @@ export default function WalkInPage() {
   const { data: properties = [], isPending: propertiesPending } =
     useOwnerProperties(walkInId);
 
-  const property = properties[0] ?? null;
-  const settling = walkIn.isPending || (!!walkInId && propertiesPending);
+  /**
+   * The **oldest** property, not `properties[0]`. `GET /api/properties` is
+   * ordered by `name` server-side, so a second property filed under this
+   * account with an earlier-sorting name would silently become the one every
+   * order is booked against — deterministically, not just on an unlucky
+   * refetch. The seeded walk-in property is the oldest by construction.
+   */
+  const property = properties.length
+    ? properties.reduce((oldest, p) =>
+        Date.parse(p.createdAt) < Date.parse(oldest.createdAt) ? p : oldest,
+      )
+    : null;
+  // `owner` is in here too, or the header renders `fullName` as an em dash for
+  // one beat while the form below it is already live. All three queries are
+  // enabled on the same id and run in parallel, so this waits on the slowest
+  // rather than on their sum.
+  const settling =
+    walkIn.isPending || (!!walkInId && (propertiesPending || owner.isPending));
 
   return (
     <div className="flex flex-col gap-6">
