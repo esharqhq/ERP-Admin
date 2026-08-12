@@ -54,6 +54,28 @@ export interface OwnerRowDto {
   propertyCount: number;
   createdAt: string;
   ownerType: OwnerType;
+  /**
+   * F-02 #4. The **company's** city name — `null` for an owner who registered as
+   * a private individual, and `null` for a company that left the field blank.
+   *
+   * ⚠ Render this column **including its blanks.** Those rows are exactly the ones
+   * a `companyCityId` filter can never return, so showing them is what lets a
+   * short filtered list explain itself. Hiding the column makes the filter
+   * silently misleading.
+   */
+  companyCity: string | null;
+  /**
+   * F-02 #4. When the owner last **placed an order** — created a task group on one
+   * of their properties. `null` when they never have.
+   *
+   * ⚠ **Not** a last-seen or last-login value. Label it "Last order", never "Last
+   * activity": an owner who signs in daily but never orders reads as dormant here,
+   * and one who never signs in because their managers order for them reads as
+   * active. There is no login-recency data in this API for any user type.
+   */
+  lastOrderedAt: string | null;
+  /** F-02 #4. Tasks across the properties they own; `0` if none. */
+  taskCount: number;
 }
 
 /**
@@ -80,6 +102,33 @@ export interface OwnerListQuery extends PagedQuery {
   registeredTo?: string;
   propertyCountMin?: number;
   propertyCountMax?: number;
+  /**
+   * F-02 #4. A city **id** from `GET /api/countries/{countryId}/cities`, not a
+   * name — which is why the param is `companyCityId` and the returned column is
+   * `companyCity`.
+   *
+   * ⚠ An unrecognised id returns an **empty page, not an error**: the backend
+   * assumes the value came from that dropdown. A stale id therefore looks like "no
+   * matches" rather than a fault, so clear this whenever the country changes.
+   */
+  companyCityId?: string;
+  lastOrderedFrom?: string;
+  lastOrderedTo?: string;
+  /**
+   * F-02 #4, and **three-state**. `true` → only owners who have never ordered ·
+   * `false` → only those who have · **omitted → both**.
+   *
+   * ⚠ Omitting is NOT the same as sending `false`. `false` hides every owner who
+   * has never ordered, which is usually the exact group being hunted for — so an
+   * unchecked control must send nothing at all.
+   *
+   * ⚠ Sending `true` together with `lastOrderedFrom` or `lastOrderedTo` is
+   * `400 invalid_filter_value`: an owner with no order has no date to compare, so
+   * the pair is a contradiction rather than an empty result.
+   */
+  neverOrdered?: boolean;
+  taskCountMin?: number;
+  taskCountMax?: number;
 }
 
 // ── Admin owner profile edit (F-02b·7, PUT /api/owners/{id}) ────────────────

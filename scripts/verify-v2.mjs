@@ -67,8 +67,13 @@ const EXPECTED_FIELDS = {
   // `ownerType` is F-02b·6's addition and the field the UI keys the walk-in
   // account's four refusals on; the paged envelope was never asserted here,
   // which is how the owners page went on using the unpaged picker endpoint.
+  // F-02 #4's three columns. `companyCity` is a NAME while the filter param is
+  // `companyCityId` — a city lives only on an owner's company record, which is why
+  // the filter can reach neither private individuals nor companies with a blank
+  // city, and why the column must be rendered including its blanks.
   OwnerRowDto: ["id", "fullName", "email", "phoneNumber", "status", "onboardingStatus",
-    "isVerified", "propertyCount", "createdAt", "ownerType"],
+    "isVerified", "propertyCount", "createdAt", "ownerType",
+    "companyCity", "lastOrderedAt", "taskCount"],
   OwnerRowDtoPagedResult: ["items", "total", "page", "pageSize", "totalPages"],
   WorkerRowDto: ["id", "fullName", "email", "phoneNumber", "status", "onboardingStatus",
     "employeeType", "skills", "rating", "experience", "completedTasks",
