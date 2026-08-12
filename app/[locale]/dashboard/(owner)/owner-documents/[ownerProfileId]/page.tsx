@@ -32,7 +32,7 @@ import {
   useUpdateOwnerContractDraft,
 } from "@/hooks/use-contracts";
 import { useUpload } from "@/hooks/use-upload";
-import { newIdempotencyKey } from "@/lib/services/contract.service";
+import { newIdempotencyKey } from "@/lib/http/idempotency";
 import { canAuthorContract, canDecide } from "@/lib/onboarding/status";
 import { describeApiError, isPermissionDenied } from "@/lib/onboarding/errors";
 
