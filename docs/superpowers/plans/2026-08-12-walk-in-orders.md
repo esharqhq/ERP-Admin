@@ -70,10 +70,10 @@ export function newIdempotencyKey(): string {
 
 - [ ] **Step 3: Point the contract service at it**
 
-Delete `idempotent` and `newIdempotencyKey` (and their doc comments) from `lib/services/contract.service.ts` and add to its imports:
+Delete `idempotent` and `newIdempotencyKey` (and their doc comments) from `lib/services/contract.service.ts` and add to its imports — **only `idempotent`**, since the service never calls `newIdempotencyKey` itself and an unused import fails the lint gate:
 
 ```ts
-import { idempotent, newIdempotencyKey } from "@/lib/http/idempotency";
+import { idempotent } from "@/lib/http/idempotency";
 ```
 
 `newIdempotencyKey` was `export`ed from the contract service and the owner-documents page imports it from there. Remove that re-export — one home, not two — and change the page's import to:
