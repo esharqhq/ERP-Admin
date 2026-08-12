@@ -293,7 +293,8 @@
     "agency": "Agency",
     "agencyRequests": "Requests",
     "agencies": "Agencies",
-    "propertyCategories": "Property categories"
+    "propertyCategories": "Property categories",
+    "walkIn": "Walk-in"
   },
   "auth": {
     "logout": "Logout",
@@ -609,6 +610,39 @@
       "walkIn": "Walk-in"
     },
     "systemHint": "This is the permanent walk-in account. It cannot be edited, deleted, messaged or given a contract."
+  },
+  "walkIn": {
+    "title": "Walk-in orders",
+    "subtitle": "File an order taken by phone, Instagram, WhatsApp or Telegram. It is booked under the system account below.",
+    "systemAccount": "System account",
+    "property": "Property",
+    "unseeded": "The walk-in account is not set up in this environment, so no order can be filed. It is created by the backend seeder, not from here.",
+    "noPermission": "Filing an order needs the create-task-group permission, which your role does not hold.",
+    "form": {
+      "title": "Order title",
+      "titlePlaceholder": "Phone order — Frau Weber, 3 rooms",
+      "date": "Date",
+      "startTime": "Start time",
+      "workers": "Workers needed",
+      "instructions": "Instructions for the worker",
+      "instructionsPlaceholder": "Ring twice. Keys with the neighbour.",
+      "submit": "File the order"
+    },
+    "errors": {
+      "titleRequired": "Give the order a title.",
+      "dateRequired": "Pick a date.",
+      "startTimeRequired": "Set a start time.",
+      "workerLimitInvalid": "At least one worker is needed.",
+      "propertyGone": "The walk-in property is no longer there. Reload the page.",
+      "generic": "The order could not be filed. Please try again."
+    },
+    "created": {
+      "title": "Order filed",
+      "body": "Assign a worker now, or leave it for the dispatch queue.",
+      "assign": "Assign worker",
+      "assigned": "Worker assigned",
+      "another": "File another order"
+    }
   },
   "properties": {
     "title": "Properties",
