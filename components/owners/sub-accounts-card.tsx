@@ -1,3 +1,4 @@
+import { Users } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -35,9 +36,12 @@ export function SubAccountsCard({ ownerId }: { ownerId: string }) {
             ))}
           </div>
         ) : subAccounts.length === 0 ? (
-          <p className="text-[13px] text-muted-foreground py-1">
-            {t("subAccounts.empty")}
-          </p>
+          /* The shape the other two cards in this column use for "nothing here",
+             rather than one dim line pinned to the left edge. */
+          <div className="flex flex-col items-center gap-2 py-6 text-center">
+            <Users className="size-8 text-muted-foreground/40" />
+            <p className="text-sm text-muted-foreground">{t("subAccounts.empty")}</p>
+          </div>
         ) : (
           subAccounts.map((account, idx) => (
             <div key={account.id}>

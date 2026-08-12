@@ -15,7 +15,6 @@ import type { KycRead } from "@/lib/owners/detail-actions";
 import { HeroCard } from "@/components/owners/hero-card";
 import { PropertyList } from "@/components/owners/property-list";
 import { WeeklyWorkCard } from "@/components/owners/weekly-work-card";
-import { ContactCard } from "@/components/owners/contact-card";
 import { OwnerDocumentsCard } from "@/components/owners/owner-documents-card";
 import { SubAccountsCard } from "@/components/owners/sub-accounts-card";
 import { OwnerActions } from "@/components/owners/owner-actions";
@@ -64,10 +63,12 @@ export default function OwnerDetailPage({
    * the walk-in account — clickable — until these two land. A guard that is
    * only usually applied is not a guard.
    *
-   * Scoped to the action row, not the page: nothing else here depends on these
-   * two reads, and blocking the hero card, properties and timeline on them
-   * would slow every owner view to buy safety only the buttons need. Both
-   * queries carry `retry: false`, so this always resolves.
+   * Scoped to the action row, not the page: the hero card reads `kyc` too, for
+   * the onboarding badge and the legal name, but it renders those late rather
+   * than late-and-blocking — nothing there is destructive if it is briefly
+   * unknown. Blocking the hero card, properties and timeline on these two would
+   * slow every owner view to buy safety only the buttons need. Both queries
+   * carry `retry: false`, so this always resolves.
    */
   const guardsReady = !kyc.isPending && !walkIn.isPending;
 
@@ -88,11 +89,18 @@ export default function OwnerDetailPage({
     return (
       <div className="flex flex-col gap-6">
         {backButton}
-        <Skeleton className="h-48 w-full rounded-xl" />
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-24 rounded-xl" />
-          ))}
+        {/* Mirrors the real layout — hero, then the 2/1 split. It used to be a
+            hero and a four-card stat row, and that row has not existed since the
+            stats moved into the hero: the loading state was promising a shape
+            the loaded page never delivered. Each block is a little shorter than
+            what replaces it, so the page settles rather than jumping. */}
+        <Skeleton className="h-72 w-full rounded-xl" />
+        <div className="grid gap-6 lg:grid-cols-3">
+          <Skeleton className="h-80 rounded-xl lg:col-span-2" />
+          <div className="flex flex-col gap-6">
+            <Skeleton className="h-32 rounded-xl" />
+            <Skeleton className="h-44 rounded-xl" />
+          </div>
         </div>
       </div>
     );
@@ -132,14 +140,16 @@ export default function OwnerDetailPage({
         </div>
       ) : null}
 
-      {/* Role and onboarding stage live here and nowhere else — the stat row
-          that repeated them is gone, along with a `joined` card the contact
-          card already carried and a property count the Properties card states
-          in its own header. */}
+      {/* Role, onboarding stage, the contact facts and the contract period all
+          live here and nowhere else — the stat row that repeated the first two is
+          gone, along with a `joined` card, the sidebar contact card the hero
+          absorbed, and a property count the Properties card now really does
+          state in its own header. */}
       <HeroCard
         owner={owner}
         isWalkIn={actions.isWalkIn}
         onboardingStatus={kyc.data?.onboardingStatus ?? null}
+        identity={identity}
       />
 
       <div className="grid gap-6 lg:grid-cols-3">
@@ -148,7 +158,6 @@ export default function OwnerDetailPage({
         </div>
 
         <div className="flex flex-col gap-6">
-          <ContactCard owner={owner} identity={identity} />
           <PropertyList properties={properties} />
           <OwnerDocumentsCard
             ownerProfileId={kyc.data?.ownerProfileId ?? null}

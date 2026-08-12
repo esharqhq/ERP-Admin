@@ -18,11 +18,11 @@ import {
 import { describeApiError, isPermissionDenied } from "@/lib/onboarding/errors";
 import { onboardingStatusPresentation } from "@/lib/onboarding/status";
 import {
+  coverNoteKey,
   coverPresentation,
   type CoverPresentation,
   type SubjectRow,
 } from "@/lib/onboarding/subject-row";
-import type { ContractPhase } from "@/lib/types/onboarding.types";
 import { cn } from "@/lib/utils";
 
 const COLUMN_COUNT = 6;
@@ -185,6 +185,7 @@ function SubjectRowCells({
   // No clock yet (server render) → dates only, no strip and no annotation.
   const cover =
     row.cover && today > 0 ? coverPresentation(row.cover, today) : null;
+  const note = row.cover && cover ? coverNoteKey(row.cover.phase, cover) : null;
 
   return (
     <TableRow className="relative cursor-pointer hover:bg-accent/40">
@@ -244,7 +245,7 @@ function SubjectRowCells({
                   would make the annotation invisible. The reading is always
                   available to a screen reader, annotated or not. */}
               <span className={cover.annotate ? undefined : "sr-only"}>
-                {coverNote(row.cover.phase, cover, t)}
+                {note ? t(note.key as Parameters<typeof t>[0], note.values) : null}
               </span>
             </span>
           </div>
@@ -265,25 +266,6 @@ const TEXT_TONE: Record<CoverPresentation["tone"], string> = {
   warning: "text-amber-700 dark:text-amber-400",
   critical: "text-destructive",
 };
-
-function coverNote(
-  phase: ContractPhase,
-  cover: CoverPresentation,
-  t: (key: string, values?: Record<string, string | number>) => string,
-): string {
-  // `Terminated` is a period cut short, never an expiry — rendering it as "expired"
-  // would misreport a force-terminate or a document lapse as a natural end.
-  if (phase === "Terminated") return t("cover.endedEarly");
-  if (phase === "Expired" || phase === "Lapsed") return t("cover.expired");
-  if (cover.pending) return t("cover.awaitingSignature");
-  // Said before "days left": a period that has not begun does not cover today, and
-  // that is the fact an operator must not misread off two innocent-looking dates.
-  if (cover.daysUntilStart > 0)
-    return t("cover.startsIn", { days: cover.daysUntilStart });
-  if (cover.daysLeft < 0) return t("cover.expired");
-  if (cover.daysLeft === 0) return t("cover.endsToday");
-  return t("cover.daysLeft", { days: cover.daysLeft });
-}
 
 /**
  * Day, abbreviated month, year — `28 Feb 2026`, `28. Feb. 2026` in German.

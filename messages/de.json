@@ -550,6 +550,10 @@
       "openAll": "Prüfen",
       "unavailable": "Dokumente sind mit Ihren Berechtigungen nicht sichtbar."
     },
+    "contract": {
+      "title": "Vertrag",
+      "unavailable": "Vertragsdaten sind mit Ihren Berechtigungen nicht sichtbar."
+    },
     "message": {
       "action": "Nachricht",
       "title": "Ticket für diesen Eigentümer öffnen",

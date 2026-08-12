@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Home } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useLocale, useTranslations } from "next-intl";
 import { categoryName } from "@/lib/properties/table-rows";
@@ -17,22 +16,23 @@ export function PropertyList({ properties }: PropertyListProps) {
 
   return (
     <Card>
+      {/* The count replaces a "Properties list" subtitle that only restated the
+          title, and a "View All" button that went to the *global* properties
+          table. This list is already every property this owner holds:
+          `GET /api/properties?ownerUserId=` takes no page parameter and returns a
+          bare `List<PropertyDto>` (`Backend/index/controllers/properties.md:15`),
+          and nothing here caps it. So the button led away from a complete answer
+          to a less relevant one while its label promised the opposite. Each row
+          still opens its own property. */}
       <CardHeader className="flex flex-row items-center justify-between gap-2 pb-3">
-        <div>
-          <h2 className="font-heading text-base font-semibold tracking-tight">{t("properties.title")}</h2>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            {t("properties.list")}
-          </p>
-        </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          nativeButton={false}
-          render={<Link href="/dashboard/properties" />}
-          className="text-primary"
-        >
-          {t("properties.viewAll")}
-        </Button>
+        <h2 className="font-heading text-base font-semibold tracking-tight">
+          {t("properties.title")}
+        </h2>
+        {properties.length > 0 ? (
+          <Badge variant="secondary" className="tabular-nums">
+            {properties.length}
+          </Badge>
+        ) : null}
       </CardHeader>
 
       {properties.length === 0 ? (

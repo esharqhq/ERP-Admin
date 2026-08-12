@@ -550,6 +550,10 @@
       "openAll": "Review",
       "unavailable": "Documents are not visible with your permissions."
     },
+    "contract": {
+      "title": "Contract",
+      "unavailable": "Contract dates are not visible with your permissions."
+    },
     "message": {
       "action": "Message",
       "title": "Open a ticket for this owner",
