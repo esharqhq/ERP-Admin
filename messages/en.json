@@ -36,7 +36,10 @@
     "clearFilters": "Clear filters",
     "clear": "Clear",
     "previousMonth": "Previous month",
-    "nextMonth": "Next month"
+    "nextMonth": "Next month",
+    "min": "Min",
+    "max": "Max",
+    "filtersActive": "{count, plural, =0 {No filters applied} one {# filter applied} other {# filters applied}}"
   },
   "status": {
     "pending": "Pending",

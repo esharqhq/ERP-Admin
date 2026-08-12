@@ -265,6 +265,10 @@ export default function OwnersPage() {
                 clearLabel={tCommon("clearFilters")}
                 orderErrorLabel={t("filters.rangeOrder")}
                 negativeErrorLabel={t("filters.rangeNegative")}
+                // Seven dimensions do not fit a readable row — they ran off the
+                // right edge. Behind a drawer, with a chip per active filter so
+                // "filters are on" stays visible without opening it.
+                collapsible
               />
             }
             columns={columns}

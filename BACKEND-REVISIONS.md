@@ -59,8 +59,11 @@ Guides whose `Consumers:` do not include `admin-panel` are deliberately absent: 
 Several entries list **sort keys** and **export columns** among their changes. Neither can be absorbed
 here, because **neither surface exists anywhere in this app**:
 
-- **No admin table sorts.** `DataTableColumn` is `{ label, className }` — no sort affordance on any
-  screen, and no page sends `sortBy`/`dir`.
+- **No table sorts *server-side*.** No page sends `sortBy`/`dir`, and `DataTableColumn` is
+  `{ label, className }` with no sort affordance. A `SortableTableHead` primitive **does** exist and the
+  attendance screen uses it — but that sort is client-side over already-fetched rows
+  (`useAttendanceTable` holds local `sortKey`/`sortDir`), which is not what a `sortBy` whitelist is for.
+  So the primitive is reusable; the plumbing is what is missing.
 - **No admin table exports.** Nothing calls any export route: no `?format=`, no `/export`. The only CSV
   in the app is the attendance screen's client-side one.
 
