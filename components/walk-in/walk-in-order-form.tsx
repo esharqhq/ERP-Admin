@@ -219,9 +219,19 @@ function CreatedPanel({
 
 function TaskStaffingRow({ task, groupId }: { task: TaskItemDto; groupId: string }) {
   const t = useTranslations("walkIn");
+  const tAssign = useTranslations("workers.assignErrors");
   const [open, setOpen] = useState(false);
   const assign = useAssignWorker(groupId);
   const assigned = task.workers.length > 0 || assign.isSuccess;
+
+  // Computed once: `getApiErrorCode` returns `null` for a 403 with an empty body
+  // (the permission-denial case), and re-deriving the code inside the `tAssign(...)`
+  // call would stringify that `null` to the literal text "null" — a key that does
+  // not exist — instead of falling back to "unknown". `||` (not `??`) so a `{error: ""}`
+  // body also falls back, rather than suppressing the error message entirely.
+  const assignErrorCode = assign.isError
+    ? getApiErrorCode(assign.error) || "unknown"
+    : null;
 
   return (
     <div className="flex items-center justify-between gap-3 rounded-lg border border-border p-2.5">
@@ -240,7 +250,13 @@ function TaskStaffingRow({ task, groupId }: { task: TaskItemDto; groupId: string
           open={open}
           onClose={() => !assign.isPending && setOpen(false)}
           isPending={assign.isPending}
-          error={assign.isError ? t("errors.generic") : null}
+          error={
+            assignErrorCode
+              ? tAssign.has(assignErrorCode)
+                ? tAssign(assignErrorCode as Parameters<typeof tAssign>[0])
+                : tAssign("unknown")
+              : null
+          }
           onAssign={(workerId) =>
             assign.mutate(
               { taskId: task.id, workerId },
