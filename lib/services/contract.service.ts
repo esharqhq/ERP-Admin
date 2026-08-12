@@ -1,4 +1,5 @@
 import { apiClient } from "@/lib/http/client";
+import { idempotent } from "@/lib/http/idempotency";
 import type {
   AdminOwnerContractDto,
   AdminWorkerContractDto,
@@ -7,27 +8,6 @@ import type {
   CreateOwnerContractRequest,
   CreateWorkerContractRequest,
 } from "@/lib/types/contract.types";
-
-/**
- * Both renew routes require this header, and the key must stay **the same across
- * retries of one intent** — that is the whole point: a replay returns the cached
- * 201 for 24 h instead of authoring a second draft.
- *
- * So the caller supplies it. Generating it in here would give every retry a fresh
- * key, turning a retried renewal into a duplicate contract — exactly what the
- * header exists to prevent.
- */
-function idempotent(key: string) {
-  return { headers: { "X-Idempotency-Key": key } };
-}
-
-/**
- * Mint one key per user-initiated renewal attempt and hold it (a ref, not state)
- * for as long as that attempt may be retried. Do not call it per request.
- */
-export function newIdempotencyKey(): string {
-  return crypto.randomUUID();
-}
 
 export const contractService = {
   // ── Owner ──────────────────────────────────────────────────────────────────

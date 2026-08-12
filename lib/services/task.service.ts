@@ -1,10 +1,12 @@
 import { apiClient } from "@/lib/http/client";
+import { idempotent } from "@/lib/http/idempotency";
 import type {
   TaskGroupDto,
   TaskItemDto,
   WorkerRatingDto,
   SubmitTaskWorkerStarRequest,
   OverrideTaskWorkerOutcomeRequest,
+  CreateTaskGroupRequest,
 } from "@/lib/types/task.types";
 
 export const taskService = {
@@ -17,6 +19,34 @@ export const taskService = {
     const { data } = await apiClient.get<TaskGroupDto[]>(
       "/api/tasks/admin/groups",
       { params },
+    );
+    return data;
+  },
+
+  /**
+   * `task_group:create_any` (110038, SUPER_ADMIN only) — an admin creates a task
+   * group on behalf of a property's owner. The body carries no `ownerUserId`:
+   * a `propertyId` already implies its owner.
+   *
+   * `idempotencyKey` must be **held across retries of one attempt** — a repeat
+   * with the same key replays the cached 201 for 24 h instead of filing a second
+   * order. Mint it with `newIdempotencyKey()` into a ref, not per call.
+   *
+   * Both are meaningless here, and neither sits where this note used to imply:
+   * `propertyName` is `""` on each entry of the response's **`tasks[]`**
+   * (`TaskItemDto`), not on the `TaskGroupDto` itself, and `isEnrolled` is
+   * `true` on the wire but **deliberately not modelled** — it is this one
+   * route's quirk, so do not add it to `TaskGroupDto`. `Location` points at a
+   * PROPERTY-scoped read an admin cannot follow — do not follow it.
+   */
+  createAdminGroup: async (
+    body: CreateTaskGroupRequest,
+    idempotencyKey: string,
+  ): Promise<TaskGroupDto> => {
+    const { data } = await apiClient.post<TaskGroupDto>(
+      "/api/tasks/admin/groups",
+      body,
+      idempotent(idempotencyKey),
     );
     return data;
   },

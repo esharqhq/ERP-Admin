@@ -109,9 +109,22 @@ export function useOwnerKyc(ownerUserId: string) {
  * `staleTime: Infinity` because a bootstrap account id cannot change under a
  * running session: this costs one request per session, not one per owner.
  *
- * Resolves to `null` rather than throwing when the lookup is refused (the admin
- * lacks `owner:list`) or the environment is unseeded. Both leave the walk-in
- * guard inert, which is the reason the backend field is worth asking for.
+ * An **empty** page (no walk-in row) resolves to `null` — that is the
+ * unseeded-environment case. A **refused** (403, missing `owner:list`) or
+ * **failed** (500, network) request is NOT folded into `null`: it leaves the
+ * query in its `error` state instead, and every caller must branch on
+ * `isError` separately rather than treat an unresolved id as "no such
+ * account".
+ *
+ * This is why a caller may not simply swallow the error to match a tidy
+ * `string | null` contract: the owner detail page's walk-in guard treats an
+ * unresolved id as "this is not the walk-in account" and re-enables Edit,
+ * Delete, Message and Create contract against it — actions the server will
+ * refuse (`409 owner_is_system`, or a 400 for ticket/contract) once the
+ * lookup that failed is retried and turns out to have been the walk-in
+ * account all along. A caller that can distinguish "no such account" from
+ * "couldn't check" should say so, not collapse both into the same
+ * failure-open `null`.
  */
 export function useWalkInOwnerId() {
   return useQuery({
