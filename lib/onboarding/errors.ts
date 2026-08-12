@@ -111,7 +111,31 @@ const CATALOG: Record<string, Omit<ApiErrorInfo, "code">> = {
   contract_expiring_imminently: { labelKey: "gateContractExpiringImminently", reaction: "gate" },
   task_date_beyond_contract: { labelKey: "taskDateBeyondContract", reaction: "toast" },
   worker_contract_ends_before_task: { labelKey: "workerContractEndsBeforeTask", reaction: "toast" },
-  property_docs_not_approved: { labelKey: "propertyDocsNotApproved", reaction: "toast" },
+  // `property_docs_not_approved` used to sit here. F-02c deleted the gate *and*
+  // the whole property-document feature on 2026-08-07 — every property is
+  // task-ready the moment it exists — so the code can never arrive again.
+
+  // ── properties (F-02c) ──────────────────────────────────────────────────
+  // Both arrive as 400 on create and update. `not_found` is also what an
+  // *omitted* propertyCategoryId produces: it binds to Guid.Empty, which then
+  // fails the existence lookup — so this message must read as "pick a
+  // category", not as "that category was deleted".
+  // ── owners (F-02b·7, F-02b·6) ────────────────────────────────────────────
+  // Blocks a delete while the owner has a Pending/Active/Review task. Replaced
+  // `boss_has_active_properties`, which no longer exists — and means something
+  // different: owning properties never blocked deletion again, only open work
+  // does. There is no admin action that clears it (an Active/Review task cannot
+  // be cancelled by anyone), so the copy must say "wait", not "cancel them".
+  owner_has_open_tasks: { labelKey: "ownerHasOpenTasks", reaction: "toast" },
+  // The permanent "Walk-in / Manual Orders" account. One code, four refusals:
+  // 409 on edit and delete (acting *on* the owner), 400 on ticket and contract
+  // (the owner is an invalid argument to something else).
+  owner_is_system: { labelKey: "ownerIsSystem", reaction: "toast" },
+
+  property_category_not_found: { labelKey: "propertyCategoryNotFound", reaction: "toast" },
+  property_category_inactive: { labelKey: "propertyCategoryInactive", reaction: "toast" },
+  target_owner_must_be_boss: { labelKey: "targetOwnerMustBeBoss", reaction: "toast" },
+  property_not_found: { labelKey: "propertyNotFound", reaction: "not-found" },
 
   // ── tables, exports, lookups, tickets ───────────────────────────────────
   invalid_sort_column: { labelKey: "invalidSortColumn", reaction: "toast" },

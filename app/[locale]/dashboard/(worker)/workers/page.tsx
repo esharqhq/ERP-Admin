@@ -524,7 +524,7 @@ function WorkersCalendar() {
           </div>
         </CardHeader>
 
-        <div className="overflow-x-auto border-t border-border">
+        <div className="scrollbar-slim overflow-x-auto border-t border-border">
           <table className="w-full border-collapse text-sm">
             <thead>
               <tr>

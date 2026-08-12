@@ -1,42 +1,38 @@
 import Link from "next/link";
 import { Home } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import { categoryName } from "@/lib/properties/table-rows";
 import type { PropertyDto } from "@/lib/types/property.types";
 
 interface PropertyListProps {
   properties: PropertyDto[];
 }
 
-function docsStatusVariant(status: string | null): "default" | "secondary" | "destructive" {
-  if (status === "Approved") return "default";
-  if (status === "Rejected") return "destructive";
-  return "secondary";
-}
-
 export function PropertyList({ properties }: PropertyListProps) {
   const t = useTranslations("owners");
+  const locale = useLocale();
 
   return (
     <Card>
+      {/* The count replaces a "Properties list" subtitle that only restated the
+          title, and a "View All" button that went to the *global* properties
+          table. This list is already every property this owner holds:
+          `GET /api/properties?ownerUserId=` takes no page parameter and returns a
+          bare `List<PropertyDto>` (`Backend/index/controllers/properties.md:15`),
+          and nothing here caps it. So the button led away from a complete answer
+          to a less relevant one while its label promised the opposite. Each row
+          still opens its own property. */}
       <CardHeader className="flex flex-row items-center justify-between gap-2 pb-3">
-        <div>
-          <h2 className="font-heading text-base font-semibold tracking-tight">{t("properties.title")}</h2>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            {t("properties.list")}
-          </p>
-        </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          nativeButton={false}
-          render={<Link href="/dashboard/properties" />}
-          className="text-primary"
-        >
-          {t("properties.viewAll")}
-        </Button>
+        <h2 className="font-heading text-base font-semibold tracking-tight">
+          {t("properties.title")}
+        </h2>
+        {properties.length > 0 ? (
+          <Badge variant="secondary" className="tabular-nums">
+            {properties.length}
+          </Badge>
+        ) : null}
       </CardHeader>
 
       {properties.length === 0 ? (
@@ -57,17 +53,16 @@ export function PropertyList({ properties }: PropertyListProps) {
               </div>
               <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <span className="truncate text-[13px] font-medium leading-tight">
-                  {property.name ?? t("properties.unnamed")}
+                  {property.name || t("properties.unnamed")}
                 </span>
                 <span className="truncate text-[11px] text-muted-foreground">
-                  {property.address ?? "—"}
+                  {property.address}
                 </span>
-                {property.type && (
-                  <span className="text-[10px] text-muted-foreground/70">{property.type}</span>
-                )}
               </div>
-              <Badge variant={docsStatusVariant(property.docsStatus)} className="shrink-0 text-[10px]">
-                {property.docsStatus ?? "Pending"}
+              {/* Was a docs-status badge; a property has no review status since
+                  F-02c, so the slot shows what it actually is instead. */}
+              <Badge variant="secondary" className="shrink-0 text-[10px] font-normal">
+                {categoryName(property.category, locale)}
               </Badge>
             </Link>
           ))}

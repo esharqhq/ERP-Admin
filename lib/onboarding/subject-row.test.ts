@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
+  coverNoteKey,
   coverPresentation,
   indexCover,
   ownerContractSubjectId,
+  ownerContractUserId,
   withCover,
   type SubjectCover,
   type SubjectRow,
@@ -104,6 +106,62 @@ describe("indexCover — which contract governs", () => {
   it("still surfaces a subject whose only contract has ended", () => {
     const map = indexCover([row("c", "Expired", -400, -30)], ownerContractSubjectId);
     expect(map.get("c")?.phase).toBe("Expired");
+  });
+});
+
+describe("coverNoteKey — the six readings, and their precedence", () => {
+  function note(from: number, to: number, phase: SubjectCover["phase"]) {
+    const c = cover(iso(from), iso(to), phase);
+    return coverNoteKey(phase, coverPresentation(c, TODAY));
+  }
+
+  it("never reports a force-terminate as an expiry", () => {
+    // Dates of a period that ran out months ago — the phase still wins.
+    expect(note(-400, -30, "Terminated").key).toBe("cover.endedEarly");
+  });
+
+  it("reads both expiry phases as expired", () => {
+    expect(note(-400, -30, "Expired").key).toBe("cover.expired");
+    expect(note(-400, -30, "Lapsed").key).toBe("cover.expired");
+  });
+
+  it("says a draft or sent period is unsigned rather than counting its days", () => {
+    expect(note(-10, 200, "Draft").key).toBe("cover.awaitingSignature");
+    expect(note(-10, 200, "Sent").key).toBe("cover.awaitingSignature");
+  });
+
+  it("announces a future start before any days-left reading", () => {
+    // The trap this branch exists for: signed, starts in 14 days, ends in 400.
+    // Both dates look like cover and "386 days left" would be read as covered.
+    expect(note(14, 400, "Scheduled")).toEqual({
+      key: "cover.startsIn",
+      values: { days: 14 },
+    });
+  });
+
+  it("counts down an in-force period and calls its last day out", () => {
+    expect(note(-10, 12, "InForce")).toEqual({
+      key: "cover.daysLeft",
+      values: { days: 12 },
+    });
+    expect(note(-10, 0, "InForce").key).toBe("cover.endsToday");
+  });
+
+  it("falls back to expired when an InForce row's end date has already passed", () => {
+    // `phase` is computed per read and this shape means the read raced the
+    // hourly job. The dates are the truth, so they win over the stale phase.
+    expect(note(-400, -3, "InForce").key).toBe("cover.expired");
+  });
+});
+
+describe("ownerContractUserId", () => {
+  it("keys the same index by user id, so a detail screen skips the KYC read", () => {
+    const rows = [
+      { ownerProfileId: "profile-1", ownerUserId: "user-1", eligibleFrom: iso(-10), eligibleTo: iso(20), phase: "InForce" },
+    ] as unknown as AdminOwnerContractDto[];
+
+    expect(indexCover(rows, ownerContractUserId).get("user-1")?.phase).toBe("InForce");
+    expect(indexCover(rows, ownerContractSubjectId).get("user-1")).toBeUndefined();
   });
 });
 

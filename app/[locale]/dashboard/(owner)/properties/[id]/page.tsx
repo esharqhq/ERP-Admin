@@ -8,18 +8,9 @@ import { PropertyHero } from "@/components/properties/property-hero";
 import { PropertyInfo } from "@/components/properties/property-info";
 import { PropertyMapCard } from "@/components/properties/property-map-card";
 import { PropertyOwnerCard } from "@/components/properties/property-owner-card";
-import { PropertyStatusCard } from "@/components/properties/property-status-card";
-import { PropertyDocsCard } from "@/components/properties/property-docs-card";
-import { Can } from "@/components/auth/can";
+import { PropertyGalleryCard } from "@/components/properties/property-gallery-card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useHasPermission } from "@/hooks/use-current-permissions";
-import {
-  usePropertyById,
-  useAdminPropertyDocs,
-  useApprovePropertyDocs,
-  useRejectPropertyDocs,
-  useResetPropertyDocs,
-} from "@/hooks/use-properties";
+import { usePropertyById } from "@/hooks/use-properties";
 
 export default function PropertyDetailPage({
   params,
@@ -29,11 +20,6 @@ export default function PropertyDetailPage({
   const { id } = use(params);
   const t = useTranslations("properties");
   const { data: property, isLoading, isError } = usePropertyById(id);
-  const canReadDocs = useHasPermission("property:doc:read_any");
-  const { data: docsBundle } = useAdminPropertyDocs(id, canReadDocs);
-  const { mutate: approve, isPending: isApproving } = useApprovePropertyDocs();
-  const { mutate: reject, isPending: isRejecting } = useRejectPropertyDocs();
-  const { mutate: reset, isPending: isResetting } = useResetPropertyDocs();
 
   if (isLoading) {
     return (
@@ -67,27 +53,17 @@ export default function PropertyDetailPage({
       <ActionBar actions={<PropertyActions property={property} />} />
       <PropertyHero property={property} />
       <div className="grid gap-6 lg:grid-cols-3">
+        {/* The gallery leads the main column: photos are what an admin opening
+            a property actually wants to see, and the measurements below are
+            reference. It replaced the docs-review and docs-status cards F-02c
+            deleted — a property has no review state left to show. */}
         <div className="flex flex-col gap-6 lg:col-span-2">
-          <PropertyInfo property={property} />
+          <PropertyGalleryCard propertyId={property.id} />
           <PropertyMapCard property={property} />
         </div>
         <div className="flex flex-col gap-6">
-          <PropertyStatusCard property={property} />
-          {docsBundle && (
-            <Can permission="property:doc:read_any">
-              <PropertyDocsCard
-                propertyId={id}
-                bundle={docsBundle}
-                onApprove={() => approve(id)}
-                onReject={(reason) => reject({ propertyId: id, reason })}
-                onReset={(reason) => reset({ propertyId: id, reason })}
-                isApproving={isApproving}
-                isRejecting={isRejecting}
-                isResetting={isResetting}
-              />
-            </Can>
-          )}
           <PropertyOwnerCard property={property} />
+          <PropertyInfo property={property} />
         </div>
       </div>
     </div>

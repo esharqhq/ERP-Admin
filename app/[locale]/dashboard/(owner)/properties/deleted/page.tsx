@@ -23,6 +23,7 @@ import { ConfirmDialog } from "@/components/tasks/confirm-dialog";
 import { useDeletedProperties, useRestoreProperty } from "@/hooks/use-properties";
 import { useHasPermission } from "@/hooks/use-current-permissions";
 import { getApiErrorCode } from "@/lib/http/api-error";
+import { categoryName } from "@/lib/properties/table-rows";
 import type { PropertyDto } from "@/lib/types/property.types";
 
 function formatDate(iso: string, locale: string): string {
@@ -109,7 +110,7 @@ export default function DeletedPropertiesPage() {
               <TableRow>
                 <TableHead>{t("columns.name")}</TableHead>
                 <TableHead>{t("columns.address")}</TableHead>
-                <TableHead>{t("columns.type")}</TableHead>
+                <TableHead>{t("columns.category")}</TableHead>
                 <TableHead>{t("columns.createdAt")}</TableHead>
                 <TableHead className="text-right">{t("columns.actions")}</TableHead>
               </TableRow>
@@ -138,14 +139,16 @@ export default function DeletedPropertiesPage() {
               ) : (
                 properties.map((p) => (
                   <TableRow key={p.id} className="hover:bg-accent/40">
-                    <TableCell className="py-3 font-medium">{p.name ?? "—"}</TableCell>
+                    <TableCell className="py-3 font-medium">{p.name}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                         <MapPin className="size-3.5 shrink-0" />
-                        {p.address ?? "—"}
+                        {p.address}
                       </div>
                     </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{p.type ?? "—"}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {categoryName(p.category, locale)}
+                    </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
                       {formatDate(p.createdAt, locale)}
                     </TableCell>

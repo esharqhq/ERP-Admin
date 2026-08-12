@@ -32,7 +32,9 @@
       "title": "Seite nicht gefunden",
       "description": "Die gesuchte Seite existiert nicht oder Sie haben keine Berechtigung, sie anzuzeigen.",
       "back": "Zurück zum Dashboard"
-    }
+    },
+    "clearFilters": "Filter zurücksetzen",
+    "clear": "Leeren"
   },
   "status": {
     "pending": "Ausstehend",
@@ -49,7 +51,8 @@
       "approved": "Genehmigt",
       "contract": "Vertrag gesendet",
       "active": "Aktiv",
-      "unknown": "Unbekannt"
+      "unknown": "Unbekannt",
+      "notApplicable": "Nicht zutreffend"
     },
     "phase": {
       "draft": "Entwurf",
@@ -104,7 +107,6 @@
       "gateContractExpiringImminently": "Der Vertrag dieses Kontos endet innerhalb von 24 Stunden — es kann nichts Neues angelegt werden.",
       "taskDateBeyondContract": "Mindestens ein Datum liegt nach dem Vertragsende.",
       "workerContractEndsBeforeTask": "Dieses Datum liegt nach dem Vertragsende des Mitarbeiters.",
-      "propertyDocsNotApproved": "Die Dokumente des Objekts müssen zuerst genehmigt werden.",
       "invalidSortColumn": "Diese Spalte kann nicht sortiert werden.",
       "invalidFilterValue": "Prüfen Sie die Filterwerte — ein Bereich ist inkonsistent.",
       "invalidFormat": "Nicht unterstütztes Exportformat.",
@@ -126,7 +128,13 @@
       "incompleteDocumentSet": "Der Dokumentensatz ist unvollständig. Ein Identitätsdokument ist erforderlich — Pass, Personalausweis oder Aufenthaltstitel — und ein Handelsregisterauszug, wenn ein Unternehmen angegeben ist. Eine Gewerbeerlaubnis ersetzt den Registerauszug nicht.",
       "invalidDocumentType": "Eines der Dokumente hat einen unbekannten Typ. Es wurde nichts gespeichert.",
       "validation": "Einige Angaben wurden nicht akzeptiert. Bitte prüfen Sie die markierten Felder und versuchen Sie es erneut.",
-      "unknown": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
+      "unknown": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.",
+      "propertyCategoryNotFound": "Wählen Sie eine Objektkategorie — die übermittelte existiert nicht.",
+      "propertyCategoryInactive": "Diese Kategorie wurde deaktiviert. Bitte wählen Sie eine aktive.",
+      "targetOwnerMustBeBoss": "Objekte können nur für einen BOSS-Eigentümer angelegt werden.",
+      "propertyNotFound": "Dieses Objekt existiert nicht mehr.",
+      "ownerHasOpenTasks": "Dieser Eigentümer hat laufende Arbeit — warten Sie, bis die offenen Aufgaben abgeschlossen sind.",
+      "ownerIsSystem": "Dies ist das dauerhafte Laufkundschafts-Konto — es kann nicht bearbeitet, gelöscht, angeschrieben oder mit einem Vertrag versehen werden."
     }
   },
   "docsWorkspace": {
@@ -284,7 +292,8 @@
     "notifications": "Benachrichtigungen",
     "agency": "Agentur",
     "agencyRequests": "Anfragen",
-    "agencies": "Agenturen"
+    "agencies": "Agenturen",
+    "propertyCategories": "Objektkategorien"
   },
   "auth": {
     "logout": "Abmelden",
@@ -412,7 +421,9 @@
       "email": "E-Mail",
       "documents": "Dokumente",
       "actions": "Aktionen",
-      "onboardingStatus": "Phase"
+      "onboardingStatus": "Phase",
+      "onboarding": "Onboarding",
+      "properties": "Objekte"
     },
     "detail": {
       "documents": "Dokumente",
@@ -479,7 +490,103 @@
       "unverifiedHint": "Noch nicht verifiziert",
       "joinedHint": "Registrierungsdatum",
       "roleHint": "Kontorolle",
-      "propertiesHint": "Eigene Objekte"
+      "propertiesHint": "Eigene Objekte",
+      "legalName": "Rechtlicher Name",
+      "legalNameHint": "Aus dem Reisepass — getrennt vom Anzeigenamen oben",
+      "call": "Anrufen"
+    },
+    "edit": {
+      "action": "Namen bearbeiten",
+      "title": "Rechtlichen Namen korrigieren",
+      "description": "Dies ist der Name im Reisepass des Eigentümers. Er ist getrennt vom selbst gewählten Anzeigenamen; beide werden bewusst nicht abgeglichen.",
+      "firstName": "Rechtlicher Vorname",
+      "lastName": "Rechtlicher Nachname",
+      "reasonLabel": "Grund",
+      "reasonPlaceholder": "Warum wird dies korrigiert? Wird im Audit-Log erfasst.",
+      "reasonRequired": "Ein Grund ist erforderlich.",
+      "nothingToSave": "Geben Sie mindestens einen Namen ein.",
+      "confirm": "Speichern",
+      "locks": {
+        "selfEditable": "In dieser Phase kann der Eigentümer dies selbst korrigieren, daher werden Admin-Änderungen abgelehnt. Bearbeitbar, sobald die Dokumente zur Prüfung gehen.",
+        "noProfile": "Dieses Konto hat keinen Identitätsdatensatz, es gibt also keinen rechtlichen Namen zu korrigieren."
+      },
+      "errors": {
+        "reasonRequired": "Ein Grund ist erforderlich.",
+        "noProfile": "Dieses Konto hat keinen Identitätsdatensatz, es gibt also keinen rechtlichen Namen zu korrigieren.",
+        "canSelfEdit": "Der Eigentümer kann dies derzeit selbst korrigieren, daher wird die Admin-Route abgelehnt.",
+        "isSystem": "Das dauerhafte Laufkundschafts-Konto kann nicht bearbeitet werden.",
+        "notFound": "Eigentümer nicht gefunden.",
+        "forbidden": "Sie haben keine Berechtigung, Eigentümernamen zu bearbeiten.",
+        "generic": "Änderung konnte nicht gespeichert werden. Bitte erneut versuchen."
+      }
+    },
+    "work": {
+      "title": "Gebuchte Arbeit",
+      "viewCalendar": "Kalender",
+      "viewTable": "Tabelle",
+      "unstaffed": "—",
+      "more": "+{count}",
+      "columns": {
+        "date": "Datum",
+        "property": "Objekt",
+        "time": "Zeit",
+        "worker": "Mitarbeiter",
+        "booking": "Buchung",
+        "status": "Status"
+      },
+      "status": {
+        "all": "Alle",
+        "Pending": "Geplant",
+        "Active": "Läuft",
+        "Review": "In Prüfung",
+        "Done": "Abgeschlossen",
+        "Cancelled": "Storniert"
+      }
+    },
+    "documents": {
+      "title": "Dokumente",
+      "subtitle": "Zur Verifizierung eingereicht",
+      "empty": "Dieser Eigentümer hat noch keine Dokumente eingereicht.",
+      "openAll": "Prüfen",
+      "unavailable": "Dokumente sind mit Ihren Berechtigungen nicht sichtbar."
+    },
+    "contract": {
+      "title": "Vertrag",
+      "unavailable": "Vertragsdaten sind mit Ihren Berechtigungen nicht sichtbar."
+    },
+    "message": {
+      "action": "Nachricht",
+      "title": "Ticket für diesen Eigentümer öffnen",
+      "description": "Der Eigentümer sieht dies als Support-Ticket, nicht als Chat — mit Status und vollständigem Verlauf, sodass nichts im Scrollen verloren geht.",
+      "category": "Typ",
+      "subject": "Betreff",
+      "subjectPlaceholder": "Worum geht es?",
+      "body": "Nachricht",
+      "bodyPlaceholder": "Erste Nachricht des Tickets schreiben...",
+      "priority": "Priorität",
+      "confirm": "Ticket erstellen",
+      "required": "Betreff und Nachricht sind beide erforderlich.",
+      "categories": {
+        "Payment": "Zahlung",
+        "Task": "Auftrag",
+        "Property": "Objekt",
+        "Technical": "Technisch",
+        "Account": "Konto",
+        "Other": "Sonstiges"
+      },
+      "priorities": {
+        "Low": "Niedrig",
+        "Normal": "Normal",
+        "High": "Hoch",
+        "Urgent": "Dringend"
+      },
+      "errors": {
+        "invalidTarget": "Dieser Empfängertyp wird für ein Ticket nicht akzeptiert.",
+        "notFound": "Dieser Eigentümer existiert nicht mehr oder wurde gelöscht.",
+        "isSystem": "Das dauerhafte Laufkundschafts-Konto kann nicht angeschrieben werden — es kann sich nicht anmelden, niemand würde es lesen.",
+        "forbidden": "Sie haben keine Berechtigung, Tickets für andere Benutzer zu öffnen.",
+        "generic": "Ticket konnte nicht erstellt werden. Bitte erneut versuchen."
+      }
     },
     "delete": {
       "action": "Eigentümer löschen",
@@ -490,26 +597,36 @@
       "reasonPlaceholder": "Warum wird dieser Eigentümer entfernt?",
       "errors": {
         "notFound": "Eigentümer nicht gefunden.",
-        "hasActiveProperties": "Dieser Eigentümer hat noch aktive Objekte und kann nicht gelöscht werden.",
-        "generic": "Eigentümer konnte nicht gelöscht werden. Bitte erneut versuchen."
+        "generic": "Eigentümer konnte nicht gelöscht werden. Bitte erneut versuchen.",
+        "hasOpenTasks": "Dieser Eigentümer hat laufende Arbeit — eine Aufgabe ist offen, aktiv oder in Prüfung. Warten Sie, bis sie abgeschlossen ist; es gibt keine Admin-Aktion, die das auflöst.",
+        "isSystem": "Das dauerhafte Laufkundschafts-Konto kann nicht gelöscht werden."
       }
-    }
+    },
+    "tabs": {
+      "all": "Alle",
+      "review": "In Prüfung",
+      "active": "Aktiv",
+      "walkIn": "Laufkundschaft"
+    },
+    "systemHint": "Dies ist das dauerhafte Laufkundschafts-Konto. Es kann nicht bearbeitet, gelöscht, angeschrieben oder mit einem Vertrag versehen werden."
   },
   "properties": {
     "title": "Objekte",
-    "subtitle": "Villen, Hotels, Büros und Geschäftszentren in der Liste.",
+    "subtitle": "Alle Objekte im System, mit Eigentümer und Kategorie.",
     "list": "Objektliste",
-    "searchPlaceholder": "Objekt suchen...",
+    "searchPlaceholder": "Nach Name, Adresse oder Eigentümer suchen…",
     "notFound": "Objekt nicht gefunden oder ein Fehler ist aufgetreten.",
     "errorConnect": "Verbindungsfehler mit dem Server",
     "errorLoad": "Fehler beim Laden der Daten",
     "columns": {
       "name": "Name",
       "address": "Adresse",
-      "type": "Typ",
-      "docsStatus": "Dokumentenstatus",
       "createdAt": "Erstellt",
-      "actions": "Aktionen"
+      "actions": "Aktionen",
+      "owner": "Eigentümer",
+      "category": "Kategorie",
+      "area": "Fläche",
+      "rooms": "Zimmer"
     },
     "deleted": {
       "title": "Gelöschte Immobilien",
@@ -531,19 +648,18 @@
       "title": "Immobilie erstellen",
       "ownerLabel": "Eigentümer (BOSS)",
       "ownerPlaceholder": "Eigentümer auswählen…",
-      "noEligibleOwners": "Keine Eigentümer mit genehmigter KYC verfügbar.",
+      "noEligibleOwners": "Keine berechtigten Eigentümer. Ein Objekt kann nur für einen BOSS-Eigentümer mit unterzeichnetem, aktuell gültigem Vertrag angelegt werden.",
       "submit": "Erstellen",
       "errors": {
-        "generic": "Immobilie konnte nicht erstellt werden. Der Eigentümer muss ein BOSS mit genehmigter KYC sein."
+        "generic": "Objekt konnte nicht angelegt werden. Der Eigentümer muss ein BOSS mit unterzeichnetem, aktuell gültigem Vertrag sein."
       }
     },
     "info": {
       "title": "Allgemeine Informationen",
-      "address": "Adresse",
-      "coordinates": "Koordinaten",
       "floors": "Stockwerkanzahl",
       "floorUnit": "Stockwerke",
-      "entryInstructions": "Zugangsanweisungen"
+      "entryInstructions": "Zugangsanweisungen",
+      "roomUnit": "Zimmer"
     },
     "map": {
       "title": "Standort",
@@ -554,53 +670,25 @@
       "ownerId": "Eigentümer-ID",
       "viewProfile": "Profil anzeigen"
     },
-    "docsStatus": {
-      "title": "Dokumentenstatus",
-      "reviewedAt": "Geprüft am",
-      "rejectReason": "Ablehnungsgrund",
-      "approved": "Genehmigt",
-      "docsApproved": "Dokumente genehmigt",
-      "pending": "Ausstehend",
-      "docsPending": "Dokumente in Prüfung",
-      "rejected": "Abgelehnt",
-      "docsRejected": "Dokumente abgelehnt",
-      "unknown": "Unbekannt"
-    },
-    "docs": {
-      "title": "Objektdokumente",
-      "empty": "Keine Dokumente hochgeladen",
-      "document": "Dokument",
-      "open": "Öffnen",
-      "rejectReason": "Ablehnungsgrund",
-      "approveBtn": "Genehmigen",
-      "rejectBtn": "Ablehnen",
-      "resetBtn": "Erneut prüfen",
-      "rejectTitle": "Dokumente ablehnen",
-      "rejectSubtitle": "Ablehnungsgrund (mindestens {min} Zeichen, erforderlich).",
-      "rejectPlaceholder": "Ablehnungsgrund...",
-      "rejectReasonMin": "Mindestens {min} Zeichen eingeben.",
-      "resetTitle": "Dokumente erneut prüfen",
-      "resetPlaceholder": "Grund für erneute Prüfung...",
-      "resetReasonMin": "Mindestens {min} Zeichen eingeben."
-    },
     "form": {
       "name": "Name",
       "namePlaceholder": "Objektname",
       "address": "Adresse",
       "addressPlaceholder": "Straße, Stadt, Postleitzahl",
-      "type": "Typ",
-      "types": {
-        "Villa": "Villa",
-        "Hotel": "Hotel",
-        "Office": "Büro",
-        "Other": "Sonstiges"
-      },
       "floorCount": "Anzahl Etagen",
-      "floorRange": "Geben Sie eine ganze Zahl zwischen {min} und {max} ein.",
-      "lat": "Breitengrad",
-      "long": "Längengrad",
       "entryInstructions": "Zutrittshinweise",
-      "entryInstructionsPlaceholder": "Wie das Objekt betreten wird..."
+      "entryInstructionsPlaceholder": "Wie das Objekt betreten wird...",
+      "category": "Kategorie",
+      "categoryPlaceholder": "Kategorie wählen…",
+      "noCategories": "Keine aktiven Kategorien. Legen Sie zuerst eine in den Einstellungen an.",
+      "roomCount": "Zimmer",
+      "areaSqm": "Fläche (m²)",
+      "optional": "Optional",
+      "range": "Geben Sie eine Zahl zwischen {min} und {max} ein.",
+      "location": "Standort",
+      "locationEmpty": "Kein Punkt gewählt",
+      "locationHint": "Klicken Sie auf die Karte, um das Objekt zu setzen",
+      "locationAdjust": "Ziehen Sie die Markierung zum Anpassen oder klicken Sie erneut an eine andere Stelle."
     },
     "edit": {
       "action": "Bearbeiten",
@@ -623,6 +711,31 @@
     "actions": {
       "backToList": "Zurück zur Objektliste",
       "more": "Mehr"
+    },
+    "ownerUnknown": "Unbekannter Eigentümer",
+    "areaBands": {
+      "unset": "Nicht erfasst",
+      "lt100": "Unter 100 m²",
+      "from100": "100–500 m²",
+      "from500": "500–2.000 m²",
+      "gt2000": "Über 2.000 m²"
+    },
+    "createdBands": {
+      "week": "Letzte 7 Tage",
+      "month": "Vor 7–30 Tagen",
+      "year": "Vor 30 Tagen – 1 Jahr",
+      "older": "Vor über einem Jahr",
+      "unknown": "Unbekanntes Datum"
+    },
+    "gallery": {
+      "title": "Fotos",
+      "count": "{count} von 10",
+      "empty": "Noch keine Fotos",
+      "emptyHint": "Fotos werden vom Eigentümer in seiner eigenen App hinzugefügt.",
+      "error": "Fotos konnten nicht geladen werden.",
+      "close": "Schließen",
+      "previous": "Vorheriges Foto",
+      "next": "Nächstes Foto"
     }
   },
   "admins": {
@@ -1299,6 +1412,54 @@
         "mismatch": "Passwörter stimmen nicht überein.",
         "generic": "Passwort konnte nicht geändert werden. Bitte versuchen Sie es erneut."
       }
+    }
+  },
+  "propertyCategories": {
+    "title": "Objektkategorien",
+    "subtitle": "Die Kategorien, denen ein Objekt zugeordnet werden kann. Deaktivieren Sie eine, um sie für neue Objekte auszublenden, ohne bestehende zu verändern.",
+    "new": "Neue Kategorie",
+    "empty": "Noch keine Kategorien.",
+    "counts": "{active} von {total} aktiv",
+    "columns": {
+      "code": "Code",
+      "name": "Name",
+      "description": "Beschreibung",
+      "state": "Status"
+    },
+    "state": {
+      "active": "Aktiv",
+      "inactive": "Inaktiv"
+    },
+    "form": {
+      "createTitle": "Neue Kategorie",
+      "editTitle": "Kategorie bearbeiten",
+      "create": "Anlegen",
+      "code": "Code",
+      "codePlaceholder": "OFFICE",
+      "codeHint": "Nach dem Anlegen dauerhaft — er kann nicht mehr geändert werden.",
+      "codeImmutable": "Der Code kann nicht geändert werden.",
+      "nameEn": "Name (Englisch)",
+      "nameDe": "Name (Deutsch)",
+      "color": "Farbe",
+      "colorHint": "Optional. Wird als Punkt neben der Kategorie in der Objekttabelle angezeigt.",
+      "colorInvalid": "Geben Sie eine Hex-Farbe wie #64748b ein oder lassen Sie das Feld leer.",
+      "description": "Beschreibung",
+      "descriptionPlaceholder": "Was gehört in diese Kategorie…"
+    },
+    "deactivate": {
+      "action": "Deaktivieren",
+      "title": "Kategorie deaktivieren?",
+      "confirm": "„{name}“ wird beim Anlegen und Bearbeiten von Objekten nicht mehr angeboten. Objekte, die sie bereits nutzen, behalten sie und bleiben bearbeitbar."
+    },
+    "activate": {
+      "action": "Aktivieren",
+      "title": "Kategorie aktivieren?",
+      "confirm": "„{name}“ wird beim Anlegen und Bearbeiten von Objekten wieder angeboten."
+    },
+    "errors": {
+      "code_exists": "Dieser Code ist bereits vergeben. Codes müssen eindeutig sein.",
+      "generic": "Kategorie konnte nicht gespeichert werden. Bitte erneut versuchen.",
+      "toggleGeneric": "Status konnte nicht geändert werden. Bitte erneut versuchen."
     }
   }
 }

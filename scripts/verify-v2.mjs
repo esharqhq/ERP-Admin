@@ -36,14 +36,30 @@ for (const [name, expected] of Object.entries(EXPECTED_ENUMS)) {
 const EXPECTED_FIELDS = {
   KycProfileSummaryDto: ["ownerProfileId", "ownerUserId", "ownerName", "ownerEmail",
     "onboardingStatus", "onboardingRejectReason", "onboardingReviewedAt", "documentCount"],
+  // `identity` carries the legal name pair the admin edit prefills from and
+  // writes back to — the only source for it on the Owner Detail screen.
   KycProfileDto: ["ownerProfileId", "ownerUserId", "onboardingStatus",
-    "onboardingRejectReason", "onboardingReviewedAt", "documents"],
+    "onboardingRejectReason", "onboardingReviewedAt", "documents", "identity"],
+  // F-02b·7. The panel had no client for PUT /api/owners/{id} at all until
+  // 2026-08-11, so neither of its shapes was ever asserted here.
+  AdminOwnerProfileDto: ["id", "fullName", "firstName", "lastName",
+    "profilePictureUrl", "onboardingStatus", "updatedAt"],
+  AdminUpdateOwnerProfileRequest: ["firstName", "lastName", "profilePictureUrl", "reason"],
+  // FND-2 admin-initiated ticket. The panel had no client for this route until
+  // 2026-08-11. Note the schema is named after the action, not the route —
+  // `AdminOpenTicketRequest`, not `AdminCreateTicketRequest`.
+  AdminOpenTicketRequest: ["targetUserType", "targetUserId", "subject",
+    "initialMessage", "category", "priority"],
   KycDocDto: ["id", "type", "fileName", "fileUrl", "createdAt"],
   KycApprovalDto: ["ownerProfileId", "onboardingStatus", "onboardingRejectReason", "prefill"],
   WorkerApprovalDto: ["id", "onboardingStatus", "onboardingRejectReason", "prefill"],
   ContractPrefillDto: ["subjectType", "subjectId", "fullName", "email", "phoneNumber"],
+  // `ownerType` is F-02b·6's addition and the field the UI keys the walk-in
+  // account's four refusals on; the paged envelope was never asserted here,
+  // which is how the owners page went on using the unpaged picker endpoint.
   OwnerRowDto: ["id", "fullName", "email", "phoneNumber", "status", "onboardingStatus",
-    "isVerified", "propertyCount", "createdAt"],
+    "isVerified", "propertyCount", "createdAt", "ownerType"],
+  OwnerRowDtoPagedResult: ["items", "total", "page", "pageSize", "totalPages"],
   WorkerRowDto: ["id", "fullName", "email", "phoneNumber", "status", "onboardingStatus",
     "employeeType", "skills", "rating", "experience", "completedTasks",
     "hasActiveContract", "onTask", "createdAt"],
@@ -59,6 +75,19 @@ const EXPECTED_FIELDS = {
   CreateOwnerContractRequest: ["eligibleFrom", "eligibleTo", "fileName", "fileUrl",
     "commissionPercent", "paymentOrder", "generalTerms", "extraClauses"],
   CreateWorkerContractRequest: ["eligibleFrom", "eligibleTo", "fileName", "fileUrl"],
+  // F-02c reshaped these and this gate did not notice, because nothing property-
+  // shaped was ever listed here. `category` is the field that replaced `type`;
+  // `roomCount`/`areaSqm` are the new ones the table renders.
+  PropertyDto: ["id", "bossOwnerUserId", "name", "address", "lat", "long", "category",
+    "entryInstructions", "floorCount", "roomCount", "areaSqm", "createdAt", "isDeleted", "media"],
+  PropertyCategoryRefDto: ["id", "code", "nameDe", "nameEn"],
+  PropertyCategoryDto: ["id", "code", "nameDe", "nameEn", "icon", "color", "description", "isActive"],
+  PropertyMediaDto: ["id", "propertyId", "type", "url", "originalFileName", "mimeType",
+    "fileSize", "createdAt"],
+  UpdatePropertyRequest: ["name", "address", "lat", "long", "propertyCategoryId",
+    "entryInstructions", "floorCount", "roomCount", "areaSqm"],
+  AdminCreatePropertyRequest: ["ownerUserId", "name", "address", "lat", "long",
+    "propertyCategoryId", "entryInstructions", "floorCount", "roomCount", "areaSqm"],
 };
 for (const [name, fields] of Object.entries(EXPECTED_FIELDS)) {
   const live = S[name]?.properties;
@@ -71,6 +100,10 @@ for (const [name, fields] of Object.entries(EXPECTED_FIELDS)) {
 // ── 3. fields that must be GONE ─────────────────────────────────────────────
 for (const [name, dead] of Object.entries({
   WorkerDetailDto: "isApproved", KycProfileDto: "kycStatus", KycProfileSummaryDto: "isApproved",
+  // F-02c retired the `type` enum and deleted the document-review fields. If any
+  // of these reappear, this app's rewritten property surface is reading the
+  // wrong contract again.
+  PropertyDto: "type",
 })) {
   const live = S[name]?.properties ?? {};
   if (dead in live) bad(`${name}.${dead} still exists — v1 field came back`);
@@ -113,7 +146,13 @@ const REQUIRED = {
     "noActiveContractToRenew", "invalidContractTransition", "revisionReasonRequired",
     "contractAlreadyInactive", "contractNotFound", "gateOnboardingIncomplete",
     "gateContractExpired", "gateContractNotYetActive", "gateContractExpiringImminently",
-    "taskDateBeyondContract", "workerContractEndsBeforeTask", "propertyDocsNotApproved",
+    "taskDateBeyondContract", "workerContractEndsBeforeTask",
+    // `propertyDocsNotApproved` was asserted here until 2026-08-11. The backend
+    // deleted that error code — and the whole property-document feature — on
+    // 2026-08-07, so this check was demanding a message for a code that can
+    // never arrive. It is the reason this gate stayed green through F-02c.
+    "propertyCategoryNotFound", "propertyCategoryInactive", "targetOwnerMustBeBoss",
+    "propertyNotFound",
     "invalidSortColumn", "invalidFilterValue", "invalidFormat", "exportTooLarge",
     "codeExists", "nameExists", "countryNotFound", "invalidTargetType", "targetNotFound",
     "incompleteIdentityData", "onboardingLocked", "cityCountryMismatch", "cityNotFound",

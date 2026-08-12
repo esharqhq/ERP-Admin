@@ -5,11 +5,14 @@ export function InfoRow({
   label,
   value,
   mono = false,
+  hint,
 }: {
   icon: React.ReactNode
   label: string
   value: string
   mono?: boolean
+  /** One line under the value, for when the label alone is ambiguous. */
+  hint?: string
 }) {
   return (
     <div className="flex items-start gap-3">
@@ -21,6 +24,9 @@ export function InfoRow({
         <span className={cn("text-[13px] leading-snug text-foreground break-words", mono && "font-mono")}>
           {value}
         </span>
+        {hint ? (
+          <span className="text-[11px] leading-snug text-muted-foreground">{hint}</span>
+        ) : null}
       </div>
     </div>
   )

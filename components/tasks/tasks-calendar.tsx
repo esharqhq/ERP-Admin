@@ -43,7 +43,23 @@ function getCellTask(group: TaskGroupDto, isoDate: string): TaskItemDto | null {
   return (group.tasks ?? []).find((t) => t.scheduledDate === isoDate) ?? null;
 }
 
-export function TasksCalendar() {
+/**
+ * The week grid. Used standalone on the Tasks screen (every group) and scoped
+ * to a single owner on Owner Detail.
+ */
+export function TasksCalendar({
+  ownerUserId,
+  properties: propertiesProp,
+}: {
+  /** Scope to one owner's groups. Omit for every group. */
+  ownerUserId?: string;
+  /**
+   * Properties for the filter. Owner Detail already holds this owner's
+   * properties, so passing them avoids a second, wider request that would also
+   * offer properties this owner does not own.
+   */
+  properties?: { id: string; name: string | null }[];
+} = {}) {
   const t = useTranslations("tasks");
   const tW = useTranslations("workers");
   const nav = useWeekNavigation();
@@ -53,10 +69,11 @@ export function TasksCalendar() {
   const [hideEmpty, setHideEmpty] = useState(false);
 
   const { data: groups = [], isLoading } = useAdminTaskGroups(
-    undefined,
+    ownerUserId,
     propertyFilter || undefined,
   );
-  const { data: properties = [] } = useProperties();
+  const { data: fetchedProperties = [] } = useProperties(!propertiesProp);
+  const properties = propertiesProp ?? fetchedProperties;
 
   const weekDateKeys = useMemo(
     () => nav.days.map(toLocalDateKey),
@@ -135,7 +152,7 @@ export function TasksCalendar() {
       </CardHeader>
 
       {/* Grid */}
-      <div className="overflow-x-auto border-t border-border">
+      <div className="scrollbar-slim overflow-x-auto border-t border-border">
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr>

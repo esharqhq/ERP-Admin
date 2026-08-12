@@ -23,6 +23,12 @@ type DataTableCardProps<T> = {
   renderRow: (item: T, index: number) => React.ReactNode
   /** Filter control slot (e.g. a `FilterMenu`); rendered between search and `action`. */
   filter?: React.ReactNode
+  /**
+   * Always-visible filter row (e.g. a `FilterBar`), rendered on its own line
+   * below the title/search row. Additive: a caller that passes nothing gets the
+   * header exactly as before, so `filter` and this can coexist or neither be used.
+   */
+  filters?: React.ReactNode
   action?: React.ReactNode
 }
 
@@ -36,6 +42,7 @@ export function DataTableCard<T>({
   data,
   renderRow,
   filter,
+  filters,
   action,
 }: DataTableCardProps<T>) {
   const t = useTranslations("common")
@@ -61,6 +68,7 @@ export function DataTableCard<T>({
             {action}
           </div>
         </div>
+        {filters && <div className="mt-4 border-t border-border/60 pt-4">{filters}</div>}
       </CardHeader>
       <CardContent className="p-0">
         <Table>

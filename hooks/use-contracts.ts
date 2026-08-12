@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import {
   useMutation,
   useQuery,
@@ -7,6 +8,11 @@ import {
   type QueryClient,
 } from "@tanstack/react-query";
 import { contractService } from "@/lib/services/contract.service";
+import { useCurrentPermissions } from "@/hooks/use-current-permissions";
+import {
+  indexCover,
+  ownerContractUserId,
+} from "@/lib/onboarding/subject-row";
 import type {
   AdminOwnerContractDto,
   AdminWorkerContractDto,
@@ -40,6 +46,53 @@ export function useOwnerContracts(enabled = true) {
     queryFn: contractService.listOwner,
     enabled,
   });
+}
+
+/**
+ * The contract period governing one owner — for a screen that shows a single
+ * account rather than a queue.
+ *
+ * Reads the same unpaginated list under the same query key, so on a panel where
+ * the Docs workspace has already been opened this costs no request at all, and
+ * joins it in memory. There is no per-owner admin read to prefer.
+ *
+ * Joined on `ownerUserId`, not `ownerProfileId`: a screen keyed on the account
+ * would otherwise have to wait for the KYC read to learn the profile id, and
+ * would report "no contract" whenever that read merely 404'd.
+ *
+ * `indexCover` also decides *which* row governs — a renewed owner holds an
+ * `InForce` row and a `Scheduled` one at once, and the latest is the wrong
+ * answer to "covered until when".
+ */
+export function useOwnerContractCover(ownerUserId: string) {
+  /**
+   * Read through `useCurrentPermissions` rather than `useHasPermission`, which
+   * collapses "denied" and "not known yet" into one `false`. That collapse is the
+   * right default for a *button* — hiding it costs nothing — but this caller
+   * states the refusal in words, and on a cold start (the first login of a
+   * session, nothing cached) it would assert "not visible with your permissions"
+   * for one paint before the real period arrived. `null` keeps the two apart.
+   */
+  const { permissions } = useCurrentPermissions();
+  const canRead: boolean | null =
+    permissions === null ? null : permissions.has("owner_contract:read_any");
+
+  const query = useOwnerContracts(canRead === true && !!ownerUserId);
+
+  const cover = useMemo(
+    () =>
+      indexCover(query.data ?? [], ownerContractUserId).get(ownerUserId) ?? null,
+    [query.data, ownerUserId],
+  );
+
+  return {
+    cover,
+    /** `null` while the grant set is unknown — not the same as `false`. */
+    canRead,
+    /** `enabled: false` leaves a query pending forever — check `canRead` first. */
+    isPending: query.isPending,
+    error: query.error,
+  };
 }
 
 export function useCreateOwnerContract() {

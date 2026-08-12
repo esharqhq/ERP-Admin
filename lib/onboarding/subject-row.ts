@@ -121,6 +121,21 @@ export const ownerContractSubjectId = (
   c: AdminOwnerContractDto | AdminWorkerContractDto,
 ) => (c as AdminOwnerContractDto).ownerProfileId;
 
+/**
+ * Key the same index by the owner's **user** id instead.
+ *
+ * The Docs queue joins on `ownerProfileId` because that is what its rows are —
+ * KYC profiles. A screen built around the owner *account* holds only the user id
+ * and would otherwise have to wait on the KYC read to learn the profile id
+ * before it could show a contract period at all — and would then report "no
+ * contract" for an owner whose KYC read merely 404'd. Both ids are non-null on
+ * the list DTO (`Backend/index/dtos/contracts.md:300-301`), so joining on this
+ * one costs nothing and drops the dependency.
+ */
+export const ownerContractUserId = (
+  c: AdminOwnerContractDto | AdminWorkerContractDto,
+) => (c as AdminOwnerContractDto).ownerUserId;
+
 export const workerContractSubjectId = (
   c: AdminOwnerContractDto | AdminWorkerContractDto,
 ) => (c as AdminWorkerContractDto).workerId;
@@ -226,4 +241,41 @@ export function coverPresentation(
     annotate:
       ended || daysUntilStart > 0 || (!pending && daysLeft <= WARN_DAYS),
   };
+}
+
+/** A `docsWorkspace`-relative message key, with ICU values where the copy needs them. */
+export interface CoverNote {
+  key: string;
+  values?: { days: number };
+}
+
+/**
+ * The period's end, in words — "12 days left", "Starts in 5 days", "Ended early".
+ *
+ * Lives here rather than beside a table so the Docs queue and the owner detail
+ * page cannot disagree about what a phase means. Two of these branches exist to
+ * stop a specific misreading and must not be re-derived from the dates by a
+ * second caller:
+ *
+ * - `Terminated` is a period **cut short** — an admin force-terminate, or one
+ *   ended by a lapsed document. Rendering it as "expired" misreports it.
+ * - A period that has not begun is announced *before* any "days left" reading,
+ *   because two innocent-looking dates on a `Scheduled` row otherwise read as
+ *   covering today.
+ *
+ * The keys are relative to the `docsWorkspace` namespace, which is where this
+ * vocabulary was written and where both callers translate it.
+ */
+export function coverNoteKey(
+  phase: ContractPhase,
+  cover: CoverPresentation,
+): CoverNote {
+  if (phase === "Terminated") return { key: "cover.endedEarly" };
+  if (phase === "Expired" || phase === "Lapsed") return { key: "cover.expired" };
+  if (cover.pending) return { key: "cover.awaitingSignature" };
+  if (cover.daysUntilStart > 0)
+    return { key: "cover.startsIn", values: { days: cover.daysUntilStart } };
+  if (cover.daysLeft < 0) return { key: "cover.expired" };
+  if (cover.daysLeft === 0) return { key: "cover.endsToday" };
+  return { key: "cover.daysLeft", values: { days: cover.daysLeft } };
 }

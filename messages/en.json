@@ -32,7 +32,9 @@
       "title": "Page not found",
       "description": "The page you're looking for doesn't exist or you don't have permission to view it.",
       "back": "Back to dashboard"
-    }
+    },
+    "clearFilters": "Clear filters",
+    "clear": "Clear"
   },
   "status": {
     "pending": "Pending",
@@ -49,7 +51,8 @@
       "approved": "Approved",
       "contract": "Contract sent",
       "active": "Active",
-      "unknown": "Unknown"
+      "unknown": "Unknown",
+      "notApplicable": "Not applicable"
     },
     "phase": {
       "draft": "Draft",
@@ -104,7 +107,6 @@
       "gateContractExpiringImminently": "This account's contract ends within 24 hours — nothing new can be created.",
       "taskDateBeyondContract": "At least one date falls after the contract ends.",
       "workerContractEndsBeforeTask": "This date falls after the worker's contract ends.",
-      "propertyDocsNotApproved": "The property's documents must be approved first.",
       "invalidSortColumn": "This column cannot be sorted.",
       "invalidFilterValue": "Check the filter values — a range is inconsistent.",
       "invalidFormat": "Unsupported export format.",
@@ -126,7 +128,13 @@
       "incompleteDocumentSet": "The document set is incomplete. An identity document is required — passport, ID card or residence permit — and a company registration document if a company is declared. A business licence does not replace the registration document.",
       "invalidDocumentType": "One of the documents has an unrecognised type. Nothing was saved.",
       "validation": "Some of the details weren't accepted. Check the highlighted fields and try again.",
-      "unknown": "Something went wrong. Please try again."
+      "unknown": "Something went wrong. Please try again.",
+      "propertyCategoryNotFound": "Select a property category — the one sent doesn't exist.",
+      "propertyCategoryInactive": "That category has been deactivated. Pick an active one.",
+      "targetOwnerMustBeBoss": "Properties can only be created for a BOSS owner.",
+      "propertyNotFound": "This property no longer exists.",
+      "ownerHasOpenTasks": "This owner has work in flight — wait for their open tasks to finish.",
+      "ownerIsSystem": "This is the permanent walk-in account — it cannot be edited, deleted, messaged or given a contract."
     }
   },
   "docsWorkspace": {
@@ -284,7 +292,8 @@
     "notifications": "Notifications",
     "agency": "Agency",
     "agencyRequests": "Requests",
-    "agencies": "Agencies"
+    "agencies": "Agencies",
+    "propertyCategories": "Property categories"
   },
   "auth": {
     "logout": "Logout",
@@ -412,7 +421,9 @@
       "email": "Email",
       "documents": "Documents",
       "actions": "Actions",
-      "onboardingStatus": "Stage"
+      "onboardingStatus": "Stage",
+      "onboarding": "Onboarding",
+      "properties": "Properties"
     },
     "detail": {
       "documents": "Documents",
@@ -479,7 +490,103 @@
       "unverifiedHint": "Not yet verified",
       "joinedHint": "Registration date",
       "roleHint": "Account role",
-      "propertiesHint": "Owned properties"
+      "propertiesHint": "Owned properties",
+      "legalName": "Legal name",
+      "legalNameHint": "From the passport — separate from the display name above",
+      "call": "Call"
+    },
+    "edit": {
+      "action": "Edit name",
+      "title": "Correct the legal name",
+      "description": "This is the name on the owner's passport. It is separate from the display name they chose, and the two are deliberately not reconciled.",
+      "firstName": "Legal first name",
+      "lastName": "Legal last name",
+      "reasonLabel": "Reason",
+      "reasonPlaceholder": "Why is this being corrected? Recorded in the audit log.",
+      "reasonRequired": "A reason is required.",
+      "nothingToSave": "Enter at least one name.",
+      "confirm": "Save",
+      "locks": {
+        "selfEditable": "The owner can correct this themselves at this stage, so admin edits are refused. It becomes editable once their documents go to review.",
+        "noProfile": "This account has no identity record, so there is no legal name to correct."
+      },
+      "errors": {
+        "reasonRequired": "A reason is required.",
+        "noProfile": "This account has no identity record, so there is no legal name to correct.",
+        "canSelfEdit": "The owner can correct this themselves right now, so the admin route is refused.",
+        "isSystem": "The permanent walk-in account cannot be edited.",
+        "notFound": "Owner not found.",
+        "forbidden": "You do not have permission to edit owner names.",
+        "generic": "Could not save this change. Please try again."
+      }
+    },
+    "work": {
+      "title": "Booked work",
+      "viewCalendar": "Calendar",
+      "viewTable": "Table",
+      "unstaffed": "—",
+      "more": "+{count}",
+      "columns": {
+        "date": "Date",
+        "property": "Property",
+        "time": "Time",
+        "worker": "Workers",
+        "booking": "Booking",
+        "status": "Status"
+      },
+      "status": {
+        "all": "All",
+        "Pending": "Scheduled",
+        "Active": "In progress",
+        "Review": "Under review",
+        "Done": "Completed",
+        "Cancelled": "Cancelled"
+      }
+    },
+    "documents": {
+      "title": "Documents",
+      "subtitle": "Submitted for verification",
+      "empty": "This owner has not submitted any documents yet.",
+      "openAll": "Review",
+      "unavailable": "Documents are not visible with your permissions."
+    },
+    "contract": {
+      "title": "Contract",
+      "unavailable": "Contract dates are not visible with your permissions."
+    },
+    "message": {
+      "action": "Message",
+      "title": "Open a ticket for this owner",
+      "description": "The owner sees this as a support ticket, not a chat — it keeps a status and a full history, so nothing gets lost in a scroll.",
+      "category": "Type",
+      "subject": "Subject",
+      "subjectPlaceholder": "What is this about?",
+      "body": "Message",
+      "bodyPlaceholder": "Write the first message of the ticket...",
+      "priority": "Priority",
+      "confirm": "Create ticket",
+      "required": "Subject and message are both required.",
+      "categories": {
+        "Payment": "Payment",
+        "Task": "Task",
+        "Property": "Property",
+        "Technical": "Technical",
+        "Account": "Account",
+        "Other": "Other"
+      },
+      "priorities": {
+        "Low": "Low",
+        "Normal": "Normal",
+        "High": "High",
+        "Urgent": "Urgent"
+      },
+      "errors": {
+        "invalidTarget": "This recipient type is not accepted for a ticket.",
+        "notFound": "This owner no longer exists, or has been deleted.",
+        "isSystem": "The permanent walk-in account cannot be messaged — it cannot sign in, so nobody would read it.",
+        "forbidden": "You do not have permission to open tickets for other users.",
+        "generic": "Could not create the ticket. Please try again."
+      }
     },
     "delete": {
       "action": "Delete owner",
@@ -490,26 +597,36 @@
       "reasonPlaceholder": "Why is this owner being removed?",
       "errors": {
         "notFound": "Owner not found.",
-        "hasActiveProperties": "This owner still has active properties and cannot be deleted.",
-        "generic": "Could not delete this owner. Please try again."
+        "generic": "Could not delete this owner. Please try again.",
+        "hasOpenTasks": "This owner has work in flight — a task that is pending, active or under review. Wait for it to finish; there is no admin action that clears it.",
+        "isSystem": "The permanent walk-in account cannot be deleted."
       }
-    }
+    },
+    "tabs": {
+      "all": "All",
+      "review": "In review",
+      "active": "Active",
+      "walkIn": "Walk-in"
+    },
+    "systemHint": "This is the permanent walk-in account. It cannot be edited, deleted, messaged or given a contract."
   },
   "properties": {
     "title": "Properties",
-    "subtitle": "Villas, hotels, offices and business centers in the list.",
+    "subtitle": "All properties in the system, with their owner and category.",
     "list": "Properties list",
-    "searchPlaceholder": "Search property...",
+    "searchPlaceholder": "Search by name, address or owner…",
     "notFound": "Property not found or an error occurred.",
     "errorConnect": "Connection error with server",
     "errorLoad": "Error loading data",
     "columns": {
       "name": "Name",
       "address": "Address",
-      "type": "Type",
-      "docsStatus": "Docs Status",
       "createdAt": "Created",
-      "actions": "Actions"
+      "actions": "Actions",
+      "owner": "Owner",
+      "category": "Category",
+      "area": "Area",
+      "rooms": "Rooms"
     },
     "deleted": {
       "title": "Deleted Properties",
@@ -531,19 +648,18 @@
       "title": "Create Property",
       "ownerLabel": "Owner (BOSS)",
       "ownerPlaceholder": "Select an owner…",
-      "noEligibleOwners": "No owners with approved KYC available.",
+      "noEligibleOwners": "No eligible owners. A property can only be created for a BOSS owner whose contract is signed and currently in force.",
       "submit": "Create",
       "errors": {
-        "generic": "Couldn't create the property. The owner must be a BOSS with approved KYC."
+        "generic": "Couldn't create the property. The owner must be a BOSS with a signed, currently in-force contract."
       }
     },
     "info": {
       "title": "General Information",
-      "address": "Address",
-      "coordinates": "Coordinates",
       "floors": "Floor Count",
       "floorUnit": "floors",
-      "entryInstructions": "Entry Instructions"
+      "entryInstructions": "Entry Instructions",
+      "roomUnit": "rooms"
     },
     "map": {
       "title": "Location",
@@ -554,53 +670,25 @@
       "ownerId": "Owner ID",
       "viewProfile": "View Profile"
     },
-    "docsStatus": {
-      "title": "Docs Status",
-      "reviewedAt": "Reviewed At",
-      "rejectReason": "Rejection Reason",
-      "approved": "Approved",
-      "docsApproved": "Documents approved",
-      "pending": "Pending",
-      "docsPending": "Documents under review",
-      "rejected": "Rejected",
-      "docsRejected": "Documents rejected",
-      "unknown": "Unknown"
-    },
-    "docs": {
-      "title": "Property Documents",
-      "empty": "No documents uploaded",
-      "document": "Document",
-      "open": "Open",
-      "rejectReason": "Rejection Reason",
-      "approveBtn": "Approve",
-      "rejectBtn": "Reject",
-      "resetBtn": "Re-review",
-      "rejectTitle": "Reject Documents",
-      "rejectSubtitle": "Rejection reason (at least {min} characters, required).",
-      "rejectPlaceholder": "Rejection reason...",
-      "rejectReasonMin": "Enter at least {min} characters.",
-      "resetTitle": "Re-review Documents",
-      "resetPlaceholder": "Reset reason...",
-      "resetReasonMin": "Enter at least {min} characters."
-    },
     "form": {
       "name": "Name",
       "namePlaceholder": "Property name",
       "address": "Address",
       "addressPlaceholder": "Street, city, postal code",
-      "type": "Type",
-      "types": {
-        "Villa": "Villa",
-        "Hotel": "Hotel",
-        "Office": "Office",
-        "Other": "Other"
-      },
       "floorCount": "Floor count",
-      "floorRange": "Enter a whole number between {min} and {max}.",
-      "lat": "Latitude",
-      "long": "Longitude",
       "entryInstructions": "Entry instructions",
-      "entryInstructionsPlaceholder": "How to access the property..."
+      "entryInstructionsPlaceholder": "How to access the property...",
+      "category": "Category",
+      "categoryPlaceholder": "Select a category…",
+      "noCategories": "No active categories. Create one in Settings first.",
+      "roomCount": "Rooms",
+      "areaSqm": "Area (m²)",
+      "optional": "Optional",
+      "range": "Enter a number between {min} and {max}.",
+      "location": "Location",
+      "locationEmpty": "No point selected",
+      "locationHint": "Click the map to place the property",
+      "locationAdjust": "Drag the pin to adjust, or click again elsewhere."
     },
     "edit": {
       "action": "Edit",
@@ -623,6 +711,31 @@
     "actions": {
       "backToList": "Back to Properties list",
       "more": "More"
+    },
+    "ownerUnknown": "Unknown owner",
+    "areaBands": {
+      "unset": "Not recorded",
+      "lt100": "Under 100 m²",
+      "from100": "100–500 m²",
+      "from500": "500–2,000 m²",
+      "gt2000": "Over 2,000 m²"
+    },
+    "createdBands": {
+      "week": "Last 7 days",
+      "month": "7–30 days ago",
+      "year": "30 days – 1 year ago",
+      "older": "Over a year ago",
+      "unknown": "Unknown date"
+    },
+    "gallery": {
+      "title": "Photos",
+      "count": "{count} of 10",
+      "empty": "No photos yet",
+      "emptyHint": "Photos are added by the owner from their own app.",
+      "error": "Could not load the photos.",
+      "close": "Close",
+      "previous": "Previous photo",
+      "next": "Next photo"
     }
   },
   "admins": {
@@ -1299,6 +1412,54 @@
         "mismatch": "Passwords do not match.",
         "generic": "Could not change your password. Please try again."
       }
+    }
+  },
+  "propertyCategories": {
+    "title": "Property categories",
+    "subtitle": "The categories a property can be assigned to. Deactivate one to keep it out of new properties without touching the ones already using it.",
+    "new": "New category",
+    "empty": "No categories yet.",
+    "counts": "{active} active of {total}",
+    "columns": {
+      "code": "Code",
+      "name": "Name",
+      "description": "Description",
+      "state": "State"
+    },
+    "state": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "form": {
+      "createTitle": "New category",
+      "editTitle": "Edit category",
+      "create": "Create",
+      "code": "Code",
+      "codePlaceholder": "OFFICE",
+      "codeHint": "Permanent once created — it cannot be changed afterwards.",
+      "codeImmutable": "The code cannot be changed.",
+      "nameEn": "Name (English)",
+      "nameDe": "Name (German)",
+      "color": "Colour",
+      "colorHint": "Optional. Shown as a dot beside the category in the properties table.",
+      "colorInvalid": "Enter a hex colour such as #64748b, or leave it empty.",
+      "description": "Description",
+      "descriptionPlaceholder": "What belongs in this category…"
+    },
+    "deactivate": {
+      "action": "Deactivate",
+      "title": "Deactivate category?",
+      "confirm": "“{name}” will stop being offered when creating or editing a property. Properties already using it keep it and stay editable."
+    },
+    "activate": {
+      "action": "Activate",
+      "title": "Activate category?",
+      "confirm": "“{name}” will be offered again when creating or editing a property."
+    },
+    "errors": {
+      "code_exists": "That code is already taken. Codes must be unique.",
+      "generic": "Could not save the category. Please try again.",
+      "toggleGeneric": "Could not change the category state. Please try again."
     }
   }
 }

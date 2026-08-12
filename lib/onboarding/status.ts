@@ -52,10 +52,30 @@ const PHASE: Record<ContractPhase, StatusPresentation> = {
   Terminated: { variant: "secondary", className: MUTED, labelKey: "terminated" },
 };
 
+/**
+ * `NotApplicable` is not part of the state machine and never will be — it is a
+ * derived string the owners table reports for the Default Owner, which has no
+ * onboarding record at all (F-02b·6). It is handled here rather than added to
+ * `OnboardingStatus` so nothing can ever try to *store* it.
+ */
+const NOT_APPLICABLE: StatusPresentation = {
+  variant: "outline",
+  className: MUTED,
+  labelKey: "notApplicable",
+};
+
+/**
+ * Accepts a plain `string`, not the union: `OwnerRowDto.onboardingStatus` is
+ * typed as a string precisely because it can carry a value the machine has no
+ * member for. An unrecognised value degrades to "unknown" rather than throwing.
+ */
 export function onboardingStatusPresentation(
-  status: OnboardingStatus,
+  status: OnboardingStatus | string,
 ): StatusPresentation {
-  return ONBOARDING[status] ?? { variant: "outline", labelKey: "unknown" };
+  if (status === "NotApplicable") return NOT_APPLICABLE;
+  return (
+    ONBOARDING[status as OnboardingStatus] ?? { variant: "outline", labelKey: "unknown" }
+  );
 }
 
 export function contractPhasePresentation(
