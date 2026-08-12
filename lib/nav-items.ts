@@ -12,6 +12,7 @@ import {
   CalendarCheck,
   Briefcase,
   Inbox,
+  Phone,
 } from "lucide-react"
 import { type LucideIcon } from "lucide-react"
 
@@ -48,6 +49,10 @@ export const navGroups: NavGroup[] = [
     labelKey: "nav.owner",
     items: [
       { title: "Owners",     labelKey: "nav.owners",     url: "/dashboard/owners",          icon: Building2,  permission: "owner:list" },
+      // Gated on `owner:list`, not on `task_group:create_any` (110038): 110038
+      // is SUPER_ADMIN-only, and a MODERATOR should reach this page and see the
+      // account and its order history. The form disables itself.
+      { title: "Walk-in",    labelKey: "nav.walkIn",     url: "/dashboard/walk-in",         icon: Phone,      permission: "owner:list" },
       { title: "Properties", labelKey: "nav.properties", url: "/dashboard/properties",      icon: Home,       permission: "property:list" },
       // Same label and same icon as the worker group's entry: one workspace, two
       // subjects. Contract authoring lives *inside* this screen, which is why the
