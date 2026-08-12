@@ -1,13 +1,14 @@
 // app/[locale]/dashboard/(owner)/walk-in/page.tsx
 "use client";
 
-import { Info } from "lucide-react";
+import { Info, TriangleAlert } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { WeeklyWorkCard } from "@/components/owners/weekly-work-card";
 import { WalkInOrderForm } from "@/components/walk-in/walk-in-order-form";
 import { useOwner, useOwnerProperties, useWalkInOwnerId } from "@/hooks/use-owners";
+import { describeApiError, isPermissionDenied } from "@/lib/onboarding/errors";
 
 /**
  * Filing an order that arrived by phone, Instagram, WhatsApp or Telegram.
@@ -20,6 +21,7 @@ import { useOwner, useOwnerProperties, useWalkInOwnerId } from "@/hooks/use-owne
  */
 export default function WalkInPage() {
   const t = useTranslations("walkIn");
+  const tOnboarding = useTranslations("onboarding");
 
   const walkIn = useWalkInOwnerId();
   const walkInId = walkIn.data ?? "";
@@ -45,14 +47,36 @@ export default function WalkInPage() {
           <Skeleton className="h-14 w-full rounded-xl" />
           <Skeleton className="h-96 w-full rounded-xl" />
         </>
+      ) : walkIn.isError ? (
+        /**
+         * `useWalkInOwnerId`'s queryFn only resolves `null` for a genuinely
+         * empty page. A refused (403) or failed (500, network) request instead
+         * leaves the query in its `error` state, and that must not be read as
+         * "unseeded" — the account may well exist, and the seeder message below
+         * would be false. `retry: false` and `staleTime: Infinity` on the hook
+         * also mean this state is sticky, so it has to say what actually
+         * happened rather than guess at "not set up".
+         */
+        <div className="flex items-start gap-2.5 rounded-xl border border-border bg-muted/40 px-4 py-3">
+          <TriangleAlert className="mt-0.5 size-4 shrink-0 text-destructive" />
+          <p className="text-sm text-destructive">
+            {isPermissionDenied(walkIn.error)
+              ? tOnboarding("permissionDenied")
+              : tOnboarding(
+                  `apiErrors.${describeApiError(walkIn.error)?.labelKey ?? "unknown"}`,
+                )}
+          </p>
+        </div>
       ) : !walkIn.data || !property ? (
         /**
-         * `useWalkInOwnerId` resolves to `null` rather than throwing when the
-         * environment has no walk-in row, and the property list can be empty for
-         * the same reason. Neither is an empty state — it is an unseeded
-         * environment, which is a fact about the system and not about an owner.
-         * No form is rendered: an enabled form over a missing property only
-         * produces `400 property_not_found` after the order has been typed.
+         * A query that resolved successfully with no walk-in row
+         * (`useWalkInOwnerId` resolving to `null`) or with a walk-in row but no
+         * property means the environment is unseeded — a fact about the system,
+         * not about an owner. A refused or failed lookup is handled in the
+         * branch above, before this one, so arriving here means the request
+         * succeeded and simply found nothing. No form is rendered: an enabled
+         * form over a missing property only produces `400 property_not_found`
+         * after the order has been typed.
          */
         <div className="flex items-start gap-2.5 rounded-xl border border-border bg-muted/40 px-4 py-3">
           <Info className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
