@@ -133,3 +133,57 @@
     @apply font-sans;
   }
 }
+
+/**
+ * Slimmed, not hidden: a scrollbar is the only thing on a wide table that says
+ * "there is more this way", so it has to stay visible. What it does not have to
+ * be is the ~17px of grey chrome Windows draws by default, which on a table
+ * outweighs the table's own borders.
+ *
+ * Both paths are declared and kept to the same result on purpose. Chrome, Edge
+ * and Safari take the `::-webkit-scrollbar-*` rules; Firefox — and Chrome when
+ * it prefers the standard properties — takes `scrollbar-width`/`scrollbar-color`
+ * instead. Which one wins is not worth pinning down: the difference between them
+ * is a rounded 8px thumb against an unrounded ~11px one, and either is quieter
+ * than what the browser draws unasked.
+ *
+ * `color-mix` against `--muted-foreground` rather than a fixed grey: that token
+ * flips with the theme, so one declaration stays quiet-but-visible on both.
+ */
+@utility scrollbar-slim {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--muted-foreground) 32%, transparent)
+    transparent;
+
+  /* Brightens while the pointer is anywhere over the scrollable area — the
+     affordance is loudest exactly when someone is looking for it. */
+  &:hover {
+    scrollbar-color: color-mix(in oklab, var(--muted-foreground) 48%, transparent)
+      transparent;
+  }
+
+  &::-webkit-scrollbar {
+    width: 0.5rem;
+    height: 0.5rem;
+  }
+
+  /* Transparent rather than `--muted`: a filled track sitting under a table's
+     bottom edge reads as a second border. */
+  &::-webkit-scrollbar-track,
+  &::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border-radius: 9999px;
+    background-color: color-mix(in oklab, var(--muted-foreground) 32%, transparent);
+  }
+
+  &:hover::-webkit-scrollbar-thumb {
+    background-color: color-mix(in oklab, var(--muted-foreground) 48%, transparent);
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background-color: color-mix(in oklab, var(--muted-foreground) 70%, transparent);
+  }
+}
