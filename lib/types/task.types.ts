@@ -84,6 +84,34 @@ export interface TaskGroupDto {
   createdAt: string;
 }
 
+/**
+ * Body of `POST /api/tasks/admin/groups` (`task_group:create_any`, 110038) — and
+ * of the owner-side `POST /api/tasks/groups`. There is deliberately no admin
+ * shape and no `ownerUserId`: a `propertyId` already implies its owner.
+ *
+ * The five optional fields are unused by the walk-in form; they are typed so the
+ * next consumer does not have to re-derive the contract.
+ */
+export interface CreateTaskGroupRequest {
+  propertyId: string;
+  title: string;
+  /** `"HH:mm:ss"` — a bare `"HH:mm"` is not accepted. */
+  defaultStartTime: string;
+  defaultWorkerLimit: number;
+  /** Explicit dates, `"YYYY-MM-DD"`, **not** a range. One task per date. */
+  dates: string[];
+  defaultDeadline?: string | null;
+  instructions?: string | null;
+  /** Not shown to workers. */
+  internalNote?: string | null;
+  /** `0.0`–`5.0`; omitted leaves it wide open. */
+  ratingFloor?: number;
+  /** Omitted or empty means any profession. */
+  eligibleProfessionIds?: string[];
+  /** Defaults to `true` server-side. */
+  allowNewWorkers?: boolean;
+}
+
 /** Response of rate / outcome-override (mirror WorkerRatingDto). */
 export interface WorkerRatingDto {
   workerId: string;
