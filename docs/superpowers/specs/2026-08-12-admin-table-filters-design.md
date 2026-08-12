@@ -125,11 +125,26 @@ Three new columns, and each has a labelling rule that is not optional:
   there is no login-recency data anywhere in this API for any user type.
 - `taskCount` — a real count, `0` when none.
 
-Three new `sortBy` values (`companyCity`, `lastOrderedAt`, `taskCount`) joining the existing three. The
-whitelist gets a **default branch** — an unknown key must not fall through.
+#### The sort keys and the export columns are **not** absorbable here — and that is a finding
 
-Export gains three appended columns (11–13). **Read the export by header name, not column position** —
-it has gone 9 → 10 → 13, so an exact-count assertion breaks for the second time.
+The changelog entry lists "three sort keys and three export columns" as part of F-02 #4. Neither can be
+absorbed as a change, because **neither surface exists anywhere in this app**:
+
+- **No admin table sorts.** `DataTableColumn` is `{ label, className }` — there is no sort affordance, no
+  `sortBy`/`dir` in any page's query, on any screen. The owners page sends tab + search + paging only.
+- **No admin table exports.** Nothing in the app calls any export route: no `?format=`, no `/export`, no
+  `downloadCsv` outside the attendance screen's client-side CSV.
+
+So they are **new features, not migrations**, and they belong to their own spec — column sorting in
+particular touches every table in the panel's blast radius and would double this change. What this spec
+does instead is leave the door open: the six params include the two range pairs that make a sorted view
+useful, and `BACKEND-REVISIONS.md` records the sort keys and export columns as still outstanding so they
+are not mistaken for done.
+
+When they are built, two rules from the guide apply and are worth carrying forward now: the `sortBy`
+whitelist needs a **default branch** (an unknown key must not fall through), and the export must be read
+**by header name, not column position** — it has gone 9 → 10 → 13, so an exact-column-count assertion
+breaks for the second time.
 
 ### Workers — its own server params, same panel
 
@@ -178,8 +193,8 @@ plain functions beside their page — the shape `buildWalkInOrder` established.
 Two phases, because the first is a shippable feature and the second is adoption:
 
 - **Phase A — the component and Owners.** Extend `FilterBar` with the three kinds, add the
-  country/city lookup surface, wire the owners page's ten filters, three columns, three sort keys and the
-  three appended export columns. This is where the whole F-02 #4 gap closes.
+  country/city lookup surface, wire the owners page's ten filters and its three new columns. This closes
+  the *filterable* half of F-02 #4 — the half that is absorbable.
 - **Phase B — adoption.** Workers, Properties and Tasks move onto the panel; Tasks additionally moves its
   four filters server-side and turns `ADMIN_TASKS_CAP` into a function of the query.
 
@@ -189,6 +204,8 @@ is how a shared component ends up with per-screen conditionals.
 ## Out of scope
 
 - Support inbox filters — untouched, by instruction.
+- **Column sorting** and **CSV export** on any admin table. Neither exists today (see above); both are new
+  features needing their own spec, and both are recorded as outstanding in `BACKEND-REVISIONS.md`.
 - Server-side paging for the two unpaginated contract lists (`contract-lifecycle.md` §7.7 flags it as a
   future need).
 - Saved or shareable filter state in the URL. Worth doing later; it is not required by any of the three
