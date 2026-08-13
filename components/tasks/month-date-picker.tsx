@@ -81,7 +81,10 @@ export function MonthDatePicker({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="rounded-xl bg-muted/40 p-3">
+      {/* Capped: `grid-cols-7` fills whatever it is given, and on a dashboard-width
+          column that spreads seven cells over ~1000px — a month you have to sweep
+          your eyes across rather than read. A month grid is legible at ~360px. */}
+      <div className="w-full max-w-sm rounded-xl bg-muted/40 p-3">
         <div className="mb-2 flex items-center justify-between gap-2">
           <Button
             type="button"

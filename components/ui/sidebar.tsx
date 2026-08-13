@@ -307,7 +307,14 @@ function SidebarInset({className, ...props}: React.ComponentProps<"main">) {
         <main
             data-slot="sidebar-inset"
             className={cn(
-                "relative flex w-full flex-1 flex-col bg-background md:peer-data-[variant=inset]:m-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow-sm md:peer-data-[variant=inset]:peer-data-[state=collapsed]:ml-2",
+                // `min-w-0` is load-bearing, not cosmetic. The wrapper above is a
+                // ROW flex, so this inset is a flex item on the horizontal main
+                // axis, where the default `min-width: auto` refuses to shrink below
+                // the content's intrinsic width. A wide table inside — the tasks
+                // calendar needs 200px + 7×150px — therefore pushed this inset past
+                // the viewport and gave the whole page a horizontal scrollbar,
+                // instead of scrolling inside its own `overflow-x-auto` container.
+                "relative flex w-full min-w-0 flex-1 flex-col bg-background md:peer-data-[variant=inset]:m-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow-sm md:peer-data-[variant=inset]:peer-data-[state=collapsed]:ml-2",
                 className
             )}
             {...props}
