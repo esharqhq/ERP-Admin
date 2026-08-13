@@ -57,3 +57,18 @@ export function shiftMonth({ year, month }: YearMonth, delta: number): YearMonth
 export function isPastDay(key: string, todayKey: string): boolean {
   return key < todayKey;
 }
+
+/**
+ * Toggles `key` in or out of `dates`, returning a new sorted-ascending array.
+ *
+ * `YYYY-MM-DD` sorts lexicographically, so `.sort()` needs no parsing. Kept
+ * sorted because a later screen derives a date range from `dates[0]` /
+ * `dates.at(-1)` — those have to be the real first and last day regardless of
+ * click order.
+ */
+export function toggleDate(dates: string[], key: string): string[] {
+  const next = dates.includes(key)
+    ? dates.filter((d) => d !== key)
+    : [...dates, key];
+  return next.sort();
+}

@@ -8,6 +8,7 @@ import {
   isPastDay,
   monthGrid,
   shiftMonth,
+  toggleDate,
   type YearMonth,
 } from "@/lib/tasks/month-grid";
 import { toLocalDateKey } from "@/lib/tasks/weekly-rows";
@@ -17,11 +18,12 @@ import { cn } from "@/lib/utils";
 const WEEKDAYS = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
 
 /**
- * Pick the day an order is for.
+ * Pick every day an order covers.
  *
- * Single-select: clicking a day replaces the selection. `value` is an array
- * anyway, because the wire field is one — which makes multi-select a change of
- * this handler rather than of the interface.
+ * Multi-select: clicking a day toggles it in or out of the selection via
+ * `toggleDate`, which also keeps the result sorted ascending — a caller that
+ * derives a date range from `value[0]` / `value.at(-1)` depends on that order
+ * being the real first and last day, not the click order.
  *
  * Past days are disabled. Nothing server-side refuses them; work that has been
  * and gone cannot be usefully staffed, so the refusal is ours.
@@ -99,7 +101,7 @@ export function MonthDatePicker({
               type="button"
               disabled={disabled || past}
               aria-pressed={isSelected}
-              onClick={() => onChange([cell.key])}
+              onClick={() => onChange(toggleDate(value, cell.key))}
               className={cn(
                 "flex h-9 items-center justify-center rounded-md border text-[13px] tabular-nums transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-40",
                 isSelected

@@ -3,6 +3,7 @@ import {
   isPastDay,
   monthGrid,
   shiftMonth,
+  toggleDate,
   type MonthGridCell,
 } from "@/lib/tasks/month-grid";
 
@@ -70,5 +71,28 @@ describe("isPastDay", () => {
   it("compares as dates, not as numbers — a key sorts correctly across months", () => {
     expect(isPastDay("2026-07-31", "2026-08-01")).toBe(true);
     expect(isPastDay("2026-09-01", "2026-08-31")).toBe(false);
+  });
+});
+
+describe("toggleDate", () => {
+  it("adds a date to an empty selection", () => {
+    expect(toggleDate([], "2026-08-13")).toEqual(["2026-08-13"]);
+  });
+
+  it("adds a second date out of order and returns it sorted ascending", () => {
+    expect(toggleDate(["2026-08-20"], "2026-08-13")).toEqual([
+      "2026-08-13",
+      "2026-08-20",
+    ]);
+  });
+
+  it("toggles an already-selected date off, leaving the rest sorted", () => {
+    expect(toggleDate(["2026-08-13", "2026-08-20"], "2026-08-13")).toEqual([
+      "2026-08-20",
+    ]);
+  });
+
+  it("toggling the only selected date off returns an empty array", () => {
+    expect(toggleDate(["2026-08-13"], "2026-08-13")).toEqual([]);
   });
 });
