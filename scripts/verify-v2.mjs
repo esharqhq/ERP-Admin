@@ -103,6 +103,20 @@ const EXPECTED_FIELDS = {
     "entryInstructions", "floorCount", "roomCount", "areaSqm"],
   AdminCreatePropertyRequest: ["ownerUserId", "name", "address", "lat", "long",
     "propertyCategoryId", "entryInstructions", "floorCount", "roomCount", "areaSqm"],
+  // The Walk-In order form sends `defaultDeadline`; the orders list and detail
+  // sheet render every TaskGroupDto/TaskItemDto field below. Nothing else in this
+  // script covered the tasks surface, which is how a change here would otherwise
+  // break the page with every gate green.
+  CreateTaskGroupRequest: ["propertyId", "title", "defaultStartTime", "defaultDeadline",
+    "defaultWorkerLimit", "dates", "instructions", "internalNote", "ratingFloor",
+    "eligibleProfessionIds", "allowNewWorkers"],
+  TaskGroupDto: ["id", "propertyId", "ownerId", "title", "defaultStartTime", "defaultDeadline",
+    "instructions", "status", "ratingFloor", "allowNewWorkers", "eligibleProfessionIds",
+    "dates", "tasks", "createdAt"],
+  TaskItemDto: ["id", "groupId", "propertyId", "propertyName", "scheduledDate", "scheduledAt",
+    "deadline", "status", "requiredWorkerCount", "startedAt", "completedAt", "workers"],
+  TaskWorkerDto: ["id", "taskId", "workerId", "workerName", "outcome", "starRating",
+    "assignedAt", "checkinAt", "submittedAt", "checkoutAt"],
 };
 for (const [name, fields] of Object.entries(EXPECTED_FIELDS)) {
   const live = S[name]?.properties;
@@ -138,6 +152,10 @@ for (const [route, method] of [
   ["/api/contracts/admin/owner/{ownerUserId}/renew", "post"],
   ["/api/contracts/admin/worker/{contractId}/send", "post"],
   ["/api/system/settings/{key}", "get"],
+  ["/api/tasks/admin/groups", "get"], ["/api/tasks/admin/groups", "post"],
+  ["/api/tasks/admin/groups/{id}/cancel", "post"],
+  ["/api/tasks/{taskId}/admin-assign/{workerId}", "post"],
+  ["/api/tasks/{taskId}/admin-assign/{workerId}", "delete"],
 ]) {
   if (swagger.paths[route]?.[method]) ok(`route ${method.toUpperCase()} ${route}`);
   else bad(`route ${method.toUpperCase()} ${route} missing`);
@@ -149,7 +167,12 @@ const idem = renewParams.find((p) => p.name === "X-Idempotency-Key");
 if (idem?.required) ok("renew requires X-Idempotency-Key");
 else bad("renew no longer requires X-Idempotency-Key — re-check the spec");
 
-// ── 6. i18n: every labelKey used by lib/onboarding/* exists in BOTH locales ──
+// ── 6. the groups list really takes ?ownerUserId ────────────────────────────
+const groupsParams = swagger.paths["/api/tasks/admin/groups"]?.get?.parameters ?? [];
+if (groupsParams.some((p) => p.name === "ownerUserId")) ok("admin groups list takes ?ownerUserId");
+else bad("admin groups list lost ?ownerUserId — the Walk-In orders list is built on it");
+
+// ── 7. i18n: every labelKey used by lib/onboarding/* exists in BOTH locales ──
 const REPO = join(dirname(fileURLToPath(import.meta.url)), "..");
 const REQUIRED = {
   status: ["kyc", "review", "rejected", "approved", "contract", "active", "unknown"],
@@ -190,7 +213,7 @@ for (const locale of ["en", "de"]) {
   if (typeof ns.permissionDenied !== "string") bad(`${locale}.json onboarding.permissionDenied missing`);
 }
 
-// ── 7. authenticated shape checks (skipped without credentials) ─────────────
+// ── 8. authenticated shape checks (skipped without credentials) ─────────────
 const email = process.env.ERP_ADMIN_EMAIL, password = process.env.ERP_ADMIN_PASSWORD;
 if (!email || !password) {
   console.log("SKIP  authenticated checks (set ERP_ADMIN_EMAIL / ERP_ADMIN_PASSWORD)");
@@ -250,7 +273,7 @@ if (!email || !password) {
   }
 }
 
-// ── 8. F-03·1 (PR #47): structured document data ───────────────────────────
+// ── 9. F-03·1 (PR #47): structured document data ───────────────────────────
 const F031_FIELDS = {
   OwnerIdentityDto: ["firstName", "lastName", "passportNumber", "passportExpiry"],
   WorkerIdentityDto: ["firstName", "lastName", "passportNumber", "passportExpiry", "licenseExpiry"],

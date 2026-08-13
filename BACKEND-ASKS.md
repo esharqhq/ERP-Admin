@@ -184,3 +184,21 @@ This is the same problem as **(c)** above, one entity over. `POST /api/propertie
 properties either. It shipped as an admin branch with `property:create_any`, an
 `AdminCreatePropertyRequest` carrying the target `ownerUserId`, and `201 PropertyDto`. The owner ask
 is strictly simpler — there is no target owner to name, because the new account *is* the owner.
+
+## Add `internalNote` to `TaskGroupDto`
+
+`internalNote` is accepted by `CreateTaskGroupRequest` and `UpdateTaskGroupRequest`
+(`index/dtos/tasks.md:47`, `:117`) and exists as a column
+(`index/schemas/tasks.md:35` — "admin/owner internal note; not shown to workers").
+It appears in **no response DTO**: `TaskGroupDto` (`index/dtos/tasks.md:173-189`)
+does not carry it, so no read endpoint returns it.
+
+For an admin it is therefore write-once and unreadable — the only route that accepts
+it after creation, `PUT /api/tasks/groups/{id}`, is PROPERTY-scoped
+(`task_group:update`, 110004) and an admin holds no `PropertyMembership`.
+
+**Ask:** add `internalNote` to `TaskGroupDto`. It is the natural home for a walk-in
+order's customer contact details, which currently have to go in `title` (worker-visible)
+to be visible to the admin at all.
+
+Found 2026-08-13 while planning the Walk-In orders list.
