@@ -8,20 +8,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TaskStatusBadge } from "@/components/tasks/task-status-badge";
-import { groupStaffing } from "@/lib/tasks/staffing";
+import { groupStaffing, isGroupActive } from "@/lib/tasks/staffing";
 import { describeApiError, isPermissionDenied } from "@/lib/onboarding/errors";
-import { normalizeStatus, type TaskGroupDto } from "@/lib/types/task.types";
-
-/**
- * A group is "active" while it is PENDING or ACTIVE. `TaskGroupStatus` has
- * exactly four members — PENDING / ACTIVE / DONE / CANCELLED — so these two
- * buckets are exhaustive and nothing can fall out of both tabs. Mirrors the
- * owner app's `isActiveStatus`.
- */
-function isActiveGroup(group: TaskGroupDto): boolean {
-  const s = normalizeStatus(group.status);
-  return s === "pending" || s === "active";
-}
+import type { TaskGroupDto } from "@/lib/types/task.types";
 
 /** `"20–21 Aug"`, or a single date when the order covers one day. */
 function dateRange(group: TaskGroupDto, locale: string): string {
@@ -67,8 +56,8 @@ export function WalkInOrdersList({
       (a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt),
     );
     return {
-      active: sorted.filter(isActiveGroup),
-      history: sorted.filter((g) => !isActiveGroup(g)),
+      active: sorted.filter(isGroupActive),
+      history: sorted.filter((g) => !isGroupActive(g)),
     };
   }, [groups]);
 

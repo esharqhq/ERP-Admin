@@ -20,7 +20,7 @@ import {
   useCancelTaskGroup,
   useUnassignWorker,
 } from "@/hooks/use-tasks";
-import { activeWorkers, isOpen } from "@/lib/tasks/staffing";
+import { activeWorkers, isGroupActive, isOpen } from "@/lib/tasks/staffing";
 import { classifyAssignError } from "@/lib/tasks/assign-errors";
 import type { TaskGroupDto, TaskItemDto, TaskWorkerDto } from "@/lib/types/task.types";
 
@@ -158,19 +158,30 @@ export function WalkInOrderSheet({
               )}
             </div>
 
-            <Can permission="task_group:cancel_any">
-              <div className="mt-auto border-t border-border px-4 py-3">
-                <Button
-                  variant="destructive"
-                  onClick={() => {
-                    cancelGroup.reset();
-                    setModal({ type: "cancelGroup" });
-                  }}
-                >
-                  {t("cancel")}
-                </Button>
-              </div>
-            </Can>
+            {/*
+              Terminal groups (reached from the History tab) are not offered
+              Cancel: the backend rejects a CANCELLED group with
+              `task_group_already_cancelled` and a DONE one with
+              `task_group_already_done`, and neither code is in the onboarding
+              error catalog, so the admin would see only the generic failure.
+              `isGroupActive` is the same check the list uses to sort a group
+              into Active vs. History — both conditions apply, so both gate.
+            */}
+            {isGroupActive(group) ? (
+              <Can permission="task_group:cancel_any">
+                <div className="mt-auto border-t border-border px-4 py-3">
+                  <Button
+                    variant="destructive"
+                    onClick={() => {
+                      cancelGroup.reset();
+                      setModal({ type: "cancelGroup" });
+                    }}
+                  >
+                    {t("cancel")}
+                  </Button>
+                </div>
+              </Can>
+            ) : null}
 
             {modal?.type === "assign" ? (
               <AssignWorkerDialog

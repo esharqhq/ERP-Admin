@@ -1,4 +1,9 @@
-import { normalizeStatus, type TaskItemDto, type TaskWorkerDto } from "@/lib/types/task.types";
+import {
+  normalizeStatus,
+  type TaskGroupDto,
+  type TaskItemDto,
+  type TaskWorkerDto,
+} from "@/lib/types/task.types";
 
 /**
  * A worker whose outcome is one of these no longer occupies a slot — the task is
@@ -50,4 +55,22 @@ export function groupStaffing(tasks: TaskItemDto[]): { filled: number; required:
     }),
     { filled: 0, required: 0 },
   );
+}
+
+/**
+ * A group is "active" while it is PENDING or ACTIVE. `TaskGroupStatus` has
+ * exactly four members — PENDING / ACTIVE / DONE / CANCELLED — so this and its
+ * negation are exhaustive.
+ *
+ * Shared for the same reason `OPEN_STATUSES` is: the Walk-In orders list (its
+ * Active/History split), the Walk-In order sheet (whether Cancel can even be
+ * offered) and the Dispatch task-detail page (`groupCancellable`) all need the
+ * same answer, and the backend's cancel flow enforces it server-side — it
+ * rejects `CANCELLED` with `task_group_already_cancelled` and `DONE` with
+ * `task_group_already_done`. A second, drifted copy of this check in any one
+ * of those screens would offer Cancel on a group the backend will refuse.
+ */
+export function isGroupActive(group: TaskGroupDto): boolean {
+  const s = normalizeStatus(group.status);
+  return s === "pending" || s === "active";
 }

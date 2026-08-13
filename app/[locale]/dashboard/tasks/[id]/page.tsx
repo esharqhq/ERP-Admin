@@ -30,6 +30,7 @@ import {
   useRateWorker,
   useOverrideOutcome,
 } from "@/hooks/use-tasks";
+import { isGroupActive } from "@/lib/tasks/staffing";
 import {
   normalizeStatus,
   type TaskItemDto,
@@ -294,8 +295,7 @@ export default function TaskGroupDetailPage({
   const sortedTasks = [...(group.tasks ?? [])].sort((a, b) =>
     a.scheduledDate.localeCompare(b.scheduledDate),
   );
-  const groupStatus = normalizeStatus(group.status);
-  const groupCancellable = groupStatus === "pending" || groupStatus === "active";
+  const groupCancellable = isGroupActive(group);
 
   return (
     <div className="flex flex-col gap-6">

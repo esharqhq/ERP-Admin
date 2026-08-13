@@ -2,10 +2,11 @@ import { describe, expect, it } from "vitest";
 import {
   activeWorkers,
   groupStaffing,
+  isGroupActive,
   isOpen,
   needsWorkers,
 } from "@/lib/tasks/staffing";
-import type { TaskItemDto, TaskWorkerDto } from "@/lib/types/task.types";
+import type { TaskGroupDto, TaskItemDto, TaskWorkerDto } from "@/lib/types/task.types";
 
 function worker(over: Partial<TaskWorkerDto> = {}): TaskWorkerDto {
   return {
@@ -21,6 +22,26 @@ function worker(over: Partial<TaskWorkerDto> = {}): TaskWorkerDto {
     checkoutAt: null,
     checkinLat: null,
     checkinLng: null,
+    ...over,
+  };
+}
+
+function group(over: Partial<TaskGroupDto> = {}): TaskGroupDto {
+  return {
+    id: "g-1",
+    propertyId: "p-1",
+    ownerId: "o-1",
+    title: "Walk-in order",
+    defaultStartTime: "09:00:00",
+    defaultDeadline: null,
+    instructions: null,
+    status: "Pending",
+    ratingFloor: 0,
+    allowNewWorkers: true,
+    eligibleProfessionIds: [],
+    dates: [],
+    tasks: [],
+    createdAt: "2026-08-13T09:00:00Z",
     ...over,
   };
 }
@@ -93,6 +114,35 @@ describe("needsWorkers", () => {
 
   it("is false for an open task that has an active worker", () => {
     expect(needsWorkers(task({ workers: [worker()] }))).toBe(false);
+  });
+});
+
+describe("isGroupActive", () => {
+  it("is true for a Pending group", () => {
+    expect(isGroupActive(group({ status: "Pending" }))).toBe(true);
+  });
+
+  it("is true for an Active group", () => {
+    expect(isGroupActive(group({ status: "Active" }))).toBe(true);
+  });
+
+  it("is false for a Done group", () => {
+    expect(isGroupActive(group({ status: "Done" }))).toBe(false);
+  });
+
+  it("is false for a Cancelled group", () => {
+    expect(isGroupActive(group({ status: "Cancelled" }))).toBe(false);
+  });
+
+  it("matches status case-insensitively", () => {
+    expect(isGroupActive(group({ status: "pending" }))).toBe(true);
+    expect(isGroupActive(group({ status: "ACTIVE" }))).toBe(true);
+    expect(isGroupActive(group({ status: "done" }))).toBe(false);
+    expect(isGroupActive(group({ status: "CANCELLED" }))).toBe(false);
+  });
+
+  it("is false for an unexpected status string — it must not be treated as active", () => {
+    expect(isGroupActive(group({ status: "SomethingUnknown" }))).toBe(false);
   });
 });
 

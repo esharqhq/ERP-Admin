@@ -376,7 +376,7 @@
       "worker_below_rating_floor": "Dieser Mitarbeiter liegt unter der Mindestbewertung der Aufgabe.",
       "worker_profession_not_eligible": "Der Beruf dieses Mitarbeiters ist für diese Aufgabe nicht zugelassen.",
       "worker_limit_reached": "Diese Aufgabe ist bereits vollständig besetzt.",
-      "worker_has_overlapping_assignment": "Dieser Mitarbeiter hat zu dieser Zeit eine überschneidende Zuweisung.",
+      "worker_has_overlapping_assignment": "Dieser Mitarbeiter hat an diesem Tag bereits eine Zuweisung. Wählen Sie einen anderen Mitarbeiter.",
       "unknown": "Mitarbeiter konnte nicht zugewiesen werden. Bitte erneut versuchen."
     },
     "activity": {
@@ -1326,7 +1326,7 @@
       "worker_below_rating_floor": "Dieser Mitarbeiter liegt unter der Mindestbewertung der Aufgabe.",
       "worker_profession_not_eligible": "Der Beruf dieses Mitarbeiters ist für diese Aufgabe nicht zugelassen.",
       "worker_limit_reached": "Diese Aufgabe ist bereits vollständig besetzt.",
-      "worker_has_overlapping_assignment": "Dieser Mitarbeiter hat zu dieser Zeit eine überschneidende Zuweisung."
+      "worker_has_overlapping_assignment": "Dieser Mitarbeiter hat an diesem Tag bereits eine Zuweisung. Wählen Sie einen anderen Mitarbeiter."
     }
   },
   "audit": {
