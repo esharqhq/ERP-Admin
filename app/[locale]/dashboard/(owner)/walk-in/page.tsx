@@ -19,14 +19,8 @@ import {
   useWalkInOwnerId,
 } from "@/hooks/use-owners";
 import { describeApiError, isPermissionDenied } from "@/lib/onboarding/errors";
+import { readWalkInTab, type WalkInTabKey } from "@/lib/tasks/walk-in-tab";
 import type { TaskGroupDto } from "@/lib/types/task.types";
-
-const TABS = ["create", "orders"] as const;
-type TabKey = (typeof TABS)[number];
-
-function readTab(value: string | null): TabKey {
-  return TABS.includes(value as TabKey) ? (value as TabKey) : "create";
-}
 
 /**
  * Filing an order that arrived by phone, Instagram, WhatsApp or Telegram — and
@@ -43,7 +37,7 @@ export default function WalkInPage() {
   const tOnboarding = useTranslations("onboarding");
   const router = useRouter();
   const searchParams = useSearchParams();
-  const tab = readTab(searchParams.get("tab"));
+  const tab = readWalkInTab(searchParams.get("tab"));
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [justCreated, setJustCreated] = useState<TaskGroupDto | null>(null);
@@ -92,7 +86,7 @@ export default function WalkInPage() {
     );
   }, [groups.data, justCreated, selectedId]);
 
-  function setTab(next: TabKey) {
+  function setTab(next: WalkInTabKey) {
     // `replace`, not `push`: a history entry per tab click would make the back
     // button walk backwards through tab switches, and after the post-create
     // switch it would land on the create tab holding a just-submitted form.
@@ -162,7 +156,7 @@ export default function WalkInPage() {
             </span>
           </div>
 
-          <Tabs value={tab} onValueChange={(v) => setTab(readTab(String(v)))}>
+          <Tabs value={tab} onValueChange={(v) => setTab(readWalkInTab(String(v)))}>
             <TabsList>
               <TabsTrigger value="create">{t("tabs.create")}</TabsTrigger>
               <TabsTrigger value="orders">{t("tabs.orders")}</TabsTrigger>
