@@ -644,29 +644,30 @@
     "unseeded": "Das Laufkundschaft-Konto ist in dieser Umgebung nicht eingerichtet, daher kann kein Auftrag erfasst werden. Es wird vom Backend-Seeder erstellt, nicht hier.",
     "noPermission": "Zum Erfassen eines Auftrags fehlt Ihrer Rolle die Berechtigung zum Anlegen von Aufgabengruppen.",
     "form": {
-      "title": "Auftragstitel",
-      "titlePlaceholder": "Telefonauftrag — Frau Weber, 3 Zimmer",
-      "date": "Datum",
+      "title": "Auftrag",
+      "titlePlaceholder": "Wohnungsreinigung, 3 Zimmer",
+      "customer": "Kunde",
+      "customerPlaceholder": "Frau Weber · +49 30 1234567",
+      "customerHint": "Wird Teil des Auftragsnamens, damit die Aufträge später unterscheidbar sind.",
+      "dates": "Termine",
+      "datesHint": "Alle Tage auswählen, die der Auftrag umfasst — pro Tag wird ein Job erstellt.",
       "startTime": "Startzeit",
+      "deadlineToggle": "Frist setzen",
+      "deadline": "Frist",
       "workers": "Benötigte Mitarbeiter",
-      "instructions": "Hinweise für den Mitarbeiter",
-      "instructionsPlaceholder": "Zweimal klingeln. Schlüssel beim Nachbarn.",
-      "submit": "Auftrag erfassen"
+      "instructions": "Anweisungen für den Mitarbeiter",
+      "instructionsPlaceholder": "Echte Adresse: Hauptstr. 5, 10827 Berlin. Zweimal klingeln. Schlüssel beim Nachbarn.",
+      "instructionsHint": "Die echte Adresse angeben — die Immobilie dieses Kontos ist ein Platzhalter ohne Standort.",
+      "submit": "Auftrag anlegen"
     },
     "errors": {
-      "titleRequired": "Geben Sie dem Auftrag einen Titel.",
-      "dateRequired": "Wählen Sie ein Datum.",
-      "startTimeRequired": "Legen Sie eine Startzeit fest.",
+      "titleRequired": "Bitte einen Auftragsnamen angeben.",
+      "datesRequired": "Bitte mindestens einen Termin auswählen.",
+      "startTimeRequired": "Bitte eine Startzeit setzen.",
+      "deadlineRequired": "Bitte eine Frist setzen oder die Option ausschalten.",
       "workerLimitInvalid": "Mindestens ein Mitarbeiter ist erforderlich.",
-      "propertyGone": "Das Laufkundschaft-Objekt ist nicht mehr vorhanden. Laden Sie die Seite neu.",
-      "generic": "Der Auftrag konnte nicht erfasst werden. Bitte erneut versuchen."
-    },
-    "created": {
-      "title": "Auftrag erfasst",
-      "body": "Weisen Sie jetzt einen Mitarbeiter zu oder überlassen Sie den Auftrag der Dispositionsliste.",
-      "assign": "Mitarbeiter zuweisen",
-      "assigned": "Mitarbeiter zugewiesen",
-      "another": "Weiteren Auftrag erfassen"
+      "propertyGone": "Die Walk-in-Immobilie existiert nicht mehr. Bitte die Seite neu laden.",
+      "generic": "Der Auftrag konnte nicht angelegt werden. Bitte erneut versuchen."
     }
   },
   "properties": {
