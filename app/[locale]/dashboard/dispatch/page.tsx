@@ -22,7 +22,8 @@ import { AssignWorkerDialog } from "@/components/tasks/assign-worker-dialog";
 import { ConfirmDialog } from "@/components/tasks/confirm-dialog";
 import { useAdminTasks, useAssignWorker, useUnassignWorker } from "@/hooks/use-tasks";
 import { useProperties } from "@/hooks/use-properties";
-import { describeApiError, isPermissionDenied } from "@/lib/onboarding/errors";
+import { activeWorkers, isOpen, needsWorkers } from "@/lib/tasks/staffing";
+import { classifyAssignError } from "@/lib/tasks/assign-errors";
 import {
   normalizeStatus,
   type TaskItemDto,
@@ -43,27 +44,6 @@ import {
  */
 const ADMIN_TASKS_CAP = 500;
 
-// A worker whose outcome is one of these no longer occupies a slot — the task is
-// effectively short that body even though the row still exists.
-const VACATED_OUTCOMES = new Set(["removed", "cancelled", "noshow"]);
-
-// Only PENDING / ACTIVE tasks can still take a worker. REVIEW (work submitted) and the
-// terminal DONE / CANCELLED states are not dispatch targets.
-const OPEN_STATUSES = new Set(["pending", "active"]);
-
-// v2 admin-assign refusals. The gate codes (403 WITH a body, about the WORKER's
-// contract cover — an empty 403 body is a permission problem instead) and
-// `worker_contract_ends_before_task` are covered by the shared onboarding
-// catalog (see `assignError` below); `worker_not_approved` no longer exists.
-// These four are the only codes THIS PAGE still owns copy for — checked by
-// membership, never by interpolating an arbitrary code into `errors.*`.
-const LEGACY_ASSIGN_ERRORS = new Set([
-  "worker_below_rating_floor",
-  "worker_profession_not_eligible",
-  "worker_limit_reached",
-  "worker_has_overlapping_assignment",
-]);
-
 type DispatchFilter = "needsWorkers" | "open" | "all";
 const DISPATCH_FILTERS: DispatchFilter[] = ["needsWorkers", "open", "all"];
 
@@ -71,20 +51,6 @@ type ModalState =
   | { type: "assign"; taskId: string }
   | { type: "unassign"; taskId: string; tw: TaskWorkerDto }
   | null;
-
-function activeWorkers(task: TaskItemDto): TaskWorkerDto[] {
-  return (task.workers ?? []).filter(
-    (w) => !VACATED_OUTCOMES.has(normalizeStatus(w.outcome)),
-  );
-}
-
-function isOpen(task: TaskItemDto): boolean {
-  return OPEN_STATUSES.has(normalizeStatus(task.status));
-}
-
-function needsWorkers(task: TaskItemDto): boolean {
-  return isOpen(task) && activeWorkers(task).length === 0;
-}
 
 function fmtDate(dateStr: string, locale: string): string {
   // scheduledDate is "yyyy-MM-dd"; render in the active locale.
@@ -275,21 +241,17 @@ export default function DispatchPage() {
   const assignError =
     modal?.type === "assign" && assignWorker.isError
       ? (() => {
-          if (isPermissionDenied(assignWorker.error)) {
-            return tOnboarding("permissionDenied");
+          const kind = classifyAssignError(assignWorker.error);
+          switch (kind.kind) {
+            case "permission":
+              return tOnboarding("permissionDenied");
+            case "catalog":
+              return tOnboarding(`apiErrors.${kind.labelKey}`);
+            case "legacy":
+              return t(`errors.${kind.code}`);
+            case "unknown":
+              return t("errors.generic");
           }
-          const info = describeApiError(assignWorker.error);
-          if (info && info.labelKey !== "unknown") {
-            // A code the shared onboarding catalog covers (the gate codes plus
-            // worker_contract_ends_before_task). Never interpolate a raw code into
-            // a page-local key below — an uncataloged code (e.g. worker_not_found)
-            // would otherwise render next-intl's missing-key path string.
-            return tOnboarding(`apiErrors.${info.labelKey}`);
-          }
-          if (info && LEGACY_ASSIGN_ERRORS.has(info.code)) {
-            return t(`errors.${info.code}`);
-          }
-          return t("errors.generic");
         })()
       : null;
 
