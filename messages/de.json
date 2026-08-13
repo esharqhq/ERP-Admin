@@ -680,8 +680,28 @@
       "emptyHistory": "Noch keine abgeschlossenen oder abgebrochenen Aufträge.",
       "days": "{count, plural, one {# Tag} other {# Tage}}",
       "staffing": "{filled}/{required} besetzt",
-      "untitled": "Auftrag ohne Namen",
-      "loadFailed": "Die Aufträge konnten nicht geladen werden."
+      "untitled": "Auftrag ohne Namen"
+    },
+    "detail": {
+      "startTime": "Start",
+      "deadline": "Frist",
+      "noDeadline": "Keine",
+      "instructions": "Anweisungen",
+      "property": "Immobilie",
+      "jobs": "Tagesjobs",
+      "noJobs": "Dieser Auftrag hat keine Jobs.",
+      "noWorkers": "Noch kein Mitarbeiter",
+      "assign": "Mitarbeiter zuweisen",
+      "unassign": "Entfernen",
+      "cancel": "Auftrag abbrechen",
+      "cancelTitle": "Diesen Auftrag abbrechen?",
+      "cancelDescription": "Es werden nur Jobs abgebrochen, die noch ausstehen und mehr als eine Stunde entfernt sind. Bereits laufende oder in Prüfung befindliche Jobs bleiben bestehen. Trifft nichts davon zu, bleibt der Auftrag unverändert.",
+      "cancelConfirm": "Auftrag abbrechen",
+      "cancelFailed": "Der Auftrag konnte nicht abgebrochen werden.",
+      "unassignTitle": "Diesen Mitarbeiter entfernen?",
+      "unassignDescription": "Der Mitarbeiter wird von diesem Job entfernt. Der Job bleibt bestehen und kann neu besetzt werden.",
+      "unassignConfirm": "Entfernen",
+      "unassignFailed": "Der Mitarbeiter konnte nicht entfernt werden."
     }
   },
   "properties": {

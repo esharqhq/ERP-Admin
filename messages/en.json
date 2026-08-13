@@ -680,8 +680,28 @@
       "emptyHistory": "No finished or cancelled orders yet.",
       "days": "{count, plural, one {# day} other {# days}}",
       "staffing": "{filled}/{required} staffed",
-      "untitled": "Untitled order",
-      "loadFailed": "The orders could not be loaded."
+      "untitled": "Untitled order"
+    },
+    "detail": {
+      "startTime": "Start",
+      "deadline": "Deadline",
+      "noDeadline": "None",
+      "instructions": "Instructions",
+      "property": "Property",
+      "jobs": "Daily jobs",
+      "noJobs": "This order has no jobs.",
+      "noWorkers": "No worker yet",
+      "assign": "Assign worker",
+      "unassign": "Remove",
+      "cancel": "Cancel order",
+      "cancelTitle": "Cancel this order?",
+      "cancelDescription": "Only jobs that are still pending and more than an hour away get cancelled. Jobs already under way or awaiting review stay. If nothing qualifies, the order is left exactly as it is.",
+      "cancelConfirm": "Cancel the order",
+      "cancelFailed": "The order could not be cancelled.",
+      "unassignTitle": "Remove this worker?",
+      "unassignDescription": "The worker is taken off this job. The job itself stays and can be staffed again.",
+      "unassignConfirm": "Remove",
+      "unassignFailed": "The worker could not be removed."
     }
   },
   "properties": {
