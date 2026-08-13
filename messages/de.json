@@ -668,6 +668,20 @@
       "workerLimitInvalid": "Mindestens ein Mitarbeiter ist erforderlich.",
       "propertyGone": "Die Walk-in-Immobilie existiert nicht mehr. Bitte die Seite neu laden.",
       "generic": "Der Auftrag konnte nicht angelegt werden. Bitte erneut versuchen."
+    },
+    "tabs": {
+      "create": "Auftrag anlegen",
+      "orders": "Aufträge"
+    },
+    "orders": {
+      "active": "Aktiv",
+      "history": "Verlauf",
+      "emptyActive": "Keine laufenden Aufträge. Angelegte Aufträge erscheinen hier.",
+      "emptyHistory": "Noch keine abgeschlossenen oder abgebrochenen Aufträge.",
+      "days": "{count, plural, one {# Tag} other {# Tage}}",
+      "staffing": "{filled}/{required} besetzt",
+      "untitled": "Auftrag ohne Namen",
+      "loadFailed": "Die Aufträge konnten nicht geladen werden."
     }
   },
   "properties": {

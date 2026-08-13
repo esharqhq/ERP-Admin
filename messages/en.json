@@ -668,6 +668,20 @@
       "workerLimitInvalid": "At least one worker is needed.",
       "propertyGone": "The walk-in property is no longer there. Reload the page.",
       "generic": "The order could not be filed. Please try again."
+    },
+    "tabs": {
+      "create": "File an order",
+      "orders": "Orders"
+    },
+    "orders": {
+      "active": "Active",
+      "history": "History",
+      "emptyActive": "No orders in progress. Filed orders show up here.",
+      "emptyHistory": "No finished or cancelled orders yet.",
+      "days": "{count, plural, one {# day} other {# days}}",
+      "staffing": "{filled}/{required} staffed",
+      "untitled": "Untitled order",
+      "loadFailed": "The orders could not be loaded."
     }
   },
   "properties": {
