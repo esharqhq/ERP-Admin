@@ -12,7 +12,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ChevronLeft, ChevronRight, Building2, Eye, EyeOff } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import { weekdayLabels } from "@/lib/tasks/month-grid";
 import { useWeekNavigation } from "@/hooks/use-week-navigation";
 import { useAdminTaskGroups } from "@/hooks/use-tasks";
 import { useProperties } from "@/hooks/use-properties";
@@ -61,6 +62,10 @@ export function TasksCalendar({
   properties?: { id: string; name: string | null }[];
 } = {}) {
   const t = useTranslations("tasks");
+  const locale = useLocale();
+  // Derived, not hardcoded: this list used to be the German abbreviations, which
+  // an English admin then had to read. Shared with `MonthDatePicker`.
+  const weekdays = useMemo(() => weekdayLabels(locale), [locale]);
   const tW = useTranslations("workers");
   const nav = useWeekNavigation();
   const todayKey = toLocalDateKey(new Date());
@@ -182,7 +187,7 @@ export function TasksCalendar({
                         isWeekend ? "text-muted-foreground/40" : "text-muted-foreground",
                       )}
                     >
-                      {["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"][wd]}
+                      {weekdays[wd]}
                     </div>
                     <span
                       className={cn(

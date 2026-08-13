@@ -37,6 +37,8 @@
     "clear": "Clear",
     "previousMonth": "Previous month",
     "nextMonth": "Next month",
+    "today": "Today",
+    "daysSelected": "{count, plural, one {# day selected} other {# days selected}}",
     "min": "Min",
     "max": "Max",
     "filtersActive": "{count, plural, =0 {No filters applied} one {# filter applied} other {# filters applied}}"

@@ -106,9 +106,24 @@ export default function WalkInPage() {
       </div>
 
       {settling ? (
+        /**
+         * Mirrors the loaded layout's shape and height — account line, tab strip,
+         * then the tall card — rather than being two convenient rectangles.
+         *
+         * Three queries resolve at different moments here (`useWalkInOwnerId`,
+         * then `useOwner` / `useOwnerProperties`, then the groups list), so a
+         * skeleton that is shorter than what replaces it drags the page down
+         * under the reader more than once. `min-h` on the tall block holds the
+         * floor while the form and the weekly card mount inside it.
+         */
         <>
-          <Skeleton className="h-14 w-full rounded-xl" />
-          <Skeleton className="h-96 w-full rounded-xl" />
+          <Skeleton className="h-[52px] w-full rounded-xl" />
+          <Skeleton className="h-8 w-56 rounded-lg" />
+          {/* The form card: header, two field rows, the month grid (~270px), the
+              deadline toggle, the instructions box and the submit button. */}
+          <Skeleton className="h-[760px] w-full rounded-xl" />
+          {/* WeeklyWorkCard, which then loads on its own query. */}
+          <Skeleton className="h-[300px] w-full rounded-xl" />
         </>
       ) : walkIn.isError ? (
         /**

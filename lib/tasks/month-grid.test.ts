@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
+  isInMonth,
   isPastDay,
   monthGrid,
+  monthOf,
   shiftMonth,
   toggleDate,
+  weekdayLabels,
   type MonthGridCell,
 } from "@/lib/tasks/month-grid";
 
@@ -94,5 +97,79 @@ describe("toggleDate", () => {
 
   it("toggling the only selected date off returns an empty array", () => {
     expect(toggleDate(["2026-08-13"], "2026-08-13")).toEqual([]);
+  });
+});
+
+describe("monthOf", () => {
+  it("reads the year and the 0-indexed month out of a key", () => {
+    expect(monthOf("2026-08-13")).toEqual({ year: 2026, month: 7 });
+  });
+
+  it("maps January to 0 and December to 11", () => {
+    expect(monthOf("2026-01-01")).toEqual({ year: 2026, month: 0 });
+    expect(monthOf("2026-12-31")).toEqual({ year: 2026, month: 11 });
+  });
+});
+
+describe("isInMonth", () => {
+  it("is true for a key inside the month", () => {
+    expect(isInMonth("2026-08-13", { year: 2026, month: 7 })).toBe(true);
+  });
+
+  it("is false for the neighbouring month", () => {
+    expect(isInMonth("2026-09-01", { year: 2026, month: 7 })).toBe(false);
+  });
+
+  it("is false for the same month in another year", () => {
+    expect(isInMonth("2025-08-13", { year: 2026, month: 7 })).toBe(false);
+  });
+
+  it("agrees with monthGrid's own inMonth flag on every cell", () => {
+    // The two must not drift: the picker decides "is this a padding day" with
+    // the flag, and deciding "which month should I jump to" with this helper.
+    const view = { year: 2026, month: 7 };
+    for (const cell of monthGrid(view)) {
+      expect(isInMonth(cell.key, view)).toBe(cell.inMonth);
+    }
+  });
+});
+
+describe("weekdayLabels", () => {
+  it("starts on Monday and ends on Sunday for en", () => {
+    expect(weekdayLabels("en")).toEqual([
+      "Mon",
+      "Tue",
+      "Wed",
+      "Thu",
+      "Fri",
+      "Sat",
+      "Sun",
+    ]);
+  });
+
+  it("returns the German abbreviations for de", () => {
+    // Exactly the list both calendars used to hardcode — which is why an
+    // English admin was reading German.
+    expect(weekdayLabels("de")).toEqual([
+      "Mo",
+      "Di",
+      "Mi",
+      "Do",
+      "Fr",
+      "Sa",
+      "So",
+    ]);
+  });
+
+  it("returns seven distinct positions whatever the locale", () => {
+    expect(weekdayLabels("en")).toHaveLength(7);
+    expect(weekdayLabels("de")).toHaveLength(7);
+  });
+
+  it("does not depend on which weekday it is called on", () => {
+    // The anchor is derived from `new Date()`, so a bug in the Sunday-to-Monday
+    // shift would only show up on some days of the week.
+    expect(weekdayLabels("de")[0]).toBe("Mo");
+    expect(weekdayLabels("de")[6]).toBe("So");
   });
 });
