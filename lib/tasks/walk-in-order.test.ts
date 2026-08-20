@@ -8,102 +8,158 @@ const PROPERTY = "87c9fa97-bc61-4629-9372-84a573dfc8d0";
 
 function draft(over: Partial<WalkInOrderDraft> = {}): WalkInOrderDraft {
   return {
-    title: "Phone order — Frau Weber",
-    date: "2026-08-18",
+    title: "Apartment clean",
+    customer: "Frau Weber",
+    dates: ["2026-08-18"],
     startTime: "09:00",
-    workerLimit: "2",
-    instructions: "Ring twice. Keys with the neighbour.",
+    hasDeadline: false,
+    deadline: "",
+    workerLimit: "1",
+    instructions: "",
     ...over,
   };
 }
 
-describe("buildWalkInOrder — the body it sends", () => {
-  it("widens the time input to the seconds the API requires", () => {
-    const r = buildWalkInOrder(draft(), PROPERTY);
-    expect(r.ok && r.body.defaultStartTime).toBe("09:00:00");
+function ok(over: Partial<WalkInOrderDraft> = {}) {
+  const result = buildWalkInOrder(draft(over), PROPERTY);
+  if (!result.ok) throw new Error(`expected ok, got ${result.error}`);
+  return result.body;
+}
+
+describe("title composition", () => {
+  it("joins the job name and the customer with an em dash", () => {
+    expect(ok().title).toBe("Apartment clean — Frau Weber");
   });
 
-  it("leaves an already-widened time alone", () => {
-    const r = buildWalkInOrder(draft({ startTime: "09:30:00" }), PROPERTY);
-    expect(r.ok && r.body.defaultStartTime).toBe("09:30:00");
+  it("uses the job name alone when no customer is given", () => {
+    expect(ok({ customer: "" }).title).toBe("Apartment clean");
   });
 
-  it("sends the one date as an array, because the wire field is one", () => {
-    const r = buildWalkInOrder(draft(), PROPERTY);
-    expect(r.ok && r.body.dates).toEqual(["2026-08-18"]);
+  it("trims both halves before joining", () => {
+    expect(ok({ title: "  Office wash  ", customer: "  Herr Klein  " }).title).toBe(
+      "Office wash — Herr Klein",
+    );
   });
 
-  it("trims the title and coerces the worker count to a number", () => {
-    const r = buildWalkInOrder(draft({ title: "  Phone order  ", workerLimit: "3" }), PROPERTY);
-    expect(r.ok && r.body.title).toBe("Phone order");
-    expect(r.ok && r.body.defaultWorkerLimit).toBe(3);
-  });
-
-  it("omits blank instructions rather than sending an empty string", () => {
-    const r = buildWalkInOrder(draft({ instructions: "   " }), PROPERTY);
-    expect(r.ok && "instructions" in r.body).toBe(false);
-  });
-
-  it("sends none of the five optional fields the form does not collect", () => {
-    const r = buildWalkInOrder(draft(), PROPERTY);
-    expect(r.ok && Object.keys(r.body).sort()).toEqual([
-      "dates",
-      "defaultStartTime",
-      "defaultWorkerLimit",
-      "instructions",
-      "propertyId",
-      "title",
-    ]);
+  it("refuses a blank job name even when a customer is present", () => {
+    const result = buildWalkInOrder(draft({ title: "   " }), PROPERTY);
+    expect(result).toEqual({ ok: false, error: "titleRequired" });
   });
 });
 
-describe("buildWalkInOrder — what it refuses locally", () => {
-  /**
-   * These four are `[Required]` server-side and come back as ASP.NET
-   * problem-details, a different envelope from this API's `{error}` — cheaper to
-   * refuse here than to render two error shapes.
-   */
-  it("refuses a blank or whitespace title", () => {
-    expect(buildWalkInOrder(draft({ title: "" }), PROPERTY)).toEqual({
-      ok: false,
-      error: "titleRequired",
-    });
-    expect(buildWalkInOrder(draft({ title: "   " }), PROPERTY)).toEqual({
-      ok: false,
-      error: "titleRequired",
-    });
+describe("dates", () => {
+  it("passes several dates straight through", () => {
+    expect(ok({ dates: ["2026-08-18", "2026-08-19", "2026-08-20"] }).dates).toEqual([
+      "2026-08-18",
+      "2026-08-19",
+      "2026-08-20",
+    ]);
   });
 
-  it("refuses a missing date", () => {
-    expect(buildWalkInOrder(draft({ date: "" }), PROPERTY)).toEqual({
-      ok: false,
-      error: "dateRequired",
-    });
+  it("still accepts a single date", () => {
+    expect(ok({ dates: ["2026-08-18"] }).dates).toEqual(["2026-08-18"]);
+  });
+
+  it("refuses an empty selection", () => {
+    const result = buildWalkInOrder(draft({ dates: [] }), PROPERTY);
+    expect(result).toEqual({ ok: false, error: "datesRequired" });
+  });
+});
+
+describe("times", () => {
+  it("pads HH:mm to HH:mm:ss", () => {
+    expect(ok({ startTime: "09:00" }).defaultStartTime).toBe("09:00:00");
+  });
+
+  it("leaves an already-padded HH:mm:ss alone", () => {
+    expect(ok({ startTime: "09:00:00" }).defaultStartTime).toBe("09:00:00");
   });
 
   it("refuses a missing start time", () => {
-    expect(buildWalkInOrder(draft({ startTime: "" }), PROPERTY)).toEqual({
-      ok: false,
-      error: "startTimeRequired",
-    });
+    const result = buildWalkInOrder(draft({ startTime: "" }), PROPERTY);
+    expect(result).toEqual({ ok: false, error: "startTimeRequired" });
+  });
+});
+
+describe("deadline", () => {
+  it("omits the key entirely when the toggle is off", () => {
+    expect("defaultDeadline" in ok({ hasDeadline: false })).toBe(false);
   });
 
-  it("refuses a worker count below one, blank, or not a number", () => {
-    for (const workerLimit of ["0", "-1", "", "abc", "1.5"]) {
-      expect(buildWalkInOrder(draft({ workerLimit }), PROPERTY)).toEqual({
-        ok: false,
-        error: "workerLimitInvalid",
-      });
-    }
+  it("sends a padded deadline when the toggle is on", () => {
+    const body = ok({ hasDeadline: true, deadline: "18:00" });
+    expect(body.defaultDeadline).toBe("18:00:00");
   });
 
-  /**
-   * No fifth error key for a missing property: the page does not render the form
-   * without one, so an empty `propertyId` cannot reach here. The builder passes
-   * it through rather than inventing a rule nothing enforces.
-   */
-  it("passes an empty property through, because the page never renders the form without one", () => {
-    const r = buildWalkInOrder(draft(), "");
-    expect(r.ok && r.body.propertyId).toBe("");
+  it("refuses the toggle being on with no time set", () => {
+    const result = buildWalkInOrder(
+      draft({ hasDeadline: true, deadline: "" }),
+      PROPERTY,
+    );
+    expect(result).toEqual({ ok: false, error: "deadlineRequired" });
+  });
+
+  it("ignores a stale deadline value once the toggle is off", () => {
+    expect("defaultDeadline" in ok({ hasDeadline: false, deadline: "18:00" })).toBe(false);
+  });
+
+  it("allows a deadline earlier than the start time", () => {
+    // Deliberate: the server's behaviour here is unverified and may well mean
+    // "next day". Inventing a refusal the API does not have would be worse.
+    const body = ok({ hasDeadline: true, deadline: "07:00", startTime: "09:00" });
+    expect(body.defaultDeadline).toBe("07:00:00");
+  });
+});
+
+describe("worker limit", () => {
+  it("parses a whole number", () => {
+    expect(ok({ workerLimit: "3" }).defaultWorkerLimit).toBe(3);
+  });
+
+  it.each(["", "0", "-1", "1.5", "abc"])("refuses %s", (workerLimit) => {
+    const result = buildWalkInOrder(draft({ workerLimit }), PROPERTY);
+    expect(result).toEqual({ ok: false, error: "workerLimitInvalid" });
+  });
+});
+
+describe("instructions", () => {
+  it("omits the key when blank", () => {
+    expect("instructions" in ok({ instructions: "   " })).toBe(false);
+  });
+
+  it("trims and includes it when present", () => {
+    expect(ok({ instructions: "  Ring twice.  " }).instructions).toBe("Ring twice.");
+  });
+});
+
+describe("refusal order", () => {
+  it("reports the title before the dates", () => {
+    const result = buildWalkInOrder(draft({ title: "", dates: [] }), PROPERTY);
+    expect(result).toEqual({ ok: false, error: "titleRequired" });
+  });
+
+  it("reports the dates before the start time", () => {
+    const result = buildWalkInOrder(draft({ dates: [], startTime: "" }), PROPERTY);
+    expect(result).toEqual({ ok: false, error: "datesRequired" });
+  });
+
+  it("reports the deadline before the worker limit", () => {
+    const result = buildWalkInOrder(
+      draft({ hasDeadline: true, deadline: "", workerLimit: "0" }),
+      PROPERTY,
+    );
+    expect(result).toEqual({ ok: false, error: "deadlineRequired" });
+  });
+});
+
+describe("propertyId", () => {
+  it("is copied from the argument, never from the draft", () => {
+    expect(ok().propertyId).toBe(PROPERTY);
+  });
+});
+
+describe("no company or note fields reach the wire", () => {
+  it("never sends internalNote — it cannot be read back", () => {
+    expect("internalNote" in ok()).toBe(false);
   });
 });

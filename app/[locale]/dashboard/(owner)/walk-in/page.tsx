@@ -1,51 +1,98 @@
 // app/[locale]/dashboard/(owner)/walk-in/page.tsx
 "use client";
 
+import { useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Info, TriangleAlert } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { WeeklyWorkCard } from "@/components/owners/weekly-work-card";
 import { WalkInOrderForm } from "@/components/walk-in/walk-in-order-form";
-import { useOwner, useOwnerProperties, useWalkInOwnerId } from "@/hooks/use-owners";
+import { WalkInOrdersList } from "@/components/walk-in/walk-in-orders-list";
+import { WalkInOrderSheet } from "@/components/walk-in/walk-in-order-sheet";
+import {
+  useOwner,
+  useOwnerProperties,
+  useOwnerTaskGroups,
+  useWalkInOwnerId,
+} from "@/hooks/use-owners";
 import { describeApiError, isPermissionDenied } from "@/lib/onboarding/errors";
+import { readWalkInTab, type WalkInTabKey } from "@/lib/tasks/walk-in-tab";
+import type { TaskGroupDto } from "@/lib/types/task.types";
 
 /**
- * Filing an order that arrived by phone, Instagram, WhatsApp or Telegram.
+ * Filing an order that arrived by phone, Instagram, WhatsApp or Telegram — and
+ * then keeping an eye on it.
  *
  * The task engine cannot create work without an owner and a property, and these
- * customers have neither — so the backend seeds one permanent account with one
- * property and every manual order is filed under it. There is nothing to create
- * here but the order itself: the account is capped at one by the database, and
- * delete, edit, contract and ticket against it are all refused.
+ * customers have neither, so the backend seeds one permanent account and every
+ * manual order is filed under it. There is nothing to create here but the order:
+ * the account is capped at one by the database, and delete, edit, contract and
+ * ticket against it are all refused.
  */
 export default function WalkInPage() {
   const t = useTranslations("walkIn");
   const tOnboarding = useTranslations("onboarding");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const tab = readWalkInTab(searchParams.get("tab"));
+
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [justCreated, setJustCreated] = useState<TaskGroupDto | null>(null);
 
   const walkIn = useWalkInOwnerId();
   const walkInId = walkIn.data ?? "";
-  // All three carry `enabled: !!id`, so they stay idle until the id resolves.
+  // All four carry `enabled: !!id`, so they stay idle until the id resolves.
   const owner = useOwner(walkInId);
   const { data: properties = [], isPending: propertiesPending } =
     useOwnerProperties(walkInId);
+  /**
+   * `useOwnerTaskGroups` — not `useAdminTaskGroups` — even though this is an admin
+   * page. Both call `GET /api/tasks/admin/groups?ownerUserId=` with the same
+   * argument; they differ only in cache key. `WeeklyWorkCard` below already reads
+   * `["owner-task-groups", id]`, so sharing it means one request instead of two
+   * and an instant render when switching tabs. `invalidateTasks` invalidates this
+   * key too, so every mutation still flows through.
+   */
+  const groups = useOwnerTaskGroups(walkInId);
 
   /**
-   * The **oldest** property, not `properties[0]`. `GET /api/properties` is
-   * ordered by `name` server-side, so a second property filed under this
-   * account with an earlier-sorting name would silently become the one every
-   * order is booked against — deterministically, not just on an unlucky
-   * refetch. The seeded walk-in property is the oldest by construction.
+   * The **oldest** property, not `properties[0]`. `GET /api/properties` is ordered
+   * by `name` server-side, so a second property filed under this account with an
+   * earlier-sorting name would silently become the one every order is booked
+   * against — deterministically, not just on an unlucky refetch. The seeded
+   * walk-in property is the oldest by construction.
    */
   const property = properties.length
     ? properties.reduce((oldest, p) =>
         Date.parse(p.createdAt) < Date.parse(oldest.createdAt) ? p : oldest,
       )
     : null;
-  // `owner` is in here too, or the header renders `fullName` as an em dash for
-  // one beat while the form below it is already live. All three queries are
-  // enabled on the same id and run in parallel, so this waits on the slowest
-  // rather than on their sum.
+
+  /**
+   * Looked up by id out of the live list on every render, never held. After an
+   * assignment the list refetches and a new object arrives; a held copy would
+   * keep showing the pre-assignment state until the sheet was closed and
+   * reopened. `justCreated` covers the instant after filing, before the refetched
+   * list contains the new group.
+   */
+  const selected = useMemo(() => {
+    if (!selectedId) return null;
+    return (
+      (groups.data ?? []).find((g) => g.id === selectedId) ??
+      (justCreated?.id === selectedId ? justCreated : null)
+    );
+  }, [groups.data, justCreated, selectedId]);
+
+  function setTab(next: WalkInTabKey) {
+    // `replace`, not `push`: a history entry per tab click would make the back
+    // button walk backwards through tab switches, and after the post-create
+    // switch it would land on the create tab holding a just-submitted form.
+    router.replace(`?tab=${next}`, { scroll: false });
+  }
+
   const settling =
     walkIn.isPending || (!!walkInId && (propertiesPending || owner.isPending));
 
@@ -59,15 +106,30 @@ export default function WalkInPage() {
       </div>
 
       {settling ? (
+        /**
+         * Mirrors the loaded layout's shape and height — account line, tab strip,
+         * then the tall card — rather than being two convenient rectangles.
+         *
+         * Three queries resolve at different moments here (`useWalkInOwnerId`,
+         * then `useOwner` / `useOwnerProperties`, then the groups list), so a
+         * skeleton that is shorter than what replaces it drags the page down
+         * under the reader more than once. `min-h` on the tall block holds the
+         * floor while the form and the weekly card mount inside it.
+         */
         <>
-          <Skeleton className="h-14 w-full rounded-xl" />
-          <Skeleton className="h-96 w-full rounded-xl" />
+          <Skeleton className="h-[52px] w-full rounded-xl" />
+          <Skeleton className="h-8 w-56 rounded-lg" />
+          {/* The form card: header, two field rows, the month grid (~270px), the
+              deadline toggle, the instructions box and the submit button. */}
+          <Skeleton className="h-[760px] w-full rounded-xl" />
+          {/* WeeklyWorkCard, which then loads on its own query. */}
+          <Skeleton className="h-[300px] w-full rounded-xl" />
         </>
       ) : walkIn.isError ? (
         /**
-         * `useWalkInOwnerId`'s queryFn only resolves `null` for a genuinely
-         * empty page. A refused (403) or failed (500, network) request instead
-         * leaves the query in its `error` state, and that must not be read as
+         * `useWalkInOwnerId`'s queryFn only resolves `null` for a genuinely empty
+         * page. A refused (403) or failed (500, network) request instead leaves
+         * the query in its `error` state, and that must not be read as
          * "unseeded" — the account may well exist, and the seeder message below
          * would be false. `retry: false` and `staleTime: Infinity` on the hook
          * also mean this state is sticky, so it has to say what actually
@@ -85,14 +147,12 @@ export default function WalkInPage() {
         </div>
       ) : !walkIn.data || !property ? (
         /**
-         * A query that resolved successfully with no walk-in row
-         * (`useWalkInOwnerId` resolving to `null`) or with a walk-in row but no
-         * property means the environment is unseeded — a fact about the system,
-         * not about an owner. A refused or failed lookup is handled in the
-         * branch above, before this one, so arriving here means the request
-         * succeeded and simply found nothing. No form is rendered: an enabled
-         * form over a missing property only produces `400 property_not_found`
-         * after the order has been typed.
+         * A query that resolved successfully with no walk-in row or with a row but
+         * no property means the environment is unseeded — a fact about the system,
+         * not about an owner. A refused or failed lookup is handled above, so
+         * arriving here means the request succeeded and found nothing. No form is
+         * rendered: an enabled form over a missing property only produces
+         * `400 property_not_found` after the order has been typed.
          */
         <div className="flex items-start gap-2.5 rounded-xl border border-border bg-muted/40 px-4 py-3">
           <Info className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
@@ -100,9 +160,9 @@ export default function WalkInPage() {
         </div>
       ) : (
         <>
-          {/* One line, no card: the account is context for the form below it,
-              not the subject of the page. `HeroCard` is deliberately not used —
-              it reads a contract period, and this account can never hold one. */}
+          {/* One line, no card: the account is context for the tabs below it, not
+              the subject of the page. `HeroCard` is deliberately not used — it
+              reads a contract period, and this account can never hold one. */}
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-xl border border-border px-4 py-3">
             <span className="text-sm font-medium">{owner.data?.fullName ?? "—"}</span>
             <Badge variant="secondary">{t("systemAccount")}</Badge>
@@ -111,12 +171,41 @@ export default function WalkInPage() {
             </span>
           </div>
 
-          <WalkInOrderForm propertyId={property.id} />
+          <Tabs value={tab} onValueChange={(v) => setTab(readWalkInTab(String(v)))}>
+            <TabsList>
+              <TabsTrigger value="create">{t("tabs.create")}</TabsTrigger>
+              <TabsTrigger value="orders">{t("tabs.orders")}</TabsTrigger>
+            </TabsList>
 
-          {/* Kept beyond the letter of the request: a worker cannot hold two
-              assignments on one date (`400 worker_has_overlapping_assignment`),
-              and seeing what is already booked is how that is avoided. */}
-          <WeeklyWorkCard ownerUserId={walkInId} properties={properties} />
+            <TabsContent value="create" className="flex flex-col gap-6">
+              <WalkInOrderForm
+                propertyId={property.id}
+                onCreated={(group) => {
+                  setJustCreated(group);
+                  setSelectedId(group.id);
+                  setTab("orders");
+                }}
+              />
+              {/* Stays on this tab only. Seeing what is already booked is how
+                  `400 worker_has_overlapping_assignment` gets avoided while the
+                  dates are being chosen — a worker cannot hold two assignments on
+                  one date, and the fix is a different worker, not a different
+                  time. On the Orders tab the list answers this already. */}
+              <WeeklyWorkCard ownerUserId={walkInId} properties={properties} />
+            </TabsContent>
+
+            <TabsContent value="orders">
+              <WalkInOrdersList
+                groups={groups.data ?? []}
+                isPending={groups.isPending}
+                error={groups.isError ? groups.error : null}
+                showPropertyName={properties.length > 1}
+                onSelect={setSelectedId}
+              />
+            </TabsContent>
+          </Tabs>
+
+          <WalkInOrderSheet group={selected} onClose={() => setSelectedId(null)} />
         </>
       )}
     </div>

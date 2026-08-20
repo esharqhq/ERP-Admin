@@ -37,6 +37,8 @@
     "clear": "Clear",
     "previousMonth": "Previous month",
     "nextMonth": "Next month",
+    "today": "Today",
+    "daysSelected": "{count, plural, one {# day selected} other {# days selected}}",
     "min": "Min",
     "max": "Max",
     "filtersActive": "{count, plural, =0 {No filters applied} one {# filter applied} other {# filters applied}}"
@@ -376,7 +378,7 @@
       "worker_below_rating_floor": "This worker is below the task's rating floor.",
       "worker_profession_not_eligible": "This worker's profession is not eligible for this task.",
       "worker_limit_reached": "This task is already fully staffed.",
-      "worker_has_overlapping_assignment": "This worker has an overlapping assignment at this time.",
+      "worker_has_overlapping_assignment": "This worker already has an assignment on this date. Choose a different worker.",
       "unknown": "Could not assign this worker. Please try again."
     },
     "activity": {
@@ -644,29 +646,64 @@
     "unseeded": "The walk-in account is not set up in this environment, so no order can be filed. It is created by the backend seeder, not from here.",
     "noPermission": "Filing an order needs the create-task-group permission, which your role does not hold.",
     "form": {
-      "title": "Order title",
-      "titlePlaceholder": "Phone order — Frau Weber, 3 rooms",
-      "date": "Date",
+      "title": "Job",
+      "titlePlaceholder": "Apartment clean, 3 rooms",
+      "customer": "Customer",
+      "customerPlaceholder": "Frau Weber · +49 30 1234567",
+      "customerHint": "Goes into the order name, so you can tell the orders apart later.",
+      "dates": "Dates",
+      "datesHint": "Pick every day this order covers — one job is created per day.",
       "startTime": "Start time",
+      "deadlineToggle": "Set a deadline",
+      "deadline": "Deadline",
       "workers": "Workers needed",
       "instructions": "Instructions for the worker",
-      "instructionsPlaceholder": "Ring twice. Keys with the neighbour.",
+      "instructionsPlaceholder": "Real address: Hauptstr. 5, 10827 Berlin. Ring twice. Keys with the neighbour.",
+      "instructionsHint": "Include the real address — this account's property is a placeholder and carries no location.",
       "submit": "File the order"
     },
     "errors": {
-      "titleRequired": "Give the order a title.",
-      "dateRequired": "Pick a date.",
+      "titleRequired": "Give the job a name.",
+      "datesRequired": "Pick at least one date.",
       "startTimeRequired": "Set a start time.",
+      "deadlineRequired": "Set a deadline, or switch it off.",
       "workerLimitInvalid": "At least one worker is needed.",
       "propertyGone": "The walk-in property is no longer there. Reload the page.",
       "generic": "The order could not be filed. Please try again."
     },
-    "created": {
-      "title": "Order filed",
-      "body": "Assign a worker now, or leave it for the dispatch queue.",
+    "tabs": {
+      "create": "File an order",
+      "orders": "Orders"
+    },
+    "orders": {
+      "active": "Active",
+      "history": "History",
+      "emptyActive": "No orders in progress. Filed orders show up here.",
+      "emptyHistory": "No finished or cancelled orders yet.",
+      "days": "{count, plural, one {# day} other {# days}}",
+      "staffing": "{filled}/{required} staffed",
+      "untitled": "Untitled order"
+    },
+    "detail": {
+      "startTime": "Start",
+      "deadline": "Deadline",
+      "noDeadline": "None",
+      "instructions": "Instructions",
+      "property": "Property",
+      "jobs": "Daily jobs",
+      "noJobs": "This order has no jobs.",
+      "noWorkers": "No worker yet",
       "assign": "Assign worker",
-      "assigned": "Worker assigned",
-      "another": "File another order"
+      "unassign": "Remove",
+      "cancel": "Cancel order",
+      "cancelTitle": "Cancel this order?",
+      "cancelDescription": "Only jobs that are still pending and more than an hour away get cancelled. Jobs already under way or awaiting review stay. If nothing qualifies, the order is left exactly as it is.",
+      "cancelConfirm": "Cancel the order",
+      "cancelFailed": "The order could not be cancelled.",
+      "unassignTitle": "Remove this worker?",
+      "unassignDescription": "The worker is taken off this job. The job itself stays and can be staffed again.",
+      "unassignConfirm": "Remove",
+      "unassignFailed": "The worker could not be removed."
     }
   },
   "properties": {
@@ -1291,7 +1328,7 @@
       "worker_below_rating_floor": "This worker is below the task's rating floor.",
       "worker_profession_not_eligible": "This worker's profession is not eligible for this task.",
       "worker_limit_reached": "This task is already fully staffed.",
-      "worker_has_overlapping_assignment": "This worker has an overlapping assignment at this time."
+      "worker_has_overlapping_assignment": "This worker already has an assignment on this date. Choose a different worker."
     }
   },
   "audit": {

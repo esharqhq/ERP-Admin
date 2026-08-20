@@ -37,6 +37,8 @@
     "clear": "Leeren",
     "previousMonth": "Vorheriger Monat",
     "nextMonth": "Nächster Monat",
+    "today": "Heute",
+    "daysSelected": "{count, plural, one {# Tag ausgewählt} other {# Tage ausgewählt}}",
     "min": "Min",
     "max": "Max",
     "filtersActive": "{count, plural, =0 {Keine Filter aktiv} one {# Filter aktiv} other {# Filter aktiv}}"
@@ -376,7 +378,7 @@
       "worker_below_rating_floor": "Dieser Mitarbeiter liegt unter der Mindestbewertung der Aufgabe.",
       "worker_profession_not_eligible": "Der Beruf dieses Mitarbeiters ist für diese Aufgabe nicht zugelassen.",
       "worker_limit_reached": "Diese Aufgabe ist bereits vollständig besetzt.",
-      "worker_has_overlapping_assignment": "Dieser Mitarbeiter hat zu dieser Zeit eine überschneidende Zuweisung.",
+      "worker_has_overlapping_assignment": "Dieser Mitarbeiter hat an diesem Tag bereits eine Zuweisung. Wählen Sie einen anderen Mitarbeiter.",
       "unknown": "Mitarbeiter konnte nicht zugewiesen werden. Bitte erneut versuchen."
     },
     "activity": {
@@ -644,29 +646,64 @@
     "unseeded": "Das Laufkundschaft-Konto ist in dieser Umgebung nicht eingerichtet, daher kann kein Auftrag erfasst werden. Es wird vom Backend-Seeder erstellt, nicht hier.",
     "noPermission": "Zum Erfassen eines Auftrags fehlt Ihrer Rolle die Berechtigung zum Anlegen von Aufgabengruppen.",
     "form": {
-      "title": "Auftragstitel",
-      "titlePlaceholder": "Telefonauftrag — Frau Weber, 3 Zimmer",
-      "date": "Datum",
+      "title": "Auftrag",
+      "titlePlaceholder": "Wohnungsreinigung, 3 Zimmer",
+      "customer": "Kunde",
+      "customerPlaceholder": "Frau Weber · +49 30 1234567",
+      "customerHint": "Wird Teil des Auftragsnamens, damit die Aufträge später unterscheidbar sind.",
+      "dates": "Termine",
+      "datesHint": "Alle Tage auswählen, die der Auftrag umfasst — pro Tag wird ein Job erstellt.",
       "startTime": "Startzeit",
+      "deadlineToggle": "Frist setzen",
+      "deadline": "Frist",
       "workers": "Benötigte Mitarbeiter",
-      "instructions": "Hinweise für den Mitarbeiter",
-      "instructionsPlaceholder": "Zweimal klingeln. Schlüssel beim Nachbarn.",
-      "submit": "Auftrag erfassen"
+      "instructions": "Anweisungen für den Mitarbeiter",
+      "instructionsPlaceholder": "Echte Adresse: Hauptstr. 5, 10827 Berlin. Zweimal klingeln. Schlüssel beim Nachbarn.",
+      "instructionsHint": "Die echte Adresse angeben — die Immobilie dieses Kontos ist ein Platzhalter ohne Standort.",
+      "submit": "Auftrag anlegen"
     },
     "errors": {
-      "titleRequired": "Geben Sie dem Auftrag einen Titel.",
-      "dateRequired": "Wählen Sie ein Datum.",
-      "startTimeRequired": "Legen Sie eine Startzeit fest.",
+      "titleRequired": "Bitte einen Auftragsnamen angeben.",
+      "datesRequired": "Bitte mindestens einen Termin auswählen.",
+      "startTimeRequired": "Bitte eine Startzeit setzen.",
+      "deadlineRequired": "Bitte eine Frist setzen oder die Option ausschalten.",
       "workerLimitInvalid": "Mindestens ein Mitarbeiter ist erforderlich.",
-      "propertyGone": "Das Laufkundschaft-Objekt ist nicht mehr vorhanden. Laden Sie die Seite neu.",
-      "generic": "Der Auftrag konnte nicht erfasst werden. Bitte erneut versuchen."
+      "propertyGone": "Die Walk-in-Immobilie existiert nicht mehr. Bitte die Seite neu laden.",
+      "generic": "Der Auftrag konnte nicht angelegt werden. Bitte erneut versuchen."
     },
-    "created": {
-      "title": "Auftrag erfasst",
-      "body": "Weisen Sie jetzt einen Mitarbeiter zu oder überlassen Sie den Auftrag der Dispositionsliste.",
+    "tabs": {
+      "create": "Auftrag anlegen",
+      "orders": "Aufträge"
+    },
+    "orders": {
+      "active": "Aktiv",
+      "history": "Verlauf",
+      "emptyActive": "Keine laufenden Aufträge. Angelegte Aufträge erscheinen hier.",
+      "emptyHistory": "Noch keine abgeschlossenen oder abgebrochenen Aufträge.",
+      "days": "{count, plural, one {# Tag} other {# Tage}}",
+      "staffing": "{filled}/{required} besetzt",
+      "untitled": "Auftrag ohne Namen"
+    },
+    "detail": {
+      "startTime": "Start",
+      "deadline": "Frist",
+      "noDeadline": "Keine",
+      "instructions": "Anweisungen",
+      "property": "Immobilie",
+      "jobs": "Tagesjobs",
+      "noJobs": "Dieser Auftrag hat keine Jobs.",
+      "noWorkers": "Noch kein Mitarbeiter",
       "assign": "Mitarbeiter zuweisen",
-      "assigned": "Mitarbeiter zugewiesen",
-      "another": "Weiteren Auftrag erfassen"
+      "unassign": "Entfernen",
+      "cancel": "Auftrag abbrechen",
+      "cancelTitle": "Diesen Auftrag abbrechen?",
+      "cancelDescription": "Es werden nur Jobs abgebrochen, die noch ausstehen und mehr als eine Stunde entfernt sind. Bereits laufende oder in Prüfung befindliche Jobs bleiben bestehen. Trifft nichts davon zu, bleibt der Auftrag unverändert.",
+      "cancelConfirm": "Auftrag abbrechen",
+      "cancelFailed": "Der Auftrag konnte nicht abgebrochen werden.",
+      "unassignTitle": "Diesen Mitarbeiter entfernen?",
+      "unassignDescription": "Der Mitarbeiter wird von diesem Job entfernt. Der Job bleibt bestehen und kann neu besetzt werden.",
+      "unassignConfirm": "Entfernen",
+      "unassignFailed": "Der Mitarbeiter konnte nicht entfernt werden."
     }
   },
   "properties": {
@@ -1291,7 +1328,7 @@
       "worker_below_rating_floor": "Dieser Mitarbeiter liegt unter der Mindestbewertung der Aufgabe.",
       "worker_profession_not_eligible": "Der Beruf dieses Mitarbeiters ist für diese Aufgabe nicht zugelassen.",
       "worker_limit_reached": "Diese Aufgabe ist bereits vollständig besetzt.",
-      "worker_has_overlapping_assignment": "Dieser Mitarbeiter hat zu dieser Zeit eine überschneidende Zuweisung."
+      "worker_has_overlapping_assignment": "Dieser Mitarbeiter hat an diesem Tag bereits eine Zuweisung. Wählen Sie einen anderen Mitarbeiter."
     }
   },
   "audit": {
