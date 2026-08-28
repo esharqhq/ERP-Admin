@@ -143,7 +143,7 @@ export function TasksCalendar({
             <Button
               variant={hideEmpty ? "default" : "outline"}
               size="sm"
-              className="h-7 gap-1.5 px-2.5"
+              className="h-9 gap-1.5 px-2.5"
               onClick={() => setHideEmpty((v) => !v)}
               title={hideEmpty ? tW("calendar.showEmpty") : tW("calendar.hideEmpty")}
             >

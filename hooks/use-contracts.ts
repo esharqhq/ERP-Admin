@@ -12,6 +12,7 @@ import { useCurrentPermissions } from "@/hooks/use-current-permissions";
 import {
   indexCover,
   ownerContractUserId,
+  workerContractSubjectId,
 } from "@/lib/onboarding/subject-row";
 import type {
   AdminOwnerContractDto,
@@ -148,6 +149,40 @@ export function useWorkerContracts(enabled = true) {
     queryFn: contractService.listWorker,
     enabled,
   });
+}
+
+/**
+ * The contract period governing one worker. See `useOwnerContractCover` — same
+ * join, same reasons, the other side.
+ *
+ * It exists because nothing else on the worker screen answers *"can this worker
+ * actually be assigned today"*. `WorkerRowDto.hasActiveContract` looks like it
+ * does and must not be used for it: that flag is a mirror an hourly job
+ * reconciles, so it says `true` inside the window where the server's live gate
+ * has already started refusing. The phase behind this period is computed per
+ * read, so only this may say a worker is covered.
+ */
+export function useWorkerContractCover(workerId: string) {
+  const { permissions } = useCurrentPermissions();
+  const canRead: boolean | null =
+    permissions === null ? null : permissions.has("worker_contract:read_any");
+
+  const query = useWorkerContracts(canRead === true && !!workerId);
+
+  const cover = useMemo(
+    () =>
+      indexCover(query.data ?? [], workerContractSubjectId).get(workerId) ?? null,
+    [query.data, workerId],
+  );
+
+  return {
+    cover,
+    /** `null` while the grant set is unknown — not the same as `false`. */
+    canRead,
+    /** `enabled: false` leaves a query pending forever — check `canRead` first. */
+    isPending: query.isPending,
+    error: query.error,
+  };
 }
 
 export function useCreateWorkerContract() {

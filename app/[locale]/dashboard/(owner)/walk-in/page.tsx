@@ -164,14 +164,19 @@ export default function WalkInPage() {
               the subject of the page. `HeroCard` is deliberately not used — it
               reads a contract period, and this account can never hold one. */}
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-xl border border-border px-4 py-3">
-            <span className="text-sm font-medium">{owner.data?.fullName ?? "—"}</span>
+            <span className="text-sm font-medium">
+              {owner.data?.fullName ?? "—"}
+            </span>
             <Badge variant="secondary">{t("systemAccount")}</Badge>
             <span className="text-sm text-muted-foreground">
               {t("property")}: {property.name || property.address}
             </span>
           </div>
 
-          <Tabs value={tab} onValueChange={(v) => setTab(readWalkInTab(String(v)))}>
+          <Tabs
+            value={tab}
+            onValueChange={(v) => setTab(readWalkInTab(String(v)))}
+          >
             <TabsList>
               <TabsTrigger value="create">{t("tabs.create")}</TabsTrigger>
               <TabsTrigger value="orders">{t("tabs.orders")}</TabsTrigger>
@@ -191,7 +196,11 @@ export default function WalkInPage() {
                   dates are being chosen — a worker cannot hold two assignments on
                   one date, and the fix is a different worker, not a different
                   time. On the Orders tab the list answers this already. */}
-              <WeeklyWorkCard ownerUserId={walkInId} properties={properties} />
+              <WeeklyWorkCard
+                ownerUserId={walkInId}
+                properties={properties}
+                showLog={false}
+              />
             </TabsContent>
 
             <TabsContent value="orders">
@@ -205,7 +214,10 @@ export default function WalkInPage() {
             </TabsContent>
           </Tabs>
 
-          <WalkInOrderSheet group={selected} onClose={() => setSelectedId(null)} />
+          <WalkInOrderSheet
+            group={selected}
+            onClose={() => setSelectedId(null)}
+          />
         </>
       )}
     </div>

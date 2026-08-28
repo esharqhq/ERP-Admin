@@ -20,7 +20,7 @@ const pinIcon = L.divIcon({
   className: "",
   html: `<span style="
     display:block;width:18px;height:18px;border-radius:9999px;
-    background:var(--primary,#10367d);
+    background:var(--primary,#0f3d2e);
     border:3px solid #fff;
     box-shadow:0 1px 6px rgba(0,0,0,.45);
   "></span>`,

@@ -4,12 +4,34 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/**
+ * Uyer design system — token layer.
+ *
+ * Source of truth: `../assets/Uyer-Design System.dc.html` (v1.0). Forest green
+ * leads, fresh green accents, Geist / Geist Mono. The admin console runs the
+ * flattest of the four surfaces — 70% neutral / 24% forest / 6% accent — because
+ * dense tables need the colour budget for status, not for brand.
+ *
+ * The rule that keeps this file the ONLY place brand lives: components consume
+ * the *semantic* shadcn names (`--primary`, `--card`, `--sidebar`…), never the
+ * raw ramp below. The DS file itself ships its greens under `--mond-*` names;
+ * those are deliberately NOT imported — adopting them would fork the token
+ * contract that all 100+ components already speak.
+ */
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+
+  /* The page ground. Distinct from `--background`, which this app uses to mean
+     "the white surface" — inputs, active tab pills, sticky table cells and chat
+     bubbles all rely on it being white, so canvas gets its own token. */
+  --color-canvas: var(--canvas);
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-heading: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -39,87 +61,257 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* Fresh green is an accent, not a surface colour, so it is NOT wired into
+     `--accent` — that name is shadcn's hover/muted surface (`bg-accent` appears
+     60+ times as a row hover) and lime hovers are exactly what the DS forbids.
+     Fresh lives here, for dark surfaces, progress and active dots only. */
+  --color-fresh: var(--fresh);
+  --color-fresh-dark: var(--fresh-dark);
+  --color-fresh-tint: var(--fresh-tint);
+
+  /* Controlled status vocabulary. Tinted chips only — the solid fill is
+     reserved for the one primary action per screen area. */
+  --color-status-active: var(--status-active);
+  --color-status-active-tint: var(--status-active-tint);
+  --color-status-pending: var(--status-pending);
+  --color-status-pending-tint: var(--status-pending-tint);
+  --color-status-cancelled: var(--status-cancelled);
+  --color-status-cancelled-tint: var(--status-cancelled-tint);
+  --color-status-info: var(--status-info);
+  --color-status-info-tint: var(--status-info-tint);
+  --color-status-verified: var(--status-verified);
+  --color-status-verified-tint: var(--status-verified-tint);
+
+  /* The system pages (404/403/500/503/offline) print the status code AT 88px
+     inside its own tint. At that size the chip colours above are too light to
+     read as type, so the spec gives each a deepened text tone. These are text
+     colours only — never a fill. */
+  --color-status-pending-deep: var(--status-pending-deep);
+  --color-status-cancelled-deep: var(--status-cancelled-deep);
+
+  /* `--ink-soft` is the body-copy grey the DS prose and the system pages both
+     use (#5B6B63) — a warm green-grey, where `--muted-foreground` is the cool
+     slate the console tables run on. Both clear AA; they are different voices,
+     not a mistake, so the system pages get their own name rather than bending
+     the console's.
+     `--shell-tint` is the warm neutral behind the offline panel and the locale
+     switch — greener than `--canvas`, which is what separates chrome from page. */
+  --color-ink-soft: var(--ink-soft);
+  --color-shell-tint: var(--shell-tint);
+
+  /* DS radius scale, in absolute values. The previous multiplier chain off a
+     single `--radius` could not hit 6 / 10 / 14 / 20 at once — `lg` landed on 10
+     where the DS wants 14 — so each step is stated outright.
+     Cards xl · controls lg · chips and icon tiles md · badges and avatars pill. */
+  --radius-sm: 0.375rem; /* 6 */
+  --radius-md: 0.625rem; /* 10 */
+  --radius-lg: 0.875rem; /* 14 */
+  --radius-xl: 1.25rem; /* 20 */
+  --radius-2xl: 1.5rem; /* 24 */
+  --radius-3xl: 1.75rem; /* 28 */
+  --radius-4xl: 2rem; /* 32 */
+
+  /**
+   * Elevation. The DS names three levels — ring only, card (ring + tinted
+   * shadow), popover (ambient, no ring) — and tints every shadow with the brand
+   * rather than neutral black. Retuning the default scale in place, instead of
+   * adding parallel utilities, is what lets the ~40 existing `shadow-sm` /
+   * `shadow-lg` call sites pick up the tint without being touched.
+   */
+  --shadow-2xs: 0 1px 2px 0 rgb(15 61 46 / 0.05);
+  --shadow-xs: 0 1px 2px 0 rgb(15 61 46 / 0.06);
+  --shadow-sm: 0 1px 2px 0 rgb(15 61 46 / 0.06),
+    0 4px 12px -6px rgb(15 61 46 / 0.14);
+  --shadow-md: 0 2px 4px -1px rgb(15 61 46 / 0.07),
+    0 8px 20px -8px rgb(15 61 46 / 0.16);
+  --shadow-lg: 0 4px 8px -2px rgb(15 61 46 / 0.08),
+    0 16px 32px -12px rgb(15 61 46 / 0.18);
+  --shadow-xl: 0 8px 16px -4px rgb(15 61 46 / 0.1),
+    0 24px 48px -16px rgb(15 61 46 / 0.2);
+  --shadow-2xl: 0 24px 64px -20px rgb(15 61 46 / 0.28);
+
+  /* Named DS elevations, for the cases that mean the level rather than a size. */
+  --shadow-card: 0 1px 2px 0 rgb(15 61 46 / 0.06),
+    0 8px 24px -14px rgb(15 61 46 / 0.18);
+  --shadow-popover: 0 2px 8px 0 rgb(15 61 46 / 0.08),
+    0 16px 40px -12px rgb(15 61 46 / 0.22);
+
+  /* DS type sizes Tailwind's scale has no slot for. Body is 15px, between
+     `text-sm` and `text-base`; the base size is deliberately left alone so this
+     change moves colour and shape, not line lengths. */
+  --text-body: 0.9375rem; /* 15 */
+  --text-caption: 0.75rem; /* 12 */
+  --text-overline: 0.6875rem; /* 11 */
 }
 
 :root {
-  /* Mond brand palette
-     - Primary navy   #10367D
-     - Neutral gray   #EBEBEB
-     - Accent blue    #6BAEDB (light blue from brand swatch)
-  */
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.18 0.02 265);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0.02 265);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0.02 265);
-  --primary: oklch(0.34 0.13 264);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.928 0 0);
-  --secondary-foreground: oklch(0.34 0.13 264);
-  --muted: oklch(0.955 0.005 240);
-  --muted-foreground: oklch(0.5 0.02 260);
-  --accent: oklch(0.72 0.1 235);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.91 0.005 240);
-  --input: oklch(0.928 0 0);
-  --ring: oklch(0.72 0.1 235);
-  --chart-1: oklch(0.34 0.13 264);
-  --chart-2: oklch(0.72 0.1 235);
-  --chart-3: oklch(0.55 0.12 250);
-  --chart-4: oklch(0.82 0.06 230);
-  --chart-5: oklch(0.928 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.22 0.03 264);
-  --sidebar-primary: oklch(0.34 0.13 264);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.93 0.02 240);
-  --sidebar-accent-foreground: oklch(0.34 0.13 264);
-  --sidebar-border: oklch(0.91 0.005 240);
-  --sidebar-ring: oklch(0.72 0.1 235);
+  /**
+   * The brand ramp. Raw values, intentionally NOT exposed as utilities — there
+   * is no `bg-forest-700`, so a component cannot reach past the semantic layer
+   * and pin itself to a hex the way `location-map` and `dashboard-charts` did.
+   */
+  --forest-050: #f1f8f4;
+  --forest-100: #e1efe8;
+  --forest-300: #7fb79b;
+  --forest-500: #1c6b4c;
+  --forest-700: #0f3d2e; /* PRIMARY */
+  --forest-900: #072318;
+
+  --fresh: #7ed957;
+  --fresh-dark: #5fc138;
+  --fresh-tint: #edfae4;
+
+  --ink: #0f2a20;
+  --hairline: #e5e7eb;
+  --row-divider: #f1f5f9;
+  --neutral-muted: #94a3b8;
+  --ink-soft: #5b6b63;
+  --shell-tint: #eef2f0;
+
+  --status-active: #1c8b52;
+  --status-active-tint: #e6f5ec;
+  --status-pending: #e08a00;
+  --status-pending-tint: #fdf2e0;
+  --status-pending-deep: #9a5e00;
+  --status-cancelled: #dc3b3b;
+  --status-cancelled-tint: #fceaea;
+  --status-cancelled-deep: #c42f2f;
+  --status-info: #2d6fd1;
+  --status-info-tint: #e8f0fc;
+  --status-verified: #0f3d2e;
+  --status-verified-tint: #e1efe8;
+
+  /* ── Semantic layer ── */
+  --background: #ffffff;
+  --canvas: #f5f7f9;
+  --foreground: var(--ink);
+  --card: #ffffff;
+  --card-foreground: var(--ink);
+  --popover: #ffffff;
+  --popover-foreground: var(--ink);
+
+  --primary: var(--forest-700);
+  --primary-foreground: #ffffff;
+  /* Stays neutral, and a step darker than `--muted`, so it reads as a distinct
+     surface from `--accent` — both would otherwise be forest 100, collapsing
+     `badge variant="secondary"` and `bg-accent` into the same swatch. Holding
+     secondary in the neutral family is also what keeps the console near its
+     70% neutral budget. */
+  --secondary: var(--hairline);
+  --secondary-foreground: var(--ink);
+
+  --muted: var(--row-divider);
+  /* Not the DS's `#94A3B8`: that neutral is for icons, borders and placeholders,
+     and at 15px on white it lands near 2.8:1. Muted *text* gets a darker slate
+     so body copy clears AA; `--neutral-muted` stays available for the non-text
+     uses the DS intends. */
+  --muted-foreground: #64748b;
+
+  --accent: var(--forest-100);
+  --accent-foreground: var(--forest-700);
+  --destructive: var(--status-cancelled);
+
+  --border: var(--hairline);
+  --input: var(--hairline);
+  --ring: var(--forest-500);
+
+  --chart-1: var(--forest-700);
+  --chart-2: var(--forest-500);
+  --chart-3: var(--fresh);
+  --chart-4: var(--forest-300);
+  --chart-5: var(--forest-100);
+
+  --radius: 0.875rem; /* controls — DS lg */
+
+  /**
+   * The nav band, per `../assets/Uyer-Admin-Sidebar.dc.html`. That spec writes
+   * every row state as an opacity of pure white over the forest ground — 14%
+   * active fill, 6% hover, 80% rest label, 62% icon, 36% group header, 10%
+   * rail divider, 8% hairline — so `--sidebar-foreground` is white and the
+   * component reaches each state as `/14`, `/6`, `/80`... off that one token.
+   * Tinting the base green instead (the previous `--forest-100`) put every one
+   * of those opacities a step off the spec, which is why it is not tinted here.
+   *
+   * Fresh green is no longer the active marker: the spec's marker, fill and
+   * label are all white. Lime survives in exactly one place in this design —
+   * the count inside a collapsed-rail tooltip — so the token stays.
+   */
+  --sidebar: var(--forest-700);
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: var(--fresh);
+  --sidebar-primary-foreground: var(--forest-900);
+  --sidebar-accent: var(--forest-500);
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgb(255 255 255 / 8%);
+  --sidebar-ring: var(--fresh);
 }
 
+/**
+ * Dark theme — DERIVED, not specified. The DS v1.0 defines a light palette only
+ * (canvas #F5F7F9, ink #0F2A20), so these values are read off the forest ramp:
+ * 900 becomes the ground, 700 the raised card, and fresh green takes over as
+ * primary because forest on forest carries no contrast. Nothing in the app sets
+ * `.dark` yet — there is no theme toggle — but `dark:` variants are used
+ * throughout, so the block has to stay coherent.
+ */
 .dark {
-  --background: oklch(0.16 0.02 264);
-  --foreground: oklch(0.97 0 0);
-  --card: oklch(0.22 0.04 264);
-  --card-foreground: oklch(0.97 0 0);
-  --popover: oklch(0.22 0.04 264);
-  --popover-foreground: oklch(0.97 0 0);
-  --primary: oklch(0.72 0.1 235);
-  --primary-foreground: oklch(0.18 0.04 264);
-  --secondary: oklch(0.27 0.04 264);
-  --secondary-foreground: oklch(0.97 0 0);
-  --muted: oklch(0.27 0.04 264);
-  --muted-foreground: oklch(0.72 0.02 240);
-  --accent: oklch(0.34 0.13 264);
-  --accent-foreground: oklch(0.97 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.72 0.1 235);
-  --chart-1: oklch(0.72 0.1 235);
-  --chart-2: oklch(0.55 0.12 250);
-  --chart-3: oklch(0.82 0.06 230);
-  --chart-4: oklch(0.4 0.13 264);
-  --chart-5: oklch(0.27 0.04 264);
-  --sidebar: oklch(0.22 0.04 264);
-  --sidebar-foreground: oklch(0.97 0 0);
-  --sidebar-primary: oklch(0.72 0.1 235);
-  --sidebar-primary-foreground: oklch(0.18 0.04 264);
-  --sidebar-accent: oklch(0.27 0.04 264);
-  --sidebar-accent-foreground: oklch(0.97 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.72 0.1 235);
+  --background: var(--forest-900);
+  --canvas: #051a12;
+  --foreground: #e8f1ec;
+  --card: var(--forest-700);
+  --card-foreground: #e8f1ec;
+  --popover: var(--forest-700);
+  --popover-foreground: #e8f1ec;
+
+  --primary: var(--fresh);
+  --primary-foreground: var(--forest-900);
+  --secondary: #14503c;
+  --secondary-foreground: #e8f1ec;
+
+  --muted: #14503c;
+  --muted-foreground: #9fbdaf;
+
+  /* The warm pair, which had no dark values at all — so `dot-panel-slate` and
+     anything else reaching for them rendered a near-white ground on a dark page.
+     In light they exist because `--muted`/`--muted-foreground` are cool slate and
+     the DS wants a green-grey beside them. Here the whole palette is already
+     green, so that distinction collapses and they land on the same values. */
+  --ink-soft: #9fbdaf;
+  --shell-tint: #14503c;
+
+  --accent: #14503c;
+  --accent-foreground: #e8f1ec;
+  --destructive: #f26a6a;
+
+  --border: rgb(255 255 255 / 10%);
+  --input: rgb(255 255 255 / 15%);
+  --ring: var(--fresh);
+
+  --chart-1: var(--fresh);
+  --chart-2: var(--fresh-dark);
+  --chart-3: var(--forest-300);
+  --chart-4: var(--forest-500);
+  --chart-5: #14503c;
+
+  /* Status hues hold; only their tints have to become translucent, since an
+     opaque pastel chip on a forest ground reads as a sticker. */
+  --status-active-tint: rgb(28 139 82 / 18%);
+  --status-pending-tint: rgb(224 138 0 / 18%);
+  --status-cancelled-tint: rgb(220 59 59 / 18%);
+  --status-info-tint: rgb(45 111 209 / 18%);
+  --status-verified-tint: rgb(126 217 87 / 15%);
+
+  --sidebar: #051a12;
+  /* Same white-over-forest logic as the light band; the darker ground only
+     makes the opacity ladder read cleaner. */
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: var(--fresh);
+  --sidebar-primary-foreground: var(--forest-900);
+  --sidebar-accent: #14503c;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgb(255 255 255 / 8%);
+  --sidebar-ring: var(--fresh);
 }
 
 @layer base {
@@ -132,6 +324,94 @@
   html {
     @apply font-sans;
   }
+}
+
+/**
+ * The signature overline: 11px, 600, 0.08em tracking, uppercase. It sits above
+ * values, table headers and card groups, and it is the ONLY place the DS allows
+ * uppercase — everything else is sentence case.
+ *
+ * Named `overline-label`, not `overline`: Tailwind already ships `overline` as a
+ * `text-decoration` utility, and shadowing it would make a line through the top
+ * of the text silently unavailable.
+ */
+@utility overline-label {
+  font-size: var(--text-overline);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/**
+ * The one decorative texture in the system: an 18px fresh-green dot grid on
+ * forest, behind profile heroes and empty states. Everything else is flat fill —
+ * no gradients, no glass blur.
+ */
+/**
+ * The one decorative motif the DS allows: a fresh dot grid on forest, 18px.
+ * The alpha is 16% — the value the admin system-pages spec states for the
+ * sign-in brand panel, and the same weight the hero bands carried before the
+ * rebrand (0.18). It was briefly 55%, which read as a pattern rather than a
+ * texture.
+ */
+@utility dot-field {
+  background-color: var(--forest-700);
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    color-mix(in oklab, var(--fresh) 16%, transparent) 1px,
+    transparent 0
+  );
+  background-size: 18px 18px;
+}
+
+/**
+ * Status-code panels for the system pages — "the code is the picture". One
+ * shape (320x176, radius 24) wearing five tints, each with its own dot colour
+ * and grid, exactly as the spec fixes them. The tint IS the message, so these
+ * are named after the state rather than the colour.
+ */
+@utility dot-panel {
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    var(--dot-color) 1px,
+    transparent 0
+  );
+  background-size: var(--dot-size, 16px) var(--dot-size, 16px);
+}
+
+/* 404 / empty — the only panel on brand forest, so the code sits in white. */
+@utility dot-panel-forest {
+  --dot-color: color-mix(in oklab, var(--fresh) 22%, transparent);
+  --dot-size: 16px;
+  background-color: var(--forest-700);
+}
+
+/* 401 / 403 — the account is the limit. */
+@utility dot-panel-amber {
+  --dot-color: color-mix(in oklab, var(--status-pending) 22%, transparent);
+  --dot-size: 16px;
+  background-color: var(--status-pending-tint);
+}
+
+/* 500 / 502 — our fault, data at risk. */
+@utility dot-panel-red {
+  --dot-color: color-mix(in oklab, var(--status-cancelled) 20%, transparent);
+  --dot-size: 16px;
+  background-color: var(--status-cancelled-tint);
+}
+
+/* 503 / 429 — known and temporary. */
+@utility dot-panel-blue {
+  --dot-color: color-mix(in oklab, var(--status-info) 20%, transparent);
+  --dot-size: 15px;
+  background-color: var(--status-info-tint);
+}
+
+/* Offline — nothing is broken, so no status colour at all. */
+@utility dot-panel-slate {
+  --dot-color: color-mix(in oklab, var(--ink) 16%, transparent);
+  --dot-size: 15px;
+  background-color: var(--shell-tint);
 }
 
 /**

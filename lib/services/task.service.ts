@@ -79,6 +79,32 @@ export const taskService = {
     return data;
   },
 
+  /**
+   * Admin tasks inside a date window — `task:list_any`.
+   *
+   * A separate method rather than another optional argument on `getAdminTasks`
+   * because the **cap changes**: the unwindowed list is capped at the 500 most
+   * recent, and only supplying `scheduledFrom` **and** `scheduledTo` together
+   * lifts that to a 5,000-row window ceiling (`TasksController.ListAllTasks`).
+   * A half-open window still filters but stays capped at 500, so both bounds are
+   * required here and neither is optional.
+   *
+   * ⚠ The server compares `scheduledTo` **inclusively, against a timestamp**.
+   * Pass the instant that ends the last day you want, not that day's midnight —
+   * a bound of Sunday `00:00` silently drops every task on Sunday. Callers are
+   * expected to over-fetch by a margin and cut the range exactly, client-side,
+   * on date keys (`rowsInWeek`), which has no boundary to get wrong.
+   */
+  getAdminTasksInRange: async (
+    scheduledFrom: string,
+    scheduledTo: string,
+  ): Promise<TaskItemDto[]> => {
+    const { data } = await apiClient.get<TaskItemDto[]>("/api/tasks/admin", {
+      params: { scheduledFrom, scheduledTo },
+    });
+    return data;
+  },
+
   getTask: async (taskId: string): Promise<TaskItemDto> => {
     const { data } = await apiClient.get<TaskItemDto>(`/api/tasks/${taskId}`);
     return data;

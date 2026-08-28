@@ -28,12 +28,7 @@ export function PropertyHero({ property }: { property: PropertyDto }) {
     <Card className="overflow-hidden">
       <div
         aria-hidden
-        className="h-24 w-full bg-gradient-to-r from-primary/12 via-primary/6 to-accent/10"
-        style={{
-          backgroundImage:
-            "radial-gradient(circle at 1px 1px, rgba(16,54,125,0.18) 1px, transparent 0)",
-          backgroundSize: "18px 18px",
-        }}
+        className="dot-field h-24 w-full"
       />
       <div className="flex flex-wrap items-end justify-between gap-4 px-6 -mt-8 pb-6">
         <div className="flex items-end gap-4">

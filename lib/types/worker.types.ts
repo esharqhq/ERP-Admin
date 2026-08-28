@@ -21,6 +21,11 @@ export interface WorkerDocumentDto {
   id: string;
   type: string | null;
   fileName: string | null;
+  /**
+   * Storage key as posted — **not a URL**. `Worker/src/api/hooks/useUploadWorkerDoc.ts:33`
+   * sends the presign key ("never the publicUrl") and the server echoes it back.
+   * Resolve with `resolveFileUrl` (`lib/http/files.ts`) before rendering it.
+   */
   fileUrl: string | null;
   status: string;
   rejectReason: string | null;

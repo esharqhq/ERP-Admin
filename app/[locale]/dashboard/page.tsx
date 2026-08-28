@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAdminHome } from "@/hooks/use-analytics";
-import { useHasPermission } from "@/hooks/use-current-permissions";
+import { useCurrentPermissions } from "@/hooks/use-current-permissions";
 import { TrendChart, StatusDonut } from "@/components/dashboard/dashboard-charts";
 import type { AdminHomeTotals } from "@/lib/types/analytics.types";
 
@@ -38,10 +38,30 @@ export default function DashboardPage() {
   const tCommon = useTranslations("common");
   const locale = useLocale();
 
-  const canRead = useHasPermission("system:analytics:read");
-  const { data, isLoading, isError } = useAdminHome(canRead);
+  /**
+   * Read through `useCurrentPermissions` rather than `useHasPermission`, which
+   * collapses "denied" and "not resolved yet" into one `false` — the same
+   * distinction `workers/[id]` draws. The card below states the refusal in
+   * words, so on a cold start (first login of a session, nothing cached) this
+   * landing page asserted "you don't have permission to view analytics" for a
+   * paint, then swapped the whole dashboard in behind it once
+   * GET /me/permissions answered.
+   */
+  const { permissions } = useCurrentPermissions();
+  const canRead =
+    permissions === null ? null : permissions.has("system:analytics:read");
 
-  if (!canRead) {
+  const {
+    data,
+    isLoading: isLoadingHome,
+    isError,
+  } = useAdminHome(canRead === true);
+
+  // An unresolved grant set reads as loading, not as refusal: every slot below
+  // already has a skeleton, and none of them reveal gated data while it shows.
+  const isLoading = canRead === null || isLoadingHome;
+
+  if (canRead === false) {
     return (
       <div className="flex flex-col gap-6">
         <Header t={t} />

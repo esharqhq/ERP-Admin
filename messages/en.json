@@ -18,6 +18,7 @@
     "back": "Back",
     "unknown": "Unknown",
     "filter": "Filter",
+    "filters": "Filters",
     "all": "All",
     "resultsFound": "{count} results found",
     "pagination": {
@@ -41,7 +42,29 @@
     "daysSelected": "{count, plural, one {# day selected} other {# days selected}}",
     "min": "Min",
     "max": "Max",
-    "filtersActive": "{count, plural, =0 {No filters applied} one {# filter applied} other {# filters applied}}"
+    "filtersActive": "{count, plural, =0 {No filters applied} one {# filter applied} other {# filters applied}}",
+    "noMatches": "No matches",
+    "table": {
+      "columns": "Columns",
+      "columnsRatio": "{visible} / {total}",
+      "columnsTitle": "Visible columns",
+      "columnsHint": "Drag to reorder. Locked columns carry row identity and cannot be hidden.",
+      "columnsDone": "Done",
+      "columnsLocked": "Locked",
+      "columnsReset": "Reset to default",
+      "density": "Density",
+      "densityComfortable": "Comfortable",
+      "densityCompact": "Compact",
+      "filtersLive": "Filters apply live — there is no Apply button. The state lives in the address, so a filtered queue can be shared as a link.",
+      "sortBy": "Sort by {column}",
+      "errorTitle": "This list could not be loaded",
+      "errorBody": "The request failed. Reload the page to try again.",
+      "forbiddenTitle": "You cannot see these rows",
+      "forbiddenBody": "Your role does not include the permission this list reads. The tabs above still show what exists.",
+      "noMatchTitle": "Nothing matches these filters",
+      "noMatchBody": "Clear one or more filters to widen the search.",
+      "seeAll": "See the whole list"
+    }
   },
   "status": {
     "pending": "Pending",
@@ -254,6 +277,127 @@
     "searchPlaceholder": "Search by name or email",
     "filterLabel": "Filter by onboarding stage",
     "allTab": "All",
+    "detail": {
+      "type": {
+        "Passport": "Passport",
+        "IdCard": "ID card",
+        "ResidencePermit": "Residence permit",
+        "BusinessLicense": "Business licence",
+        "CompanyRegistration": "Company registration",
+        "TaxCertificate": "Tax certificate",
+        "Other": "Other"
+      },
+      "filesTitle": "Files",
+      "groupIdentity": "Identity",
+      "groupCompany": "Company",
+      "groupOther": "Other",
+      "countApproved": "{count} approved",
+      "countPending": "{count} pending",
+      "countRejected": "{count} rejected",
+      "allApproved": "All {count} approved",
+      "requiredComplete": "Required set is complete",
+      "requiredIncomplete": "Required set is incomplete",
+      "requiredBodyCompany": "An identity document plus a company registration. A business licence does not stand in for the registration.",
+      "requiredBodyPerson": "An identity document. This owner is a natural person, so no company file is required.",
+      "uploadedOn": "uploaded {date}",
+      "openOriginal": "Open original",
+      "zoomIn": "Zoom in",
+      "zoomOut": "Zoom out",
+      "rotate": "Rotate",
+      "viewerNoneTitle": "Nothing to read yet",
+      "viewerNoneBody": "This owner has not uploaded any documents, so there is nothing to check and nothing to decide.",
+      "viewerUnsupportedTitle": "Cannot be shown here",
+      "viewerUnsupportedBody": "This file type has no inline preview. Open the original — the decision below is not blocked by it.",
+      "viewerBrokenTitle": "This file could not be loaded",
+      "viewerBrokenBody": "The document is missing from storage. That is a server problem, not something to retry from here.",
+      "fileVerdictTitle": "Verdict on this file",
+      "fileVerdictSilent": "Silent — it moves no status and notifies nobody.",
+      "approveFile": "Approve file",
+      "rejectFile": "Reject file",
+      "verdictApproved": "Approved",
+      "verdictRejected": "Rejected",
+      "verdictPending": "Pending",
+      "rejectFileTitle": "Reject this file?",
+      "rejectFileBody": "The owner sees your reason and can re-upload this one file. Nothing else about the submission changes.",
+      "rejectFilePlaceholder": "Say what is wrong with the scan.",
+      "decisionTitle": "Decision on the submission",
+      "decision": {
+        "kyc": {
+          "title": "Not submitted yet",
+          "body": "They have not sent these documents for review. Approving files here does not change that — the decision opens once they submit."
+        },
+        "review": {
+          "title": "Decision open",
+          "body": "The only stage where approve and reject are legal. Anywhere else the server answers 400 invalid_onboarding_transition."
+        },
+        "rejected": {
+          "title": "The ball is with the owner",
+          "body": "Rejected. Waiting for them to fix what you flagged and submit again."
+        },
+        "decided": {
+          "title": "Already decided",
+          "body": "This submission has been answered. Per-file verdicts stay available, and the contract takes it from here."
+        }
+      },
+      "decisionOnlyThis": "This is the only thing that reaches the owner. Approving every file above does not approve the account.",
+      "decisionApprovalNext": "Approval hands back a contract prefill — the next step is writing the contract, not the owner going live.",
+      "decisionForbidden": "Your role can read this submission but not decide it.",
+      "approveSubmission": "Approve",
+      "rejectSubmission": "Reject",
+      "rejectSubmissionTitle": "Reject this submission?",
+      "rejectSubmissionBody": "The owner is notified with your reason and can edit and re-submit. Existing per-file verdicts stay as they are.",
+      "rejectSubmissionPlaceholder": "Tell them what to fix before re-submitting.",
+      "checkAgainst": "Check against",
+      "readOnly": "read-only",
+      "readOnlyNote": "Only the account holder can change these — to fix a wrong passport number, reject with a reason.",
+      "legalName": "Legal name",
+      "legalForm": "Legal form",
+      "naturalPerson": "Natural person",
+      "passportNo": "Passport no.",
+      "passportExpires": "Passport expires",
+      "licenceNo": "Licence no.",
+      "licenceExpires": "Licence expires",
+      "taxNumber": "Tax number",
+      "registeredIn": "Registered in",
+      "daysLeft": "{days} days left",
+      "expired": "Expired",
+      "historyTitle": "Review history",
+      "historyEmpty": "Nothing has been decided on this bundle yet.",
+      "historyDocApproved": "{type} approved",
+      "historyDocRejected": "{type} rejected",
+      "historySubmissionApproved": "Submission approved — prefill returned",
+      "historySubmissionRejected": "Submission rejected",
+      "historyScopeNote": "Verdicts and their times only. Who made each decision is not returned by any endpoint yet, so no name is shown rather than a guessed one.",
+      "lockedUntilApproved": "Contract authoring stays locked until this bundle is approved — the server answers 409 onboarding_not_approved.",
+      "notFoundTitle": "No KYC profile here",
+      "forbiddenBody": "Reading an owner's documents needs the kyc:review permission, which your role does not include.",
+      "paneDocument": "Document",
+      "paneContract": "Contract",
+      "paneSwitch": "What the centre column shows",
+      "stillOpenableTitle": "Still openable",
+      "stillOpenableBody": "Files stay readable after approval. Re-deciding one changes nothing about the account or the contract.",
+      "contractLockedTitle": "Contract — step 2",
+      "contractLockedHint": "Opens in this column once the submission is approved."
+    },
+    "queue": {
+      "ownerSubtitle": "Submissions waiting on a decision · oldest first",
+      "ownerSearch": "Name or email",
+      "naturalPerson": "Natural person",
+      "waitingDays": "{days} d",
+      "colSubject": "Subject",
+      "colStage": "Stage",
+      "colFiles": "Files",
+      "colWaiting": "Waiting",
+      "colLastDecision": "Last decision",
+      "colContract": "Contract",
+      "colRejectReason": "Reject reason",
+      "filterPhase": "Contract",
+      "phaseNone": "No contract",
+      "filterDecided": "Decided",
+      "filterDecidedHint": "When the submission was last approved or rejected. Excludes anything not yet decided.",
+      "emptyTitle": "Nothing waiting here",
+      "emptyBody": "No submission is at this stage. That is good news, not a missing list."
+    },
     "ownerCount": "{count, plural, =0 {No owners} one {# owner} other {# owners}}",
     "workerCount": "{count, plural, =0 {No workers} one {# worker} other {# workers}}",
     "empty": "No one has submitted documents yet.",
@@ -348,9 +492,6 @@
       "registeredAt": "Registered Date"
     },
     "contact": {
-      "title": "Contact Information",
-      "address": "Address",
-      "registeredAt": "Registered",
       "call": "Call"
     },
     "calendar": {
@@ -381,21 +522,8 @@
       "worker_has_overlapping_assignment": "This worker already has an assignment on this date. Choose a different worker.",
       "unknown": "Could not assign this worker. Please try again."
     },
-    "activity": {
-      "title": "Recent Activity",
-      "subtitle": "Tasks, payments and documents history",
-      "empty": "No activity history"
-    },
-    "assignments": {
-      "title": "Assignments",
-      "subtitle": "Active and planned tasks",
-      "empty": "No assignments currently"
-    },
     "actions": {
-      "backToList": "Back to Workers list",
-      "sendMessage": "Send message",
-      "edit": "Edit",
-      "more": "More"
+      "backToList": "Back to Workers list"
     },
     "rating": {
       "title": "Rating snapshot",
@@ -413,6 +541,107 @@
       "errors": {
         "notFound": "This worker no longer exists.",
         "generic": "Could not delete this worker. Please try again."
+      }
+    },
+    "approveAction": "Approve worker",
+    "openDocuments": "Open documents",
+    "band": {
+      "email": "Email",
+      "phone": "Phone",
+      "licence": "Service licence",
+      "passport": "Passport",
+      "noExpiry": "No expiry on file",
+      "lapsedAgo": "{days, plural, one {lapsed # day ago} other {lapsed # days ago}}",
+      "experience": "{years, plural, one {# yr experience} other {# yrs experience}}",
+      "contract": "Contract",
+      "contractUnavailable": "Contract dates are not visible with your permissions.",
+      "onTime": "On time",
+      "hours": "Hours",
+      "hoursValue": "{hours} h"
+    },
+    "message": {
+      "action": "Message",
+      "title": "Open a ticket for this worker",
+      "description": "The worker sees this as a support ticket, not a chat — it keeps a status and a full history rather than scrolling away.",
+      "errors": {
+        "invalidTarget": "This recipient type is not accepted for a ticket.",
+        "notFound": "This worker no longer exists, or has been deleted.",
+        "forbidden": "You do not have permission to open tickets for other users.",
+        "generic": "Could not create the ticket. Please try again."
+      }
+    },
+    "attention": {
+      "papersTitle": "{document} expires in {days, plural, one {# day} other {# days}}",
+      "papersLapsedTitle": "{document} lapsed {days, plural, one {# day} other {# days}} ago",
+      "papersDetail": "On lapse the account drops back to KYC",
+      "papersLapsedDetail": "The worker cannot be assigned until it is replaced",
+      "papersAction": "Chase",
+      "docsTitle": "{count, plural, one {# document waiting} other {# documents waiting}}",
+      "docsDetail": "{days, plural, =0 {uploaded today} one {waiting # day} other {waiting # days}} · nobody has decided",
+      "docsAction": "Review",
+      "docsUnknown": "Document state unknown",
+      "docsUnknownDetail": "You cannot read worker documents",
+      "coverExpiredTitle": "Contract is no longer in force",
+      "coverExpiredDetail": "Every future shift is unfillable until it is renewed",
+      "coverEndingTitle": "Contract ends in {days, plural, one {# day} other {# days}}",
+      "coverEndingDetail": "Renewal has not been started",
+      "coverNoneTitle": "No contract authored",
+      "coverNoneDetail": "Approval alone does not make a worker assignable",
+      "coverAction": "Contract",
+      "coverUnknown": "Contract state unknown",
+      "coverUnknownDetail": "You cannot read worker contracts",
+      "weekDetail": "This week · {where}",
+      "weekAction": "Attendance",
+      "weekUnknown": "Attendance unknown",
+      "weekUnknownDetail": "You cannot read the task list",
+      "weekMissed": "{count, plural, one {# missed shift} other {# missed shifts}}",
+      "weekLate": "{count, plural, one {# late arrival} other {# late arrivals}}"
+    },
+    "docs": {
+      "title": "Documents",
+      "subtitle": "Decided here · one verdict per document",
+      "approve": "Approve",
+      "reject": "Reject",
+      "open": "Open {document}",
+      "uploaded": "uploaded {date} · nobody has decided",
+      "decided": "decided {date}",
+      "rejectedWith": "rejected {date} · “{reason}”",
+      "empty": "Nothing uploaded yet",
+      "emptyHint": "A worker in review with no documents cannot be approved — chase, do not reject.",
+      "refused": "You cannot read worker documents",
+      "refusedHint": "The card is not fetched at all rather than 403-ing on load."
+    },
+    "shifts": {
+      "viewGrid": "Shifts",
+      "viewTable": "Table",
+      "viewLog": "Log",
+      "refused": "You cannot read the task list",
+      "refusedHint": "Says nothing about this worker's week — only about your permissions.",
+      "failed": "The week could not be loaded",
+      "emptyWeek": "No shifts {range}",
+      "emptyWeekHint": "Says nothing about availability — an idle week and an unassignable worker look identical here.",
+      "unnamedProperty": "Unnamed property",
+      "scheduled": "scheduled",
+      "noCheckin": "never clocked in",
+      "inOnly": "in {in} · not clocked out",
+      "inOut": "in {in} · out {out}",
+      "inLate": "in {in} · {minutes} min late",
+      "summary": "{shifts, plural, one {# shift} other {# shifts}} · {hours} h clocked",
+      "state": {
+        "onSite": "On site",
+        "onTime": "On time",
+        "late": "Late",
+        "missed": "Missed",
+        "scheduled": "Scheduled",
+        "done": "Closed"
+      },
+      "columns": {
+        "date": "Date",
+        "property": "Property",
+        "start": "Start",
+        "checkin": "Clock-in",
+        "checkout": "Clock-out",
+        "state": "Outcome"
       }
     }
   },
@@ -465,27 +694,14 @@
       "none": "None",
       "notRejected": "Not rejected"
     },
-    "contact": {
-      "title": "Contact Information",
-      "userId": "User ID",
-      "reviewedAt": "Reviewed At"
-    },
     "subAccounts": {
-      "title": "Sub-accounts",
-      "empty": "No sub-accounts"
+      "bandLabel": "Team on the account",
+      "more": "+{count} more"
     },
     "properties": {
       "title": "Properties",
-      "list": "Properties list",
-      "viewAll": "View All",
       "empty": "This owner has no properties",
       "unnamed": "Unnamed property"
-    },
-    "activity": {
-      "title": "Recent Activity",
-      "subtitle": "Contracts, payments and notes history",
-      "empty": "No activity history",
-      "unnamed": "Unnamed booking"
     },
     "actions": {
       "backToList": "Back to Owners list",
@@ -512,19 +728,15 @@
       "email": "Email",
       "phone": "Phone",
       "joined": "Joined",
-      "verified": "Verified",
-      "unverified": "Unverified",
-      "verifiedHint": "Account verified",
-      "unverifiedHint": "Not yet verified",
-      "joinedHint": "Registration date",
-      "roleHint": "Account role",
-      "propertiesHint": "Owned properties",
       "legalName": "Legal name",
-      "legalNameHint": "From the passport — separate from the display name above",
-      "call": "Call"
+      "call": "Call",
+      "joinedOn": "Joined {date}",
+      "onId": "ON ID",
+      "legalNameSelfEdit": "Owner's to correct at this stage",
+      "legalNameNoProfile": "No identity record yet"
     },
     "edit": {
-      "action": "Edit name",
+      "action": "Edit legal name",
       "title": "Correct the legal name",
       "description": "This is the name on the owner's passport. It is separate from the display name they chose, and the two are deliberately not reconciled.",
       "firstName": "Legal first name",
@@ -569,7 +781,8 @@
         "Review": "Under review",
         "Done": "Completed",
         "Cancelled": "Cancelled"
-      }
+      },
+      "viewLog": "Log"
     },
     "documents": {
       "title": "Documents",
@@ -586,28 +799,6 @@
       "action": "Message",
       "title": "Open a ticket for this owner",
       "description": "The owner sees this as a support ticket, not a chat — it keeps a status and a full history, so nothing gets lost in a scroll.",
-      "category": "Type",
-      "subject": "Subject",
-      "subjectPlaceholder": "What is this about?",
-      "body": "Message",
-      "bodyPlaceholder": "Write the first message of the ticket...",
-      "priority": "Priority",
-      "confirm": "Create ticket",
-      "required": "Subject and message are both required.",
-      "categories": {
-        "Payment": "Payment",
-        "Task": "Task",
-        "Property": "Property",
-        "Technical": "Technical",
-        "Account": "Account",
-        "Other": "Other"
-      },
-      "priorities": {
-        "Low": "Low",
-        "Normal": "Normal",
-        "High": "High",
-        "Urgent": "Urgent"
-      },
       "errors": {
         "invalidTarget": "This recipient type is not accepted for a ticket.",
         "notFound": "This owner no longer exists, or has been deleted.",
@@ -636,7 +827,56 @@
       "active": "Active",
       "walkIn": "Walk-in"
     },
-    "systemHint": "This is the permanent walk-in account. It cannot be edited, deleted, messaged or given a contract."
+    "systemHint": "This is the permanent walk-in account. It cannot be edited, deleted, messaged or given a contract.",
+    "attention": {
+      "unstaffedTitle": "{count, plural, one {# shift has no worker} other {# shifts have no worker}}",
+      "unstaffedDetail": "{where} · {when}",
+      "unstaffedToday": "today",
+      "unstaffedSoon": "{days, plural, one {in # day} other {in # days}}",
+      "unstaffedAction": "Assign",
+      "docsTitle": "{count, plural, one {# document waiting} other {# documents waiting}}",
+      "docsDetail": "{days, plural, =0 {uploaded today} one {waiting # day} other {waiting # days}} · nobody has decided",
+      "docsAction": "Review",
+      "docsUnknown": "Document state unknown",
+      "docsUnknownDetail": "You cannot review owner documents",
+      "coverExpiredTitle": "Contract is no longer in force",
+      "coverExpiredDetail": "The owner cannot order work until it is renewed",
+      "coverEndingTitle": "Contract expires in {days, plural, one {# day} other {# days}}",
+      "coverEndingDetail": "Renewal has not been started",
+      "coverAction": "Renew",
+      "coverUnknown": "Contract state unknown",
+      "coverUnknownDetail": "You cannot read contracts"
+    },
+    "addProperty": {
+      "action": "Add property"
+    },
+    "order": {
+      "action": "Create order",
+      "title": "New order for {name}",
+      "description": "An admin placing work the owner asked for by phone. One task group, one task per date.",
+      "property": "Property",
+      "propertyHint": "Only this owner's properties. The request carries no owner id — the property implies it.",
+      "job": "What has to be done",
+      "jobPlaceholder": "Weekly stairwell clean",
+      "dates": "Dates",
+      "datesHint": "Explicit dates, never a range — one task per date.",
+      "startTime": "Start time",
+      "workers": "Workers per task",
+      "deadlineToggle": "Set a deadline",
+      "deadline": "Deadline",
+      "instructions": "Instructions for the worker · optional",
+      "instructionsPlaceholder": "Key from the caretaker, ground floor left",
+      "defaults": "Any profession · Rating floor: any · New workers allowed",
+      "summary": "{count, plural, =0 {No dates picked yet} one {1 date · 1 task · {workers, plural, one {1 worker} other {# workers}} each} other {# dates · # tasks · {workers, plural, one {1 worker} other {# workers}} each}}",
+      "submit": "{count, plural, =0 {Create tasks} one {Create 1 task} other {Create # tasks}}",
+      "errors": {
+        "titleRequired": "Give the job a name.",
+        "datesRequired": "Pick at least one date.",
+        "startTimeRequired": "Set a start time.",
+        "deadlineRequired": "Set a deadline, or switch it off.",
+        "workerLimitInvalid": "At least one worker is needed."
+      }
+    }
   },
   "walkIn": {
     "title": "Walk-in orders",
@@ -909,7 +1149,18 @@
     "managePresets": "Manage presets"
   },
   "layout": {
-    "appName": "Mond Control Center",
+    "appName": "Uyer Admin Console",
+    "health": {
+      "normal": "All systems normal",
+      "degraded": "Some systems are degraded"
+    },
+    "sidebar": {
+      "tagline": "Control center",
+      "collapse": "Collapse sidebar",
+      "expand": "Expand sidebar",
+      "locked": "Requires {permission}",
+      "lockedGeneric": "Your role does not include this section"
+    },
     "notifications": {
       "title": "Notifications",
       "newCount": "{count} new",
@@ -935,11 +1186,20 @@
     "forgotPassword": "Forgot password?",
     "submit": "Sign In",
     "error": "Invalid email or password",
-    "footer": "© 2024 Mond Control Center. All rights reserved.",
+    "footer": "© 2024 Uyer. All rights reserved.",
     "help": "Help",
     "privacy": "Privacy",
     "realtime": "Real-time monitoring",
-    "verifiedTeam": "Verified team"
+    "verifiedTeam": "Verified team",
+    "brandTitle": "Everything the field does, in one console.",
+    "brandBody": "Tasks, workers, properties, KYC and billing for the whole operation — reviewed by people, not guessed at.",
+    "controlCenter": "Control center",
+    "signIn": "Sign in",
+    "staffOnly": "Staff accounts only. Owners and workers use the mobile apps.",
+    "allSystemsNormal": "All systems normal",
+    "rememberMe30": "Keep me signed in for 30 days",
+    "systemsDegraded": "Some systems are degraded",
+    "forgotPasswordHelp": "Staff passwords are reset by an owner-admin — contact your administrator."
   },
   "dashboard": {
     "title": "Dashboard",
@@ -1556,6 +1816,142 @@
       "code_exists": "That code is already taken. Codes must be unique.",
       "generic": "Could not save the category. Please try again.",
       "toggleGeneric": "Could not change the category state. Please try again."
+    }
+  },
+  "system": {
+    "notFound": {
+      "label": "Not found",
+      "title": "This page was not found",
+      "body": "The record may have been merged, archived, or the link is older than the record itself. Nothing is broken — go back to the dashboard.",
+      "dashboard": "Dashboard",
+      "back": "Go back"
+    },
+    "serverError": {
+      "label": "Server error",
+      "title": "Something broke on our side",
+      "body": "The request never completed, so nothing was saved. Retrying is safe.",
+      "retry": "Try again",
+      "dashboard": "Dashboard"
+    },
+    "forbidden": {
+      "label": "Forbidden",
+      "title": "Your role cannot open this",
+      "body": "This page needs the <code>{permission}</code> permission. Nothing is wrong with the page — your account is scoped differently.",
+      "required": "required: {permission}",
+      "back": "Go back",
+      "dashboard": "Dashboard",
+      "bodyGeneric": "This page needs a permission your role does not have. Nothing is wrong with the page — your account is scoped differently."
+    },
+    "maintenance": {
+      "label": "Maintenance",
+      "title": "Scheduled maintenance",
+      "body": "The console is upgrading. The mobile apps keep working.",
+      "retry": "Try again",
+      "minutesLeft": "~{minutes} min left"
+    },
+    "offline": {
+      "label": "No connection",
+      "title": "You are offline",
+      "body": "The console cannot reach the server. Nothing you have open is lost — it will load again once the network returns.",
+      "retry": "Retry now"
+    }
+  },
+  "detail": {
+    "attention": {
+      "label": "Needs attention",
+      "count": "{count, plural, one {# thing} other {# things}}",
+      "blocking": "Blocking",
+      "partial": "{known} of {total} known",
+      "clearTitle": "Nothing waiting on this account",
+      "clearDetail": "Every source answered, and none of them is asking for anything."
+    },
+    "message": {
+      "category": "Type",
+      "priority": "Priority",
+      "subject": "Subject",
+      "subjectPlaceholder": "What is this about?",
+      "body": "Message",
+      "bodyPlaceholder": "Write the first message of the ticket...",
+      "confirm": "Create ticket",
+      "required": "Subject and message are both required.",
+      "categories": {
+        "Payment": "Payment",
+        "Task": "Task",
+        "Property": "Property",
+        "Technical": "Technical",
+        "Account": "Account",
+        "Other": "Other"
+      },
+      "priorities": {
+        "Low": "Low",
+        "Normal": "Normal",
+        "High": "High",
+        "Urgent": "Urgent"
+      }
+    },
+    "conversations": {
+      "title": "Conversations",
+      "untitled": "Untitled ticket",
+      "meta": "{category} · {date}",
+      "more": "{count, plural, one {# more thread} other {# more threads}}",
+      "empty": "No tickets, ever",
+      "emptyHint": "Message opens the first one — the button stays in the action row.",
+      "refused": "You cannot list support tickets",
+      "refusedHint": "Says nothing about this account. Never shown as “no tickets”.",
+      "failed": "Conversations could not be loaded",
+      "status": {
+        "open": "open",
+        "closed": "closed"
+      }
+    },
+    "log": {
+      "refused": "You cannot read the audit log",
+      "refusedHint": "Says nothing about this account — only about your permissions.",
+      "failed": "The log could not be loaded",
+      "empty": "No admin action recorded against this account",
+      "emptyHint": "Nothing an admin did here has been logged yet.",
+      "scopeNote": "Admin actions only. Per-document verdicts, contract events and anything the account did themselves are recorded against other subjects and are not listed here.",
+      "family": {
+        "kyc": "KYC",
+        "account": "Account",
+        "contract": "Contract",
+        "property": "Property",
+        "work": "Work"
+      },
+      "actorType": {
+        "SuperAdmin": "admin",
+        "Owner": "owner",
+        "Worker": "worker",
+        "System": "system"
+      },
+      "actions": {
+        "KycApproved": "KYC approved",
+        "KycRejected": "KYC rejected",
+        "OwnerKycResetToPending": "KYC reopened for review",
+        "OnboardingRevertedToKyc": "Sent back to KYC",
+        "OnboardingExpiryWarned": "Warned about an expiring document",
+        "WorkerApproved": "Worker approved",
+        "WorkerRejected": "Worker rejected",
+        "WorkerDeactivated": "Worker deactivated",
+        "OwnerDeactivated": "Owner deactivated",
+        "OwnerProfileModified": "Legal name corrected by an admin",
+        "WorkerProfileModified": "Profile corrected by an admin",
+        "WorkerAvailabilityModified": "Schedule changed by an admin",
+        "ContractSent": "Contract sent for signature",
+        "ContractSigned": "Contract signed",
+        "ContractRecalled": "Contract recalled",
+        "ContractRejected": "Contract declined",
+        "OwnerContractForceDeactivated": "Contract force-terminated",
+        "WorkerContractForceDeactivated": "Contract force-terminated",
+        "PropertyCreatedByAdmin": "Property added by an admin",
+        "PropertyDeactivatedByAdmin": "Property deactivated by an admin",
+        "PropertyRestored": "Property restored",
+        "TaskCancelled": "Task cancelled",
+        "TaskGroupCancelled": "Order cancelled",
+        "WorkerTaskUnassigned": "Unassigned from a task",
+        "WorkerTaskRated": "Task rated",
+        "WorkerTaskOutcomeOverridden": "Task outcome overridden"
+      }
     }
   }
 }

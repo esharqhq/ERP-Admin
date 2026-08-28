@@ -26,10 +26,18 @@ export function useOwners(query: OwnerListQuery = {}) {
 
 // ── KYC verification queue (GET /api/admin/kyc) — used by the Contracts owner picker ──
 
-export function useOwnerList(status?: string) {
+/**
+ * `enabled` exists for the one caller that already knows the owner: the property
+ * create dialog opened from an owner's own detail page locks the owner, so this
+ * queue would be a read it never looks at — and one that 403s for an admin who
+ * holds `property:create_any` without the grant behind it, which forces a
+ * permission refetch (`lib/http/on-forbidden.ts`) for nothing.
+ */
+export function useOwnerList(status?: string, enabled = true) {
   return useQuery({
     queryKey: ["owners", status],
     queryFn: () => ownerService.getOwnerList(status),
+    enabled,
   });
 }
 

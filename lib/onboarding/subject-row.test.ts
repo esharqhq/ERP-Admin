@@ -173,6 +173,9 @@ describe("withCover", () => {
     avatarUrl: null,
     onboardingStatus: "Active",
     cover: null,
+    documentCount: 3,
+    reviewedAt: null,
+    rejectReason: null,
   };
 
   it("attaches a cover when one exists and null when none does", () => {

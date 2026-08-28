@@ -3,28 +3,16 @@
 import { Search } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui/input";
-import type { OnboardingStatus } from "@/lib/types/onboarding.types";
+import { QUEUE_TABS, statusForTab } from "@/lib/onboarding/queue-tabs";
 
 /**
- * The tabs **are** the onboarding stages, identically on both sides.
- *
- * This is the fix for a real defect, not a tidy-up: the worker screen's "Approved"
- * tab used to filter `Active` while the owner screen's filtered `Approved`, so the
- * same word named two different queues depending on which screen you were on.
- * Naming the tabs after the stages makes that impossible to reintroduce.
+ * The stage vocabulary moved to `lib/onboarding/queue-tabs.ts` when the owner
+ * queue was rebuilt on the shared table shell, so one list serves the new queue
+ * and this one. Re-exported here for the worker screen, which still renders this
+ * component until F3 replaces it.
  */
-export const DOCS_TABS: { key: string; status: OnboardingStatus | undefined }[] = [
-  { key: "all", status: undefined },
-  { key: "review", status: "Review" },
-  { key: "approved", status: "Approved" },
-  { key: "contract", status: "Contract" },
-  { key: "active", status: "Active" },
-  { key: "rejected", status: "Rejected" },
-];
-
-export function statusForTab(key: string): OnboardingStatus | undefined {
-  return DOCS_TABS.find((t) => t.key === key)?.status;
-}
+export { statusForTab };
+export const DOCS_TABS = QUEUE_TABS;
 
 export function DocsFilterBar({
   tab,

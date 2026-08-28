@@ -124,14 +124,14 @@ export function CategoryFormDialog({
               <input
                 type="color"
                 aria-label={t("form.color")}
-                value={normalizeHexColor(color) ?? "#64748b"}
+                value={normalizeHexColor(color) ?? "#94a3b8"}
                 onChange={(e) => setColor(e.target.value)}
                 className="size-9 shrink-0 cursor-pointer rounded-md border border-input bg-transparent p-1"
               />
               <Input
                 value={color}
                 onChange={(e) => setColor(e.target.value)}
-                placeholder="#64748b"
+                placeholder="#94a3b8"
                 maxLength={32}
                 className="font-mono"
               />

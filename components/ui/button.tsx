@@ -3,6 +3,23 @@ import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * Sizes follow the DS component sheet: sm 36 / md 40 / lg 48, with md (14px)
+ * radius on md and lg and 10px on sm. These are the heights the DS ships to all
+ * four surfaces — the "70/24/6" admin skew in the DS governs colour ratio only,
+ * not control geometry, and the table section sets 40px as the hard floor for
+ * the densest element in the product ("never below 40px").
+ *
+ * The five DS variants map onto the existing names: primary -> `default`,
+ * secondary -> `secondary`, outlined -> `outline`, ghost -> `ghost`,
+ * danger -> `destructive`. `destructive` is already the DS's tinted danger
+ * (tint background, coloured text) rather than a solid red fill, and
+ * `active:translate-y-px` is the DS's "press nudges 1px down".
+ *
+ * Type size is left at `text-sm`: the DS states a type scale for content
+ * (28/22/18/15/12) but specifies no button label size, so this is not the place
+ * to invent one.
+ */
 const buttonVariants = cva(
   "group/button inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
@@ -20,17 +37,22 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
+        // DS md — 40px tall, 16px side padding, 8px gap, lg (14px) radius.
         default:
-          "h-8 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
-        xs: "h-6 gap-1 rounded-[min(var(--radius-md),10px)] px-2 text-xs in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
-        sm: "h-7 gap-1 rounded-[min(var(--radius-md),12px)] px-2.5 text-[0.8rem] in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
-        lg: "h-9 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
-        icon: "size-8",
+          "h-10 gap-2 px-4 has-data-[icon=inline-end]:pr-3 has-data-[icon=inline-start]:pl-3",
+        // Below the DS 40px floor on purpose: `xs` exists only for controls
+        // that sit inside a table cell or a chip row, where a 36px button would
+        // set the row height. Not a DS size — do not reach for it in forms.
+        xs: "h-6 gap-1 rounded-md px-2 text-xs in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
+        // DS sm — 36px tall, 12px side padding, 6px gap, md (10px) radius.
+        sm: "h-9 gap-1.5 rounded-md px-3 in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2 [&_svg:not([class*='size-'])]:size-3.5",
+        // DS lg — 48px tall, 22px side padding.
+        lg: "h-12 gap-2 px-[22px] has-data-[icon=inline-end]:pr-4 has-data-[icon=inline-start]:pl-4",
+        icon: "size-10",
         "icon-xs":
-          "size-6 rounded-[min(var(--radius-md),10px)] in-data-[slot=button-group]:rounded-lg [&_svg:not([class*='size-'])]:size-3",
-        "icon-sm":
-          "size-7 rounded-[min(var(--radius-md),12px)] in-data-[slot=button-group]:rounded-lg",
-        "icon-lg": "size-9",
+          "size-6 rounded-md in-data-[slot=button-group]:rounded-lg [&_svg:not([class*='size-'])]:size-3",
+        "icon-sm": "size-9 rounded-md in-data-[slot=button-group]:rounded-lg",
+        "icon-lg": "size-12",
       },
     },
     defaultVariants: {

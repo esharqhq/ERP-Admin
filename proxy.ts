@@ -22,9 +22,21 @@ export function proxy(request: NextRequest) {
 
   const isAuthed = request.cookies.has('auth-token');
   const isLogin = path === '/login';
+  const isMaintenance = path === '/maintenance';
+
+  // Maintenance is checked BEFORE auth on purpose: during an upgrade the login
+  // form cannot succeed, so bouncing an unauthenticated operator to it would
+  // hide the reason. Rewrite rather than redirect so the URL they typed stays
+  // put, and answer 503 so uptime monitors and crawlers read it correctly
+  // instead of caching an outage as a healthy 200.
+  if (process.env.MAINTENANCE_MODE === '1' && !isMaintenance) {
+    const url = request.nextUrl.clone();
+    url.pathname = `/${locale}/maintenance`;
+    return NextResponse.rewrite(url, { status: 503 });
+  }
 
   // Unauthenticated users may only see the login page
-  if (!isAuthed && !isLogin) {
+  if (!isAuthed && !isLogin && !isMaintenance) {
     const url = request.nextUrl.clone();
     url.pathname = `/${locale}/login`;
     return NextResponse.redirect(url);

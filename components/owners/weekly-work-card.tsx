@@ -2,12 +2,21 @@
 
 import { useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { CalendarDays, ChevronLeft, ChevronRight, LayoutList } from "lucide-react";
+import {
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  History,
+  LayoutList,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
 import { DataTableCard } from "@/components/ui/data-table-card";
+import { AccountLog } from "@/components/detail/account-log";
+import { useAccountLog } from "@/hooks/use-account-log";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { RowLink } from "@/components/ui/row-link";
 import { TasksCalendar } from "@/components/tasks/tasks-calendar";
@@ -23,7 +32,14 @@ import {
 } from "@/lib/tasks/weekly-rows";
 import type { PropertyDto } from "@/lib/types/property.types";
 
-const STATUSES = ["all", "Pending", "Active", "Review", "Done", "Cancelled"] as const;
+const STATUSES = [
+  "all",
+  "Pending",
+  "Active",
+  "Review",
+  "Done",
+  "Cancelled",
+] as const;
 
 function fmtTime(iso: string): string {
   const t = iso.includes("T") ? iso.split("T")[1] : iso;
@@ -46,13 +62,34 @@ function fmtTime(iso: string): string {
  * The "Booking" column is the task group's title, not a service type: the API
  * has neither a service field nor a service catalogue, and the title is what an
  * owner types when booking.
+ *
+ * The third tab is the account's admin log. It sits here rather than in a card
+ * of its own because it is occasional: an admin opens it when they are asking
+ * "who changed this, and why", and the rest of the time it should not be taking
+ * space from the week. It is also its own read and its own permission, so it can
+ * refuse while the two views beside it work perfectly.
  */
 export function WeeklyWorkCard({
   ownerUserId,
+  ownerProfileId = null,
   properties,
+  showLog = true,
 }: {
   ownerUserId: string;
+  /**
+   * `null` until the KYC read lands, or for good if it 404'd. The owner side
+   * writes audit entries against **both** ids — `OwnerUser` for a deactivation,
+   * `OwnerProfile` for KYC verdicts and legal-name corrections — so without this
+   * the log is missing half of itself.
+   */
+  ownerProfileId?: string | null;
   properties: PropertyDto[];
+  /**
+   * Off where the card is a *booking aid* rather than an account view — the
+   * walk-in screen embeds it to show what is already booked while dates are
+   * being picked, and an audit tab there answers a question nobody is asking.
+   */
+  showLog?: boolean;
 }) {
   const t = useTranslations("owners");
   // Borrowed rather than re-added: `workers.calendar` already carries a
@@ -60,10 +97,11 @@ export function WeeklyWorkCard({
   const tNav = useTranslations("workers.calendar");
   const locale = useLocale();
   const nav = useWeekNavigation();
-  const [view, setView] = useState<"calendar" | "table">("calendar");
+  const [view, setView] = useState<"calendar" | "table" | "log">("calendar");
   const [status, setStatus] = useState<string>("all");
 
   const { data: groups = [], isLoading } = useOwnerTaskGroups(ownerUserId);
+  const log = useAccountLog(showLog ? [ownerUserId, ownerProfileId] : []);
 
   const propertyNames = useMemo(
     () => Object.fromEntries(properties.map((p) => [p.id, p.name ?? ""])),
@@ -135,6 +173,12 @@ export function WeeklyWorkCard({
           <LayoutList className="size-4" />
           {t("work.viewTable")}
         </TabsTrigger>
+        {showLog ? (
+          <TabsTrigger value="log" className="gap-2">
+            <History className="size-4" />
+            {t("work.viewLog")}
+          </TabsTrigger>
+        ) : null}
       </TabsList>
 
       <TabsContent value="calendar">
@@ -183,16 +227,23 @@ export function WeeklyWorkCard({
                   className="group/row relative cursor-pointer transition-colors duration-150 hover:bg-accent/40"
                 >
                   <TableCell className="py-2.5 text-sm tabular-nums">
-                    <RowLink href={`/dashboard/tasks/${row.taskId}`} label={label} />
+                    <RowLink
+                      href={`/dashboard/tasks/${row.taskId}`}
+                      label={label}
+                    />
                     {label}
                   </TableCell>
-                  <TableCell className="text-sm">{row.propertyName || "—"}</TableCell>
+                  <TableCell className="text-sm">
+                    {row.propertyName || "—"}
+                  </TableCell>
                   <TableCell className="text-sm tabular-nums text-muted-foreground">
                     {fmtTime(row.scheduledAt)}
                   </TableCell>
                   <TableCell className="text-sm">
                     {staff.names.length === 0 ? (
-                      <span className="text-muted-foreground">{t("work.unstaffed")}</span>
+                      <span className="text-muted-foreground">
+                        {t("work.unstaffed")}
+                      </span>
                     ) : (
                       <span>
                         {staff.names.join(", ")}
@@ -216,6 +267,21 @@ export function WeeklyWorkCard({
           />
         )}
       </TabsContent>
+
+      {showLog ? (
+        <TabsContent value="log">
+          <Card>
+            <CardContent>
+              <AccountLog
+                entries={log.entries}
+                canRead={log.canRead}
+                isPending={log.isPending}
+                isError={log.isError}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      ) : null}
     </Tabs>
   );
 }

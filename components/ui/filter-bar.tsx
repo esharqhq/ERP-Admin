@@ -1,6 +1,7 @@
 "use client";
 
-import { Info, SlidersHorizontal, X } from "lucide-react";
+import { useState } from "react";
+import { Check, Info, Search, SlidersHorizontal, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +27,9 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import type { FilterGroup, FilterOption } from "@/components/ui/filter-menu";
+// Re-exported so a screen building `fields` imports its option type from the same
+// module as the field types, rather than reaching into the older menu component.
+export type { FilterOption };
 import { countRangeError, rangeError } from "@/lib/ui/filter-validation";
 import { cn } from "@/lib/utils";
 
@@ -37,39 +41,85 @@ import { cn } from "@/lib/utils";
  * second key by suffixing one. The mapping from the values bag to a query stays
  * 1:1 and greppable, which matters because these key names are the API's.
  */
+export interface SelectField {
+  kind?: "select";
+  key: string;
+  label: string;
+  options: FilterOption[];
+  hint?: string;
+}
+
+/**
+ * Several values on one wire param, comma-joined — `?stage=Review,Approved`.
+ *
+ * Rendered as a row of toggle chips **inline**, never behind a popover. The
+ * design puts these inside the filter band, which is already an opened region, so
+ * a second layer would be a click that buys nothing; and a dropdown menu is the
+ * wrong container for the searchable variant for the same reason the drawer note
+ * below gives — menu typeahead fights with typing into a box.
+ */
+export interface MultiSelectField {
+  kind: "multiSelect";
+  key: string;
+  label: string;
+  options: FilterOption[];
+  /** A filter box above the list. Worth it past roughly eight options. */
+  searchable?: boolean;
+  searchPlaceholder?: string;
+  /** Shown to the right of each chip — how many rows carry that value. */
+  counts?: Record<string, number>;
+  hint?: string;
+}
+
+export interface DateRangeField {
+  kind: "dateRange";
+  fromKey: string;
+  toKey: string;
+  label: string;
+  hint?: string;
+  /**
+   * Computed by the **caller**, never derived here. The owners page passes
+   * `values.neverOrdered === "true"`, because combining that with a date
+   * bound is a `400`. Keeping the rule at the call site is what stops this
+   * shared component from collecting per-screen conditionals.
+   */
+  disabled?: boolean;
+}
+
+export interface NumberRangeField {
+  kind: "numberRange";
+  minKey: string;
+  maxKey: string;
+  label: string;
+  hint?: string;
+  disabled?: boolean;
+}
+
+export interface TriStateField {
+  kind: "triState";
+  key: string;
+  label: string;
+  anyLabel: string;
+  trueLabel: string;
+  falseLabel: string;
+  hint?: string;
+}
+
 export type FilterField =
-  | { kind?: "select"; key: string; label: string; options: FilterOption[]; hint?: string }
-  | {
-      kind: "dateRange";
-      fromKey: string;
-      toKey: string;
-      label: string;
-      hint?: string;
-      /**
-       * Computed by the **caller**, never derived here. The owners page passes
-       * `values.neverOrdered === "true"`, because combining that with a date
-       * bound is a `400`. Keeping the rule at the call site is what stops this
-       * shared component from collecting per-screen conditionals.
-       */
-      disabled?: boolean;
-    }
-  | {
-      kind: "numberRange";
-      minKey: string;
-      maxKey: string;
-      label: string;
-      hint?: string;
-      disabled?: boolean;
-    }
-  | {
-      kind: "triState";
-      key: string;
-      label: string;
-      anyLabel: string;
-      trueLabel: string;
-      falseLabel: string;
-      hint?: string;
-    };
+  | SelectField
+  | MultiSelectField
+  | DateRangeField
+  | NumberRangeField
+  | TriStateField;
+
+/** How a `multiSelect` value is carried on the wire, and read back off it. */
+export function parseMulti(value: string | undefined): string[] {
+  return (value ?? "").split(",").filter(Boolean);
+}
+
+export function serializeMulti(values: string[]): string {
+  return values.join(",");
+}
 
 export interface FilterBarProps {
   /** Legacy select-only shape, still used by four screens. */
@@ -99,8 +149,29 @@ export interface FilterBarProps {
    * number input.
    */
   collapsible?: boolean;
+  /**
+   * How the controls are presented. Supersedes `collapsible`, which maps to
+   * `"drawer"` and stays for the one caller still passing it.
+   *
+   * - `"row"` — always visible, one grid.
+   * - `"drawer"` — behind a `Sheet` trigger this component renders.
+   * - `"band"` — an inline region **inside the table card**, which is what the
+   *   documents queues use: the design is explicit that it is *"a band inside the
+   *   card — not a modal, not a drawer. The table stays visible while you
+   *   filter."* The trigger belongs on the toolbar row, so the **caller** renders
+   *   it and drives `open`; this component renders the region or nothing.
+   */
+  variant?: "row" | "drawer" | "band";
+  /** Band mode only. */
+  open?: boolean;
   /** Drawer heading. Defaults to the shared `common.filter` translation. */
   triggerLabel?: string;
+  /**
+   * Band mode only — a line under the controls explaining how they behave. The
+   * queues use it to say that filters apply live, so nobody hunts for an Apply
+   * button that does not exist.
+   */
+  note?: string;
 }
 
 /**
@@ -108,10 +179,13 @@ export interface FilterBarProps {
  * nullish default defeats TypeScript's narrowing of the union, so without this
  * the `options` access below is an error.
  */
-function isSelect(
-  field: FilterField,
-): field is Extract<FilterField, { options: FilterOption[] }> {
+function isSelect(field: FilterField): field is SelectField {
   return (field.kind ?? "select") === "select";
+}
+
+/** The two kinds that carry an option list, and so can be empty enough to hide. */
+function hasOptions(field: FilterField): field is SelectField | MultiSelectField {
+  return isSelect(field) || field.kind === "multiSelect";
 }
 
 /** Every wire key a field owns — one for a select, two for a range. */
@@ -122,6 +196,21 @@ function keysOf(field: FilterField): string[] {
 }
 
 /**
+ * Active **dimensions**, which is what a "Filters · 3" badge means. Not the number
+ * of set params: a date range owns two and is one filter.
+ *
+ * Exported because the table shell badges the trigger while the fields and values
+ * live in the caller — `useTableUrlState` deliberately does not offer this, since
+ * it knows wire params and not which of them belong together.
+ */
+export function countActiveFields(
+  fields: FilterField[],
+  values: Record<string, string>,
+): number {
+  return fields.filter((f) => keysOf(f).some((k) => values[k])).length;
+}
+
+/**
  * A sentinel rather than `""` for the "all" option: several select
  * implementations treat an empty value as "nothing selected" and refuse it as an
  * item value. It is translated back to `""` on the way out, which is what the
@@ -129,18 +218,47 @@ function keysOf(field: FilterField): string[] {
  */
 const ALL = "__all";
 
-/** What the chip for an active field should read. `null` when it is not active. */
-function summarize(field: FilterField, values: Record<string, string>): string | null {
+/**
+ * The two halves of a chip — which dimension, and what it is set to — or `null`
+ * when the field is not active.
+ *
+ * Two halves rather than one sentence because the band chip prints them in
+ * different colours: the design greys the dimension name and leaves the value in
+ * ink, so an eye scanning the strip lands on the values. The plain chip still
+ * joins them with a colon, unchanged.
+ */
+export function describeField(
+  field: FilterField,
+  values: Record<string, string>,
+): { label: string; value: string } | null {
   const v = (k: string) => values[k] ?? "";
   if (isSelect(field)) {
     if (!v(field.key)) return null;
     // The option's LABEL, never its value — for a city or owner that is a UUID.
     const opt = field.options.find((o) => o.value === v(field.key));
-    return `${field.label}: ${opt?.label ?? v(field.key)}`;
+    return { label: field.label, value: opt?.label ?? v(field.key) };
+  }
+  if (field.kind === "multiSelect") {
+    const picked = parseMulti(v(field.key));
+    if (picked.length === 0) return null;
+    const label = (value: string) =>
+      field.options.find((o) => o.value === value)?.label ?? value;
+    // The first choice by name and the rest as a count. Three labels joined by
+    // commas overruns the chip and truncates mid-word, which reads as a bug.
+    return {
+      label: field.label,
+      value:
+        picked.length === 1
+          ? label(picked[0])
+          : `${label(picked[0])} +${picked.length - 1}`,
+    };
   }
   if (field.kind === "triState") {
     if (!v(field.key)) return null;
-    return `${field.label}: ${v(field.key) === "true" ? field.trueLabel : field.falseLabel}`;
+    return {
+      label: field.label,
+      value: v(field.key) === "true" ? field.trueLabel : field.falseLabel,
+    };
   }
   const [a, b] =
     field.kind === "dateRange"
@@ -148,9 +266,9 @@ function summarize(field: FilterField, values: Record<string, string>): string |
       : [v(field.minKey), v(field.maxKey)];
   if (!a && !b) return null;
   // An open bound reads as "3 or more" / "up to 9" rather than a dangling dash.
-  if (a && !b) return `${field.label}: ≥ ${a}`;
-  if (!a && b) return `${field.label}: ≤ ${b}`;
-  return `${field.label}: ${a} – ${b}`;
+  if (a && !b) return { label: field.label, value: `≥ ${a}` };
+  if (!a && b) return { label: field.label, value: `≤ ${b}` };
+  return { label: field.label, value: `${a} – ${b}` };
 }
 
 /** Label + optional hint. The hint is a tooltip so it costs no vertical space. */
@@ -159,7 +277,7 @@ function FieldLabel({ label, hint }: { label: string; hint?: string }) {
     <div className="flex items-center gap-1">
       {/* Wider tracking because it is all-caps at 11px, where default spacing
           closes the letters up and hurts legibility. */}
-      <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+      <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
         {label}
       </span>
       {hint && (
@@ -213,6 +331,107 @@ const BARE_INPUT =
   "h-full min-w-0 flex-1 border-0 bg-transparent px-2.5 text-xs shadow-none focus-visible:border-0 focus-visible:ring-0 dark:bg-transparent";
 
 /**
+ * Toggle chips for a `multiSelect`, with an optional filter box above them.
+ *
+ * Its own component because the search term is local state, and a hook cannot
+ * live inside the `control()` switch below.
+ *
+ * The box narrows **which chips are offered**, never which are selected: a value
+ * chosen and then typed out of view stays on, and its chip in the row above still
+ * says so. Hiding a live filter behind a search term would be a filter an admin
+ * cannot find to remove.
+ */
+function MultiSelectChips({
+  field,
+  value,
+  onChange,
+}: {
+  field: MultiSelectField;
+  value: string;
+  onChange: (next: string) => void;
+}) {
+  const t = useTranslations("common");
+  const [term, setTerm] = useState("");
+  const picked = parseMulti(value);
+
+  const needle = term.trim().toLowerCase();
+  const shown = needle
+    ? field.options.filter((o) => o.label.toLowerCase().includes(needle))
+    : field.options;
+
+  const toggle = (option: string) =>
+    onChange(
+      serializeMulti(
+        picked.includes(option)
+          ? picked.filter((p) => p !== option)
+          : [...picked, option],
+      ),
+    );
+
+  return (
+    <div className="flex flex-col gap-2">
+      {field.searchable && (
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={term}
+            onChange={(e) => setTerm(e.target.value)}
+            placeholder={field.searchPlaceholder ?? `${t("search")}…`}
+            aria-label={field.searchPlaceholder ?? field.label}
+            className="h-8 pl-8 text-xs"
+          />
+        </div>
+      )}
+
+      <div
+        className={cn(
+          "flex flex-wrap gap-1.5",
+          // Only the searchable variant gets a scroll box. A short list is
+          // shorter than the box would be.
+          field.searchable && "max-h-40 overflow-y-auto scrollbar-slim",
+        )}
+      >
+        {shown.map((option) => {
+          const on = picked.includes(option.value);
+          const count = field.counts?.[option.value];
+          return (
+            <button
+              key={option.value}
+              type="button"
+              aria-pressed={on}
+              onClick={() => toggle(option.value)}
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs transition-colors",
+                on
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-input bg-background text-foreground hover:border-primary/40 hover:bg-primary/5",
+              )}
+            >
+              {on && <Check className="size-3 shrink-0" />}
+              <span className="truncate">{option.label}</span>
+              {count != null && (
+                <span
+                  className={cn(
+                    "tabular-nums",
+                    on ? "text-primary-foreground/70" : "text-muted-foreground",
+                  )}
+                >
+                  {count}
+                </span>
+              )}
+            </button>
+          );
+        })}
+
+        {shown.length === 0 && (
+          <p className="py-1 text-xs text-muted-foreground">{t("noMatches")}</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/**
  * Always-visible filter row, or a drawer once there are enough dimensions that a
  * row stops being readable — the alternative to `FilterMenu`, which hides the same
  * select-only dimensions behind a dropdown.
@@ -238,14 +457,18 @@ export function FilterBar({
   orderErrorLabel,
   negativeErrorLabel,
   collapsible,
+  variant,
+  open,
   triggerLabel,
+  note,
 }: FilterBarProps) {
   const t = useTranslations("common");
+  const mode = variant ?? (collapsible ? "drawer" : "row");
 
   const normalized: FilterField[] =
     fields ?? (groups ?? []).map((g) => ({ kind: "select" as const, ...g }));
 
-  const usable = normalized.filter((f) => !isSelect(f) || f.options.length > 0);
+  const usable = normalized.filter((f) => !hasOptions(f) || f.options.length > 0);
 
   // Counts dimensions, not inputs: a range with either bound set is one active
   // filter, not two.
@@ -282,6 +505,14 @@ export function FilterBar({
           </Select>
         );
       })()}
+
+      {field.kind === "multiSelect" && (
+        <MultiSelectChips
+          field={field}
+          value={values[field.key] ?? ""}
+          onChange={(next) => onChange(field.key, next)}
+        />
+      )}
 
       {field.kind === "dateRange" && (
         <RangeShell disabled={field.disabled}>
@@ -401,7 +632,7 @@ export function FilterBar({
     <div
       className={cn(
         "grid gap-x-4 gap-y-3.5",
-        collapsible
+        mode === "drawer"
           ? "grid-cols-1 sm:grid-cols-2"
           : "grid-cols-[repeat(auto-fit,minmax(11rem,1fr))]",
       )}
@@ -419,7 +650,45 @@ export function FilterBar({
     </div>
   );
 
-  if (!collapsible) {
+  /**
+   * The band renders nothing when closed rather than staying mounted and hidden:
+   * the searchable multi-selects each hold a local search term, and dropping them
+   * means reopening the panel offers the whole list again instead of whatever was
+   * typed last time.
+   */
+  if (mode === "band") {
+    if (!open) return null;
+    return (
+      /* Bottom line only. The toolbar row above already ends in one, so a
+         `border-y` here would stack two hairlines into a visibly thicker rule
+         exactly where the design draws a single one. */
+      <div className="flex flex-col gap-3.5 border-b border-border bg-muted/30 px-4 py-4 sm:px-5">
+        {grid}
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-3">
+          {note ? (
+            <p className="max-w-2xl text-xs leading-snug text-muted-foreground text-pretty">
+              {note}
+            </p>
+          ) : (
+            <span />
+          )}
+          {active.length > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onReset}
+              className="gap-1.5 text-muted-foreground hover:text-foreground"
+            >
+              <X className="size-3.5" />
+              {clearLabel}
+            </Button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (mode === "row") {
     return (
       <div className="flex flex-col gap-3">
         {grid}

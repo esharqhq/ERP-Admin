@@ -42,10 +42,17 @@ export function useAdminTasks(ownerUserId?: string) {
  * `["owner-task-groups"]` is here because `useOwnerTaskGroups` reads it and
  * `WeeklyWorkCard` renders from it. Without it, assigning a worker from
  * Dispatching left the owner detail page's weekly card stale until a reload.
+ *
+ * `["admin-tasks-range"]` is the same story on the worker side: `useWorkerShifts`
+ * reads a windowed task list under that key and the worker detail grid renders
+ * from it, so an assignment made anywhere has to reach it too. It is a *prefix* —
+ * the key carries the window bounds, and every cached week has to go, not only
+ * the one on screen.
  */
 export function invalidateTasks(qc: QueryClient, groupId?: string) {
   qc.invalidateQueries({ queryKey: ["admin-task-groups"] });
   qc.invalidateQueries({ queryKey: ["admin-tasks"] });
+  qc.invalidateQueries({ queryKey: ["admin-tasks-range"] });
   qc.invalidateQueries({ queryKey: ["owner-task-groups"] });
   if (groupId) qc.invalidateQueries({ queryKey: ["task-group", groupId] });
 }

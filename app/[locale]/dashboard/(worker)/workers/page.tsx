@@ -504,7 +504,7 @@ function WorkersCalendar() {
               <Button
                 variant={hideEmpty ? "default" : "outline"}
                 size="sm"
-                className="h-7 gap-1.5 px-2.5"
+                className="h-9 gap-1.5 px-2.5"
                 onClick={() => setHideEmpty((v) => !v)}
                 title={hideEmpty ? t("calendar.showEmpty") : t("calendar.hideEmpty")}
               >
@@ -516,7 +516,7 @@ function WorkersCalendar() {
                 variant="outline"
                 size="sm"
                 onClick={() => setWeekOffset(0)}
-                className="h-7 transition-all duration-150 active:scale-[0.97]"
+                className="h-9 transition-all duration-150 active:scale-[0.97]"
               >
                 {t("calendar.today")}
               </Button>
@@ -724,7 +724,7 @@ function WorkersCalendar() {
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none" />
               <Input
                 placeholder={t("calendar.taskSearch")}
-                className="h-8 pl-8 text-sm"
+                className="h-9 pl-8 text-sm"
                 value={taskSearch}
                 onChange={(e) => setTaskSearch(e.target.value)}
               />

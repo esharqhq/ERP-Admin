@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
+import { resolveFileUrl } from "@/lib/http/files";
 import { cn } from "@/lib/utils";
 import type { KycDocDto } from "@/lib/types/kyc.types";
 
@@ -122,10 +123,11 @@ export function OwnerDocumentsCard({
 
             // A document with no file is still worth listing — its status is the
             // point — but it must not look like a link to nowhere.
-            return doc.fileUrl ? (
+            const href = resolveFileUrl(doc.fileUrl);
+            return href ? (
               <a
                 key={doc.id}
-                href={doc.fileUrl}
+                href={href}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={cn(shell, "hover:border-foreground/15 hover:bg-muted/30")}

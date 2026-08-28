@@ -4,6 +4,13 @@ import { Progress as ProgressPrimitive } from "@base-ui/react/progress"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * The indicator is `bg-fresh`, not `bg-primary`. Fresh green is an accent with
+ * three sanctioned homes in the DS — "progress, active dots, accent on dark" —
+ * and this is one of them; forest is reserved for primary actions and active
+ * nav. The track is 6px rather than 4px because fresh is a light hue and the DS
+ * fixes no bar height.
+ */
 function Progress({
   className,
   children,
@@ -29,7 +36,7 @@ function ProgressTrack({ className, ...props }: ProgressPrimitive.Track.Props) {
   return (
     <ProgressPrimitive.Track
       className={cn(
-        "relative flex h-1 w-full items-center overflow-x-hidden rounded-full bg-muted",
+        "relative flex h-1.5 w-full items-center overflow-x-hidden rounded-full bg-muted",
         className
       )}
       data-slot="progress-track"
@@ -45,7 +52,7 @@ function ProgressIndicator({
   return (
     <ProgressPrimitive.Indicator
       data-slot="progress-indicator"
-      className={cn("h-full bg-primary transition-all", className)}
+      className={cn("h-full bg-fresh transition-all", className)}
       {...props}
     />
   )

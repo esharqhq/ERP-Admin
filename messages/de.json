@@ -18,6 +18,7 @@
     "back": "Zurück",
     "unknown": "Unbekannt",
     "filter": "Filter",
+    "filters": "Filter",
     "all": "Alle",
     "resultsFound": "{count} Ergebnisse gefunden",
     "pagination": {
@@ -41,7 +42,29 @@
     "daysSelected": "{count, plural, one {# Tag ausgewählt} other {# Tage ausgewählt}}",
     "min": "Min",
     "max": "Max",
-    "filtersActive": "{count, plural, =0 {Keine Filter aktiv} one {# Filter aktiv} other {# Filter aktiv}}"
+    "filtersActive": "{count, plural, =0 {Keine Filter aktiv} one {# Filter aktiv} other {# Filter aktiv}}",
+    "noMatches": "Keine Treffer",
+    "table": {
+      "columns": "Spalten",
+      "columnsRatio": "{visible} / {total}",
+      "columnsTitle": "Sichtbare Spalten",
+      "columnsHint": "Zum Umsortieren ziehen. Gesperrte Spalten tragen die Zeilenidentität und lassen sich nicht ausblenden.",
+      "columnsDone": "Fertig",
+      "columnsLocked": "Gesperrt",
+      "columnsReset": "Auf Standard zurücksetzen",
+      "density": "Dichte",
+      "densityComfortable": "Komfortabel",
+      "densityCompact": "Kompakt",
+      "filtersLive": "Filter wirken sofort — es gibt keine Übernehmen-Schaltfläche. Der Zustand steht in der Adresse, eine gefilterte Liste lässt sich also als Link teilen.",
+      "sortBy": "Nach {column} sortieren",
+      "errorTitle": "Diese Liste konnte nicht geladen werden",
+      "errorBody": "Die Anfrage ist fehlgeschlagen. Laden Sie die Seite neu, um es erneut zu versuchen.",
+      "forbiddenTitle": "Sie können diese Zeilen nicht sehen",
+      "forbiddenBody": "Ihre Rolle enthält die Berechtigung nicht, die diese Liste liest. Die Reiter oben zeigen weiterhin, was existiert.",
+      "noMatchTitle": "Nichts entspricht diesen Filtern",
+      "noMatchBody": "Entfernen Sie einen oder mehrere Filter, um die Suche zu erweitern.",
+      "seeAll": "Gesamte Liste anzeigen"
+    }
   },
   "status": {
     "pending": "Ausstehend",
@@ -254,6 +277,127 @@
     "searchPlaceholder": "Nach Name oder E-Mail suchen",
     "filterLabel": "Nach Onboarding-Phase filtern",
     "allTab": "Alle",
+    "detail": {
+      "type": {
+        "Passport": "Reisepass",
+        "IdCard": "Personalausweis",
+        "ResidencePermit": "Aufenthaltstitel",
+        "BusinessLicense": "Gewerbeschein",
+        "CompanyRegistration": "Handelsregisterauszug",
+        "TaxCertificate": "Steuerbescheinigung",
+        "Other": "Sonstiges"
+      },
+      "filesTitle": "Dateien",
+      "groupIdentity": "Identität",
+      "groupCompany": "Unternehmen",
+      "groupOther": "Sonstiges",
+      "countApproved": "{count} genehmigt",
+      "countPending": "{count} offen",
+      "countRejected": "{count} abgelehnt",
+      "allApproved": "Alle {count} genehmigt",
+      "requiredComplete": "Pflichtunterlagen vollständig",
+      "requiredIncomplete": "Pflichtunterlagen unvollständig",
+      "requiredBodyCompany": "Ein Identitätsnachweis plus ein Handelsregisterauszug. Ein Gewerbeschein ersetzt den Auszug nicht.",
+      "requiredBodyPerson": "Ein Identitätsnachweis. Dieser Eigentümer ist eine natürliche Person, daher wird keine Unternehmensdatei verlangt.",
+      "uploadedOn": "hochgeladen {date}",
+      "openOriginal": "Original öffnen",
+      "zoomIn": "Vergrößern",
+      "zoomOut": "Verkleinern",
+      "rotate": "Drehen",
+      "viewerNoneTitle": "Noch nichts zu prüfen",
+      "viewerNoneBody": "Dieser Eigentümer hat keine Dokumente hochgeladen — es gibt nichts zu prüfen und nichts zu entscheiden.",
+      "viewerUnsupportedTitle": "Hier nicht darstellbar",
+      "viewerUnsupportedBody": "Für diesen Dateityp gibt es keine Vorschau. Öffnen Sie das Original — die Entscheidung unten wird dadurch nicht blockiert.",
+      "viewerBrokenTitle": "Diese Datei konnte nicht geladen werden",
+      "viewerBrokenBody": "Das Dokument fehlt im Speicher. Das ist ein Serverproblem und nichts, was sich von hier aus wiederholen ließe.",
+      "fileVerdictTitle": "Entscheidung zu dieser Datei",
+      "fileVerdictSilent": "Ohne Wirkung nach außen — sie ändert keinen Status und benachrichtigt niemanden.",
+      "approveFile": "Datei genehmigen",
+      "rejectFile": "Datei ablehnen",
+      "verdictApproved": "Genehmigt",
+      "verdictRejected": "Abgelehnt",
+      "verdictPending": "Offen",
+      "rejectFileTitle": "Diese Datei ablehnen?",
+      "rejectFileBody": "Der Eigentümer sieht Ihre Begründung und kann genau diese Datei neu hochladen. An der Einreichung ändert sich sonst nichts.",
+      "rejectFilePlaceholder": "Beschreiben Sie, was mit dem Scan nicht stimmt.",
+      "decisionTitle": "Entscheidung über die Einreichung",
+      "decision": {
+        "kyc": {
+          "title": "Noch nicht eingereicht",
+          "body": "Die Unterlagen wurden noch nicht zur Prüfung gesendet. Dateien hier zu genehmigen ändert das nicht — die Entscheidung öffnet sich mit der Einreichung."
+        },
+        "review": {
+          "title": "Entscheidung offen",
+          "body": "Die einzige Stufe, auf der Genehmigen und Ablehnen zulässig sind. Überall sonst antwortet der Server 400 invalid_onboarding_transition."
+        },
+        "rejected": {
+          "title": "Der Ball liegt beim Eigentümer",
+          "body": "Abgelehnt. Wir warten darauf, dass er das Beanstandete behebt und erneut einreicht."
+        },
+        "decided": {
+          "title": "Bereits entschieden",
+          "body": "Diese Einreichung ist beantwortet. Einzelne Dateientscheidungen bleiben möglich, ab hier übernimmt der Vertrag."
+        }
+      },
+      "decisionOnlyThis": "Nur das hier erreicht den Eigentümer. Alle Dateien oben zu genehmigen genehmigt das Konto nicht.",
+      "decisionApprovalNext": "Die Genehmigung liefert eine Vertragsvorbelegung zurück — als Nächstes wird der Vertrag geschrieben, der Eigentümer geht nicht live.",
+      "decisionForbidden": "Ihre Rolle darf diese Einreichung lesen, aber nicht entscheiden.",
+      "approveSubmission": "Genehmigen",
+      "rejectSubmission": "Ablehnen",
+      "rejectSubmissionTitle": "Diese Einreichung ablehnen?",
+      "rejectSubmissionBody": "Der Eigentümer wird mit Ihrer Begründung benachrichtigt und kann korrigieren und erneut einreichen. Bestehende Dateientscheidungen bleiben bestehen.",
+      "rejectSubmissionPlaceholder": "Sagen Sie, was vor der erneuten Einreichung zu beheben ist.",
+      "checkAgainst": "Abgleichen mit",
+      "readOnly": "nur lesen",
+      "readOnlyNote": "Nur der Kontoinhaber kann diese Angaben ändern — eine falsche Passnummer korrigieren Sie, indem Sie mit Begründung ablehnen.",
+      "legalName": "Vollständiger Name",
+      "legalForm": "Rechtsform",
+      "naturalPerson": "Natürliche Person",
+      "passportNo": "Passnummer",
+      "passportExpires": "Pass gültig bis",
+      "licenceNo": "Registernummer",
+      "licenceExpires": "Register gültig bis",
+      "taxNumber": "Steuernummer",
+      "registeredIn": "Registriert in",
+      "daysLeft": "noch {days} Tage",
+      "expired": "Abgelaufen",
+      "historyTitle": "Prüfverlauf",
+      "historyEmpty": "Zu diesen Unterlagen wurde noch nichts entschieden.",
+      "historyDocApproved": "{type} genehmigt",
+      "historyDocRejected": "{type} abgelehnt",
+      "historySubmissionApproved": "Einreichung genehmigt — Vorbelegung zurückgegeben",
+      "historySubmissionRejected": "Einreichung abgelehnt",
+      "historyScopeNote": "Nur Entscheidungen und Zeitpunkte. Wer jeweils entschieden hat, liefert noch kein Endpunkt — daher steht hier kein Name statt eines geratenen.",
+      "lockedUntilApproved": "Die Vertragserstellung bleibt gesperrt, bis diese Unterlagen genehmigt sind — der Server antwortet 409 onboarding_not_approved.",
+      "notFoundTitle": "Hier gibt es kein KYC-Profil",
+      "forbiddenBody": "Das Lesen der Eigentümerunterlagen erfordert die Berechtigung kyc:review, die Ihre Rolle nicht enthält.",
+      "paneDocument": "Dokument",
+      "paneContract": "Vertrag",
+      "paneSwitch": "Was die mittlere Spalte zeigt",
+      "stillOpenableTitle": "Weiterhin einsehbar",
+      "stillOpenableBody": "Dateien bleiben nach der Genehmigung lesbar. Eine erneute Entscheidung ändert nichts am Konto und nichts am Vertrag.",
+      "contractLockedTitle": "Vertrag — Schritt 2",
+      "contractLockedHint": "Öffnet sich in dieser Spalte, sobald die Einreichung genehmigt ist."
+    },
+    "queue": {
+      "ownerSubtitle": "Einreichungen, die auf eine Entscheidung warten · älteste zuerst",
+      "ownerSearch": "Name oder E-Mail",
+      "naturalPerson": "Natürliche Person",
+      "waitingDays": "{days} T",
+      "colSubject": "Person",
+      "colStage": "Stufe",
+      "colFiles": "Dateien",
+      "colWaiting": "Wartet",
+      "colLastDecision": "Letzte Entscheidung",
+      "colContract": "Vertrag",
+      "colRejectReason": "Ablehnungsgrund",
+      "filterPhase": "Vertrag",
+      "phaseNone": "Kein Vertrag",
+      "filterDecided": "Entschieden",
+      "filterDecidedHint": "Wann die Einreichung zuletzt genehmigt oder abgelehnt wurde. Noch nicht Entschiedenes bleibt außen vor.",
+      "emptyTitle": "Hier wartet nichts",
+      "emptyBody": "Auf dieser Stufe liegt keine Einreichung. Das ist eine gute Nachricht, keine fehlende Liste."
+    },
     "ownerCount": "{count, plural, =0 {Keine Eigentümer} one {# Eigentümer} other {# Eigentümer}}",
     "workerCount": "{count, plural, =0 {Keine Mitarbeiter} one {# Mitarbeiter} other {# Mitarbeiter}}",
     "empty": "Es wurden noch keine Unterlagen eingereicht.",
@@ -348,9 +492,6 @@
       "registeredAt": "Registrierungsdatum"
     },
     "contact": {
-      "title": "Kontaktinformationen",
-      "address": "Adresse",
-      "registeredAt": "Registriert",
       "call": "Anrufen"
     },
     "calendar": {
@@ -381,21 +522,8 @@
       "worker_has_overlapping_assignment": "Dieser Mitarbeiter hat an diesem Tag bereits eine Zuweisung. Wählen Sie einen anderen Mitarbeiter.",
       "unknown": "Mitarbeiter konnte nicht zugewiesen werden. Bitte erneut versuchen."
     },
-    "activity": {
-      "title": "Letzte Aktivität",
-      "subtitle": "Aufgaben-, Zahlungs- und Dokumentenverlauf",
-      "empty": "Kein Aktivitätsverlauf"
-    },
-    "assignments": {
-      "title": "Zuweisungen",
-      "subtitle": "Aktive und geplante Aufgaben",
-      "empty": "Derzeit keine Zuweisungen"
-    },
     "actions": {
-      "backToList": "Zurück zur Mitarbeiterliste",
-      "sendMessage": "Nachricht senden",
-      "edit": "Bearbeiten",
-      "more": "Mehr"
+      "backToList": "Zurück zur Mitarbeiterliste"
     },
     "rating": {
       "title": "Bewertungsübersicht",
@@ -413,6 +541,107 @@
       "errors": {
         "notFound": "Dieser Mitarbeiter existiert nicht mehr.",
         "generic": "Mitarbeiter konnte nicht gelöscht werden. Bitte versuchen Sie es erneut."
+      }
+    },
+    "approveAction": "Mitarbeiter genehmigen",
+    "openDocuments": "Dokumente öffnen",
+    "band": {
+      "email": "E-Mail",
+      "phone": "Telefon",
+      "licence": "Gewerbeerlaubnis",
+      "passport": "Reisepass",
+      "noExpiry": "Kein Ablaufdatum hinterlegt",
+      "lapsedAgo": "{days, plural, one {vor # Tag abgelaufen} other {vor # Tagen abgelaufen}}",
+      "experience": "{years, plural, one {# Jahr Erfahrung} other {# Jahre Erfahrung}}",
+      "contract": "Vertrag",
+      "contractUnavailable": "Vertragsdaten sind mit Ihren Berechtigungen nicht sichtbar.",
+      "onTime": "Pünktlich",
+      "hours": "Stunden",
+      "hoursValue": "{hours} Std."
+    },
+    "message": {
+      "action": "Nachricht",
+      "title": "Ticket für diesen Mitarbeiter öffnen",
+      "description": "Der Mitarbeiter sieht dies als Support-Ticket, nicht als Chat — mit Status und vollständigem Verlauf, sodass nichts im Scrollen verloren geht.",
+      "errors": {
+        "invalidTarget": "Dieser Empfängertyp wird für ein Ticket nicht akzeptiert.",
+        "notFound": "Dieser Mitarbeiter existiert nicht mehr oder wurde gelöscht.",
+        "forbidden": "Sie haben keine Berechtigung, Tickets für andere Benutzer zu öffnen.",
+        "generic": "Ticket konnte nicht erstellt werden. Bitte erneut versuchen."
+      }
+    },
+    "attention": {
+      "papersTitle": "{document} läuft in {days, plural, one {# Tag} other {# Tagen}} ab",
+      "papersLapsedTitle": "{document} vor {days, plural, one {# Tag} other {# Tagen}} abgelaufen",
+      "papersDetail": "Beim Ablauf fällt das Konto zurück auf KYC",
+      "papersLapsedDetail": "Der Mitarbeiter ist nicht einsetzbar, bis das Dokument erneuert ist",
+      "papersAction": "Nachfassen",
+      "docsTitle": "{count, plural, one {# Dokument offen} other {# Dokumente offen}}",
+      "docsDetail": "{days, plural, =0 {heute hochgeladen} one {wartet seit # Tag} other {wartet seit # Tagen}} · noch nicht entschieden",
+      "docsAction": "Prüfen",
+      "docsUnknown": "Dokumentstatus unbekannt",
+      "docsUnknownDetail": "Sie können Mitarbeiterdokumente nicht lesen",
+      "coverExpiredTitle": "Vertrag ist nicht mehr in Kraft",
+      "coverExpiredDetail": "Bis zur Verlängerung ist keine Schicht besetzbar",
+      "coverEndingTitle": "Vertrag endet in {days, plural, one {# Tag} other {# Tagen}}",
+      "coverEndingDetail": "Die Verlängerung wurde noch nicht begonnen",
+      "coverNoneTitle": "Kein Vertrag erstellt",
+      "coverNoneDetail": "Eine Genehmigung allein macht niemanden einsetzbar",
+      "coverAction": "Vertrag",
+      "coverUnknown": "Vertragsstatus unbekannt",
+      "coverUnknownDetail": "Sie können Mitarbeiterverträge nicht lesen",
+      "weekDetail": "Diese Woche · {where}",
+      "weekAction": "Anwesenheit",
+      "weekUnknown": "Anwesenheit unbekannt",
+      "weekUnknownDetail": "Sie können die Aufgabenliste nicht lesen",
+      "weekMissed": "{count, plural, one {# versäumte Schicht} other {# versäumte Schichten}}",
+      "weekLate": "{count, plural, one {# Verspätung} other {# Verspätungen}}"
+    },
+    "docs": {
+      "title": "Dokumente",
+      "subtitle": "Hier entschieden · ein Urteil pro Dokument",
+      "approve": "Genehmigen",
+      "reject": "Ablehnen",
+      "open": "{document} öffnen",
+      "uploaded": "hochgeladen {date} · noch nicht entschieden",
+      "decided": "entschieden {date}",
+      "rejectedWith": "abgelehnt {date} · „{reason}“",
+      "empty": "Noch nichts hochgeladen",
+      "emptyHint": "Ein Mitarbeiter in Prüfung ohne Dokumente kann nicht genehmigt werden — nachfassen, nicht ablehnen.",
+      "refused": "Sie können Mitarbeiterdokumente nicht lesen",
+      "refusedHint": "Die Karte wird gar nicht erst geladen, statt beim Öffnen zu 403en."
+    },
+    "shifts": {
+      "viewGrid": "Schichten",
+      "viewTable": "Tabelle",
+      "viewLog": "Protokoll",
+      "refused": "Sie können die Aufgabenliste nicht lesen",
+      "refusedHint": "Sagt nichts über die Woche dieses Mitarbeiters aus — nur über Ihre Berechtigungen.",
+      "failed": "Die Woche konnte nicht geladen werden",
+      "emptyWeek": "Keine Schichten {range}",
+      "emptyWeekHint": "Sagt nichts über die Verfügbarkeit aus — eine ruhige Woche und ein nicht einsetzbarer Mitarbeiter sehen hier gleich aus.",
+      "unnamedProperty": "Objekt ohne Namen",
+      "scheduled": "geplant",
+      "noCheckin": "nie eingestempelt",
+      "inOnly": "ein {in} · nicht ausgestempelt",
+      "inOut": "ein {in} · aus {out}",
+      "inLate": "ein {in} · {minutes} Min. zu spät",
+      "summary": "{shifts, plural, one {# Schicht} other {# Schichten}} · {hours} Std. gestempelt",
+      "state": {
+        "onSite": "Vor Ort",
+        "onTime": "Pünktlich",
+        "late": "Verspätet",
+        "missed": "Versäumt",
+        "scheduled": "Geplant",
+        "done": "Abgeschlossen"
+      },
+      "columns": {
+        "date": "Datum",
+        "property": "Objekt",
+        "start": "Beginn",
+        "checkin": "Einstempeln",
+        "checkout": "Ausstempeln",
+        "state": "Ergebnis"
       }
     }
   },
@@ -465,27 +694,14 @@
       "none": "Keiner",
       "notRejected": "Nicht abgelehnt"
     },
-    "contact": {
-      "title": "Kontaktinformationen",
-      "userId": "Benutzer-ID",
-      "reviewedAt": "Geprüft am"
-    },
     "subAccounts": {
-      "title": "Unterkonten",
-      "empty": "Keine Unterkonten"
+      "bandLabel": "Team des Kontos",
+      "more": "+{count} weitere"
     },
     "properties": {
       "title": "Objekte",
-      "list": "Objektliste",
-      "viewAll": "Alle anzeigen",
       "empty": "Dieser Eigentümer hat keine Objekte",
       "unnamed": "Unbenanntes Objekt"
-    },
-    "activity": {
-      "title": "Letzte Aktivität",
-      "subtitle": "Vertrags-, Zahlungs- und Notizverlauf",
-      "empty": "Kein Aktivitätsverlauf",
-      "unnamed": "Unbenannte Buchung"
     },
     "actions": {
       "backToList": "Zurück zur Eigentümerliste",
@@ -512,19 +728,15 @@
       "email": "E-Mail",
       "phone": "Telefon",
       "joined": "Beigetreten",
-      "verified": "Verifiziert",
-      "unverified": "Nicht verifiziert",
-      "verifiedHint": "Konto verifiziert",
-      "unverifiedHint": "Noch nicht verifiziert",
-      "joinedHint": "Registrierungsdatum",
-      "roleHint": "Kontorolle",
-      "propertiesHint": "Eigene Objekte",
       "legalName": "Rechtlicher Name",
-      "legalNameHint": "Aus dem Reisepass — getrennt vom Anzeigenamen oben",
-      "call": "Anrufen"
+      "call": "Anrufen",
+      "joinedOn": "Registriert {date}",
+      "onId": "LAUT AUSWEIS",
+      "legalNameSelfEdit": "In dieser Phase vom Eigentümer",
+      "legalNameNoProfile": "Kein Ausweisdatensatz"
     },
     "edit": {
-      "action": "Namen bearbeiten",
+      "action": "Rechtlichen Namen ändern",
       "title": "Rechtlichen Namen korrigieren",
       "description": "Dies ist der Name im Reisepass des Eigentümers. Er ist getrennt vom selbst gewählten Anzeigenamen; beide werden bewusst nicht abgeglichen.",
       "firstName": "Rechtlicher Vorname",
@@ -569,7 +781,8 @@
         "Review": "In Prüfung",
         "Done": "Abgeschlossen",
         "Cancelled": "Storniert"
-      }
+      },
+      "viewLog": "Protokoll"
     },
     "documents": {
       "title": "Dokumente",
@@ -586,28 +799,6 @@
       "action": "Nachricht",
       "title": "Ticket für diesen Eigentümer öffnen",
       "description": "Der Eigentümer sieht dies als Support-Ticket, nicht als Chat — mit Status und vollständigem Verlauf, sodass nichts im Scrollen verloren geht.",
-      "category": "Typ",
-      "subject": "Betreff",
-      "subjectPlaceholder": "Worum geht es?",
-      "body": "Nachricht",
-      "bodyPlaceholder": "Erste Nachricht des Tickets schreiben...",
-      "priority": "Priorität",
-      "confirm": "Ticket erstellen",
-      "required": "Betreff und Nachricht sind beide erforderlich.",
-      "categories": {
-        "Payment": "Zahlung",
-        "Task": "Auftrag",
-        "Property": "Objekt",
-        "Technical": "Technisch",
-        "Account": "Konto",
-        "Other": "Sonstiges"
-      },
-      "priorities": {
-        "Low": "Niedrig",
-        "Normal": "Normal",
-        "High": "Hoch",
-        "Urgent": "Dringend"
-      },
       "errors": {
         "invalidTarget": "Dieser Empfängertyp wird für ein Ticket nicht akzeptiert.",
         "notFound": "Dieser Eigentümer existiert nicht mehr oder wurde gelöscht.",
@@ -636,7 +827,56 @@
       "active": "Aktiv",
       "walkIn": "Laufkundschaft"
     },
-    "systemHint": "Dies ist das dauerhafte Laufkundschafts-Konto. Es kann nicht bearbeitet, gelöscht, angeschrieben oder mit einem Vertrag versehen werden."
+    "systemHint": "Dies ist das dauerhafte Laufkundschafts-Konto. Es kann nicht bearbeitet, gelöscht, angeschrieben oder mit einem Vertrag versehen werden.",
+    "attention": {
+      "unstaffedTitle": "{count, plural, one {# Schicht ohne Mitarbeiter} other {# Schichten ohne Mitarbeiter}}",
+      "unstaffedDetail": "{where} · {when}",
+      "unstaffedToday": "heute",
+      "unstaffedSoon": "{days, plural, one {in # Tag} other {in # Tagen}}",
+      "unstaffedAction": "Zuweisen",
+      "docsTitle": "{count, plural, one {# Dokument offen} other {# Dokumente offen}}",
+      "docsDetail": "{days, plural, =0 {heute hochgeladen} one {wartet seit # Tag} other {wartet seit # Tagen}} · noch nicht entschieden",
+      "docsAction": "Prüfen",
+      "docsUnknown": "Dokumentstatus unbekannt",
+      "docsUnknownDetail": "Sie können Eigentümerdokumente nicht prüfen",
+      "coverExpiredTitle": "Vertrag ist nicht mehr in Kraft",
+      "coverExpiredDetail": "Der Eigentümer kann bis zur Verlängerung nichts beauftragen",
+      "coverEndingTitle": "Vertrag läuft in {days, plural, one {# Tag} other {# Tagen}} ab",
+      "coverEndingDetail": "Die Verlängerung wurde noch nicht begonnen",
+      "coverAction": "Verlängern",
+      "coverUnknown": "Vertragsstatus unbekannt",
+      "coverUnknownDetail": "Sie können Verträge nicht lesen"
+    },
+    "addProperty": {
+      "action": "Immobilie hinzufügen"
+    },
+    "order": {
+      "action": "Auftrag erstellen",
+      "title": "Neuer Auftrag für {name}",
+      "description": "Ein Admin erfasst Arbeit, die der Eigentümer telefonisch angefragt hat. Eine Auftragsgruppe, eine Aufgabe pro Termin.",
+      "property": "Immobilie",
+      "propertyHint": "Nur die Immobilien dieses Eigentümers. Die Anfrage trägt keine Eigentümer-ID — die Immobilie impliziert sie.",
+      "job": "Was zu tun ist",
+      "jobPlaceholder": "Treppenhaus wöchentlich",
+      "dates": "Termine",
+      "datesHint": "Ausdrückliche Termine, niemals ein Zeitraum — eine Aufgabe pro Termin.",
+      "startTime": "Startzeit",
+      "workers": "Mitarbeiter pro Aufgabe",
+      "deadlineToggle": "Frist setzen",
+      "deadline": "Frist",
+      "instructions": "Hinweise für den Mitarbeiter · optional",
+      "instructionsPlaceholder": "Schlüssel beim Hausmeister, Erdgeschoss links",
+      "defaults": "Beliebiger Beruf · Bewertung: beliebig · Neue Mitarbeiter erlaubt",
+      "summary": "{count, plural, =0 {Noch keine Termine gewählt} one {1 Termin · 1 Aufgabe · je {workers, plural, one {1 Mitarbeiter} other {# Mitarbeiter}}} other {# Termine · # Aufgaben · je {workers, plural, one {1 Mitarbeiter} other {# Mitarbeiter}}}}",
+      "submit": "{count, plural, =0 {Aufgaben erstellen} one {1 Aufgabe erstellen} other {# Aufgaben erstellen}}",
+      "errors": {
+        "titleRequired": "Bitte einen Auftragsnamen angeben.",
+        "datesRequired": "Bitte mindestens einen Termin auswählen.",
+        "startTimeRequired": "Bitte eine Startzeit setzen.",
+        "deadlineRequired": "Bitte eine Frist setzen oder die Option ausschalten.",
+        "workerLimitInvalid": "Mindestens ein Mitarbeiter ist erforderlich."
+      }
+    }
   },
   "walkIn": {
     "title": "Laufkundschaft-Aufträge",
@@ -909,7 +1149,18 @@
     "managePresets": "Presets verwalten"
   },
   "layout": {
-    "appName": "Mond Control Center",
+    "appName": "Uyer Admin Console",
+    "health": {
+      "normal": "Alle Systeme normal",
+      "degraded": "Einige Systeme sind eingeschränkt"
+    },
+    "sidebar": {
+      "tagline": "Leitstelle",
+      "collapse": "Seitenleiste einklappen",
+      "expand": "Seitenleiste ausklappen",
+      "locked": "Erfordert {permission}",
+      "lockedGeneric": "Ihre Rolle umfasst diesen Bereich nicht"
+    },
     "notifications": {
       "title": "Benachrichtigungen",
       "newCount": "{count} neue",
@@ -935,11 +1186,20 @@
     "forgotPassword": "Passwort vergessen?",
     "submit": "Anmelden",
     "error": "Ungültige E-Mail oder Passwort",
-    "footer": "© 2024 Mond Control Center. Alle Rechte vorbehalten.",
+    "footer": "© 2024 Uyer. Alle Rechte vorbehalten.",
     "help": "Hilfe",
     "privacy": "Datenschutz",
     "realtime": "Echtzeit-Überwachung",
-    "verifiedTeam": "Verifiziertes Team"
+    "verifiedTeam": "Verifiziertes Team",
+    "brandTitle": "Alles aus dem Feld, in einer Konsole.",
+    "brandBody": "Aufträge, Mitarbeitende, Objekte, KYC und Abrechnung für den gesamten Betrieb — von Menschen geprüft, nicht geschätzt.",
+    "controlCenter": "Control Center",
+    "signIn": "Anmelden",
+    "staffOnly": "Nur Mitarbeitendenkonten. Eigentümer und Mitarbeitende nutzen die Apps.",
+    "allSystemsNormal": "Alle Systeme normal",
+    "rememberMe30": "30 Tage angemeldet bleiben",
+    "systemsDegraded": "Einige Systeme sind eingeschränkt",
+    "forgotPasswordHelp": "Mitarbeitenden-Passwörter werden von einem Owner-Admin zurückgesetzt — wenden Sie sich an Ihre Administration."
   },
   "dashboard": {
     "title": "Dashboard",
@@ -1556,6 +1816,142 @@
       "code_exists": "Dieser Code ist bereits vergeben. Codes müssen eindeutig sein.",
       "generic": "Kategorie konnte nicht gespeichert werden. Bitte erneut versuchen.",
       "toggleGeneric": "Status konnte nicht geändert werden. Bitte erneut versuchen."
+    }
+  },
+  "system": {
+    "notFound": {
+      "label": "Nicht gefunden",
+      "title": "Diese Seite wurde nicht gefunden",
+      "body": "Der Datensatz wurde möglicherweise zusammengeführt, archiviert, oder der Link ist älter als der Datensatz selbst. Es ist nichts defekt — zurück zum Dashboard.",
+      "dashboard": "Dashboard",
+      "back": "Zurück"
+    },
+    "serverError": {
+      "label": "Serverfehler",
+      "title": "Auf unserer Seite ist etwas schiefgelaufen",
+      "body": "Die Anfrage wurde nie abgeschlossen, es wurde also nichts gespeichert. Ein erneuter Versuch ist sicher.",
+      "retry": "Erneut versuchen",
+      "dashboard": "Dashboard"
+    },
+    "forbidden": {
+      "label": "Kein Zugriff",
+      "title": "Ihre Rolle kann dies nicht öffnen",
+      "body": "Diese Seite benötigt die Berechtigung <code>{permission}</code>. Die Seite ist in Ordnung — Ihr Konto hat einen anderen Umfang.",
+      "required": "erforderlich: {permission}",
+      "back": "Zurück",
+      "dashboard": "Dashboard",
+      "bodyGeneric": "Diese Seite benötigt eine Berechtigung, die Ihre Rolle nicht hat. Die Seite ist in Ordnung — Ihr Konto hat einen anderen Umfang."
+    },
+    "maintenance": {
+      "label": "Wartung",
+      "title": "Geplante Wartung",
+      "body": "Die Konsole wird aktualisiert. Die mobilen Apps funktionieren weiter.",
+      "retry": "Erneut versuchen",
+      "minutesLeft": "~{minutes} Min. verbleibend"
+    },
+    "offline": {
+      "label": "Keine Verbindung",
+      "title": "Sie sind offline",
+      "body": "Die Konsole erreicht den Server nicht. Nichts von dem, was offen ist, geht verloren — es lädt erneut, sobald das Netzwerk zurück ist.",
+      "retry": "Jetzt erneut versuchen"
+    }
+  },
+  "detail": {
+    "attention": {
+      "label": "Zu erledigen",
+      "count": "{count, plural, one {# Sache} other {# Sachen}}",
+      "blocking": "Blockierend",
+      "partial": "{known} von {total} bekannt",
+      "clearTitle": "Nichts offen bei diesem Konto",
+      "clearDetail": "Alle Quellen haben geantwortet, keine davon verlangt etwas."
+    },
+    "message": {
+      "category": "Typ",
+      "priority": "Priorität",
+      "subject": "Betreff",
+      "subjectPlaceholder": "Worum geht es?",
+      "body": "Nachricht",
+      "bodyPlaceholder": "Erste Nachricht des Tickets schreiben...",
+      "confirm": "Ticket erstellen",
+      "required": "Betreff und Nachricht sind beide erforderlich.",
+      "categories": {
+        "Payment": "Zahlung",
+        "Task": "Auftrag",
+        "Property": "Objekt",
+        "Technical": "Technisch",
+        "Account": "Konto",
+        "Other": "Sonstiges"
+      },
+      "priorities": {
+        "Low": "Niedrig",
+        "Normal": "Normal",
+        "High": "Hoch",
+        "Urgent": "Dringend"
+      }
+    },
+    "conversations": {
+      "title": "Unterhaltungen",
+      "untitled": "Ticket ohne Betreff",
+      "meta": "{category} · {date}",
+      "more": "{count, plural, one {# weiterer Verlauf} other {# weitere Verläufe}}",
+      "empty": "Noch nie ein Ticket",
+      "emptyHint": "„Nachricht“ eröffnet das erste — die Schaltfläche bleibt in der Aktionsleiste.",
+      "refused": "Sie können Support-Tickets nicht auflisten",
+      "refusedHint": "Sagt nichts über dieses Konto aus. Wird nie als „keine Tickets“ angezeigt.",
+      "failed": "Unterhaltungen konnten nicht geladen werden",
+      "status": {
+        "open": "offen",
+        "closed": "geschlossen"
+      }
+    },
+    "log": {
+      "refused": "Sie können das Audit-Protokoll nicht lesen",
+      "refusedHint": "Sagt nichts über dieses Konto aus — nur über Ihre Berechtigungen.",
+      "failed": "Das Protokoll konnte nicht geladen werden",
+      "empty": "Keine Admin-Aktion zu diesem Konto protokolliert",
+      "emptyHint": "Bisher wurde hier nichts von einem Admin protokolliert.",
+      "scopeNote": "Nur Admin-Aktionen. Einzelne Dokumentenentscheidungen, Vertragsereignisse und alles, was das Konto selbst getan hat, werden zu anderen Objekten protokolliert und erscheinen hier nicht.",
+      "family": {
+        "kyc": "KYC",
+        "account": "Konto",
+        "contract": "Vertrag",
+        "property": "Objekt",
+        "work": "Arbeit"
+      },
+      "actorType": {
+        "SuperAdmin": "Admin",
+        "Owner": "Eigentümer",
+        "Worker": "Mitarbeiter",
+        "System": "System"
+      },
+      "actions": {
+        "KycApproved": "KYC genehmigt",
+        "KycRejected": "KYC abgelehnt",
+        "OwnerKycResetToPending": "KYC erneut zur Prüfung geöffnet",
+        "OnboardingRevertedToKyc": "Zurück auf KYC gesetzt",
+        "OnboardingExpiryWarned": "Vor ablaufendem Dokument gewarnt",
+        "WorkerApproved": "Mitarbeiter genehmigt",
+        "WorkerRejected": "Mitarbeiter abgelehnt",
+        "WorkerDeactivated": "Mitarbeiter deaktiviert",
+        "OwnerDeactivated": "Eigentümer deaktiviert",
+        "OwnerProfileModified": "Rechtsname durch Admin korrigiert",
+        "WorkerProfileModified": "Profil durch Admin korrigiert",
+        "WorkerAvailabilityModified": "Dienstplan durch Admin geändert",
+        "ContractSent": "Vertrag zur Unterschrift gesendet",
+        "ContractSigned": "Vertrag unterzeichnet",
+        "ContractRecalled": "Vertrag zurückgezogen",
+        "ContractRejected": "Vertrag abgelehnt",
+        "OwnerContractForceDeactivated": "Vertrag zwangsbeendet",
+        "WorkerContractForceDeactivated": "Vertrag zwangsbeendet",
+        "PropertyCreatedByAdmin": "Objekt durch Admin angelegt",
+        "PropertyDeactivatedByAdmin": "Objekt durch Admin deaktiviert",
+        "PropertyRestored": "Objekt wiederhergestellt",
+        "TaskCancelled": "Aufgabe storniert",
+        "TaskGroupCancelled": "Auftrag storniert",
+        "WorkerTaskUnassigned": "Von einer Aufgabe abgezogen",
+        "WorkerTaskRated": "Aufgabe bewertet",
+        "WorkerTaskOutcomeOverridden": "Aufgabenergebnis überschrieben"
+      }
     }
   }
 }

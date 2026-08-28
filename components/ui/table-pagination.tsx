@@ -34,6 +34,16 @@ export function TablePagination({
   const from = total === 0 ? 0 : (page - 1) * pageSize + 1;
   const to = Math.min(page * pageSize, total);
 
+  /**
+   * `items` is what lets `SelectValue` print the chosen option's **label** in the
+   * trigger. Without it the trigger falls back to the raw value, and the control
+   * read a bare "25" where it should read "25 / page".
+   */
+  const sizeItems = pageSizeOptions.map((n) => ({
+    value: String(n),
+    label: t("perPage", { count: n }),
+  }));
+
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm">
       <span className="text-muted-foreground tabular-nums">
@@ -43,14 +53,15 @@ export function TablePagination({
         <Select
           value={String(pageSize)}
           onValueChange={(value) => onPageSizeChange(Number(value))}
+          items={sizeItems}
         >
           <SelectTrigger size="sm" className="w-[110px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {pageSizeOptions.map((n) => (
-              <SelectItem key={n} value={String(n)}>
-                {t("perPage", { count: n })}
+            {sizeItems.map((item) => (
+              <SelectItem key={item.value} value={item.value}>
+                {item.label}
               </SelectItem>
             ))}
           </SelectContent>
