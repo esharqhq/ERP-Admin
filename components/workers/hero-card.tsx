@@ -203,15 +203,20 @@ export function WorkerHeroCard({
       rating.displayRating.toFixed(1)
     );
 
+  /*
+    ⚠ `employeeType` and `address` are **gone from the response**, not merely
+    empty — `register-merge` (2026-08-19) §8 dropped both columns from the worker
+    record, so `GET /api/admin/workers/{id}` no longer carries either. They were
+    the first and last entries of this line; what is left is the years and the
+    professions beyond the one already beside the name.
+  */
   const meta = [
-    worker.employeeType,
     worker.experience !== null && worker.experience !== undefined
       ? t("band.experience", { years: worker.experience })
       : null,
     // From the second onwards — the first is already the qualifier beside the
     // name, and repeating it here would read as two different facts.
     professions.length > 1 ? professions.slice(1).join(", ") : null,
-    worker.address,
   ]
     .filter(Boolean)
     .join(" · ");

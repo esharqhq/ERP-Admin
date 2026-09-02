@@ -64,7 +64,17 @@
       "noMatchTitle": "Nothing matches these filters",
       "noMatchBody": "Clear one or more filters to widen the search.",
       "seeAll": "See the whole list"
-    }
+    },
+    "datePreset": {
+      "7d": "7 d",
+      "30d": "30 d",
+      "custom": "Custom",
+      "90d": "90 d"
+    },
+    "pickDate": "Pick a date",
+    "rangeFrom": "From",
+    "rangeTo": "To",
+    "pending": "Pending"
   },
   "status": {
     "pending": "Pending",
@@ -238,6 +248,11 @@
       "sourceFile": "Source document (PDF)",
       "saveDraft": "Save draft",
       "send": "Send for signature",
+      "blocked": {
+        "periodMissing": "Set the cover period first — both dates — then you can save the draft.",
+        "periodBackwards": "Cover cannot end before it starts. Check the two dates.",
+        "needsDraft": "Save the draft first, then it can be sent for signature."
+      },
       "sendNote": "Sending renders the contract and asks them to sign. You can recall it while it is unsigned.",
       "lockedNote": "Approve the documents first — a contract can only be written for an approved account.",
       "sentBack": "Sent back",
@@ -453,9 +468,9 @@
   },
   "workers": {
     "title": "Workers",
-    "subtitle": "Manage and monitor workers.",
-    "list": "Workers list",
-    "searchPlaceholder": "Search workers...",
+    "subtitle": "Everyone who can be booked, and everyone still trying to become bookable.",
+    "list": "Workers",
+    "searchPlaceholder": "Name, email, phone",
     "notFound": "Worker not found or an error occurred.",
     "approvedNotFound": "No approved workers found.",
     "approve": "Approve",
@@ -480,7 +495,9 @@
     "tabs": {
       "all": "All",
       "pending": "Pending",
-      "approved": "Approved"
+      "approved": "Approved",
+      "review": "In review",
+      "active": "Active"
     },
     "columns": {
       "worker": "Worker",
@@ -488,8 +505,18 @@
       "rating": "Rating",
       "actions": "Actions",
       "fullName": "Full Name",
-      "phone": "Phone / Email",
-      "registeredAt": "Registered Date"
+      "phone": "Phone",
+      "registeredAt": "Registered Date",
+      "location": "Location",
+      "professions": "Professions",
+      "workload": "Workload",
+      "lastSeen": "Last seen",
+      "stage": "Stage",
+      "lastLogin": "Last sign-in",
+      "agency": "Agency",
+      "experience": "Experience",
+      "registered": "Registered",
+      "contract": "Contract mirror"
     },
     "contact": {
       "call": "Call"
@@ -532,7 +559,9 @@
       "completionRate": "Completion rate",
       "tasks": "Tasks done",
       "new": "New",
-      "label": "Performance"
+      "label": "Performance",
+      "notRatedYet": "not rated yet",
+      "count": "{count, plural, one {# task} other {# tasks}}"
     },
     "delete": {
       "action": "Delete worker",
@@ -643,6 +672,254 @@
         "checkout": "Clock-out",
         "state": "Outcome"
       }
+    },
+    "emptyTitle": "No workers yet",
+    "emptyBody": "Nobody has registered on this deployment. Workers arrive by signing up in the app — there is no admin “create worker”.",
+    "reviewQueue": "Review queue",
+    "export": "Export",
+    "invalidCombination": "The server refuses this combination of filters, so it was not applied. Adjust one of the highlighted controls.",
+    "view": {
+      "label": "How this list is drawn",
+      "table": "Table",
+      "matrix": "Matrix"
+    },
+    "toolbar": {
+      "sameSet": "same filters · same page",
+      "sortedBy": "Sorted by",
+      "sortedByNone": "Default"
+    },
+    "tabsLabel": "Onboarding stage",
+    "stage": {
+      "kyc": "Awaiting documents",
+      "review": "In review",
+      "rejected": "Rejected",
+      "approved": "Approved",
+      "contract": "Contracting",
+      "active": "Active"
+    },
+    "account": {
+      "blocked": "Blocked",
+      "lapsed": "Lapsed",
+      "deleted": "Deleted"
+    },
+    "status": {
+      "step": "step {step} / {steps}",
+      "branchStep": "stopped at review",
+      "reason": {
+        "blocked": "sanctioned by an admin",
+        "lapsed": "cover ran out, account intact",
+        "deleted": "soft-deleted"
+      },
+      "overrides": "{reason} · stage: {stage}"
+    },
+    "location": {
+      "notSet": "not set",
+      "noCountry": "no country on file"
+    },
+    "professions": {
+      "none": "none yet"
+    },
+    "workload": {
+      "booked": "Booked",
+      "free": "Free",
+      "completed": "{count, plural, =0 {no tasks done} one {# done} other {# done}}"
+    },
+    "lastSeen": {
+      "never": "Never",
+      "signedIn": "signed in {when}",
+      "registered": "registered {when}"
+    },
+    "agency": {
+      "proposed": "Proposed · unconfirmed",
+      "disputed": "Disputed",
+      "independent": "Independent"
+    },
+    "experience": {
+      "years": "{years} yrs"
+    },
+    "contract": {
+      "covered": "Covered",
+      "none": "No cover",
+      "asOf": "hourly snapshot"
+    },
+    "summary": {
+      "onThePlatform": "On the platform",
+      "count": "{count, plural, one {# worker} other {# workers}}",
+      "review": {
+        "title": "{count, plural, one {# waiting in review} other {# waiting in review}}",
+        "why": "approve or reject — reason required",
+        "action": "Open"
+      },
+      "blocked": {
+        "title": "{count, plural, one {# blocked} other {# blocked}}",
+        "why": "sanctioned, contract untouched",
+        "action": "List"
+      },
+      "lapsed": {
+        "title": "{count, plural, one {# lapsed contract} other {# lapsed contracts}}",
+        "why": "cover ended, account intact",
+        "action": "Renew"
+      },
+      "neverSeen": {
+        "title": "{count, plural, one {# never signed in} other {# never signed in}}",
+        "why": "registered and never once seen",
+        "action": "Open"
+      }
+    },
+    "sections": {
+      "identity": {
+        "title": "Identity & stage",
+        "note": "3 filters"
+      },
+      "capability": {
+        "title": "Capability",
+        "note": "6 filters"
+      },
+      "workload": {
+        "title": "Contract & workload",
+        "note": "5 filters · all three-state"
+      },
+      "location": {
+        "title": "Location & agency",
+        "note": "4 filters"
+      },
+      "dormancy": {
+        "title": "Dormancy",
+        "note": "4 filters · one refused pair"
+      }
+    },
+    "matrix": {
+      "worker": "Worker",
+      "weekAbbrev": "WK",
+      "thisWeek": "This week",
+      "previousWeek": "Previous week",
+      "nextWeek": "Next week",
+      "retryDay": "Retry",
+      "dayFailedShort": "not loaded",
+      "in": "in",
+      "hoursShort": "{hours, number, ::precision-integer} h",
+      "metres": "{metres} m",
+      "moreChips": "+{count} more",
+      "closed": "Closed",
+      "refusal": {
+        "OutsideGeofence": "Outside geofence",
+        "GpsRequired": "GPS was off",
+        "GeofenceTargetMissing": "No geofence on the property",
+        "unknown": "Check-in refused"
+      },
+      "hours": "{hours} booked",
+      "untimed": "+{count} untimed",
+      "untimedHint": "Some tasks carry no deadline, so the total is a floor rather than a sum.",
+      "tasks": "{count, plural, =0 {no tasks} one {# task} other {# tasks}}",
+      "toggleAvailability": "Declared availability for {name}",
+      "declared": "Declared availability",
+      "oneRequest": "1 request · this row only",
+      "availabilityFailed": "This worker's schedule could not be loaded.",
+      "availability": {
+        "closed": "Closed",
+        "unknown": "Not stated",
+        "source": {
+          "Base": "from the base week",
+          "Worker": "set by the worker",
+          "Admin": "set by an admin"
+        }
+      },
+      "hidden": "{count, plural, one {# worker with no booking this week is hidden} other {# workers with no booking this week are hidden}}",
+      "showAll": "Show all",
+      "rowRange": "Rows 1–{shown} of {total}",
+      "showMore": "Show {count} more",
+      "emptyTitle": "Nothing booked this week",
+      "emptyBody": "No worker on this page has a job in this week. Try another week, or widen the filters.",
+      "emptyHiddenBody": "Every worker on this page is free this week, so the grid is empty. Show them all to see the week against the whole page.",
+      "legend": {
+        "present": "Checked in",
+        "booked": "Booked",
+        "short": "Short-staffed",
+        "refused": "Refused check-in"
+      },
+      "assign": "Assign",
+      "assignSheet": {
+        "title": "Fill this shift",
+        "subtitle": "{property} · {window} — {assigned} of {required} assigned.",
+        "search": "Find a worker",
+        "noCandidates": "No worker on this page can be added. The page's filters narrow this list too.",
+        "assigning": "Assigning…",
+        "cancel": "Cancel"
+      },
+      "dayNoJobs": "no jobs",
+      "dayStaffed": "{assigned}/{required} staffed",
+      "dayOpen": "· {count} open",
+      "dayRefused": "· {count} refused",
+      "demand": "Staffing demand",
+      "demandWhy": "what the week needs",
+      "openShifts": "Open shifts",
+      "openShiftsWhy": "nobody assigned yet",
+      "openCount": "{count, plural, one {# open} other {# open}}",
+      "properties": "{count, plural, one {# property} other {# properties}}"
+    },
+    "filters": {
+      "status": "Account",
+      "statusHint": "The five values partition the table. Leaving it empty still excludes Deleted.",
+      "onboardingStatus": "Stage",
+      "onboardingStatusHint": "“In review” is the admin review queue — the same set as the header shortcut and the tab.",
+      "professions": "Professions",
+      "professionsHint": "Match-any: picking two returns workers holding either.",
+      "professionsSearch": "Find a profession",
+      "ratingMin": "Minimum rating",
+      "ratingMinHint": "0 to 5. Out of range is refused.",
+      "includeUnrated": "Keep unrated",
+      "includeUnratedHint": "Only unlocks once a minimum is set — on its own it narrows nothing.",
+      "includeUnratedAny": "Default (exclude)",
+      "includeUnratedTrue": "Keep them",
+      "includeUnratedFalse": "Exclude them",
+      "experience": "Experience (years)",
+      "experienceHint": "Nullable on the row — a worker who never stated it matches neither bound.",
+      "completed": "Completed tasks",
+      "completedHint": "0 is a real bound: max = 0 means “has completed nothing”.",
+      "hasActiveContract": "Has active contract",
+      "hasActiveContractHint": "An hourly mirror — a snapshot, never “covered right now”.",
+      "booked": "Booked",
+      "bookedHint": "On an active task. Booked, never working — check-in is not consulted.",
+      "startingSoon": "Starting soon",
+      "startingSoonHint": "Has a job within 3 days, inclusive. The 3 is fixed server-side.",
+      "idleWeek": "Idle this week",
+      "idleWeekHint": "No booking for 7 days. Counts bookings, not work done.",
+      "availableOn": "Available on",
+      "availableOnHint": "One date. A worker with no declared schedule never matches, and this recommends — it does not gate.",
+      "country": "Country",
+      "city": "City",
+      "cityHint": "Pick a country first. A worker with no service location is excluded by either.",
+      "agency": "Agency",
+      "agencyHint": "Confirmed links only — a pending claim counts as independent.",
+      "agencySource": "Source",
+      "agencySourceHint": "Independent means no confirmed link, so it cannot be combined with a named agency.",
+      "agencySourceIndependent": "Independent",
+      "agencySourceViaAgency": "Via agency",
+      "neverLoggedIn": "Never signed in",
+      "neverLoggedInHint": "“No” is a real filter — everyone who has been seen at least once.",
+      "neverLoggedInAny": "Either",
+      "neverLoggedInTrue": "Never seen",
+      "neverLoggedInFalse": "Has been seen",
+      "lastSeen": "Last seen",
+      "lastSeenHint": "Disabled while Never signed in is set to “Never seen” — that pair is refused.",
+      "registered": "Registered",
+      "yes": "Yes",
+      "no": "No",
+      "any": "Any"
+    },
+    "sort": {
+      "registeredDesc": "Registered — newest",
+      "registeredAsc": "Registered — oldest",
+      "nameAsc": "Name A–Z",
+      "nameDesc": "Name Z–A",
+      "ratingDesc": "Rating — highest",
+      "ratingAsc": "Rating — lowest",
+      "workloadDesc": "Completed — most",
+      "workloadAsc": "Completed — fewest",
+      "lastSeenDesc": "Last seen — never first",
+      "lastSeenAsc": "Last seen — longest ago",
+      "experienceDesc": "Experience — most",
+      "experienceAsc": "Experience — least"
     }
   },
   "owners": {
@@ -876,7 +1153,10 @@
         "deadlineRequired": "Set a deadline, or switch it off.",
         "workerLimitInvalid": "At least one worker is needed."
       }
-    }
+    },
+    "tabsLabel": "Owner list view",
+    "emptyTitle": "No owners here yet",
+    "emptyBody": "Owners appear once they register. Nothing is waiting on you."
   },
   "walkIn": {
     "title": "Walk-in orders",
@@ -962,7 +1242,8 @@
       "owner": "Owner",
       "category": "Category",
       "area": "Area",
-      "rooms": "Rooms"
+      "rooms": "Rooms",
+      "photos": "Photos"
     },
     "deleted": {
       "title": "Deleted Properties",
@@ -977,7 +1258,8 @@
       "errors": {
         "property_not_found": "Property not found.",
         "generic": "Couldn't restore the property."
-      }
+      },
+      "link": "Deleted ({count})"
     },
     "create": {
       "new": "New Property",
@@ -1003,8 +1285,11 @@
     },
     "owner": {
       "title": "Owner",
-      "ownerId": "Owner ID",
-      "viewProfile": "View Profile"
+      "email": "Email",
+      "profile": "Profile",
+      "noContract": "No contract",
+      "coverUnknown": "Cover unknown",
+      "fixedAtCreation": "Fixed at creation — no route moves a property between owners, so the field is absent from the edit form rather than disabled in it."
     },
     "form": {
       "name": "Name",
@@ -1049,20 +1334,6 @@
       "more": "More"
     },
     "ownerUnknown": "Unknown owner",
-    "areaBands": {
-      "unset": "Not recorded",
-      "lt100": "Under 100 m²",
-      "from100": "100–500 m²",
-      "from500": "500–2,000 m²",
-      "gt2000": "Over 2,000 m²"
-    },
-    "createdBands": {
-      "week": "Last 7 days",
-      "month": "7–30 days ago",
-      "year": "30 days – 1 year ago",
-      "older": "Over a year ago",
-      "unknown": "Unknown date"
-    },
     "gallery": {
       "title": "Photos",
       "count": "{count} of 10",
@@ -1072,6 +1343,110 @@
       "close": "Close",
       "previous": "Previous photo",
       "next": "Next photo"
+    },
+    "emptyTitle": "No properties yet",
+    "emptyBody": "Properties appear here once an owner adds one, or you create one on their behalf.",
+    "summary": {
+      "onThePlatform": "On the platform",
+      "count": "{count} properties",
+      "noPhotos": "{count} with no photos",
+      "noPhotosWhy": "workers arrive blind",
+      "noArea": "{count} missing floor area",
+      "noAreaWhy": "quotes cannot be checked",
+      "inBin": "{count} in the bin",
+      "inBinWhy": "restorable",
+      "retired": "{count} on a retired category",
+      "retiredWhy": "the category was deactivated",
+      "list": "List",
+      "fix": "Fix",
+      "open": "Open",
+      "move": "Move"
+    },
+    "toolbar": {
+      "all": "{total}",
+      "matched": "{matched} of {total}",
+      "sortedBy": "Sorted by",
+      "sortedByNone": "Default"
+    },
+    "sort": {
+      "nameAsc": "Name A–Z",
+      "nameDesc": "Name Z–A",
+      "newest": "Newest first",
+      "oldest": "Oldest first",
+      "areaDesc": "Largest area",
+      "photosAsc": "Fewest photos"
+    },
+    "detail": {
+      "floors": "{count} floors",
+      "rooms": "{count} rooms",
+      "added": "added {date}",
+      "visitsWindow": "Visits · {days} days",
+      "teamWithAccess": "Team with access",
+      "teamEmpty": "Owner only",
+      "pinnedEntrance": "Pinned entrance",
+      "copyCoords": "Copy coordinates",
+      "entry": "Entry",
+      "tabs": {
+        "photos": "Photos",
+        "work": "Work booked here",
+        "history": "History"
+      },
+      "attention": {
+        "unassignedTitle": "{when} {what} unassigned",
+        "unassignedDetail": "{count} upcoming visit(s) short of workers",
+        "assign": "Assign",
+        "visitsUnknown": "Booked work unknown",
+        "visitsUnknownWhy": "you cannot read the task list",
+        "coverExpired": "Owner's contract has expired",
+        "coverExpiredWhy": "no new work can be booked here",
+        "coverEnding": "Owner's contract expires in {days} days",
+        "coverEndingWhy": "renewal not started",
+        "renew": "Renew",
+        "coverUnknown": "Owner's cover unknown",
+        "coverUnknownWhy": "you cannot read contracts",
+        "stalePhotos": "Newest photo is {months} months old",
+        "stalePhotosWhy": "{count} photos, none recent",
+        "noPhotos": "No photos of this property",
+        "noPhotosWhy": "workers arrive blind",
+        "view": "View"
+      },
+      "visits": {
+        "title": "Next visits",
+        "source": "from the task engine",
+        "assigned": "Assigned",
+        "unassigned": "Unassigned",
+        "staffed": "{filled}/{required} staffed",
+        "untitled": "Untitled booking",
+        "more": "+{count} more",
+        "empty": "Nothing booked ahead",
+        "emptyWhy": "No visit is scheduled at this address.",
+        "forbidden": "You cannot see booked work",
+        "forbiddenWhy": "Your role does not include reading the task list.",
+        "error": "Booked work could not be loaded"
+      },
+      "work": {
+        "when": "When",
+        "what": "What",
+        "staffing": "Staffing",
+        "status": "Status",
+        "untitled": "Untitled booking",
+        "empty": "No work has been booked here",
+        "emptyWhy": "This address has never had a visit scheduled.",
+        "forbidden": "You cannot see booked work",
+        "forbiddenWhy": "Your role does not include reading the task list.",
+        "error": "Booked work could not be loaded"
+      }
+    },
+    "summaryFilters": {
+      "photosNone": "No photos",
+      "areaMissing": "Missing",
+      "categoryRetired": "Retired",
+      "heading": "Flags"
+    },
+    "filters": {
+      "ownerSearch": "Filter owners…",
+      "areaSqm": "Floor area (m²)",
+      "areaSqmHint": "Properties with no recorded area drop out of any bound."
     }
   },
   "admins": {
@@ -1547,7 +1922,11 @@
       "namePlaceholder": "Display name",
       "description": "Description",
       "descriptionPlaceholder": "Optional description…",
-      "create": "Create"
+      "create": "Create",
+      "nameDe": "Name (German)",
+      "nameDePlaceholder": "Fensterreinigung",
+      "nameEn": "Name (English)",
+      "nameEnPlaceholder": "Window Cleaning"
     },
     "delete": {
       "title": "Delete profession?",
@@ -1557,7 +1936,17 @@
       "generic": "The profession could not be saved. Please try again.",
       "code_exists": "A profession with this code already exists.",
       "deleteGeneric": "The profession could not be deleted. Please try again.",
-      "profession_in_use": "This profession is assigned to workers or task groups and cannot be deleted."
+      "profession_in_use": "This profession is assigned to workers or task groups and cannot be deleted.",
+      "profession_protected": "This is the default profession every worker is registered with, so it cannot be deactivated."
+    },
+    "inactive": "Inactive",
+    "deactivate": {
+      "action": "Deactivate",
+      "title": "Deactivate this profession",
+      "confirm": "{name} disappears from every picker, so nobody can be given it from now on. Workers who already hold it keep it, and reactivating brings it back unchanged."
+    },
+    "reactivate": {
+      "action": "Reactivate"
     }
   },
   "dispatch": {

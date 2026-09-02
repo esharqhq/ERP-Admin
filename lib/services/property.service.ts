@@ -1,5 +1,6 @@
 import { apiClient } from "@/lib/http/client";
 import type {
+  PropertyMembershipDto,
   PropertyDto,
   PropertyMediaDto,
   UpdatePropertyRequest,
@@ -15,13 +16,33 @@ export const propertyService = {
   getProperties: async (opts?: {
     includeDeleted?: boolean;
     ownerUserId?: string;
+    /**
+     * Embeds each row's gallery in `media`. Without it that field is `null` —
+     * **not** an empty array — so a photo count is unknowable rather than zero.
+     * The table's Photos column and its "no photos" tile both need it.
+     */
+    withMedia?: boolean;
   }): Promise<PropertyDto[]> => {
     const params: Record<string, string | boolean> = {};
     if (opts?.includeDeleted) params.includeDeleted = true;
     if (opts?.ownerUserId) params.ownerUserId = opts.ownerUserId;
+    if (opts?.withMedia) params.withMedia = true;
     const { data } = await apiClient.get<PropertyDto[]>("/api/properties", {
       params,
     });
+    return data;
+  },
+
+  /**
+   * Who else can act on this property — `MANAGER` / `PROPERTY_ADMIN` rows.
+   *
+   * Reads under `property:list` for an admin: the route's own permission is
+   * PROPERTY-scoped and short-circuits for them. See `PropertyMembershipDto`.
+   */
+  getMemberships: async (propertyId: string): Promise<PropertyMembershipDto[]> => {
+    const { data } = await apiClient.get<PropertyMembershipDto[]>(
+      `/api/properties/${propertyId}/memberships`,
+    );
     return data;
   },
 

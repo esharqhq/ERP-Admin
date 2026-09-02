@@ -13,11 +13,34 @@ import type {
  * gated `system:analytics:read`), so a custom-override admin lacking
  * `property:list` doesn't 403 on the picker (fail-open class).
  */
-export function useProperties(enabled = true) {
+/**
+ * `withMedia` embeds every row's gallery, which is what the Photos column and the
+ * "no photos" tile read. It is part of the **query key**: a cache entry fetched
+ * without it holds `media: null` on every row, and serving that to a caller that
+ * asked for galleries would report the whole table as having none.
+ */
+export function useProperties(enabled = true, withMedia = false) {
   return useQuery({
-    queryKey: ["properties"],
-    queryFn: () => propertyService.getProperties(),
+    queryKey: ["properties", { withMedia }],
+    queryFn: () => propertyService.getProperties(withMedia ? { withMedia: true } : undefined),
     enabled,
+  });
+}
+
+/**
+ * Who else can act on this property — the identity card's "Team with access".
+ *
+ * Reads under `property:list` for an admin (the route short-circuits), so it
+ * needs no gate of its own beyond the one that opened the page. Inactive rows are
+ * dropped here rather than in the card: a revoked membership is history, and the
+ * card asks who can act **now**.
+ */
+export function usePropertyMemberships(propertyId: string | undefined) {
+  return useQuery({
+    queryKey: ["properties", propertyId, "memberships"],
+    queryFn: () => propertyService.getMemberships(propertyId!),
+    enabled: Boolean(propertyId),
+    select: (rows) => rows.filter((m) => m.isActive),
   });
 }
 

@@ -4,6 +4,7 @@ import { useSyncExternalStore } from "react";
 import { toLocalDateKey } from "@/lib/tasks/weekly-rows";
 
 const DAY_MS = 86_400_000;
+const MINUTE_MS = 60_000;
 
 function subscribeNever() {
   return () => {};
@@ -31,6 +32,31 @@ export function useToday(): number {
   return useSyncExternalStore(
     subscribeNever,
     () => Math.floor(Date.now() / DAY_MS) * DAY_MS,
+    () => 0,
+  );
+}
+
+/**
+ * Now, to the minute, and `0` before the clock is known.
+ *
+ * `useToday` is quantized to the **day**, which is right for every question it was
+ * written for — days until an expiry, whether a shift is past — and useless for
+ * *"last seen 12 minutes ago"*: at day granularity everything that happened today
+ * happened zero days ago.
+ *
+ * Same `useSyncExternalStore` shape and the same `0` server snapshot, so a
+ * relative age is simply absent on the server pass and appears on hydration
+ * rather than hydrating against a different number. Quantized to the minute
+ * because `getSnapshot` must be stable across the calls React makes within one
+ * render, and because no reader of this needs a second.
+ *
+ * It does not tick. A dormancy column that re-rendered every minute would cost
+ * more than the minute it bought.
+ */
+export function useClock(): number {
+  return useSyncExternalStore(
+    subscribeNever,
+    () => Math.floor(Date.now() / MINUTE_MS) * MINUTE_MS,
     () => 0,
   );
 }

@@ -77,3 +77,81 @@ exact-column-count assertion breaks for the second time.
 `bossOwnerName` on `PropertyDto` exists only in `index/dtos/properties.md:156`;
 `f-02c-property-rework.md` still shows a `bossOwnerUserId`-only response. Per the precedence rule this
 is an issue to open on the backend repo, not something to work around here.
+
+## Open intake — pulled 2026-08-30, NOT absorbed
+
+Backend `08ab6d7 → f3a2334`, 53 commits. Nothing below is acted on yet; the `Absorbed to` column above
+is deliberately unchanged. Three new `affects: admin-panel` entries, in `Became false:` order.
+
+**1. `onTask` → `booked` (CHANGELOG 2026-08-27, F-06d) — breaking, and it fails SILENTLY.**
+`?onTask=` is now an unknown query key, so it is ignored and the request returns the **whole unfiltered
+table**. The rule behind the filter did not change. Row field `onTask` → `booked`; the export's
+`Task status` values `On task`/`Free` → `Booked`/`Free`. Our sites:
+`lib/workers/worker-filter-query.ts:35,48`, `lib/workers/worker-filter-query.test.ts:33-35`,
+`lib/types/worker.types.ts:57,82`. **`buildWorkerFilterQuery` has no consumer today** — the workers page
+still filters client-side over one page — so this is a rename in unwired code, not a live regression.
+
+**2. `Blocked` → `Lapsed`, and a real `Blocked` (CHANGELOG 2026-08-28) — breaking on both tables.**
+Same numeric code, same rows, new word. Worker table takes `Lapsed` **and** a new `Blocked` (an admin
+sanction, stored not derived). Owner table takes the **rename only** — `?status=Blocked` there is now
+`400 status_not_supported_for_owners` on the list *and* the export. The buckets now partition:
+`Active`/`Pending`/`Lapsed` all exclude blocked workers. Our sites: `lib/types/onboarding.types.ts:46-51`
+(`ACCOUNT_STATUS_FILTERS`), and the doc comments at `lib/types/worker.types.ts:43` and
+`lib/types/owner.types.ts:43`. **No live 400 risk today** — `status` is in `OWNER_FILTER_KEYS` and
+`WORKER_FILTER_KEYS` but no filter control populates it, and the owners/workers pages drive their tabs
+off `onboardingStatus`, whose six filter values this entry does not touch.
+
+**3. "Do NOT build an edit-required-skills control" is WITHDRAWN (CHANGELOG 2026-08-27, F-06 tail).**
+`PUT /api/tasks/groups/{id}` now accepts a non-empty `eligibleProfessionIds`; re-sending the same set is
+a real no-op, so a plain Save is safe. The eligibility **freeze** is unchanged — once any child task
+leaves `Pending` it refuses `task_group_eligibility_frozen`, so **disable** the control on a started
+booking rather than letting the save fail.
+
+Newly available and unbuilt (no `Became false:`, so none of it is urgent): `POST /api/admin/workers/{id}/block`
+and `/unblock` (`worker:block` 80046, SUPER_ADMIN, reason mandatory both ways; `blockedAt`/`blockedReason`
+on worker detail); worker-table filters `?startingSoon=`, `?idleWeek=`, `?availableOn=YYYY-MM-DD`,
+`?agencySource=Independent|ViaAgency`; support-ticket filters `?requesterUserId=`, `?requesterUserType=`,
+`?search=` on `GET /api/support-tickets/admin/all` — that trio is what a Worker Detail → Tickets tab calls.
+
+⚠ `verify-v2.mjs` stays green through all of this. It only gates the v2-migration surface.
+
+## The live break, and it is older than this pull — the walk-in order form
+
+⚠ **`POST /api/tasks/admin/groups` against the Walk-in property now returns
+`400 walkin_location_required` unless the body carries `lat` and `long`.** Shipped 2026-08-26 with F-06c
+(`f-06-c-checkin-proof.md` §4), so it was already in the checkout before this pull and is **not** one of
+the three entries above. Ours sends neither: `CreateTaskGroupRequest` (`lib/types/task.types.ts:95-113`)
+has no location field and `components/walk-in/` contains no address, `lat` or `long` anywhere. The order's
+own coordinates become the geofence target for its tasks, which is why the property's are not a fallback.
+
+This lands on `feat/walk-in-job-management`. Fix it there before anything in the sections above — the
+three new entries are a rename in unwired code, a doc-comment sweep and a withdrawn prohibition; this one
+is a form that cannot file an order.
+
+## The real gap is 19 entries, not 3
+
+The `Absorbed to` column says **2026-08-12**. The backend CHANGELOG has **~19** `affects: admin-panel`
+entries dated after that, of which this pull contributed three. Four of them (F-05a, F-05b, F-05c, F-06a)
+name admin screens that do not exist here at all — an **Agency links** screen whose status filter is the
+dispute queue, and a **Skill Requests** queue.
+
+Spot-checked, so the picture is genuinely mixed rather than uniformly stale:
+
+- **Absorbed despite the column** — `owner-location-model` (2026-08-13/14): `useCountries`/`useCities` are
+  wired and the owners filter bar has both pickers.
+- **Not absorbed** — last-seen recency (2026-08-13): `lastSeenAt` appears only in a doc comment at
+  `components/ui/data-table/data-table.tsx:126`. Agency (F-05·0 through F-05c): only `lib/nav-items.ts`
+  and `lib/http/files.ts` mention it. Worker availability (F-04b): only `components/detail/account-log.tsx`.
+
+So the column is wrong in both directions and cannot be repaired by inspection. **Absorbing this backlog
+needs its own pass**, entry by entry from 2026-08-13 downwards, which is a separate piece of work from the
+three items above.
+
+## Known guide bug #2, unreported — the Revision dates did not move
+
+Four guides changed with client-visible, breaking content in this pull and their `revision:` frontmatter
+**did not move**: `fnd-3-table-query.md` (still 2026-08-20), `f-04b-worker-availability.md` (2026-08-19),
+`f-05-b-agency-portal.md` (2026-08-24), `onboarding-and-active-gate.md` (2026-08-25). The catch-up loop
+at the top of this file reads those dates to decide what to re-read, so a stale `revision:` makes a
+breaking change invisible to it. Same handling as the bug above: an issue on the backend repo, not a
+workaround here.

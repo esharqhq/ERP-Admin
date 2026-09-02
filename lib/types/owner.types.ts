@@ -40,7 +40,11 @@ export interface OwnerRowDto {
   fullName: string;
   email: string;
   phoneNumber: string;
-  /** Coarse account lifecycle: Active | Pending | Deleted | Blocked. */
+  /**
+   * Coarse account lifecycle: `Active` | `Pending` | `Deleted` | `Lapsed`.
+   * ⚠ `Lapsed` was called `Blocked` until 2026-08-28 — same rows, new word. The
+   * owner table has no administrative block, so `Blocked` here is a `400`.
+   */
   status: string;
   /**
    * ⚠ A **string**, deliberately not `OnboardingStatus`. The Default Owner has

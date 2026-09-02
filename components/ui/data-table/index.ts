@@ -18,16 +18,7 @@ export type {
 } from "./types";
 
 /**
- * A server queue's wire sort column, from the column id the URL carries.
- *
- * The address always names the **column**, never the API's field, so the same
- * visible sort produces the same link on a client-sorted and a server-sorted
- * queue. Server callers translate here, on the way into the query.
+ * Re-exported so a queue imports its columns, its shell and its sort mapping from
+ * one place. The rule lives in `lib/ui/server-sort.ts`, which is pure and tested.
  */
-export function sortKeyFor(
-  columns: { id: string; sortKey?: string }[],
-  sort: { key: string } | null,
-): string | undefined {
-  if (!sort) return undefined;
-  return columns.find((c) => c.id === sort.key)?.sortKey;
-}
+export { serverSortParams, sortKeyFor } from "@/lib/ui/server-sort";

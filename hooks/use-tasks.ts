@@ -13,10 +13,25 @@ import type {
   CreateTaskGroupRequest,
 } from "@/lib/types/task.types";
 
-export function useAdminTaskGroups(ownerUserId?: string, propertyId?: string) {
+/**
+ * ⚠ **`enabled` matters more here than on most reads.** With no scope this route
+ * returns **every task group on the platform**, and a caller waiting for an id
+ * (`useAdminTaskGroups(undefined, property?.id)`) passes `undefined` on its first
+ * render — so without a gate it fetches the whole system once, then refetches
+ * scoped, and the unscoped response stays in the cache under its own key.
+ *
+ * Callers that genuinely want the system-wide list simply omit both arguments and
+ * leave `enabled` at its default.
+ */
+export function useAdminTaskGroups(
+  ownerUserId?: string,
+  propertyId?: string,
+  enabled = true,
+) {
   return useQuery({
     queryKey: ["admin-task-groups", ownerUserId ?? null, propertyId ?? null],
     queryFn: () => taskService.getAdminTaskGroups(ownerUserId, propertyId),
+    enabled,
   });
 }
 

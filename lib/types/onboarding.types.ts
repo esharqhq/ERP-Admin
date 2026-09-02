@@ -42,14 +42,41 @@ export const CONTRACT_PHASES = [
 ] as const;
 export type ContractPhase = (typeof CONTRACT_PHASES)[number];
 
-/** Coarse account filter on the admin owner/worker tables (`?status=`). */
+/**
+ * Coarse account filter on the admin owner table (`?status=`).
+ *
+ * ⚠ **`Blocked` was renamed `Lapsed` on 2026-08-28** — same numeric code, same
+ * rows, new word. It has always meant *"was signed at some point and is not live
+ * now"*, i.e. the contract ran out; it never meant a sanction. The word moved
+ * because a real administrative block now exists on the worker side and the two
+ * were indistinguishable under one name.
+ *
+ * ⚠ **The owner table has no `Blocked`, and sending it is a `400
+ * status_not_supported_for_owners`** on the list *and* the export. That is why
+ * this list is the owner's four and `WORKER_STATUS_FILTERS` below is its own —
+ * one shared union would make the refused value spellable here.
+ */
 export const ACCOUNT_STATUS_FILTERS = [
   "Active",
   "Pending",
   "Deleted",
-  "Blocked",
+  "Lapsed",
 ] as const;
 export type AccountStatusFilter = (typeof ACCOUNT_STATUS_FILTERS)[number];
+
+/**
+ * The worker table's `?status=`: the owner's four plus a fifth.
+ *
+ * `Blocked` here is an **admin sanction** — stored, not derived, and unrelated to
+ * contracts: a blocked worker holding a live contract still reports `Blocked`.
+ * The buckets **partition**, so `Active`, `Pending` and `Lapsed` all exclude
+ * blocked workers and the counts sum to the table total.
+ */
+export const WORKER_STATUS_FILTERS = [
+  ...ACCOUNT_STATUS_FILTERS,
+  "Blocked",
+] as const;
+export type WorkerStatusFilter = (typeof WORKER_STATUS_FILTERS)[number];
 
 export type SortDir = "Asc" | "Desc";
 

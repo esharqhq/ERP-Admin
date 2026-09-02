@@ -24,19 +24,28 @@ import { stepIndex } from "@/lib/properties/gallery";
  * halfway through one. `pb-2` reserves the scrollbar's own height so it does
  * not overlap the last row of pixels.
  */
-const STRIP =
-  "flex snap-x snap-mandatory gap-2.5 overflow-x-auto pb-2 " +
-  // Nothing hides the scrollbar: it is the only affordance saying more photos
-  // exist off to the right.
-  "[scrollbar-width:thin]";
+/**
+ * A grid, four across, which is the layout `Uyer-Admin-Properties.dc.html`
+ * defaults to (it offers `Strip` as the alternative). A grid also carries a date
+ * under each photo without a second row of chrome, which the design draws and the
+ * attention band's "newest photo is N months old" needs a reader to be able to
+ * check.
+ *
+ * ⚠ The strip this replaced was `flex` with no `items-start`, which silently
+ * defeated `aspect-square`: a stretched flex item's cross size is imposed by the
+ * container, so every tile took the tallest photo's natural height and the shorter
+ * ones sat pinned to the top of an over-tall box. A grid cell is not stretched
+ * that way, so the ratio holds by construction.
+ */
+const GRID = "grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4";
 
 /**
- * Square, and sized so exactly three fit the visible width — the fourth peeks
- * in at the edge, which is what tells the eye it can scroll. `basis` does the
- * arithmetic: full width, minus the two gaps between three tiles, divided by
- * three. `shrink-0` stops flex from compressing them to fit instead.
+ * **4:3, not square** — the ratio the design gives (`aspect-ratio: 4/3`). Four
+ * across in the detail's main column, a square tile is a third taller than it
+ * needs to be, and a property photo is landscape anyway. Any fixed ratio keeps the
+ * row reading as one band rather than a ragged edge.
  */
-const TILE = "aspect-square shrink-0 basis-[calc((100%-1.25rem)/3)]";
+const TILE = "aspect-[4/3] w-full";
 
 function formatSize(bytes: number, locale: string): string {
   const mb = bytes / (1024 * 1024);
@@ -64,7 +73,18 @@ function formatDate(iso: string, locale: string): string {
  * The images are served from an unauthenticated `/files/...` path, so a plain
  * `<img>` is all that is needed — no token, no proxying.
  */
-export function PropertyGalleryCard({ propertyId }: { propertyId: string }) {
+export function PropertyGalleryCard({
+  propertyId,
+  bare = false,
+}: {
+  propertyId: string;
+  /**
+   * Drops the card chrome and the header. Inside the detail's tab strip the tab
+   * already names the surface and counts it, so a second title and a second
+   * border is one frame inside another saying the same thing twice.
+   */
+  bare?: boolean;
+}) {
   const t = useTranslations("properties");
   const locale = useLocale();
   const { data: media = [], isLoading, isError } = usePropertyMedia(propertyId);
@@ -98,63 +118,90 @@ export function PropertyGalleryCard({ propertyId }: { propertyId: string }) {
   };
 
 
+  /*
+    One body, two frames. It used to be pasted into both branches — 45 lines
+    twice, which is how the skeletons drifted to a different corner radius from
+    the tiles they stand in for.
+  */
+  const photos = (
+    <>
+      {isLoading ? (
+        <div className={GRID}>
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className={`${TILE} rounded-[12px]`} />
+          ))}
+        </div>
+      ) : isError ? (
+        <p className="py-6 text-center text-sm text-destructive">
+          {t("gallery.error")}
+        </p>
+      ) : media.length === 0 ? (
+        <div className="flex flex-col items-center gap-1.5 py-8 text-center">
+          <ImageIcon className="size-8 text-muted-foreground/40" />
+          <p className="text-sm text-muted-foreground">{t("gallery.empty")}</p>
+          <p className="text-[11px] text-muted-foreground/80">
+            {t("gallery.emptyHint")}
+          </p>
+        </div>
+      ) : (
+        <div className={GRID}>
+          {media.map((m, i) => (
+            <button
+              key={m.id}
+              type="button"
+              onClick={() => setOpenAt(i)}
+              aria-label={m.originalFileName}
+              className={`${TILE} group relative overflow-hidden rounded-[12px] bg-muted ring-1 ring-inset ring-border outline-none transition-shadow hover:ring-foreground/20 focus-visible:ring-3 focus-visible:ring-ring/50`}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element -- owner-uploaded photo on the backend's own host, same call as the chat thumbnails */}
+              <img
+                src={m.url}
+                alt={m.originalFileName}
+                loading="lazy"
+                className="size-full object-cover transition-transform duration-200 group-hover:scale-[1.03]"
+              />
+              {/*
+                The upload date, **inside** the tile as the design draws it —
+                which is what makes a stale gallery legible from the grid
+                rather than only from the attention band above. A line under
+                each tile said the same thing and cost a row of height per
+                row of photos.
+
+                Its own translucent ground rather than a drop shadow, because
+                a photo can be light or dark and only an opaque-ish chip is
+                legible over both.
+              */}
+              <span className="absolute bottom-2 left-2 rounded-[5px] bg-background/90 px-1.5 py-0.5 font-mono text-[9px] leading-none text-muted-foreground">
+                {formatDate(m.createdAt, locale)}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+    </>
+  );
+
   return (
     <>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between gap-2 pb-3">
-          <h2 className="flex items-center gap-2 font-heading text-base font-semibold tracking-tight">
-            <ImageIcon className="size-4 text-muted-foreground" />
-            {t("gallery.title")}
-          </h2>
-          {media.length > 0 && (
-            <span className="text-[11px] tabular-nums text-muted-foreground">
-              {t("gallery.count", { count: media.length })}
-            </span>
-          )}
-        </CardHeader>
-
-        <CardContent>
-          {isLoading ? (
-            <div className={STRIP}>
-              {Array.from({ length: 3 }).map((_, i) => (
-                <Skeleton key={i} className={`${TILE} rounded-lg`} />
-              ))}
-            </div>
-          ) : isError ? (
-            <p className="py-6 text-center text-sm text-destructive">
-              {t("gallery.error")}
-            </p>
-          ) : media.length === 0 ? (
-            <div className="flex flex-col items-center gap-1.5 py-8 text-center">
-              <ImageIcon className="size-8 text-muted-foreground/40" />
-              <p className="text-sm text-muted-foreground">{t("gallery.empty")}</p>
-              <p className="text-[11px] text-muted-foreground/80">
-                {t("gallery.emptyHint")}
-              </p>
-            </div>
-          ) : (
-            <div className={STRIP}>
-              {media.map((m, i) => (
-                <button
-                  key={m.id}
-                  type="button"
-                  onClick={() => setOpenAt(i)}
-                  aria-label={m.originalFileName}
-                  className={`${TILE} group snap-start overflow-hidden rounded-lg border border-border bg-muted outline-none transition-colors hover:border-foreground/20 focus-visible:ring-3 focus-visible:ring-ring/50`}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element -- owner-uploaded photo on the backend's own host, same call as the chat thumbnails */}
-                  <img
-                    src={m.url}
-                    alt={m.originalFileName}
-                    loading="lazy"
-                    className="size-full object-cover transition-transform duration-200 group-hover:scale-[1.03]"
-                  />
-                </button>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      {bare ? (
+        /* No header: the tab above already names this surface and counts it. */
+        <div className="flex flex-col gap-3">{photos}</div>
+      ) : (
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between gap-2 pb-3">
+            <h2 className="flex items-center gap-2 font-heading text-base font-semibold tracking-tight">
+              <ImageIcon className="size-4 text-muted-foreground" />
+              {t("gallery.title")}
+            </h2>
+            {media.length > 0 && (
+              <span className="text-[11px] tabular-nums text-muted-foreground">
+                {t("gallery.count", { count: media.length })}
+              </span>
+            )}
+          </CardHeader>
+          <CardContent>{photos}</CardContent>
+        </Card>
+      )}
 
       <Dialog open={current !== null} onOpenChange={(v) => !v && setOpenAt(null)}>
         <DialogContent

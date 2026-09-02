@@ -8,7 +8,12 @@ import type { ColumnMeta } from "@/lib/ui/table-prefs";
 export interface DataColumn<Row> extends ColumnMeta {
   /** Already translated. The picker and the header both print it. */
   label: string;
-  cell: (row: Row) => ReactNode;
+  /**
+   * `index` is the row's **1-based position in the page on screen**, which is
+   * what a `#` column prints. It is deliberately not an identity: it moves under
+   * every filter, sort and page change. Nothing else should read it.
+   */
+  cell: (row: Row, index: number) => ReactNode;
   align?: "left" | "right";
   /** Width and any other classes for both the header cell and the body cells. */
   className?: string;

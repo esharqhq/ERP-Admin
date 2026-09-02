@@ -64,7 +64,17 @@
       "noMatchTitle": "Nichts entspricht diesen Filtern",
       "noMatchBody": "Entfernen Sie einen oder mehrere Filter, um die Suche zu erweitern.",
       "seeAll": "Gesamte Liste anzeigen"
-    }
+    },
+    "datePreset": {
+      "7d": "7 T",
+      "30d": "30 T",
+      "custom": "Eigene",
+      "90d": "90 T"
+    },
+    "pickDate": "Datum wählen",
+    "rangeFrom": "Von",
+    "rangeTo": "Bis",
+    "pending": "Ausstehend"
   },
   "status": {
     "pending": "Ausstehend",
@@ -238,6 +248,11 @@
       "sourceFile": "Quelldokument (PDF)",
       "saveDraft": "Entwurf speichern",
       "send": "Zur Unterschrift senden",
+      "blocked": {
+        "periodMissing": "Legen Sie zuerst den Deckungszeitraum fest — beide Daten — dann können Sie den Entwurf speichern.",
+        "periodBackwards": "Die Deckung kann nicht enden, bevor sie beginnt. Prüfen Sie die beiden Daten.",
+        "needsDraft": "Speichern Sie zuerst den Entwurf, dann kann er zur Unterschrift gesendet werden."
+      },
       "sendNote": "Beim Senden wird der Vertrag erzeugt und zur Unterschrift angefragt. Solange er nicht unterschrieben ist, können Sie ihn zurückziehen.",
       "lockedNote": "Genehmigen Sie zuerst die Dokumente — ein Vertrag kann nur für ein genehmigtes Konto erstellt werden.",
       "sentBack": "Zurückgesendet",
@@ -453,9 +468,9 @@
   },
   "workers": {
     "title": "Mitarbeiter",
-    "subtitle": "Mitarbeiter verwalten und überwachen.",
-    "list": "Mitarbeiterliste",
-    "searchPlaceholder": "Mitarbeiter suchen...",
+    "subtitle": "Alle, die gebucht werden können — und alle, die es noch werden wollen.",
+    "list": "Mitarbeitende",
+    "searchPlaceholder": "Name, E-Mail, Telefon",
     "notFound": "Mitarbeiter nicht gefunden oder ein Fehler ist aufgetreten.",
     "approvedNotFound": "Keine genehmigten Mitarbeiter gefunden.",
     "approve": "Genehmigen",
@@ -480,16 +495,28 @@
     "tabs": {
       "all": "Alle",
       "pending": "Ausstehend",
-      "approved": "Genehmigt"
+      "approved": "Genehmigt",
+      "review": "In Prüfung",
+      "active": "Aktiv"
     },
     "columns": {
-      "worker": "Mitarbeiter",
+      "worker": "Mitarbeiter:in",
       "status": "Status",
       "rating": "Bewertung",
       "actions": "Aktionen",
       "fullName": "Vollständiger Name",
-      "phone": "Telefon / E-Mail",
-      "registeredAt": "Registrierungsdatum"
+      "phone": "Telefon",
+      "registeredAt": "Registrierungsdatum",
+      "location": "Standort",
+      "professions": "Gewerke",
+      "workload": "Auslastung",
+      "lastSeen": "Zuletzt gesehen",
+      "stage": "Stufe",
+      "lastLogin": "Letzte Anmeldung",
+      "agency": "Agentur",
+      "experience": "Erfahrung",
+      "registered": "Registriert",
+      "contract": "Vertragsspiegel"
     },
     "contact": {
       "call": "Anrufen"
@@ -532,7 +559,9 @@
       "completionRate": "Abschlussquote",
       "tasks": "Erledigte Aufgaben",
       "new": "Neu",
-      "label": "Leistung"
+      "label": "Leistung",
+      "notRatedYet": "noch nicht bewertet",
+      "count": "{count, plural, one {# Auftrag} other {# Aufträge}}"
     },
     "delete": {
       "action": "Mitarbeiter löschen",
@@ -643,6 +672,254 @@
         "checkout": "Ausstempeln",
         "state": "Ergebnis"
       }
+    },
+    "emptyTitle": "Noch keine Mitarbeitenden",
+    "emptyBody": "Auf dieser Installation hat sich noch niemand registriert. Mitarbeitende kommen über die App hinzu — ein administratives „Anlegen“ gibt es nicht.",
+    "reviewQueue": "Prüfliste",
+    "export": "Export",
+    "invalidCombination": "Der Server lehnt diese Filterkombination ab, sie wurde daher nicht angewendet. Bitte eines der markierten Felder ändern.",
+    "view": {
+      "label": "Darstellung dieser Liste",
+      "table": "Tabelle",
+      "matrix": "Matrix"
+    },
+    "toolbar": {
+      "sameSet": "gleiche Filter · gleiche Seite",
+      "sortedBy": "Sortiert nach",
+      "sortedByNone": "Standard"
+    },
+    "tabsLabel": "Onboarding-Stufe",
+    "stage": {
+      "kyc": "Wartet auf Unterlagen",
+      "review": "In Prüfung",
+      "rejected": "Abgelehnt",
+      "approved": "Freigegeben",
+      "contract": "Vertrag läuft",
+      "active": "Aktiv"
+    },
+    "account": {
+      "blocked": "Gesperrt",
+      "lapsed": "Abgelaufen",
+      "deleted": "Gelöscht"
+    },
+    "status": {
+      "step": "Schritt {step} / {steps}",
+      "branchStep": "bei der Prüfung gestoppt",
+      "reason": {
+        "blocked": "durch Admin gesperrt",
+        "lapsed": "Deckung abgelaufen, Konto unberührt",
+        "deleted": "vorläufig gelöscht"
+      },
+      "overrides": "{reason} · Stufe: {stage}"
+    },
+    "location": {
+      "notSet": "nicht gesetzt",
+      "noCountry": "kein Land hinterlegt"
+    },
+    "professions": {
+      "none": "noch keine"
+    },
+    "workload": {
+      "booked": "Gebucht",
+      "free": "Frei",
+      "completed": "{count, plural, =0 {keine erledigt} one {# erledigt} other {# erledigt}}"
+    },
+    "lastSeen": {
+      "never": "Nie",
+      "signedIn": "angemeldet {when}",
+      "registered": "registriert {when}"
+    },
+    "agency": {
+      "proposed": "Vorgeschlagen · offen",
+      "disputed": "Bestritten",
+      "independent": "Unabhängig"
+    },
+    "experience": {
+      "years": "{years} J."
+    },
+    "contract": {
+      "covered": "Gedeckt",
+      "none": "Keine Deckung",
+      "asOf": "stündlicher Stand"
+    },
+    "summary": {
+      "onThePlatform": "Auf der Plattform",
+      "count": "{count, plural, one {# Mitarbeiter:in} other {# Mitarbeitende}}",
+      "review": {
+        "title": "{count, plural, one {# wartet auf Prüfung} other {# warten auf Prüfung}}",
+        "why": "freigeben oder ablehnen — Begründung nötig",
+        "action": "Öffnen"
+      },
+      "blocked": {
+        "title": "{count, plural, one {# gesperrt} other {# gesperrt}}",
+        "why": "sanktioniert, Vertrag unberührt",
+        "action": "Anzeigen"
+      },
+      "lapsed": {
+        "title": "{count, plural, one {# abgelaufener Vertrag} other {# abgelaufene Verträge}}",
+        "why": "Deckung beendet, Konto unberührt",
+        "action": "Erneuern"
+      },
+      "neverSeen": {
+        "title": "{count, plural, one {# nie angemeldet} other {# nie angemeldet}}",
+        "why": "registriert und nie gesehen",
+        "action": "Öffnen"
+      }
+    },
+    "sections": {
+      "identity": {
+        "title": "Identität & Stufe",
+        "note": "3 Filter"
+      },
+      "capability": {
+        "title": "Fähigkeiten",
+        "note": "6 Filter"
+      },
+      "workload": {
+        "title": "Vertrag & Auslastung",
+        "note": "5 Filter · alle dreiwertig"
+      },
+      "location": {
+        "title": "Standort & Agentur",
+        "note": "4 Filter"
+      },
+      "dormancy": {
+        "title": "Inaktivität",
+        "note": "4 Filter · ein unzulässiges Paar"
+      }
+    },
+    "matrix": {
+      "worker": "Mitarbeiter:in",
+      "weekAbbrev": "KW",
+      "thisWeek": "Diese Woche",
+      "previousWeek": "Vorherige Woche",
+      "nextWeek": "Nächste Woche",
+      "retryDay": "Erneut",
+      "dayFailedShort": "nicht geladen",
+      "in": "da",
+      "hoursShort": "{hours, number, ::precision-integer} Std.",
+      "metres": "{metres} m",
+      "moreChips": "+{count} weitere",
+      "closed": "Geschlossen",
+      "refusal": {
+        "OutsideGeofence": "Außerhalb des Geofence",
+        "GpsRequired": "GPS war aus",
+        "GeofenceTargetMissing": "Kein Geofence am Objekt",
+        "unknown": "Check-in abgelehnt"
+      },
+      "hours": "{hours} gebucht",
+      "untimed": "+{count} ohne Zeit",
+      "untimedHint": "Einige Aufträge haben keine Frist, die Summe ist daher eine Untergrenze.",
+      "tasks": "{count, plural, =0 {keine Aufträge} one {# Auftrag} other {# Aufträge}}",
+      "toggleAvailability": "Angegebene Verfügbarkeit von {name}",
+      "declared": "Angegebene Verfügbarkeit",
+      "oneRequest": "1 Anfrage · nur diese Zeile",
+      "availabilityFailed": "Der Plan dieser Person konnte nicht geladen werden.",
+      "availability": {
+        "closed": "Geschlossen",
+        "unknown": "Nicht angegeben",
+        "source": {
+          "Base": "aus der Basiswoche",
+          "Worker": "von der Person gesetzt",
+          "Admin": "von einem Admin gesetzt"
+        }
+      },
+      "hidden": "{count, plural, one {# Person ohne Buchung in dieser Woche ist ausgeblendet} other {# Personen ohne Buchung in dieser Woche sind ausgeblendet}}",
+      "showAll": "Alle anzeigen",
+      "rowRange": "Zeilen 1–{shown} von {total}",
+      "showMore": "{count} weitere anzeigen",
+      "emptyTitle": "Diese Woche ist nichts gebucht",
+      "emptyBody": "Niemand auf dieser Seite hat in dieser Woche einen Auftrag. Andere Woche wählen oder die Filter weiten.",
+      "emptyHiddenBody": "Alle Personen auf dieser Seite sind diese Woche frei, das Raster bleibt daher leer. „Alle anzeigen“ zeigt die Woche gegen die ganze Seite.",
+      "legend": {
+        "present": "Eingecheckt",
+        "booked": "Gebucht",
+        "short": "Unterbesetzt",
+        "refused": "Check-in abgelehnt"
+      },
+      "assign": "Zuweisen",
+      "assignSheet": {
+        "title": "Schicht besetzen",
+        "subtitle": "{property} · {window} — {assigned} von {required} zugewiesen.",
+        "search": "Person suchen",
+        "noCandidates": "Auf dieser Seite kann niemand hinzugefügt werden. Die Filter der Seite schränken auch diese Liste ein.",
+        "assigning": "Wird zugewiesen …",
+        "cancel": "Abbrechen"
+      },
+      "dayNoJobs": "keine Aufträge",
+      "dayStaffed": "{assigned}/{required} besetzt",
+      "dayOpen": "· {count} offen",
+      "dayRefused": "· {count} abgelehnt",
+      "demand": "Personalbedarf",
+      "demandWhy": "was die Woche braucht",
+      "openShifts": "Offene Schichten",
+      "openShiftsWhy": "noch niemand zugewiesen",
+      "openCount": "{count, plural, one {# offen} other {# offen}}",
+      "properties": "{count, plural, one {# Objekt} other {# Objekte}}"
+    },
+    "filters": {
+      "status": "Konto",
+      "statusHint": "Die fünf Werte teilen die Tabelle auf. Auch ohne Auswahl bleibt „Gelöscht“ ausgeschlossen.",
+      "onboardingStatus": "Stufe",
+      "onboardingStatusHint": "„In Prüfung“ ist die Prüfliste — dieselbe Menge wie die Verknüpfung oben und der Reiter.",
+      "professions": "Gewerke",
+      "professionsHint": "Oder-Verknüpfung: zwei ausgewählt liefert Mitarbeitende mit einem davon.",
+      "professionsSearch": "Gewerk suchen",
+      "ratingMin": "Mindestbewertung",
+      "ratingMinHint": "0 bis 5. Außerhalb wird abgelehnt.",
+      "includeUnrated": "Unbewertete behalten",
+      "includeUnratedHint": "Wirkt erst zusammen mit einer Mindestbewertung — allein schränkt es nichts ein.",
+      "includeUnratedAny": "Standard (ausschließen)",
+      "includeUnratedTrue": "Behalten",
+      "includeUnratedFalse": "Ausschließen",
+      "experience": "Erfahrung (Jahre)",
+      "experienceHint": "Auf der Zeile optional — ohne Angabe passt keine der Grenzen.",
+      "completed": "Erledigte Aufträge",
+      "completedHint": "0 ist eine echte Grenze: max = 0 heißt „noch nichts erledigt“.",
+      "hasActiveContract": "Aktiver Vertrag",
+      "hasActiveContractHint": "Stündlicher Spiegel — eine Momentaufnahme, nie „gerade gedeckt“.",
+      "booked": "Gebucht",
+      "bookedHint": "Auf einem aktiven Auftrag. Gebucht, nicht arbeitend — Check-in wird nicht geprüft.",
+      "startingSoon": "Beginnt bald",
+      "startingSoonHint": "Auftrag innerhalb von 3 Tagen, einschließlich. Die 3 ist serverseitig fest.",
+      "idleWeek": "Diese Woche ohne Auftrag",
+      "idleWeekHint": "Seit 7 Tagen keine Buchung. Zählt Buchungen, nicht geleistete Arbeit.",
+      "availableOn": "Verfügbar am",
+      "availableOnHint": "Ein Datum. Ohne hinterlegten Plan passt niemand — und es empfiehlt nur, es sperrt nicht.",
+      "country": "Land",
+      "city": "Stadt",
+      "cityHint": "Zuerst ein Land wählen. Ohne Standort fällt eine Person aus beiden Filtern.",
+      "agency": "Agentur",
+      "agencyHint": "Nur bestätigte Verknüpfungen — ein offener Anspruch gilt als unabhängig.",
+      "agencySource": "Herkunft",
+      "agencySourceHint": "„Unabhängig“ heißt ohne bestätigte Verknüpfung und lässt sich nicht mit einer Agentur kombinieren.",
+      "agencySourceIndependent": "Unabhängig",
+      "agencySourceViaAgency": "Über Agentur",
+      "neverLoggedIn": "Nie angemeldet",
+      "neverLoggedInHint": "„Nein“ ist ein echter Filter — alle, die mindestens einmal gesehen wurden.",
+      "neverLoggedInAny": "Beides",
+      "neverLoggedInTrue": "Nie gesehen",
+      "neverLoggedInFalse": "Schon gesehen",
+      "lastSeen": "Zuletzt gesehen",
+      "lastSeenHint": "Deaktiviert, solange „Nie angemeldet“ auf „Nie gesehen“ steht — dieses Paar wird abgelehnt.",
+      "registered": "Registriert",
+      "yes": "Ja",
+      "no": "Nein",
+      "any": "Beliebig"
+    },
+    "sort": {
+      "registeredDesc": "Registriert — neueste",
+      "registeredAsc": "Registriert — älteste",
+      "nameAsc": "Name A–Z",
+      "nameDesc": "Name Z–A",
+      "ratingDesc": "Bewertung — höchste",
+      "ratingAsc": "Bewertung — niedrigste",
+      "workloadDesc": "Erledigt — meiste",
+      "workloadAsc": "Erledigt — wenigste",
+      "lastSeenDesc": "Zuletzt gesehen — nie zuerst",
+      "lastSeenAsc": "Zuletzt gesehen — längste her",
+      "experienceDesc": "Erfahrung — meiste",
+      "experienceAsc": "Erfahrung — wenigste"
     }
   },
   "owners": {
@@ -876,7 +1153,10 @@
         "deadlineRequired": "Bitte eine Frist setzen oder die Option ausschalten.",
         "workerLimitInvalid": "Mindestens ein Mitarbeiter ist erforderlich."
       }
-    }
+    },
+    "tabsLabel": "Ansicht der Eigentümerliste",
+    "emptyTitle": "Noch keine Eigentümer",
+    "emptyBody": "Eigentümer erscheinen hier, sobald sie sich registrieren. Es liegt nichts für Sie bereit."
   },
   "walkIn": {
     "title": "Laufkundschaft-Aufträge",
@@ -962,7 +1242,8 @@
       "owner": "Eigentümer",
       "category": "Kategorie",
       "area": "Fläche",
-      "rooms": "Zimmer"
+      "rooms": "Zimmer",
+      "photos": "Fotos"
     },
     "deleted": {
       "title": "Gelöschte Immobilien",
@@ -977,7 +1258,8 @@
       "errors": {
         "property_not_found": "Immobilie nicht gefunden.",
         "generic": "Immobilie konnte nicht wiederhergestellt werden."
-      }
+      },
+      "link": "Papierkorb ({count})"
     },
     "create": {
       "new": "Neue Immobilie",
@@ -1003,8 +1285,11 @@
     },
     "owner": {
       "title": "Eigentümer",
-      "ownerId": "Eigentümer-ID",
-      "viewProfile": "Profil anzeigen"
+      "email": "E-Mail",
+      "profile": "Profil",
+      "noContract": "Kein Vertrag",
+      "coverUnknown": "Deckung unbekannt",
+      "fixedAtCreation": "Bei der Anlage festgelegt — kein Endpunkt verschiebt ein Objekt zwischen Eigentümern, daher fehlt das Feld im Bearbeitungsformular statt dort deaktiviert zu sein."
     },
     "form": {
       "name": "Name",
@@ -1049,20 +1334,6 @@
       "more": "Mehr"
     },
     "ownerUnknown": "Unbekannter Eigentümer",
-    "areaBands": {
-      "unset": "Nicht erfasst",
-      "lt100": "Unter 100 m²",
-      "from100": "100–500 m²",
-      "from500": "500–2.000 m²",
-      "gt2000": "Über 2.000 m²"
-    },
-    "createdBands": {
-      "week": "Letzte 7 Tage",
-      "month": "Vor 7–30 Tagen",
-      "year": "Vor 30 Tagen – 1 Jahr",
-      "older": "Vor über einem Jahr",
-      "unknown": "Unbekanntes Datum"
-    },
     "gallery": {
       "title": "Fotos",
       "count": "{count} von 10",
@@ -1072,6 +1343,110 @@
       "close": "Schließen",
       "previous": "Vorheriges Foto",
       "next": "Nächstes Foto"
+    },
+    "emptyTitle": "Noch keine Objekte",
+    "emptyBody": "Objekte erscheinen hier, sobald ein Eigentümer eines anlegt — oder Sie eines in seinem Namen erstellen.",
+    "summary": {
+      "onThePlatform": "Auf der Plattform",
+      "count": "{count} Objekte",
+      "noPhotos": "{count} ohne Fotos",
+      "noPhotosWhy": "Mitarbeitende kommen blind an",
+      "noArea": "{count} ohne Wohnfläche",
+      "noAreaWhy": "Angebote nicht prüfbar",
+      "inBin": "{count} im Papierkorb",
+      "inBinWhy": "wiederherstellbar",
+      "retired": "{count} mit stillgelegter Kategorie",
+      "retiredWhy": "die Kategorie wurde deaktiviert",
+      "list": "Anzeigen",
+      "fix": "Beheben",
+      "open": "Öffnen",
+      "move": "Ändern"
+    },
+    "toolbar": {
+      "all": "{total}",
+      "matched": "{matched} von {total}",
+      "sortedBy": "Sortiert nach",
+      "sortedByNone": "Standard"
+    },
+    "sort": {
+      "nameAsc": "Name A–Z",
+      "nameDesc": "Name Z–A",
+      "newest": "Neueste zuerst",
+      "oldest": "Älteste zuerst",
+      "areaDesc": "Größte Fläche",
+      "photosAsc": "Wenigste Fotos"
+    },
+    "detail": {
+      "floors": "{count} Etagen",
+      "rooms": "{count} Zimmer",
+      "added": "angelegt {date}",
+      "visitsWindow": "Einsätze · {days} Tage",
+      "teamWithAccess": "Team mit Zugriff",
+      "teamEmpty": "Nur Eigentümer",
+      "pinnedEntrance": "Markierter Eingang",
+      "copyCoords": "Koordinaten kopieren",
+      "entry": "Zugang",
+      "tabs": {
+        "photos": "Fotos",
+        "work": "Hier gebuchte Arbeit",
+        "history": "Verlauf"
+      },
+      "attention": {
+        "unassignedTitle": "{when} {what} unbesetzt",
+        "unassignedDetail": "{count} anstehende Einsätze ohne genug Personal",
+        "assign": "Zuweisen",
+        "visitsUnknown": "Gebuchte Arbeit unbekannt",
+        "visitsUnknownWhy": "Sie können die Aufgabenliste nicht lesen",
+        "coverExpired": "Vertrag des Eigentümers ist abgelaufen",
+        "coverExpiredWhy": "hier kann keine neue Arbeit gebucht werden",
+        "coverEnding": "Vertrag des Eigentümers läuft in {days} Tagen ab",
+        "coverEndingWhy": "Verlängerung nicht begonnen",
+        "renew": "Verlängern",
+        "coverUnknown": "Vertragsdeckung unbekannt",
+        "coverUnknownWhy": "Sie können Verträge nicht lesen",
+        "stalePhotos": "Neuestes Foto ist {months} Monate alt",
+        "stalePhotosWhy": "{count} Fotos, keines aktuell",
+        "noPhotos": "Keine Fotos dieses Objekts",
+        "noPhotosWhy": "Mitarbeitende kommen blind an",
+        "view": "Ansehen"
+      },
+      "visits": {
+        "title": "Nächste Einsätze",
+        "source": "aus der Aufgabenverwaltung",
+        "assigned": "Zugewiesen",
+        "unassigned": "Unbesetzt",
+        "staffed": "{filled}/{required} besetzt",
+        "untitled": "Buchung ohne Titel",
+        "more": "+{count} weitere",
+        "empty": "Nichts gebucht",
+        "emptyWhy": "Für diese Adresse ist kein Einsatz geplant.",
+        "forbidden": "Sie können gebuchte Arbeit nicht sehen",
+        "forbiddenWhy": "Ihre Rolle umfasst das Lesen der Aufgabenliste nicht.",
+        "error": "Gebuchte Arbeit konnte nicht geladen werden"
+      },
+      "work": {
+        "when": "Wann",
+        "what": "Was",
+        "staffing": "Besetzung",
+        "status": "Status",
+        "untitled": "Buchung ohne Titel",
+        "empty": "Hier wurde noch nichts gebucht",
+        "emptyWhy": "Für diese Adresse war noch kein Einsatz geplant.",
+        "forbidden": "Sie können gebuchte Arbeit nicht sehen",
+        "forbiddenWhy": "Ihre Rolle umfasst das Lesen der Aufgabenliste nicht.",
+        "error": "Gebuchte Arbeit konnte nicht geladen werden"
+      }
+    },
+    "summaryFilters": {
+      "photosNone": "Keine Fotos",
+      "areaMissing": "Fehlt",
+      "categoryRetired": "Stillgelegt",
+      "heading": "Merkmale"
+    },
+    "filters": {
+      "ownerSearch": "Eigentümer filtern…",
+      "areaSqm": "Wohnfläche (m²)",
+      "areaSqmHint": "Objekte ohne erfasste Fläche fallen aus jeder Grenze heraus."
     }
   },
   "admins": {
@@ -1547,7 +1922,11 @@
       "namePlaceholder": "Anzeigename",
       "description": "Beschreibung",
       "descriptionPlaceholder": "Optionale Beschreibung…",
-      "create": "Erstellen"
+      "create": "Erstellen",
+      "nameDe": "Name (Deutsch)",
+      "nameDePlaceholder": "Fensterreinigung",
+      "nameEn": "Name (Englisch)",
+      "nameEnPlaceholder": "Window Cleaning"
     },
     "delete": {
       "title": "Beruf löschen?",
@@ -1557,7 +1936,17 @@
       "generic": "Der Beruf konnte nicht gespeichert werden. Bitte erneut versuchen.",
       "code_exists": "Ein Beruf mit diesem Code existiert bereits.",
       "deleteGeneric": "Der Beruf konnte nicht gelöscht werden. Bitte erneut versuchen.",
-      "profession_in_use": "Dieser Beruf ist Mitarbeitern oder Aufgabengruppen zugewiesen und kann nicht gelöscht werden."
+      "profession_in_use": "Dieser Beruf ist Mitarbeitern oder Aufgabengruppen zugewiesen und kann nicht gelöscht werden.",
+      "profession_protected": "Dies ist das Standardgewerk, mit dem jede Person registriert wird — es lässt sich nicht deaktivieren."
+    },
+    "inactive": "Inaktiv",
+    "deactivate": {
+      "action": "Deaktivieren",
+      "title": "Gewerk deaktivieren",
+      "confirm": "{name} verschwindet aus allen Auswahllisten und kann ab sofort niemandem mehr zugewiesen werden. Wer es bereits hält, behält es; eine Reaktivierung stellt alles unverändert wieder her."
+    },
+    "reactivate": {
+      "action": "Reaktivieren"
     }
   },
   "dispatch": {

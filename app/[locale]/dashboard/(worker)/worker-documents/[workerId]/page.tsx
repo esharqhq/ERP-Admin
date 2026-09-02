@@ -128,33 +128,45 @@ export default function WorkerDocsDetailPage() {
     );
   }
 
+  /**
+   * Rejections are swallowed on purpose. Every await below is a `mutateAsync`,
+   * chosen because the steps are sequential (upload, then author) — but the
+   * click handler that calls this discards the promise, so a failure would
+   * surface only as an "Uncaught (in promise)" in the console. There is nothing
+   * to add here: React Query already holds the error, and the panel renders it
+   * beside the button that failed.
+   */
   async function saveDraft(values: ContractFormValues, file: File | null) {
-    const fileUrl = file ? await upload.mutateAsync(file) : "";
-    const body = {
-      eligibleFrom: toUtcIso(values.eligibleFrom),
-      eligibleTo: toUtcIso(values.eligibleTo, true),
-      fileName: file?.name ?? "",
-      fileUrl,
-    };
+    try {
+      const fileUrl = file ? await upload.mutateAsync(file) : "";
+      const body = {
+        eligibleFrom: toUtcIso(values.eligibleFrom),
+        eligibleTo: toUtcIso(values.eligibleTo, true),
+        fileName: file?.name ?? "",
+        fileUrl,
+      };
 
-    if (renewing) {
-      renewKey.current ??= newIdempotencyKey();
-      await renew.mutateAsync({
-        workerId,
-        body,
-        idempotencyKey: renewKey.current,
-      });
-      setRenewing(false);
-      renewKey.current = null;
-      return;
-    }
+      if (renewing) {
+        renewKey.current ??= newIdempotencyKey();
+        await renew.mutateAsync({
+          workerId,
+          body,
+          idempotencyKey: renewKey.current,
+        });
+        setRenewing(false);
+        renewKey.current = null;
+        return;
+      }
 
-    // A draft that came back for revision is edited in place, not authored again.
-    if (contract && contract.phase === "Draft") {
-      await updateDraft.mutateAsync({ contractId: contract.id, body });
-      return;
+      // A draft that came back for revision is edited in place, not authored again.
+      if (contract && contract.phase === "Draft") {
+        await updateDraft.mutateAsync({ contractId: contract.id, body });
+        return;
+      }
+      await createContract.mutateAsync({ workerId, body });
+    } catch {
+      // Reported by `mutationError`, which the panel renders.
     }
-    await createContract.mutateAsync({ workerId, body });
   }
 
   const name = worker.fullName ?? workerId.slice(0, 8);

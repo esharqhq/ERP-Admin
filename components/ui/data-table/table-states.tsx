@@ -23,9 +23,18 @@ import type { TableDensity } from "@/lib/ui/table-prefs";
  * Nothing in here needs to know the column count any more.
  */
 
+/**
+ * The design system's two heights (§08 · Table, Anatomy): **56px comfortable,
+ * 44px compact, never below 40px**. Both were one step short — 52 and 40 — and
+ * compact sat exactly on the floor the rule names rather than above it.
+ *
+ * Shared by every queue on this shell, so a change here moves them all. That is
+ * the point of the shell; it is also why the two values are the system's and not
+ * a per-screen choice.
+ */
 const ROW_HEIGHT: Record<TableDensity, string> = {
-  comfortable: "h-[52px]",
-  compact: "h-10",
+  comfortable: "h-14",
+  compact: "h-11",
 };
 
 export function TableState({

@@ -14,6 +14,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { ProfessionDto } from "@/lib/types/profession.types";
 
+export interface ProfessionFormValues {
+  code: string;
+  nameDe: string;
+  nameEn: string;
+  description: string;
+}
+
 interface Props {
   open: boolean;
   onClose: () => void;
@@ -23,9 +30,16 @@ interface Props {
   /** Localized parent-mutation error. */
   error?: string | null;
   /** create: code editable; edit: code immutable (ignored). */
-  onSubmit: (values: { code: string; name: string; description: string }) => void;
+  onSubmit: (values: ProfessionFormValues) => void;
 }
 
+/**
+ * ⚠ **Two name fields, not one.** FND-1 made this a lookup with German *and*
+ * English labels, and both are **required** on create — a missing one is ASP.NET
+ * model validation, which comes back as problem-details rather than the usual
+ * `{error, detail}` this app's error reader understands. Sending one name for both
+ * would put an English string on every German screen.
+ */
 export function ProfessionFormDialog({
   open,
   onClose,
@@ -39,11 +53,15 @@ export function ProfessionFormDialog({
   const isEdit = !!profession;
 
   const [code, setCode] = useState(profession?.code ?? "");
-  const [name, setName] = useState(profession?.name ?? "");
+  const [nameDe, setNameDe] = useState(profession?.nameDe ?? "");
+  const [nameEn, setNameEn] = useState(profession?.nameEn ?? "");
   const [description, setDescription] = useState(profession?.description ?? "");
 
-  // Name is required (the backend has no [Required] — sending "" would blank it).
-  const canSubmit = name.trim().length > 0 && (isEdit || code.trim().length > 0) && !pending;
+  const canSubmit =
+    nameDe.trim().length > 0 &&
+    nameEn.trim().length > 0 &&
+    (isEdit || code.trim().length > 0) &&
+    !pending;
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && !pending && onClose()}>
@@ -75,14 +93,25 @@ export function ProfessionFormDialog({
             ) : null}
           </div>
 
-          <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium">{t("form.name")}</label>
-            <Input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder={t("form.namePlaceholder")}
-              maxLength={100}
-            />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-medium">{t("form.nameDe")}</label>
+              <Input
+                value={nameDe}
+                onChange={(e) => setNameDe(e.target.value)}
+                placeholder={t("form.nameDePlaceholder")}
+                maxLength={100}
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-medium">{t("form.nameEn")}</label>
+              <Input
+                value={nameEn}
+                onChange={(e) => setNameEn(e.target.value)}
+                placeholder={t("form.nameEnPlaceholder")}
+                maxLength={100}
+              />
+            </div>
           </div>
 
           <div className="flex flex-col gap-1">
@@ -108,7 +137,8 @@ export function ProfessionFormDialog({
             onClick={() =>
               onSubmit({
                 code: code.trim(),
-                name: name.trim(),
+                nameDe: nameDe.trim(),
+                nameEn: nameEn.trim(),
                 description: description.trim(),
               })
             }

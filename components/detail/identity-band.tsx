@@ -20,24 +20,45 @@ import { cn } from "@/lib/utils";
  */
 export function IdentityBand({
   initials,
+  icon,
   pictureUrl,
   name,
   qualifier,
+  subtitle,
   badges,
   meta,
+  aside,
   stats,
   actions,
   tiles,
 }: {
   initials: string;
+  /**
+   * Replaces the initials in the avatar. A **place** gets a mark rather than a
+   * monogram — the properties design draws a building icon, and two letters of
+   * "Sonnenhof Wohnpark" say nothing an address does not.
+   */
+  icon?: ReactNode;
   pictureUrl?: string | null;
   name: string;
   /** Sits beside the name — a profession, a company form. */
   qualifier?: ReactNode;
+  /**
+   * Its **own line** under the name, above the badges — an address, which the
+   * properties design puts there. `meta` shares the badge row instead, so a value
+   * long enough to wrap belongs here and a short aside belongs there.
+   */
+  subtitle?: ReactNode;
   /** Status chips under the name. */
   badges?: ReactNode;
   /** One quiet line of secondary facts under the badges. */
   meta?: ReactNode;
+  /**
+   * A right-hand block that is neither a number nor a button — the properties
+   * design's "Team with access". Rendered **before** `stats`, which is the order
+   * that design draws, and separated from it by the same divider.
+   */
+  aside?: ReactNode;
   /** Right-hand numbers — rating, on-time, hours. Use `BandStat`. */
   stats?: ReactNode;
   /** Right-hand buttons — Call, Email. */
@@ -53,7 +74,7 @@ export function IdentityBand({
             <Avatar className="size-14 shrink-0 rounded-lg">
               {pictureUrl ? <AvatarImage src={pictureUrl} alt="" /> : null}
               <AvatarFallback className="rounded-lg bg-primary text-lg font-semibold text-primary-foreground">
-                {initials}
+                {icon ?? initials}
               </AvatarFallback>
             </Avatar>
 
@@ -68,6 +89,11 @@ export function IdentityBand({
                   </span>
                 ) : null}
               </div>
+              {subtitle ? (
+                <div className="flex min-w-0 items-center gap-1.5 text-[13px] text-muted-foreground">
+                  {subtitle}
+                </div>
+              ) : null}
               {badges || meta ? (
                 <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1.5">
                   {badges}
@@ -81,17 +107,14 @@ export function IdentityBand({
             </div>
           </div>
 
-          {stats || actions ? (
+          {aside || stats || actions ? (
             <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
+              {aside ? <div className="min-w-0">{aside}</div> : null}
+              {aside && (stats || actions) ? <Divider /> : null}
               {stats ? (
                 <div className="flex items-center gap-4">{stats}</div>
               ) : null}
-              {stats && actions ? (
-                <span
-                  aria-hidden
-                  className="hidden h-9 w-px bg-border sm:block"
-                />
-              ) : null}
+              {stats && actions ? <Divider /> : null}
               {actions ? (
                 <div className="flex items-center gap-2">{actions}</div>
               ) : null}
@@ -111,6 +134,12 @@ export function IdentityBand({
       </CardContent>
     </Card>
   );
+}
+
+/** Hairline between two right-hand blocks. Hidden on a wrap, where it would sit
+ *  across the row rather than between two columns. */
+function Divider() {
+  return <span aria-hidden className="hidden h-9 w-px bg-border sm:block" />;
 }
 
 /** One right-hand number. Kept narrow — three of these is the ceiling. */
@@ -191,6 +220,7 @@ export function FactTile({
   tone = "neutral",
   progress,
   mono = false,
+  wrap = false,
 }: {
   icon: ReactNode;
   label: string;
@@ -202,6 +232,16 @@ export function FactTile({
   /** 0..1. Draws the elapsed share of a period under the value. */
   progress?: number | null;
   mono?: boolean;
+  /**
+   * Lets the value run to two lines instead of truncating.
+   *
+   * For a value whose **tail carries information** — entry instructions are the
+   * text a worker is actually sent with, and "Side gate Fidicinstraße · code
+   * 4417#" loses the code to an ellipsis. Off by default: a tile row stays even
+   * only while every value is one line, so this is for the one field that earns
+   * the exception rather than for all of them.
+   */
+  wrap?: boolean;
 }) {
   const t = TILE_TONE[tone];
   const pct =
@@ -212,7 +252,10 @@ export function FactTile({
   return (
     <div
       className={cn(
-        "flex min-w-0 items-center gap-2.5 rounded-lg px-3 py-2.5 ring-1 ring-inset",
+        // `items-start` once a value may wrap: centring a two-line value pushes
+        // the icon off the label it belongs to.
+        "flex min-w-0 gap-2.5 rounded-lg px-3 py-2.5 ring-1 ring-inset",
+        wrap ? "items-start" : "items-center",
         t.shell,
       )}
     >
@@ -242,7 +285,8 @@ export function FactTile({
         </span>
         <span
           className={cn(
-            "truncate text-[13px] font-medium leading-snug text-foreground",
+            "text-[13px] font-medium leading-snug text-foreground",
+            wrap ? "line-clamp-2" : "truncate",
             mono && "tabular-nums",
           )}
         >

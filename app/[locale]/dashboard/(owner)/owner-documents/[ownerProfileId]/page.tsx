@@ -167,11 +167,24 @@ export default function OwnerDocsDetailPage() {
       : null;
   }, [contracts.data, ownerUserId]);
 
-  const mutationError =
+  /**
+   * Split in two, by where the admin was looking when it happened.
+   *
+   * One combined notice under the header used to carry both, which put a failed
+   * "Save draft" at the top of the page while the button that caused it sat in
+   * the centre column — the admin's own reading of that is "I clicked and
+   * nothing happened". Review verdicts stay up top, beside the stepper they
+   * change; contract failures go into the panel's own `error` slot, which is
+   * what that prop was added for and what the worker screen already did.
+   */
+  const reviewError =
     approveDoc.error ??
     rejectDoc.error ??
     approveAccount.error ??
     rejectAccount.error ??
+    null;
+
+  const contractError =
     createContract.error ??
     updateDraft.error ??
     send.error ??
@@ -206,37 +219,49 @@ export default function OwnerDocsDetailPage() {
     );
   }
 
+  /**
+   * Rejections are swallowed on purpose. Every await below is a `mutateAsync`,
+   * chosen because the steps are sequential (upload, then author) — but the
+   * click handler that calls this discards the promise, so a failure would
+   * surface only as an "Uncaught (in promise)" in the console. There is nothing
+   * to add here: React Query already holds the error, and the panel renders it
+   * beside the button that failed.
+   */
   async function saveDraft(values: ContractFormValues, file: File | null) {
     if (!ownerUserId) return;
-    const fileUrl = file ? await upload.mutateAsync(file) : "";
-    const body = {
-      eligibleFrom: toUtcIso(values.eligibleFrom),
-      eligibleTo: toUtcIso(values.eligibleTo, true),
-      fileName: file?.name ?? "",
-      fileUrl,
-      commissionPercent: Number(values.commissionPercent) || 0,
-      paymentOrder: values.paymentOrder.trim() || null,
-      generalTerms: values.generalTerms.trim() || null,
-      extraClauses: values.extraClauses.trim() || null,
-    };
+    try {
+      const fileUrl = file ? await upload.mutateAsync(file) : "";
+      const body = {
+        eligibleFrom: toUtcIso(values.eligibleFrom),
+        eligibleTo: toUtcIso(values.eligibleTo, true),
+        fileName: file?.name ?? "",
+        fileUrl,
+        commissionPercent: Number(values.commissionPercent) || 0,
+        paymentOrder: values.paymentOrder.trim() || null,
+        generalTerms: values.generalTerms.trim() || null,
+        extraClauses: values.extraClauses.trim() || null,
+      };
 
-    if (renewing) {
-      renewKey.current ??= newIdempotencyKey();
-      await renew.mutateAsync({
-        ownerUserId,
-        body,
-        idempotencyKey: renewKey.current,
-      });
-      setRenewing(false);
-      renewKey.current = null;
-      return;
-    }
+      if (renewing) {
+        renewKey.current ??= newIdempotencyKey();
+        await renew.mutateAsync({
+          ownerUserId,
+          body,
+          idempotencyKey: renewKey.current,
+        });
+        setRenewing(false);
+        renewKey.current = null;
+        return;
+      }
 
-    if (contract && contract.phase === "Draft") {
-      await updateDraft.mutateAsync({ contractId: contract.id, body });
-      return;
+      if (contract && contract.phase === "Draft") {
+        await updateDraft.mutateAsync({ contractId: contract.id, body });
+        return;
+      }
+      await createContract.mutateAsync({ ownerUserId, body });
+    } catch {
+      // Reported by `contractError` above.
     }
-    await createContract.mutateAsync({ ownerUserId, body });
   }
 
   const name =
@@ -305,7 +330,7 @@ export default function OwnerDocsDetailPage() {
         }
       />
 
-      <ErrorNotice error={mutationError} />
+      <ErrorNotice error={reviewError} />
 
       {/* Three rails: the index, the work, the facts. They stack on a narrow
           screen with the **centre first** — it is what the screen is for. */}
@@ -346,7 +371,7 @@ export default function OwnerDocsDetailPage() {
                 }
                 sending={send.isPending}
                 terminating={terminate.isPending}
-                error={null}
+                error={<ErrorNotice error={contractError} />}
                 onSaveDraft={saveDraft}
                 onSend={(contractId) => send.mutate(contractId)}
                 onRecall={(contractId, reason) =>

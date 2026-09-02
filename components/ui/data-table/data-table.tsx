@@ -10,6 +10,7 @@ import {
   FilterChips,
   countActiveFields,
   type FilterField,
+  type FilterSection,
 } from "@/components/ui/filter-bar";
 import { Input } from "@/components/ui/input";
 import {
@@ -56,15 +57,86 @@ export interface DataTableProps<Row> {
   rowHref?: (row: Row) => string;
   /** Accessible label for a row's link, e.g. the subject's name. */
   rowLabel?: (row: Row) => string;
+  /**
+   * Classes for the whole `<tr>`, from the row's own state.
+   *
+   * A `cell` renderer cannot reach outside its own `<td>`, and two things the
+   * workers design draws live at row scope: a **left rail** in the account tone
+   * (a blocked worker is red down the edge of the row, not only in one cell) and a
+   * **row ground** for the review queue. Both are statements about the row, so
+   * they belong on the row.
+   *
+   * Applied after the density height, so a caller can override the ground; it
+   * cannot override the height, which is the design system's and not a per-screen
+   * choice.
+   */
+  rowClassName?: (row: Row) => string | undefined;
+  /**
+   * The row as a **card**, for viewports below `md`.
+   *
+   * §08 of the design system: below 768px a table becomes a stack of row-cards
+   * and **never** a horizontally scrolling table. A table cannot be reflowed into
+   * one — the columns an admin needs on a phone are a different, shorter
+   * selection than the seven on a desktop, chosen by the screen rather than by the
+   * picker — so the caller draws the card and the shell decides when to show it.
+   *
+   * Opt-in. A queue that does not pass one keeps today's behaviour exactly: the
+   * table, scrolling inside its own container.
+   *
+   * `index` is the same 1-based page position `cell` receives.
+   */
+  mobileCard?: (row: Row, index: number) => ReactNode;
 
   title: string;
   subtitle?: string;
   actions?: ReactNode;
 
-  tabs: StageTab[];
-  tabsLabel: string;
+  /**
+   * Omit for a queue with no stage axis. Row 2 then renders nothing rather than a
+   * strip holding one pointless tab — the properties and tasks tables have no
+   * such axis, and inventing an "All" tab to satisfy this prop would put a
+   * control on screen that narrows nothing.
+   */
+  tabs?: StageTab[];
+  /** Required alongside `tabs`; the accessible name for the strip. */
+  tabsLabel?: string;
+
+  /**
+   * Replaces the shell's three toolbar rows with the caller's own. The filter
+   * **band** and the chip row are unaffected — the caller places
+   * `filtersTrigger` and the shell still owns what it opens.
+   *
+   * Exists because `Uyer-Admin-Properties.dc.html` draws a **different** toolbar
+   * for the properties table — two rows, a `FILTER` strip of dropdown pills and a
+   * `Sorted by` control, no band and no tabs — while needing everything else this
+   * shell provides: the column registry and picker, the URL state, the client
+   * pipeline, the four notice states and the row-height system. A bespoke table
+   * would have thrown all of that away to change a header.
+   *
+   * The caller gets the shell's own state so its controls are real, not a second
+   * copy: `total` is the pipeline's count, and `columnPicker` is the same
+   * instance the default toolbar renders.
+   *
+   * Omit it and every existing consumer is untouched.
+   */
+  toolbar?: (ctx: {
+    state: TableUrlState;
+    total: number;
+    fields?: FilterField[];
+    activeFilters: number;
+    /** The shell's own Filters button, driving the shell's own band. */
+    filtersTrigger: ReactNode;
+    columnPicker: ReactNode;
+    density: ReactNode;
+  }) => ReactNode;
 
   fields?: FilterField[];
+  /**
+   * Draws the band's fields under titled groups, matched to each field's
+   * `section`. Worth it past roughly six dimensions — the workers queue has
+   * twenty, and one flat grid of twenty is a wall. Omit for a flat band.
+   */
+  sections?: FilterSection[];
   /** Explains that filters apply live. Defaults to the shared sentence. */
   filterNote?: string;
 
@@ -103,12 +175,16 @@ export function DataTable<Row>({
   rowKey,
   rowHref,
   rowLabel,
+  rowClassName,
+  mobileCard,
   title,
   subtitle,
   actions,
   tabs,
   tabsLabel,
+  toolbar,
   fields,
+  sections,
   filterNote,
   searchPlaceholder,
   empty,
@@ -162,6 +238,47 @@ export function DataTable<Row>({
 
   const activeFilters = fields ? countActiveFields(fields, state.filters) : 0;
   const columnCount = Math.max(1, shown.length);
+
+  /*
+    Built once and handed to whichever toolbar renders. A custom toolbar drawing
+    its own picker would be a second registry view over the same preferences —
+    two controls that can disagree about which columns are on.
+  */
+  const columnPicker = (
+    <ColumnPicker
+      columns={columns}
+      prefs={prefs}
+      onToggle={toggle}
+      onMove={move}
+      onReset={reset}
+    />
+  );
+  const densityToggle = (
+    <DensityToggle density={prefs.density} onChange={setDensity} />
+  );
+
+  /*
+    Shared for the same reason as the picker: a custom toolbar drawing its own
+    Filters button would need its own `open` state, and two triggers over one band
+    can disagree about whether it is showing.
+  */
+  const filtersTrigger =
+    fields && fields.length > 0 ? (
+      <ToolbarButton
+        on={activeFilters > 0 || filtersOpen}
+        aria-expanded={filtersOpen}
+        onClick={() => setFiltersOpen((open) => !open)}
+      >
+        <Filter className="size-[15px]" />
+        <span className="hidden sm:inline">{tCommon("filters")}</span>
+        {/* Always rendered, `0` included. A badge that appears only once a filter
+            is set makes the control change width as you use it, and "0" is the
+            fastest way to say nothing is narrowing this list. */}
+        <ToolbarCount on={activeFilters > 0 || filtersOpen} pill>
+          {activeFilters}
+        </ToolbarCount>
+      </ToolbarButton>
+    ) : null;
 
   /**
    * What the table says **instead of** rows — or `null` when it has rows.
@@ -217,10 +334,14 @@ export function DataTable<Row>({
   const rows = notice ? null : source.isLoading ? (
     <TableSkeletonRows columns={columnCount} density={prefs.density} />
   ) : (
-    page.rows.map((row) => (
+    page.rows.map((row, rowIndex) => (
       <TableRow
         key={rowKey(row)}
-        className={cn(ROW_HEIGHT[prefs.density], rowHref && "relative cursor-pointer")}
+        className={cn(
+          ROW_HEIGHT[prefs.density],
+          rowHref && "relative cursor-pointer",
+          rowClassName?.(row),
+        )}
       >
         {shown.map((column, i) => (
           <TableCell
@@ -237,12 +358,44 @@ export function DataTable<Row>({
             {i === 0 && rowHref && (
               <RowLink href={rowHref(row)} label={rowLabel?.(row)} />
             )}
-            {column.cell(row)}
+            {/* The page's own offset, so `#` counts 26–50 on page two rather
+                than restarting at 1. */}
+            {column.cell(row, (page.page - 1) * state.pageSize + rowIndex + 1)}
           </TableCell>
         ))}
       </TableRow>
     ))
   );
+
+  /**
+   * The same rows, drawn as cards. `null` whenever the table is drawing a notice
+   * or has nothing to draw, so the two branches can never both render.
+   *
+   * Loading falls back to the skeleton **rows** deliberately: a phone showing six
+   * card-shaped skeletons and then six cards of a different height jumps twice,
+   * where the shared block does not pretend to be either.
+   */
+  const cards =
+    !mobileCard || notice || source.isLoading
+      ? null
+      : page.rows.map((row, rowIndex) => {
+          const index = (page.page - 1) * state.pageSize + rowIndex + 1;
+          return (
+            <div
+              key={rowKey(row)}
+              className={cn(
+                "relative border-b border-border last:border-b-0",
+                rowHref && "cursor-pointer",
+                rowClassName?.(row),
+              )}
+            >
+              {/* Same full-row link as the table, so right-click and
+                  open-in-new-tab behave identically on both drawings. */}
+              {rowHref && <RowLink href={rowHref(row)} label={rowLabel?.(row)} />}
+              {mobileCard(row, index)}
+            </div>
+          );
+        });
 
   return (
     /*
@@ -258,6 +411,22 @@ export function DataTable<Row>({
       not force a height chain on a page that does not want one.
     */
     <Card className="grow shrink-0 gap-0 overflow-hidden py-0">
+      {toolbar ? (
+        /* The caller's own toolbar, in place of rows 1–3. The **band and chips
+           below are not replaced** — one filter surface, whichever toolbar opens
+           it. It gets the shell's state and the shell's own controls, so those are
+           the real ones rather than a second view over the same preferences. */
+        toolbar({
+          state,
+          total: page.total,
+          fields,
+          activeFilters,
+          filtersTrigger,
+          columnPicker,
+          density: densityToggle,
+        })
+      ) : (
+        <>
       {/* Row 1 — who this list is and what can be done to it. */}
       <div className="flex flex-wrap items-start justify-between gap-3 px-4 pt-4 sm:px-5">
         <div className="min-w-0">
@@ -280,15 +449,18 @@ export function DataTable<Row>({
 
       {/* Row 2 — the stages. Never merged into the row below: the design keeps the
           three rows separate because a single wrapping row reflows differently at
-          every width and the tabs stop being findable. */}
-      <div className="px-4 pt-3.5 sm:px-5">
-        <StageTabs
-          tabs={tabs}
-          value={state.tab}
-          onChange={state.setTab}
-          label={tabsLabel}
-        />
-      </div>
+          every width and the tabs stop being findable. Absent entirely on a queue
+          with no stage axis. */}
+      {tabs && tabs.length > 0 && (
+        <div className="px-4 pt-3.5 sm:px-5">
+          <StageTabs
+            tabs={tabs}
+            value={state.tab}
+            onChange={state.setTab}
+            label={tabsLabel ?? title}
+          />
+        </div>
+      )}
 
       {/* Row 3 — find within, narrow, choose columns, choose density.
           Search is a fixed 250px and the column/density pair is pushed to the far
@@ -306,35 +478,16 @@ export function DataTable<Row>({
           />
         </div>
 
-        {fields && fields.length > 0 && (
-          <ToolbarButton
-            on={activeFilters > 0 || filtersOpen}
-            aria-expanded={filtersOpen}
-            onClick={() => setFiltersOpen((open) => !open)}
-          >
-            <Filter className="size-[15px]" />
-            <span className="hidden sm:inline">{tCommon("filters")}</span>
-            {/* Always rendered, `0` included. A badge that appears only once a
-                filter is set makes the control change width as you use it, and
-                "0" is the fastest way to say nothing is narrowing this list. */}
-            <ToolbarCount on={activeFilters > 0 || filtersOpen} pill>
-              {activeFilters}
-            </ToolbarCount>
-          </ToolbarButton>
-        )}
+        {filtersTrigger}
 
         <div className="flex items-center gap-2 sm:ml-auto">
-          <ColumnPicker
-            columns={columns}
-            prefs={prefs}
-            onToggle={toggle}
-            onMove={move}
-            onReset={reset}
-          />
-
-          <DensityToggle density={prefs.density} onChange={setDensity} />
+          {columnPicker}
+          {densityToggle}
         </div>
       </div>
+
+        </>
+      )}
 
       {/* The band, inside the card — the table stays visible while you filter. */}
       {fields && fields.length > 0 && (
@@ -342,8 +495,12 @@ export function DataTable<Row>({
           variant="band"
           open={filtersOpen}
           fields={fields}
+          sections={sections}
           values={state.filters}
           onChange={state.setFilter}
+          // The shell's values live in the URL, which does not merge concurrent
+          // writes — a date preset moves two params and a range chip clears two.
+          onChangeMany={state.setFilters}
           onReset={state.resetFilters}
           allLabel={tCommon("all")}
           clearLabel={tCommon("clearFilters")}
@@ -359,17 +516,25 @@ export function DataTable<Row>({
             fields={fields}
             values={state.filters}
             onChange={state.setFilter}
+            // Same reason as the band above: clearing a range chip is two params.
+            onChangeMany={state.setFilters}
             onReset={state.resetFilters}
             clearLabel={tCommon("clearFilters")}
           />
         </div>
       )}
-
       {/* The rows region takes whatever height the toolbar above and the footer
           below leave over. Same `grow` reasoning as the card, and deliberately no
           `overflow-hidden` here — adding one would re-open the zero-minimum trap
           the card comment describes. */}
       <div className="flex grow flex-col">
+        {cards && <div className="flex flex-col md:hidden">{cards}</div>}
+        {/*
+          Hidden rather than unmounted below `md`: the header still carries the
+          sort controls, and a `hidden` subtree keeps them in the accessibility
+          tree for a screen reader on a narrow viewport.
+        */}
+        <div className={cn("flex flex-col", mobileCard && "hidden md:flex")}>
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
@@ -387,6 +552,7 @@ export function DataTable<Row>({
           </TableHeader>
           {rows && <TableBody>{rows}</TableBody>}
         </Table>
+        </div>
 
         {notice ? (
           <div className="flex grow items-center justify-center">{notice}</div>

@@ -71,9 +71,28 @@ export interface TableUrlState {
   setTab: (tab: string) => void;
   setSearchInput: (value: string) => void;
   setFilter: (key: string, value: string) => void;
+  /**
+   * Several filters in **one** write, for the cases where two of them are really
+   * one control — the owners table's country picker, which must clear the city id
+   * it scopes.
+   *
+   * Not the same as calling `setFilter` twice. Each write merges its patch into the
+   * query captured at render, so two calls in one tick both start from the same
+   * params and the second silently discards the first.
+   */
+  setFilters: (patch: Record<string, string>) => void;
   resetFilters: () => void;
   /** Ascending, then descending, then back to the default sort. */
   toggleSort: (key: string) => void;
+  /**
+   * Sets an explicit column and direction, or clears back to the default.
+   *
+   * A `Sorted by` **dropdown** names one pair outright, which `toggleSort` cannot
+   * express: cycling would make picking "Name A–Z" from a menu depend on what the
+   * table was sorted by before it opened. The two write the same two params, so a
+   * header click and the dropdown stay in step.
+   */
+  setSort: (sort: TableSort | null) => void;
   setPage: (page: number) => void;
   setPageSize: (size: number) => void;
 
@@ -212,6 +231,11 @@ export function useTableUrlState(options: TableUrlStateOptions = {}): TableUrlSt
     [write],
   );
 
+  const setFilters = useCallback(
+    (patch: Record<string, string>) => write({ ...patch, page: null }),
+    [write],
+  );
+
   const resetFilters = useCallback(() => {
     const cleared: Record<string, null> = { page: null };
     for (const key of keys) cleared[key] = null;
@@ -229,6 +253,16 @@ export function useTableUrlState(options: TableUrlStateOptions = {}): TableUrlSt
       return write({ sort: null, dir: null, page: null });
     },
     [sortKey, params, write],
+  );
+
+  const setSort = useCallback(
+    (next: TableSort | null) =>
+      write(
+        next
+          ? { sort: next.key, dir: next.dir, page: null }
+          : { sort: null, dir: null, page: null },
+      ),
+    [write],
   );
 
   const setPage = useCallback(
@@ -258,8 +292,10 @@ export function useTableUrlState(options: TableUrlStateOptions = {}): TableUrlSt
     setTab,
     setSearchInput,
     setFilter,
+    setFilters,
     resetFilters,
     toggleSort,
+    setSort,
     setPage,
     setPageSize,
     isFiltered:
