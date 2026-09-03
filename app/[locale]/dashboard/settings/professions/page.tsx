@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
+import { EyeOff, Pencil, Plus, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -16,18 +16,35 @@ import {
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Can } from "@/components/auth/can";
 import { ConfirmDialog } from "@/components/tasks/confirm-dialog";
-import { ProfessionFormDialog } from "@/components/professions/profession-form-dialog";
+import {
+  ProfessionFormDialog,
+  type ProfessionFormValues,
+} from "@/components/professions/profession-form-dialog";
 import {
   useProfessions,
   useCreateProfession,
   useUpdateProfession,
-  useDeleteProfession,
+  useDeactivateProfession,
+  useReactivateProfession,
 } from "@/hooks/use-professions";
 import { getApiErrorCode } from "@/lib/http/api-error";
-import type { ProfessionDto } from "@/lib/types/profession.types";
+import {
+  PROTECTED_PROFESSION_CODE,
+  professionLabel,
+  type ProfessionDto,
+} from "@/lib/types/profession.types";
+import { cn } from "@/lib/utils";
 
 const FORM_ERRORS = new Set(["code_exists"]);
-const DELETE_ERRORS = new Set(["profession_in_use"]);
+
+/**
+ * ⚠ **There is no delete.** `DELETE /api/professions/{id}` returns `405` and the
+ * old `profession_in_use` refusal is gone with it — FND-1 replaced erasure with
+ * `PUT { isActive: false }`, and reactivation is lossless. The one refusal left is
+ * `profession_protected`: `GENERAL` is the skill every worker is registered with
+ * and it cannot be deactivated.
+ */
+const DEACTIVATE_ERRORS = new Set(["profession_protected"]);
 
 type FormState = { mode: "create" } | { mode: "edit"; row: ProfessionDto } | null;
 
@@ -35,13 +52,21 @@ export default function ProfessionsPage() {
   const t = useTranslations("professions");
   const tCommon = useTranslations("common");
 
-  const { data: professions = [], isLoading, isError } = useProfessions();
+  const locale = useLocale();
+  /*
+    `includeInactive` — this is the management screen, and it is the only place a
+    deactivated profession may be seen (and reactivated). The parameter is honoured
+    only for a caller holding `profession:update`; for anyone else the server
+    silently returns the active list, which is the safe direction.
+  */
+  const { data: professions = [], isLoading, isError } = useProfessions(true);
   const create = useCreateProfession();
   const update = useUpdateProfession();
-  const del = useDeleteProfession();
+  const deactivate = useDeactivateProfession();
+  const reactivate = useReactivateProfession();
 
   const [form, setForm] = useState<FormState>(null);
-  const [toDelete, setToDelete] = useState<ProfessionDto | null>(null);
+  const [toDeactivate, setToDeactivate] = useState<ProfessionDto | null>(null);
 
   const formMut = form?.mode === "edit" ? update : create;
   const formError =
@@ -54,10 +79,10 @@ export default function ProfessionsPage() {
         })()
       : null;
 
-  const deleteError = del.isError
+  const deactivateError = deactivate.isError
     ? (() => {
-        const code = getApiErrorCode(del.error);
-        return code && DELETE_ERRORS.has(code)
+        const code = getApiErrorCode(deactivate.error);
+        return code && DEACTIVATE_ERRORS.has(code)
           ? t(`errors.${code}`)
           : t("errors.deleteGeneric");
       })()
@@ -69,22 +94,30 @@ export default function ProfessionsPage() {
     update.reset();
   };
 
-  const closeDelete = () => {
-    setToDelete(null);
-    del.reset();
+  const closeDeactivate = () => {
+    setToDeactivate(null);
+    deactivate.reset();
   };
 
-  function handleSubmit(values: { code: string; name: string; description: string }) {
+  function handleSubmit(values: ProfessionFormValues) {
     if (form?.mode === "edit") {
       update.mutate(
-        { id: form.row.id, body: { name: values.name, description: values.description } },
+        {
+          id: form.row.id,
+          body: {
+            nameDe: values.nameDe,
+            nameEn: values.nameEn,
+            description: values.description,
+          },
+        },
         { onSuccess: closeForm },
       );
     } else {
       create.mutate(
         {
           code: values.code,
-          name: values.name,
+          nameDe: values.nameDe,
+          nameEn: values.nameEn,
           description: values.description || null,
         },
         { onSuccess: closeForm },
@@ -156,9 +189,25 @@ export default function ProfessionsPage() {
                 </TableRow>
               ) : (
                 professions.map((p) => (
-                  <TableRow key={p.id} className="hover:bg-accent/40">
+                  <TableRow
+                    key={p.id}
+                    // Deactivated rows stay legible but recede — they are history
+                    // an admin can undo, not rows to hunt for.
+                    className={cn("hover:bg-accent/40", !p.isActive && "opacity-55")}
+                  >
                     <TableCell className="py-3 font-mono text-sm">{p.code}</TableCell>
-                    <TableCell className="font-medium">{p.name}</TableCell>
+                    <TableCell className="font-medium">
+                      <span className="flex items-center gap-2">
+                        {/* ⚠ `nameEn`, never `name` — the rename FND-1 made, which
+                            renders `undefined` if it is missed. */}
+                        {professionLabel(p, locale)}
+                        {!p.isActive && (
+                          <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                            {t("inactive")}
+                          </span>
+                        )}
+                      </span>
+                    </TableCell>
                     <TableCell
                       className="max-w-[360px] truncate text-sm text-muted-foreground"
                       title={p.description ?? ""}
@@ -178,16 +227,35 @@ export default function ProfessionsPage() {
                             <Pencil className="size-4" />
                           </Button>
                         </Can>
-                        <Can permission="profession:delete">
-                          <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            title={tCommon("delete")}
-                            className="text-destructive"
-                            onClick={() => setToDelete(p)}
-                          >
-                            <Trash2 className="size-4" />
-                          </Button>
+                        {/*
+                          ⚠ Gated on `profession:update`, not the retired
+                          `profession:delete` (140003) — deactivation is a `PUT`.
+                          `GENERAL` has no control at all: the server refuses it,
+                          so offering the button would be an affordance that 400s.
+                        */}
+                        <Can permission="profession:update">
+                          {p.code === PROTECTED_PROFESSION_CODE ? null : p.isActive ? (
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              title={t("deactivate.action")}
+                              className="text-destructive"
+                              onClick={() => setToDeactivate(p)}
+                            >
+                              <EyeOff className="size-4" />
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              title={t("reactivate.action")}
+                              className="text-muted-foreground"
+                              disabled={reactivate.isPending}
+                              onClick={() => reactivate.mutate(p.id)}
+                            >
+                              <RotateCcw className="size-4" />
+                            </Button>
+                          )}
                         </Can>
                       </div>
                     </TableCell>
@@ -210,17 +278,23 @@ export default function ProfessionsPage() {
         />
       )}
 
-      {toDelete && (
+      {toDeactivate && (
         <ConfirmDialog
           open
-          title={t("delete.title")}
-          description={t("delete.confirm", { name: toDelete.name })}
-          confirmLabel={tCommon("delete")}
+          title={t("deactivate.title")}
+          // Says what actually happens: hidden from pickers, kept on the workers
+          // who already hold it, and reversible.
+          description={t("deactivate.confirm", {
+            name: professionLabel(toDeactivate, locale),
+          })}
+          confirmLabel={t("deactivate.action")}
           destructive
-          isPending={del.isPending}
-          error={deleteError}
-          onClose={closeDelete}
-          onConfirm={() => del.mutate(toDelete.id, { onSuccess: closeDelete })}
+          isPending={deactivate.isPending}
+          error={deactivateError}
+          onClose={closeDeactivate}
+          onConfirm={() =>
+            deactivate.mutate(toDeactivate.id, { onSuccess: closeDeactivate })
+          }
         />
       )}
     </div>

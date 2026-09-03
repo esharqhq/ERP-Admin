@@ -13,10 +13,25 @@ import type {
   CreateTaskGroupRequest,
 } from "@/lib/types/task.types";
 
-export function useAdminTaskGroups(ownerUserId?: string, propertyId?: string) {
+/**
+ * ⚠ **`enabled` matters more here than on most reads.** With no scope this route
+ * returns **every task group on the platform**, and a caller waiting for an id
+ * (`useAdminTaskGroups(undefined, property?.id)`) passes `undefined` on its first
+ * render — so without a gate it fetches the whole system once, then refetches
+ * scoped, and the unscoped response stays in the cache under its own key.
+ *
+ * Callers that genuinely want the system-wide list simply omit both arguments and
+ * leave `enabled` at its default.
+ */
+export function useAdminTaskGroups(
+  ownerUserId?: string,
+  propertyId?: string,
+  enabled = true,
+) {
   return useQuery({
     queryKey: ["admin-task-groups", ownerUserId ?? null, propertyId ?? null],
     queryFn: () => taskService.getAdminTaskGroups(ownerUserId, propertyId),
+    enabled,
   });
 }
 
@@ -42,10 +57,17 @@ export function useAdminTasks(ownerUserId?: string) {
  * `["owner-task-groups"]` is here because `useOwnerTaskGroups` reads it and
  * `WeeklyWorkCard` renders from it. Without it, assigning a worker from
  * Dispatching left the owner detail page's weekly card stale until a reload.
+ *
+ * `["admin-tasks-range"]` is the same story on the worker side: `useWorkerShifts`
+ * reads a windowed task list under that key and the worker detail grid renders
+ * from it, so an assignment made anywhere has to reach it too. It is a *prefix* —
+ * the key carries the window bounds, and every cached week has to go, not only
+ * the one on screen.
  */
 export function invalidateTasks(qc: QueryClient, groupId?: string) {
   qc.invalidateQueries({ queryKey: ["admin-task-groups"] });
   qc.invalidateQueries({ queryKey: ["admin-tasks"] });
+  qc.invalidateQueries({ queryKey: ["admin-tasks-range"] });
   qc.invalidateQueries({ queryKey: ["owner-task-groups"] });
   if (groupId) qc.invalidateQueries({ queryKey: ["task-group", groupId] });
 }

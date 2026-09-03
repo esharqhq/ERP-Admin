@@ -11,8 +11,10 @@ interface ContractRowBase {
   eligibleTo: string;
   fileName: string | null;
   /**
-   * The admin-supplied **source** document, echoed back exactly as posted.
-   * Not a signed URL: fetch at `{filesBase}/files/{fileUrl}`.
+   * The admin-supplied **source** document, echoed back exactly as posted — so it
+   * is absolute when this panel uploaded it (`uploadService.upload` returns the
+   * backend's `publicUrl`) and a bare storage key when another client did. Not a
+   * signed URL either way. `resolveFileUrl` (`lib/http/files.ts`) handles both.
    */
   fileUrl: string | null;
   /** Lagging mirror reconciled hourly. Prefer `phase` in every case. */

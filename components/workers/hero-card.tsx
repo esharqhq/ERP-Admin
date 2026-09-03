@@ -1,134 +1,363 @@
 "use client";
 
-import { Star, Phone, Mail, MapPin } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import {
+  IdCard,
+  Mail,
+  Phone,
+  ScrollText,
+  ShieldCheck,
+  Star,
+} from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import type { WorkerDetailDto } from "@/lib/types/worker.types";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  BandStat,
+  FactTile,
+  IdentityBand,
+  type FactTone,
+} from "@/components/detail/identity-band";
+import { daysUntil } from "@/lib/detail/attention";
+import { describeCover, type CoverQuery } from "@/lib/detail/cover-cell";
 import { onboardingStatusPresentation } from "@/lib/onboarding/status";
-import { useTranslations } from "next-intl";
+import { WARN_DAYS } from "@/lib/onboarding/subject-row";
+import type { CoverNote } from "@/lib/onboarding/subject-row";
+import type { WeekSummary } from "@/hooks/use-worker-shifts";
+import type {
+  WorkerDetailDto,
+  WorkerRatingDto,
+} from "@/lib/types/worker.types";
 
-export function HeroCard({ worker }: { worker: WorkerDetailDto }) {
+function initialsOf(name: string | null): string {
+  const parts = (name ?? "").trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "??";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+/**
+ * The nearest paper deadline, and how close it is.
+ *
+ * ⚠ **Both rungs are red, not amber.** The DS's 30/7 ladder is shared with the
+ * contract cell beside it, but the *tone* is not: when a worker's licence lapses
+ * the backend's expiry ladder drops the account back to `Kyc`, which makes every
+ * future shift unfillable. That is not a renewal task, so it is not amber.
+ *
+ * A missing expiry is not an expired one. `licenseExpiry` is optional even at
+ * submit, so a `null` produces no statement at all rather than a warning about
+ * a document the worker was never required to file.
+ */
+function describePapers(
+  worker: WorkerDetailDto,
+  today: number,
+  copy: {
+    licence: string;
+    passport: string;
+    none: string;
+    left: (days: number) => string;
+    ago: (days: number) => string;
+    formatDate: (iso: string | null) => string;
+  },
+): {
+  kind: "licence" | "passport";
+  label: string;
+  value: string;
+  trailing?: string;
+  tone: FactTone;
+} {
+  const candidates = [
+    {
+      kind: "licence" as const,
+      label: copy.licence,
+      iso: worker.identity?.licenseExpiry ?? null,
+      days: daysUntil(worker.identity?.licenseExpiry, today),
+    },
+    {
+      kind: "passport" as const,
+      label: copy.passport,
+      iso: worker.identity?.passportExpiry ?? null,
+      days: daysUntil(worker.identity?.passportExpiry, today),
+    },
+  ].filter((c) => c.iso);
+
+  if (candidates.length === 0)
+    return {
+      kind: "licence",
+      label: copy.licence,
+      value: copy.none,
+      tone: "neutral",
+    };
+
+  const dated = candidates.filter(
+    (c): c is (typeof candidates)[number] & { iso: string; days: number } =>
+      c.days !== null && c.iso !== null,
+  );
+  // No clock yet (server snapshot). The date is still true, the countdown is not.
+  if (dated.length === 0) {
+    const first = candidates[0];
+    return {
+      kind: first.kind,
+      label: first.label,
+      value: copy.formatDate(first.iso),
+      tone: "neutral",
+    };
+  }
+
+  const worst = dated.reduce((a, b) => (a.days <= b.days ? a : b));
+  const lapsed = worst.days < 0;
+
+  return {
+    kind: worst.kind,
+    label: worst.label,
+    value: copy.formatDate(worst.iso),
+    trailing: lapsed ? copy.ago(Math.abs(worst.days)) : copy.left(worst.days),
+    tone: worst.days > WARN_DAYS ? "neutral" : "critical",
+  };
+}
+
+/**
+ * Who this worker is, what they are cleared for, and how their week went.
+ *
+ * The two week numbers describe **the week currently on screen**, not a
+ * lifetime — the grid's date range sits directly beneath them, which is why the
+ * labels say "on time" and "hours" rather than "this week".
+ *
+ * The rating is the one value that appears twice on this page, and that is
+ * deliberate: here it is the headline an admin scans for, and in the sidebar's
+ * snapshot card it is the thing being explained — when it was calculated, out of
+ * how many tasks, at what completion rate. Two readings of one number, not two
+ * statements of one fact. Everything else here appears once; the stat row that
+ * used to restate the status and the profession count is gone.
+ */
+export function WorkerHeroCard({
+  worker,
+  rating,
+  ratingCanRead,
+  week,
+  weekKnown,
+  contract,
+  today,
+}: {
+  worker: WorkerDetailDto;
+  rating: WorkerRatingDto | undefined;
+  /**
+   * `false` when `worker_rating:read_any` is missing — the query never ran.
+   * `null` while the grant set is still unknown, which is not a refusal: a cold
+   * start would otherwise print an em dash where a score is about to appear.
+   */
+  ratingCanRead: boolean | null;
+  week: WeekSummary;
+  /** `false` while the week is unreadable or still resolving. */
+  weekKnown: boolean;
+  contract: CoverQuery;
+  today: number;
+}) {
   const t = useTranslations("workers");
   const tOnboarding = useTranslations("onboarding");
-  const initials = (worker.fullName ?? "??").slice(0, 2).toUpperCase();
-  const profession = worker.professions?.[0]?.name ?? null;
+  const tDocs = useTranslations("docsWorkspace");
+  const locale = useLocale();
+
+  function formatDate(iso: string | null): string {
+    if (!iso) return "—";
+    return new Date(iso).toLocaleDateString(locale, {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  }
+
+  const presentation = onboardingStatusPresentation(worker.onboardingStatus);
+  const professions = (worker.professions ?? [])
+    .map((p) => p.name ?? p.code)
+    .filter(Boolean) as string[];
+
+  const papers = describePapers(worker, today, {
+    licence: t("band.licence"),
+    passport: t("band.passport"),
+    none: t("band.noExpiry"),
+    left: (days) => tDocs("cover.daysLeft", { days }),
+    ago: (days) => t("band.lapsedAgo", { days }),
+    formatDate,
+  });
+
+  const cover = describeCover(contract, today, {
+    unavailable: () => t("band.contractUnavailable"),
+    failed: () => tOnboarding("apiErrors.unknown"),
+    none: () => tDocs("noContract"),
+    note: (note: CoverNote) =>
+      tDocs(note.key as Parameters<typeof tDocs>[0], note.values),
+    formatDate,
+  });
+
+  // Never `0.0`. An unrated worker is not a bad one — the snapshot says so with
+  // `isNew`, and a number in that slot would be read as a verdict.
+  const ratingValue =
+    ratingCanRead === false ? (
+      "—"
+    ) : ratingCanRead === null || !rating ? (
+      <Skeleton className="h-4 w-8" />
+    ) : rating.isNew || rating.displayRating === null ? (
+      <Badge tone="info">{t("rating.new")}</Badge>
+    ) : (
+      rating.displayRating.toFixed(1)
+    );
+
+  /*
+    ⚠ `employeeType` and `address` are **gone from the response**, not merely
+    empty — `register-merge` (2026-08-19) §8 dropped both columns from the worker
+    record, so `GET /api/admin/workers/{id}` no longer carries either. They were
+    the first and last entries of this line; what is left is the years and the
+    professions beyond the one already beside the name.
+  */
+  const meta = [
+    worker.experience !== null && worker.experience !== undefined
+      ? t("band.experience", { years: worker.experience })
+      : null,
+    // From the second onwards — the first is already the qualifier beside the
+    // name, and repeating it here would read as two different facts.
+    professions.length > 1 ? professions.slice(1).join(", ") : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
   return (
-    <Card className="overflow-hidden">
-      <div
-        aria-hidden
-        className="h-24 w-full bg-gradient-to-r from-primary/12 via-primary/6 to-accent/10"
-        style={{
-          backgroundImage:
-            "radial-gradient(circle at 1px 1px, rgba(16,54,125,0.18) 1px, transparent 0)",
-          backgroundSize: "18px 18px",
-        }}
-      />
-      <CardContent className="-mt-12 flex flex-col gap-5 pb-5">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div className="flex items-end gap-4">
-            <Avatar className="size-24 ring-4 ring-background shadow-sm">
-              {worker.profilePictureUrl && (
-                <AvatarImage
-                  src={worker.profilePictureUrl}
-                  alt={worker.fullName ?? ""}
-                />
-              )}
-              <AvatarFallback className="bg-primary text-2xl font-semibold text-primary-foreground">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex flex-col gap-1.5 pb-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="font-heading text-2xl font-bold tracking-tight leading-tight sm:text-[28px]">
-                  {worker.fullName ?? "—"}
-                </h1>
-                {profession && (
-                  <span className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">
-                    {profession}
-                  </span>
-                )}
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
-                {(() => {
-                  const p = onboardingStatusPresentation(worker.onboardingStatus);
-                  return (
-                    <Badge variant={p.variant} className={p.className}>
-                      {tOnboarding(`status.${p.labelKey}`)}
-                    </Badge>
-                  );
-                })()}
-                {/* {worker.isVerified && <Badge variant="outline">Verified</Badge>} */}
-                <span className="inline-flex items-center gap-1 text-[12px] font-medium text-muted-foreground">
-                  <Star className="size-3.5 fill-amber-500 text-amber-500" />
-                  <span className="tabular-nums text-foreground">
-                    {worker.rating.toFixed(1)}
-                  </span>
-                  <span>{t("columns.rating")}</span>
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            {worker.email && (
-              <Button
-                variant="outline"
-                size="sm"
-                nativeButton={false}
-                className="gap-1.5"
-                render={<a href={`mailto:${worker.email}`} />}
-              >
-                <Mail className="size-4" />
-                Email
-              </Button>
+    <IdentityBand
+      initials={initialsOf(worker.fullName)}
+      pictureUrl={worker.profilePictureUrl}
+      name={worker.fullName ?? "—"}
+      qualifier={professions[0] ?? undefined}
+      badges={
+        <>
+          <Badge
+            variant={presentation.variant}
+            className={presentation.className}
+          >
+            {tOnboarding(
+              `status.${presentation.labelKey}` as Parameters<
+                typeof tOnboarding
+              >[0],
             )}
-            {worker.phoneNumber && (
-              <Button
-                size="sm"
-                nativeButton={false}
-                className="gap-1.5"
-                render={
-                  <a href={`tel:${worker.phoneNumber.replace(/\s+/g, "")}`} />
-                }
-              >
-                <Phone className="size-4" />
-                {t("contact.call")}
-              </Button>
-            )}
-          </div>
-        </div>
-
-        <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-          {worker.address && (
-            <span className="flex items-center gap-1.5">
-              <MapPin className="size-4 shrink-0" />
-              {worker.address}
+          </Badge>
+          {/* Verbatim, and only where the stage is the one it explains — the
+              worker is told this sentence in their app and an admin answering
+              them needs to be reading the same words. */}
+          {worker.onboardingStatus === "Rejected" &&
+          worker.onboardingRejectReason ? (
+            <span className="text-[11px] font-medium text-destructive">
+              {worker.onboardingRejectReason}
             </span>
-          )}
-          {/* {worker.experience !== null && worker.experience !== undefined && (
-            <span className="flex items-center gap-1.5">
-              <Briefcase className="size-4 shrink-0" />
-              {worker.experience} yil tajriba
-            </span>
-          )} */}
-        </div>
-
-        {(worker.professions?.length ?? 0) > 0 && (
-          <div className="flex flex-wrap items-center gap-1.5">
-            {worker.professions!.map((p) => (
-              <span
-                key={p.id}
-                className="inline-flex items-center rounded-md border border-dashed border-border bg-muted/40 px-2 py-0.5 text-[11px] font-medium text-muted-foreground"
-              >
-                {p.name ?? p.code ?? "—"}
-              </span>
-            ))}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+          ) : null}
+        </>
+      }
+      meta={meta || undefined}
+      stats={
+        <>
+          <BandStat
+            label={t("columns.rating")}
+            value={ratingValue}
+            icon={
+              ratingCanRead === true && rating && !rating.isNew ? (
+                <Star className="size-3.5 fill-status-pending text-status-pending" />
+              ) : null
+            }
+          />
+          <BandStat
+            label={t("band.onTime")}
+            value={
+              !weekKnown || week.onTime === null
+                ? "—"
+                : `${Math.round(week.onTime * 100)}%`
+            }
+          />
+          <BandStat
+            label={t("band.hours")}
+            value={
+              weekKnown
+                ? t("band.hoursValue", { hours: week.hours.toFixed(1) })
+                : "—"
+            }
+          />
+        </>
+      }
+      actions={
+        <>
+          {worker.phoneNumber ? (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              nativeButton={false}
+              render={
+                <a href={`tel:${worker.phoneNumber.replace(/\s+/g, "")}`} />
+              }
+            >
+              <Phone className="size-4" />
+              {t("contact.call")}
+            </Button>
+          ) : null}
+          {worker.email ? (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              nativeButton={false}
+              render={<a href={`mailto:${worker.email}`} />}
+            >
+              <Mail className="size-4" />
+              {t("band.email")}
+            </Button>
+          ) : null}
+        </>
+      }
+      tiles={
+        <>
+          <FactTile
+            icon={<Mail className="size-3.5" />}
+            label={t("band.email")}
+            value={worker.email || "—"}
+          />
+          <FactTile
+            icon={<Phone className="size-3.5" />}
+            label={t("band.phone")}
+            value={worker.phoneNumber || "—"}
+            mono
+          />
+          <FactTile
+            icon={
+              papers.kind === "passport" ? (
+                <IdCard className="size-3.5" />
+              ) : (
+                <ShieldCheck className="size-3.5" />
+              )
+            }
+            label={papers.label}
+            value={papers.value}
+            trailing={papers.trailing}
+            tone={papers.tone}
+            hint={worker.identity?.passportNumber ?? undefined}
+            mono
+          />
+          {/* Last, and the only other cell whose tone can turn: the two before
+              it state facts that do not expire. */}
+          <FactTile
+            icon={<ScrollText className="size-3.5" />}
+            label={t("band.contract")}
+            value={
+              cover.value === null ? (
+                <Skeleton className="h-4 w-32" />
+              ) : (
+                cover.value
+              )
+            }
+            hint={cover.hint}
+            trailing={cover.trailing}
+            tone={cover.tone}
+            progress={cover.progress}
+            mono
+          />
+        </>
+      }
+    />
   );
 }

@@ -23,6 +23,7 @@ import {
   type CoverPresentation,
   type SubjectRow,
 } from "@/lib/onboarding/subject-row";
+import { initials } from "@/lib/ui/initials";
 import { cn } from "@/lib/utils";
 
 const COLUMN_COUNT = 6;
@@ -287,11 +288,3 @@ function formatDate(iso: string, locale: string): string {
   });
 }
 
-/** First letter of the first and last word — "Anna Maria Schmidt" → "AS". */
-function initials(name: string | null): string {
-  const parts = (name ?? "").trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return "—";
-  const first = parts[0][0] ?? "";
-  const last = parts.length > 1 ? (parts[parts.length - 1][0] ?? "") : "";
-  return (first + last).toUpperCase();
-}

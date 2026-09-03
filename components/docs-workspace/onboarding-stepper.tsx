@@ -50,7 +50,10 @@ export function OnboardingStepper({
   const t = useTranslations("docsWorkspace");
 
   return (
-    <ol className="flex flex-wrap items-center gap-x-2 gap-y-3" aria-label={t("progress")}>
+    <ol
+      className="flex flex-wrap items-center gap-x-2 gap-y-2.5"
+      aria-label={t("progress")}
+    >
       {([1, 2, 3, 4] as DocsStep[]).map((step, i) => {
         const done = step < current;
         const active = step === current;
@@ -59,22 +62,26 @@ export function OnboardingStepper({
 
         return (
           <li key={step} className="flex items-center gap-2">
+            {/* Filled forest for the step you are on, a tick for the ones behind,
+                a hairline ring for the ones ahead — the design's three states. */}
             <span
               className={cn(
-                "flex size-6 shrink-0 items-center justify-center rounded-full border text-xs font-medium transition-colors",
-                done && "border-transparent bg-primary text-primary-foreground",
-                active && !tone && "border-accent bg-accent/15 text-foreground",
-                tone && "border-destructive bg-destructive/10 text-destructive",
-                !done && !active && "border-border text-muted-foreground",
+                "flex size-6 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold transition-colors",
+                done && "bg-primary text-primary-foreground",
+                active && !tone && "bg-primary text-primary-foreground",
+                tone && "bg-status-cancelled-tint text-status-cancelled",
+                !done && !active && "bg-card text-muted-foreground ring-1 ring-inset ring-border",
               )}
               aria-current={active ? "step" : undefined}
             >
-              {done ? <Check className="size-3.5" /> : step}
+              {done ? <Check className="size-3.5" strokeWidth={2.8} /> : step}
             </span>
             <span
               className={cn(
-                "text-sm",
-                active ? "font-medium text-foreground" : "text-muted-foreground",
+                "text-[13px]",
+                active || done
+                  ? "font-semibold text-foreground"
+                  : "font-medium text-muted-foreground",
               )}
             >
               {t(`steps.${STEP_KEYS[step]}`)}
@@ -83,8 +90,8 @@ export function OnboardingStepper({
               <span
                 aria-hidden
                 className={cn(
-                  "mx-1 hidden h-px w-8 sm:block",
-                  done ? "bg-primary" : "bg-border",
+                  "mx-3 hidden h-px w-11 sm:block",
+                  done ? "bg-primary/40" : "bg-border",
                 )}
               />
             )}

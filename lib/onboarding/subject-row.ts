@@ -31,6 +31,23 @@ export interface SubjectRow {
   onboardingStatus: OnboardingStatus;
   /** The contract period governing this subject today, or `null` if none exists. */
   cover: SubjectCover | null;
+
+  /**
+   * The three below are **owner-only today**, and `null` on every worker row.
+   *
+   * Not an oversight in the adapter: `WorkerRowDto`
+   * (`Backend/GermanyERP.Domain/Models/DTOs/Workers/WorkerDtos.cs:124`) carries no
+   * review fields and no document count at all — they live on `WorkerDetailDto`,
+   * and one detail request per row is an N+1 a table must not do. Filed as ask #24.
+   *
+   * Nothing renders a null: the two queues register **different column sets**, and
+   * the worker queue simply does not register these. Adding a worker column the
+   * day the DTO grows is one registry entry and no other change.
+   */
+  documentCount: number | null;
+  /** When the submission was last decided. `null` = never decided, not "unknown". */
+  reviewedAt: string | null;
+  rejectReason: string | null;
 }
 
 export interface SubjectCover {
@@ -49,6 +66,9 @@ export function ownerSubjectRow(dto: KycProfileSummaryDto): SubjectRow {
     avatarUrl: null,
     onboardingStatus: dto.onboardingStatus,
     cover: null,
+    documentCount: dto.documentCount,
+    reviewedAt: dto.onboardingReviewedAt,
+    rejectReason: dto.onboardingRejectReason,
   };
 }
 
@@ -60,6 +80,10 @@ export function workerSubjectRow(dto: WorkerRowDto): SubjectRow {
     avatarUrl: null,
     onboardingStatus: dto.onboardingStatus,
     cover: null,
+    // See the note on `SubjectRow` — the worker list DTO carries none of these.
+    documentCount: null,
+    reviewedAt: null,
+    rejectReason: null,
   };
 }
 
@@ -156,9 +180,16 @@ export function withCover(
  * If the backend ladder is retuned, nothing here fails — the annotation simply
  * stops agreeing with the emails the subject receives. Recorded in
  * `ERP-Uyer/INTEGRATION.md` alongside the Owner app's copy of the same constants.
+ *
+ * Exported because the detail screens' attention strips annotate a *document*
+ * expiry — a worker's service licence, a passport — on the same two rungs. Those
+ * have no `phase` and so cannot go through `coverPresentation`, but they must not
+ * drift from it either: a licence that turns amber a week after the contract
+ * beside it would read as a bug in the screen rather than a difference in the
+ * data.
  */
-const WARN_DAYS = 30;
-const CRITICAL_DAYS = 7;
+export const WARN_DAYS = 30;
+export const CRITICAL_DAYS = 7;
 
 export interface CoverPresentation {
   /** Whole days until the period ends. Negative once past. */

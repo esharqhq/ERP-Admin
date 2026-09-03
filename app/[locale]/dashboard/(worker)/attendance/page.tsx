@@ -209,7 +209,7 @@ export default function AttendancePage() {
                 placeholder={t("searchPlaceholder")}
                 value={table.search}
                 onChange={(e) => table.setSearch(e.target.value)}
-                className="h-8 w-full sm:w-56"
+                className="h-9 w-full sm:w-56"
               />
               <FilterMenu
                 groups={filterGroups}

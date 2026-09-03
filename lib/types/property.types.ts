@@ -104,3 +104,24 @@ export interface PropertyDto {
   /** Populated only when the request carried `?withMedia=true`; otherwise `null`. */
   media: PropertyMediaDto[] | null;
 }
+
+/**
+ * One person who can act on a property besides its BOSS — `GET
+ * /api/properties/{id}/memberships`.
+ *
+ * ⚠ The permission is `membership:list` (60003) and it is **PROPERTY-scoped**,
+ * which an admin can never satisfy: they hold no `PropertyMembership`. The route
+ * **short-circuits to `property:list`** for them
+ * (`index/controllers/properties.md:21`), which is the grant that already opens
+ * this screen — so it reads without a new permission, and read the rule rather
+ * than the permission name.
+ */
+export interface PropertyMembershipDto {
+  id: string;
+  ownerUserId: string;
+  ownerName: string;
+  /** `MANAGER` | `PROPERTY_ADMIN` in practice. Free-form on the wire. */
+  roleCode: string;
+  isActive: boolean;
+  joinedAt: string;
+}

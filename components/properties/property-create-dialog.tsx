@@ -37,10 +37,24 @@ interface Props {
   pending: boolean;
   /** Localized parent-mutation error. */
   error?: string | null;
+  /**
+   * Set when the dialog is opened from one owner's detail page: that owner is the
+   * only possible target, so the select is replaced by a stated fact and the
+   * owners queue is never read. Absent on the properties table, where choosing
+   * the owner is the first decision.
+   */
+  lockedOwner?: { id: string; label: string };
   onSubmit: (body: CreateAdminPropertyRequest) => void;
 }
 
-export function PropertyCreateDialog({ open, onClose, pending, error, onSubmit }: Props) {
+export function PropertyCreateDialog({
+  open,
+  onClose,
+  pending,
+  error,
+  lockedOwner,
+  onSubmit,
+}: Props) {
   const t = useTranslations("properties");
   const tCommon = useTranslations("common");
   const locale = useLocale();
@@ -51,7 +65,10 @@ export function PropertyCreateDialog({ open, onClose, pending, error, onSubmit }
   // authored yet) and `Contract` (sent, not yet InForce) would foreseeably 403.
   // `Active` is the stored projection and can lag real cover by up to an hour;
   // the 403 handler below remains the real guard for that edge.
-  const { data: ownerRows = [], isLoading: ownersLoading } = useOwnerList();
+  const { data: ownerRows = [], isLoading: ownersLoading } = useOwnerList(
+    undefined,
+    !lockedOwner,
+  );
   // `items` lets <SelectValue> render the owner's NAME in the trigger instead of the raw id.
   const ownerItems = ownerRows
     .filter((o) => o.onboardingStatus === "Active")
@@ -68,7 +85,10 @@ export function PropertyCreateDialog({ open, onClose, pending, error, onSubmit }
     label: categoryName(c, locale),
   }));
 
-  const [ownerUserId, setOwnerUserId] = useState("");
+  const [pickedOwnerId, setPickedOwnerId] = useState("");
+  // A locked owner is not copied into state: state would let a later render
+  // disagree with the prop, and no path here should change it.
+  const ownerUserId = lockedOwner ? lockedOwner.id : pickedOwnerId;
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
   const [propertyCategoryId, setPropertyCategoryId] = useState("");
@@ -137,27 +157,38 @@ export function PropertyCreateDialog({ open, onClose, pending, error, onSubmit }
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="flex flex-col gap-1">
               <label className="text-sm font-medium">{t("create.ownerLabel")}</label>
-              <Select
-                value={ownerUserId}
-                onValueChange={(v) => setOwnerUserId(v ?? "")}
-                items={ownerItems}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder={t("create.ownerPlaceholder")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {ownerItems.map((o) => (
-                    <SelectItem key={o.value} value={o.value}>
-                      {o.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {!ownersLoading && ownerItems.length === 0 ? (
-                <p className="text-xs text-muted-foreground">
-                  {t("create.noEligibleOwners")}
-                </p>
-              ) : null}
+              {lockedOwner ? (
+                /* Same height as the select it replaces, so the row stays even.
+                   Stated rather than disabled: a greyed-out select of one reads
+                   as a choice that failed to load. */
+                <div className="flex h-9 items-center rounded-md border border-input bg-muted/40 px-3 text-sm">
+                  <span className="truncate">{lockedOwner.label}</span>
+                </div>
+              ) : (
+                <>
+                  <Select
+                    value={ownerUserId}
+                    onValueChange={(v) => setPickedOwnerId(v ?? "")}
+                    items={ownerItems}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder={t("create.ownerPlaceholder")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ownerItems.map((o) => (
+                        <SelectItem key={o.value} value={o.value}>
+                          {o.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {!ownersLoading && ownerItems.length === 0 ? (
+                    <p className="text-xs text-muted-foreground">
+                      {t("create.noEligibleOwners")}
+                    </p>
+                  ) : null}
+                </>
+              )}
             </div>
 
             <div className="flex flex-col gap-1">

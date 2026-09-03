@@ -23,6 +23,9 @@ describe("invalidateTasks", () => {
     expect(keys).toContainEqual(["admin-task-groups"]);
     expect(keys).toContainEqual(["admin-tasks"]);
     expect(keys).toContainEqual(["owner-task-groups"]);
+    // The worker detail grid's windowed read. A prefix, so every cached week is
+    // invalidated rather than only the one currently on screen.
+    expect(keys).toContainEqual(["admin-tasks-range"]);
   });
 
   it("invalidates the single-group detail key only when a group id is known", () => {

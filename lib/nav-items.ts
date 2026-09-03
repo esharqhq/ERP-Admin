@@ -16,6 +16,21 @@ import {
 } from "lucide-react"
 import { type LucideIcon } from "lucide-react"
 
+/**
+ * Which badge treatment a row uses, from the "Counts mean work waiting" rule in
+ * `../assets/Uyer-Admin-Sidebar.dc.html`. The kind is a property of the row —
+ * a queue is a queue whatever today's number is — so it is declared here, while
+ * the number itself has to arrive from the backend. There is no counts endpoint
+ * yet (the spec files one under "Confirm before build" and BACKEND-ASKS.md now
+ * carries the ask), so every row below renders no badge at all for now.
+ *
+ * - `queue`    white pill, forest text — a queue this operator owns and clears.
+ * - `waiting`  red pill, white text — a person is waiting on a reply.
+ * - `expiring` amber dot, no number — something lapses soon.
+ * - `total`    plain mono number — a total, not an alert.
+ */
+export type NavBadgeKind = "queue" | "waiting" | "expiring" | "total"
+
 export type NavItem = {
   title: string
   labelKey: string
@@ -25,6 +40,8 @@ export type NavItem = {
   permission?: string
   /** Visible if the admin holds ANY of these codes (use instead of `permission` for grouped entry points). */
   anyOf?: string[]
+  /** Badge treatment for this row; omit for a row that never carries a count. */
+  badge?: NavBadgeKind
 }
 
 export type NavGroup = {
@@ -48,7 +65,7 @@ export const navGroups: NavGroup[] = [
     label: "Owner",
     labelKey: "nav.owner",
     items: [
-      { title: "Owners",     labelKey: "nav.owners",     url: "/dashboard/owners",          icon: Building2,  permission: "owner:list" },
+      { title: "Owners",     labelKey: "nav.owners",     url: "/dashboard/owners",          icon: Building2,  permission: "owner:list", badge: "total" },
       // Gated on `owner:list`, not on `task_group:create_any` (110038): 110038
       // is SUPER_ADMIN-only, and a MODERATOR should reach this page and see the
       // account and its order history. The form disables itself.
@@ -65,12 +82,12 @@ export const navGroups: NavGroup[] = [
     label: "Worker",
     labelKey: "nav.worker",
     items: [
-      { title: "Workers",     labelKey: "nav.workers",     url: "/dashboard/workers",          icon: Users,         permission: "worker:list" },
-      { title: "Tasks",       labelKey: "nav.tasks",       url: "/dashboard/tasks",            icon: ClipboardList, permission: "task:list_any" },
-      { title: "Dispatching", labelKey: "nav.dispatching", url: "/dashboard/dispatch",         icon: Truck,         permission: "task:assign_worker_any" },
-      { title: "Leave",       labelKey: "nav.leave",       url: "/dashboard/leave",            icon: CalendarOff,   permission: "worker_leave_request:list_any" },
+      { title: "Workers",     labelKey: "nav.workers",     url: "/dashboard/workers",          icon: Users,         permission: "worker:list", badge: "total" },
+      { title: "Tasks",       labelKey: "nav.tasks",       url: "/dashboard/tasks",            icon: ClipboardList, permission: "task:list_any", badge: "total" },
+      { title: "Dispatching", labelKey: "nav.dispatching", url: "/dashboard/dispatch",         icon: Truck,         permission: "task:assign_worker_any", badge: "expiring" },
+      { title: "Leave",       labelKey: "nav.leave",       url: "/dashboard/leave",            icon: CalendarOff,   permission: "worker_leave_request:list_any", badge: "queue" },
       { title: "Attendance",  labelKey: "nav.attendance",  url: "/dashboard/attendance",       icon: CalendarCheck, permission: "system:attendance:read" },
-      { title: "Documents",   labelKey: "nav.documents",   url: "/dashboard/worker-documents", icon: FolderOpen,    permission: "worker:list" },
+      { title: "Documents",   labelKey: "nav.documents",   url: "/dashboard/worker-documents", icon: FolderOpen,    permission: "worker:list", badge: "queue" },
     ],
   },
   {
@@ -78,7 +95,7 @@ export const navGroups: NavGroup[] = [
     label: "Agency",
     labelKey: "nav.agency",
     items: [
-      { title: "Requests", labelKey: "nav.agencyRequests", url: "/dashboard/agency-requests", icon: Inbox },
+      { title: "Requests", labelKey: "nav.agencyRequests", url: "/dashboard/agency-requests", icon: Inbox, badge: "waiting" },
       { title: "Agencies", labelKey: "nav.agencies",       url: "/dashboard/agencies",         icon: Briefcase },
     ],
   },
@@ -88,7 +105,7 @@ export const navGroups: NavGroup[] = [
     labelKey: "nav.support",
     items: [
       { title: "Support",  labelKey: "nav.support",  url: "/dashboard/support",  icon: TicketCheck,
-        anyOf: ["conversation:list_any", "support_ticket:list_any"] },
+        anyOf: ["conversation:list_any", "support_ticket:list_any"], badge: "waiting" },
       { title: "Settings", labelKey: "nav.settings", url: "/dashboard/settings", icon: Settings,
         anyOf: ["system:settings:read", "admin:list", "system:permission:read", "system:audit:read", "profession:create"] },
     ],
@@ -99,9 +116,13 @@ export const navItems: NavItem[] = navGroups.flatMap((g) => g.items)
 
 // ── Route access control ─────────────────────────────────────────────────────
 // The permission gate for a given dashboard route. `null` = no gate (any
-// authenticated admin may view). Consumed by BOTH the sidebar (which hides nav
-// items) and the central RouteGuard (which blocks page access). Backend still
-// enforces every [RequirePermission] independently — this layer is UX only.
+// authenticated admin may view). Consumed by BOTH the sidebar and the central
+// RouteGuard (which blocks page access). Backend still enforces every
+// [RequirePermission] independently — this layer is UX only.
+//
+// The sidebar no longer *hides* a gated row: per the nav spec it dims the row,
+// marks it with a lock and points it at `/forbidden?permission=<code>`, so an
+// operator can see the section exists and ask for the grant by name.
 
 export type RouteGate = { permission?: string; anyOf?: string[] }
 

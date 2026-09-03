@@ -17,7 +17,12 @@ export interface KycDocDto {
   /** `OwnerKYCDocType` name — render via `onboarding.docType.*`. */
   type: string | null;
   fileName: string | null;
-  /** Storage key as posted; fetch at `{filesBase}/files/{fileUrl}` (public, no auth). */
+  /**
+   * Storage key as posted — **not a URL**. Resolve with `resolveFileUrl`
+   * (`lib/http/files.ts`) before it reaches an `href`/`src`; used raw it resolves
+   * against this app's own origin and 404s. Served public, no auth: KYC is not one
+   * of `FilesController.SignedReadPrefixes`.
+   */
   fileUrl: string | null;
   /** F-03·1. TitleCase on the wire: "Pending" | "Approved" | "Rejected". */
   status: string | null;

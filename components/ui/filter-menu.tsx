@@ -41,7 +41,8 @@ export interface FilterMenuProps {
  * Reusable filter dropdown for list/table screens. Renders one single-select
  * radio group per `FilterGroup`, with an "all" reset option, and shows a badge
  * with the number of active (non-"all") filters. State lives in the caller —
- * pair it with `useTableFilters` for the matching filtering logic.
+ * the caller owns the filtering; `FilterBar` plus the table shell's `ClientSource`
+ * is the current pairing for a new screen.
  */
 export function FilterMenu({ groups, values, onChange, label, allLabel }: FilterMenuProps) {
   const t = useTranslations("common");

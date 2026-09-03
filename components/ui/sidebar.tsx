@@ -27,9 +27,13 @@ import {PanelLeftIcon} from "lucide-react"
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
-const SIDEBAR_WIDTH = "16rem"
+// 264 expanded / 76 collapsed, stated outright in the Measurements block of
+// `../assets/Uyer-Admin-Sidebar.dc.html`. The shadcn defaults were 256 and 48 —
+// close enough to 264 to look right in a screenshot and wrong in a ruler, and
+// 48 is far too narrow for the 44x36 rail rows the spec draws.
+const SIDEBAR_WIDTH = "16.5rem" /* 264 */
 const SIDEBAR_WIDTH_MOBILE = "18rem"
-const SIDEBAR_WIDTH_ICON = "3rem"
+const SIDEBAR_WIDTH_ICON = "4.75rem" /* 76 */
 const SIDEBAR_KEYBOARD_SHORTCUT = "b"
 
 type SidebarContextProps = {
@@ -218,7 +222,7 @@ function Sidebar({
             <div
                 data-slot="sidebar-gap"
                 className={cn(
-                    "relative w-(--sidebar-width) bg-transparent transition-[width] duration-200 ease-linear",
+                    "relative w-(--sidebar-width) bg-transparent transition-[width] duration-[180ms] ease-linear",
                     "group-data-[collapsible=offcanvas]:w-0",
                     "group-data-[side=right]:rotate-180",
                     variant === "floating" || variant === "inset"
@@ -230,7 +234,7 @@ function Sidebar({
                 data-slot="sidebar-container"
                 data-side={side}
                 className={cn(
-                    "fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) transition-[left,right,width] duration-200 ease-linear data-[side=left]:left-0 data-[side=left]:group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)] data-[side=right]:right-0 data-[side=right]:group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)] md:flex",
+                    "fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) transition-[left,right,width] duration-[180ms] ease-linear data-[side=left]:left-0 data-[side=left]:group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)] data-[side=right]:right-0 data-[side=right]:group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)] md:flex",
                     // Adjust the padding for floating and inset variants.
                     variant === "floating" || variant === "inset"
                         ? "p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4))+2px)]"
@@ -314,7 +318,13 @@ function SidebarInset({className, ...props}: React.ComponentProps<"main">) {
                 // calendar needs 200px + 7×150px — therefore pushed this inset past
                 // the viewport and gave the whole page a horizontal scrollbar,
                 // instead of scrolling inside its own `overflow-x-auto` container.
-                "relative flex w-full min-w-0 flex-1 flex-col bg-background md:peer-data-[variant=inset]:m-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow-sm md:peer-data-[variant=inset]:peer-data-[state=collapsed]:ml-2",
+                //
+                // `bg-canvas`, not `bg-background`: the DS grounds every screen on
+                // #F5F7F9 and floats white cards on it. `--background` cannot carry
+                // that — the app leans on it meaning "white" for inputs, active tab
+                // pills and sticky table cells — so the ground is its own token and
+                // gets applied once, here, at the shell.
+                "relative flex w-full min-w-0 flex-1 flex-col bg-canvas md:peer-data-[variant=inset]:m-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow-sm md:peer-data-[variant=inset]:peer-data-[state=collapsed]:ml-2",
                 className
             )}
             {...props}
@@ -378,7 +388,14 @@ function SidebarContent({className, ...props}: React.ComponentProps<"div">) {
             data-slot="sidebar-content"
             data-sidebar="content"
             className={cn(
-                "no-scrollbar flex min-h-0 flex-1 flex-col gap-0 overflow-auto group-data-[collapsible=icon]:overflow-hidden",
+                // `overflow-y-auto overflow-x-hidden` rather than `overflow-auto` plus an
+                    // icon-mode `overflow-hidden`: clipping BOTH axes on the collapsed
+                    // rail loses the vertical scroll, and a rail that renders every
+                    // destination (including the locked ones) is taller than a laptop
+                    // viewport, so the last groups became unreachable. Splitting the
+                    // axes keeps the horizontal clip the labels need and restores the
+                    // scroll, in both states, without an ordering-dependent override.
+                    "no-scrollbar flex min-h-0 flex-1 flex-col gap-0 overflow-x-hidden overflow-y-auto",
                 className
             )}
             {...props}
@@ -482,7 +499,7 @@ function SidebarMenuItem({className, ...props}: React.ComponentProps<"li">) {
 }
 
 const sidebarMenuButtonVariants = cva(
-    "peer/menu-button group/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-open:hover:bg-sidebar-accent data-open:hover:text-sidebar-accent-foreground data-active:bg-sidebar-accent data-active:font-medium data-active:text-sidebar-accent-foreground [&_svg]:size-4 [&_svg]:shrink-0 [&>span:last-child]:truncate",
+    "peer/menu-button group/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-open:hover:bg-sidebar-accent data-open:hover:text-sidebar-accent-foreground data-active:bg-sidebar-accent data-active:font-medium data-active:text-sidebar-accent-foreground [&_svg]:size-4 [&_svg]:shrink-0 [&>span:last-child]:truncate",
     {
         variants: {
             variant: {
@@ -491,9 +508,52 @@ const sidebarMenuButtonVariants = cva(
                     "bg-background shadow-[0_0_0_1px_hsl(var(--sidebar-border))] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-[0_0_0_1px_hsl(var(--sidebar-accent))]",
             },
             size: {
-                default: "h-8 text-sm",
-                sm: "h-7 text-xs",
-                lg: "h-12 text-sm group-data-[collapsible=icon]:p-0!",
+                default:
+                    "h-8 text-sm group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2!",
+                sm: "h-7 text-xs group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2!",
+                lg: "h-12 text-sm group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-0!",
+                /**
+                 * The Uyer admin nav row, measured off
+                 * `../assets/Uyer-Admin-Sidebar.dc.html`: 36 tall, radius 10,
+                 * 11 side padding, 11 gap, 18pt icon, 14/400 label. It lives
+                 * here rather than in the caller's className because the
+                 * geometry has to survive both states, and icon mode needs a
+                 * 44x36 box (not the 32x32 the other sizes clamp to) with the
+                 * label and any trailing badge gone.
+                 *
+                 * States are opacities of white over the forest ground, which
+                 * is what `--sidebar-foreground` now is: 14% active fill, 6%
+                 * hover, 80/62 rest label/icon. Colour crosses in 140ms.
+                 */
+                nav: [
+                    // `relative` anchors the active bar and the collapsed
+                    // corner badge; `overflow-visible` is required for both —
+                    // the base clips, which would round the bar's flat inner
+                    // end off against the radius and cut the collapsed bar's
+                    // 16 of negative offset away entirely. The label truncates
+                    // on its own span, so the row does not need the clip.
+                    "relative overflow-visible",
+                    "h-9 gap-[11px] rounded-[10px] px-[11px] text-[14px] font-normal",
+                    "text-sidebar-foreground/80 [&_svg]:size-[18px] [&_svg]:text-sidebar-foreground/62",
+                    "transition-[background-color,color] duration-[140ms]",
+                    "hover:bg-sidebar-foreground/6 hover:text-sidebar-foreground",
+                    "hover:[&_svg]:text-sidebar-foreground/85",
+                    "active:bg-sidebar-foreground/6 active:text-sidebar-foreground",
+                    // Active: 14% fill, a 1px inset top highlight, white 600
+                    // label, white icon, and a 3x22 white bar with its round
+                    // end facing in. Expanded the bar sits on the row's own
+                    // left edge; collapsed it shifts out by the 16 of rail
+                    // gutter so it lands flush against the sidebar edge.
+                    "data-active:bg-sidebar-foreground/14 data-active:font-semibold",
+                    "data-active:text-sidebar-foreground data-active:[&_svg]:text-sidebar-foreground",
+                    "data-active:shadow-[inset_0_1px_0_rgb(255_255_255/0.14)]",
+                    "data-active:before:absolute data-active:before:top-[7px] data-active:before:left-0",
+                    "data-active:before:h-[22px] data-active:before:w-[3px]",
+                    "data-active:before:rounded-r-full data-active:before:bg-sidebar-foreground",
+                    "group-data-[collapsible=icon]:data-active:before:-left-4",
+                    "group-data-[collapsible=icon]:h-9! group-data-[collapsible=icon]:w-11!",
+                    "group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0!",
+                ].join(" "),
             },
         },
         defaultVariants: {
@@ -630,14 +690,17 @@ function SidebarMenuSkeleton({
             className={cn("flex h-8 items-center gap-2 rounded-md px-2", className)}
             {...props}
         >
+            {/* `Skeleton` defaults to `bg-muted`, a near-white neutral. That blended
+                into the old pale sidebar; on the forest band it would flash as white
+                slabs, so these two override to a tint of the sidebar's own text. */}
             {showIcon && (
                 <Skeleton
-                    className="size-4 rounded-md"
+                    className="size-4 rounded-md bg-sidebar-foreground/10"
                     data-sidebar="menu-skeleton-icon"
                 />
             )}
             <Skeleton
-                className="h-4 max-w-(--skeleton-width) flex-1"
+                className="h-4 max-w-(--skeleton-width) flex-1 bg-sidebar-foreground/10"
                 data-sidebar="menu-skeleton-text"
                 style={
                     {

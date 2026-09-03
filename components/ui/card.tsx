@@ -2,6 +2,16 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * DS elevation, "Card — ring + green-tinted shadow": the hairline ring was
+ * already here; `shadow-card` supplies the second half. The DS states the pair
+ * as one `box-shadow` (`0 0 0 1px rgba(15,42,32,.10), 0 8px 24px rgba(15,61,46,.06)`),
+ * but Tailwind's `ring-*` and `shadow-*` compose to the same rendered stack and
+ * keep the ring overridable per card, which several detail views rely on.
+ *
+ * `rounded-xl` is 20px and `--shadow-card` is forest-tinted — both set in
+ * `globals.css`, so nothing here restates a brand value.
+ */
 function Card({
   className,
   size = "default",
@@ -12,7 +22,7 @@ function Card({
       data-slot="card"
       data-size={size}
       className={cn(
-        "group/card flex flex-col gap-4 overflow-hidden rounded-xl bg-card py-4 text-sm text-card-foreground ring-1 ring-foreground/10 has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=sm]:gap-3 data-[size=sm]:py-3 data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-xl *:[img:last-child]:rounded-b-xl",
+        "group/card flex flex-col gap-4 overflow-hidden rounded-xl bg-card py-4 text-sm text-card-foreground shadow-card ring-1 ring-foreground/10 has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=sm]:gap-3 data-[size=sm]:py-3 data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-xl *:[img:last-child]:rounded-b-xl",
         className
       )}
       {...props}

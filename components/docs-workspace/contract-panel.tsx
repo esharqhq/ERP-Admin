@@ -11,6 +11,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { ConfirmDialog } from "@/components/tasks/confirm-dialog";
 import { useHasPermission } from "@/hooks/use-current-permissions";
 import { useSignedPdf } from "@/hooks/use-signed-pdf";
+import {
+  saveDraftBlocker,
+  sendBlocker,
+} from "@/lib/contracts/authoring-gate";
 import { canTerminate } from "@/lib/contracts/registry-row";
 import { contractPhasePresentation } from "@/lib/onboarding/status";
 import { contractService } from "@/lib/services/contract.service";
@@ -175,7 +179,6 @@ export function ContractPanel({
   );
 
   const phase = contract?.phase ?? null;
-  const isDraft = phase === null || phase === "Draft";
   const awaitingSignature = phase === "Sent";
   const live = phase === "InForce" || phase === "Scheduled";
 
@@ -270,8 +273,27 @@ export function ContractPanel({
   const set = (key: keyof ContractFormValues) => (value: string) =>
     setValues((v) => ({ ...v, [key]: value }));
 
-  const datesValid =
-    !!values.eligibleFrom && !!values.eligibleTo && values.eligibleFrom < values.eligibleTo;
+  /**
+   * Not booleans any more, and not spent only on `disabled`. Straight after an
+   * approval the period is empty, which leaves *both* buttons dead — and the
+   * panel used to give no reason for either, so the admin's next move was a
+   * guess. See `lib/contracts/authoring-gate.ts`.
+   */
+  const saveBlocked = saveDraftBlocker(canAuthor, values.eligibleFrom, values.eligibleTo);
+  const sendBlocked = sendBlocker(canAuthor, phase);
+
+  /**
+   * One line, naming only the thing standing in the way *right now*: the save
+   * blocker while there is one, the send blocker once saving is possible. Both
+   * at once would be noise — you cannot act on the second until the first is
+   * gone, and the pair reads as a wall rather than a next step.
+   *
+   * `locked` is deliberately dropped: the bordered note above already states
+   * that refusal, in a sentence chosen for the specific status. Repeating it
+   * here would say the same thing twice, worse the second time.
+   */
+  const blockedStep = saveBlocked ?? sendBlocked;
+  const blockedHint = blockedStep === "locked" ? null : blockedStep;
 
   if (live && contract) {
     const p = contractPhasePresentation(contract.phase);
@@ -551,16 +573,26 @@ export function ContractPanel({
 
       {/* Same rule as the signed-contract row: withdraw belongs in the row, at
           the far end of it, never beside Send. */}
+      {/* Above the row, not below it: it is the instruction for the buttons, so
+          it has to be read before they are reached. `role="status"` so the swap
+          from "set the period" to "save it first" is announced when the second
+          date lands, rather than silently changing under a screen reader. */}
+      {blockedHint && (
+        <p role="status" className="text-sm">
+          {t(`contract.blocked.${blockedHint}`)}
+        </p>
+      )}
+
       <div className="flex flex-wrap items-center gap-2">
         <Button
           variant="outline"
-          disabled={!canAuthor || !datesValid || saving}
+          disabled={saveBlocked !== null || saving}
           onClick={() => onSaveDraft(values, file)}
         >
           {t("contract.saveDraft")}
         </Button>
         <Button
-          disabled={!canAuthor || !contract || !isDraft || sending}
+          disabled={sendBlocked !== null || sending}
           onClick={() => contract && onSend(contract.id)}
         >
           {t("contract.send")}

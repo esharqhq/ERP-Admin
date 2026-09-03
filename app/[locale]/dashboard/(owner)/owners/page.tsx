@@ -1,24 +1,22 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Building2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { TableCell, TableRow } from "@/components/ui/table";
-import { RowLink } from "@/components/ui/row-link";
-import { DataTableCard } from "@/components/ui/data-table-card";
-import { FilterBar, FilterChips, type FilterField } from "@/components/ui/filter-bar";
-import { TablePagination } from "@/components/ui/table-pagination";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Skeleton } from "@/components/ui/skeleton";
+import { DataTable, type DataColumn } from "@/components/ui/data-table";
+import type { FilterField } from "@/components/ui/filter-bar";
 import { useOwners } from "@/hooks/use-owners";
 import { useCities, useCountries } from "@/hooks/use-lookups";
+import { useTableUrlState } from "@/hooks/use-table-url-state";
 import {
+  OWNER_FILTER_KEYS,
   buildOwnerFilterQuery,
   clearCityOnCountryChange,
 } from "@/lib/owners/owner-filter-query";
+import { isPermissionDenied } from "@/lib/onboarding/errors";
 import { onboardingStatusPresentation } from "@/lib/onboarding/status";
-import { DEFAULT_PAGE_SIZE } from "@/lib/types/paged.types";
+import { initials } from "@/lib/ui/initials";
 import type { OwnerListQuery, OwnerRowDto } from "@/lib/types/owner.types";
 import { useLocale, useTranslations } from "next-intl";
 
@@ -32,6 +30,8 @@ import { useLocale, useTranslations } from "next-intl";
 const TABS = ["all", "review", "active"] as const;
 type OwnerTab = (typeof TABS)[number];
 
+const DEFAULT_TAB: OwnerTab = "all";
+
 /**
  * **Every tab pins `ownerType: "Regular"`**, so the permanent "Walk-in / Manual
  * Orders" account never appears in this directory. It is a system account rather
@@ -44,336 +44,344 @@ type OwnerTab = (typeof TABS)[number];
  * own screen, which resolves the account by its own lookup and does not read this
  * list, so nothing depends on that.
  */
-function queryFor(tab: OwnerTab): Pick<OwnerListQuery, "onboardingStatus" | "ownerType"> {
+function queryFor(tab: string): Pick<OwnerListQuery, "onboardingStatus" | "ownerType"> {
   switch (tab) {
     case "review":
       return { onboardingStatus: "Review", ownerType: "Regular" };
     case "active":
       return { onboardingStatus: "Active", ownerType: "Regular" };
-    case "all":
+    default:
       return { ownerType: "Regular" };
   }
 }
 
-function formatJoined(iso: string, locale: string): string {
+/** The active locale's name for a lookup row. Hoisted so `fields` has honest deps. */
+function lookupLabel(c: { nameDe: string; nameEn: string }, locale: string): string {
+  return locale === "de" ? c.nameDe : c.nameEn;
+}
+
+function formatDay(iso: string, locale: string): string {
   const d = new Date(iso);
   return Number.isNaN(d.getTime())
     ? "—"
     : d.toLocaleDateString(locale, { day: "2-digit", month: "short", year: "numeric" });
 }
 
+/**
+ * The owner directory, on the shared table shell.
+ *
+ * **Server mode, and that is the whole reason this file reads the way it does.**
+ * `GET /api/admin/owners` searches, filters and pages itself, so the shell narrows
+ * nothing: `useTableUrlState` is the single source for tab, search, filters and
+ * page, and `buildOwnerFilterQuery` turns its filter bag into the query. Running
+ * the client pipeline here would search the 25 rows on screen and present the
+ * answer as the whole table.
+ *
+ * **Eight columns registered, seven visible.** The design system caps a table at
+ * seven (§08 · Table, Behaviour: *"Anything more belongs in the detail view or
+ * behind a column picker"*), so `joined` ships off and the picker holds it. It is
+ * the least actionable of the eight — an account's age decides nothing an admin
+ * does from this list.
+ *
+ * **No sorting.** `DataColumn.sortKey` is what makes a column sortable in server
+ * mode, and nothing in this app has ever sent `sortBy`/`dir` — the whitelist needs
+ * a default branch for an unknown key before anything relies on it. Omitting the
+ * keys leaves the headers inert rather than offering a sort that would silently
+ * order one page. Tracked as its own piece of work, not as part of this migration.
+ */
 export default function OwnersPage() {
   const t = useTranslations("owners");
   const tOnboarding = useTranslations("onboarding");
-  const tCommon = useTranslations("common");
   const locale = useLocale();
 
-  const [tab, setTab] = useState<OwnerTab>("all");
-  const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
-  /** Keyed by wire param name — see `buildOwnerFilterQuery`. */
-  const [filters, setFilters] = useState<Record<string, string>>({});
+  const state = useTableUrlState({
+    filterKeys: [...OWNER_FILTER_KEYS],
+    defaultTab: DEFAULT_TAB,
+  });
 
   const countries = useCountries();
   // Idle until a country is chosen: cities are only reachable per country.
-  const cities = useCities(filters.countryId || undefined);
+  const cities = useCities(state.filters.countryId || undefined);
 
-  const built = useMemo(() => buildOwnerFilterQuery(filters), [filters]);
+  const built = useMemo(
+    () => buildOwnerFilterQuery(state.filters),
+    [state.filters],
+  );
 
-  // Filtering, searching and paging all happen server-side now, so the query is
-  // the whole state of the table.
   const query = useMemo<OwnerListQuery>(
     () => ({
       ...(built.ok ? built.query : {}),
       // The tab owns `onboardingStatus` and `ownerType`, so it is spread LAST:
       // where a tab and a filter address the same param the tab wins, and a query
       // neither control explains is worse than a narrower one.
-      ...queryFor(tab),
-      search: search || undefined,
-      page,
-      pageSize,
+      ...queryFor(state.tab),
+      search: state.search || undefined,
+      page: state.page,
+      pageSize: state.pageSize,
     }),
-    [built, tab, search, page, pageSize],
+    [built, state.tab, state.search, state.page, state.pageSize],
   );
 
   const { data, isLoading, isError, error } = useOwners(query);
-  const owners = data?.items ?? [];
 
-  // Any change to what is being listed invalidates the current page number —
-  // staying on page 4 of a filter that now has one page shows an empty table.
-  const reset = <T,>(set: (v: T) => void) => (v: T) => {
-    set(v);
-    setPage(1);
-  };
-
+  /**
+   * The country picker owns two params, so it writes both at once. Two
+   * `setFilter` calls would not do: each merges into the query captured at
+   * render, so the second would discard the first and leave the stale city id in
+   * the address — which returns an **empty page rather than an error**, and reads
+   * as "this country has no owners".
+   */
   const setFilter = (key: string, value: string) => {
-    setFilters((prev) =>
-      key === "countryId"
-        ? clearCityOnCountryChange(prev, value)
-        : { ...prev, [key]: value },
-    );
-    setPage(1);
+    if (key !== "countryId") return state.setFilter(key, value);
+    state.setFilters(clearCityOnCountryChange(state.filters, value));
   };
 
-  const clearFilters = () => {
-    setFilters({});
-    setPage(1);
-  };
-
-  const hasFilters = Object.values(filters).some((v) => v);
-
-  const lookupLabel = (c: { nameDe: string; nameEn: string }) =>
-    locale === "de" ? c.nameDe : c.nameEn;
-
-  const fields: FilterField[] = [
-    {
-      key: "countryId",
-      label: t("filters.country"),
-      // It genuinely filters nothing — saying so stops it reading as broken.
-      hint: t("filters.countryHint"),
-      options: (countries.data ?? [])
-        .filter((c) => c.isActive)
-        .map((c) => ({ value: c.id, label: lookupLabel(c) })),
-    },
-    {
-      key: "companyCityId",
-      label: t("filters.companyCity"),
-      // §2.1: a city lives only on a company record, so this filter can reach
-      // neither private individuals nor companies with a blank city.
-      hint: t("filters.companyCityHint"),
-      // Empty until a country is chosen, and a select with no options renders
-      // nothing — which is exactly the wanted behaviour, with no extra flag.
-      options: (cities.data ?? [])
-        .filter((c) => c.isActive)
-        .map((c) => ({ value: c.id, label: lookupLabel(c) })),
-    },
-    {
-      kind: "dateRange",
-      fromKey: "registeredFrom",
-      toKey: "registeredTo",
-      label: t("filters.registered"),
-    },
-    {
-      kind: "triState",
-      key: "neverOrdered",
-      label: t("filters.neverOrdered"),
-      anyLabel: t("filters.neverOrderedAny"),
-      trueLabel: t("filters.neverOrderedTrue"),
-      falseLabel: t("filters.neverOrderedFalse"),
-    },
-    {
-      kind: "dateRange",
-      fromKey: "lastOrderedFrom",
-      toKey: "lastOrderedTo",
-      label: t("filters.lastOrdered"),
-      // The combination is a 400, so the inputs go dead rather than the request
-      // failing after the admin has filled them in.
-      disabled: filters.neverOrdered === "true",
-    },
-    {
-      kind: "numberRange",
-      minKey: "propertyCountMin",
-      maxKey: "propertyCountMax",
-      label: t("filters.propertyCount"),
-    },
-    {
-      kind: "numberRange",
-      minKey: "taskCountMin",
-      maxKey: "taskCountMax",
-      label: t("filters.taskCount"),
-    },
-  ];
-
-  const columns = [
-    { label: t("columns.owner") },
-    { label: t("directory.columns.phone") },
-    { label: t("columns.onboarding") },
-    { label: t("columns.companyCity") },
-    { label: t("columns.properties"), className: "text-center" },
-    { label: t("columns.tasks"), className: "text-center" },
-    { label: t("columns.lastOrdered") },
-    { label: t("account.joined") },
-  ];
-
-  const Header = (
-    <div className="flex flex-col gap-1">
-      <h1 className="font-heading text-3xl font-bold tracking-tight leading-tight">
-        {t("title")}
-      </h1>
-      <p className="text-sm text-muted-foreground">{t("directory.subtitle")}</p>
-    </div>
+  const fields = useMemo<FilterField[]>(
+    () => [
+      {
+        key: "countryId",
+        label: t("filters.country"),
+        // It genuinely filters nothing — saying so stops it reading as broken.
+        hint: t("filters.countryHint"),
+        options: (countries.data ?? [])
+          .filter((c) => c.isActive)
+          .map((c) => ({ value: c.id, label: lookupLabel(c, locale) })),
+      },
+      {
+        key: "companyCityId",
+        label: t("filters.companyCity"),
+        // §2.1: a city lives only on a company record, so this filter can reach
+        // neither private individuals nor companies with a blank city.
+        hint: t("filters.companyCityHint"),
+        // Empty until a country is chosen, and a select with no options renders
+        // nothing — which is exactly the wanted behaviour, with no extra flag.
+        options: (cities.data ?? [])
+          .filter((c) => c.isActive)
+          .map((c) => ({ value: c.id, label: lookupLabel(c, locale) })),
+      },
+      {
+        kind: "dateRange",
+        fromKey: "registeredFrom",
+        toKey: "registeredTo",
+        label: t("filters.registered"),
+      },
+      {
+        kind: "triState",
+        key: "neverOrdered",
+        label: t("filters.neverOrdered"),
+        anyLabel: t("filters.neverOrderedAny"),
+        trueLabel: t("filters.neverOrderedTrue"),
+        falseLabel: t("filters.neverOrderedFalse"),
+      },
+      {
+        kind: "dateRange",
+        fromKey: "lastOrderedFrom",
+        toKey: "lastOrderedTo",
+        label: t("filters.lastOrdered"),
+        // The combination is a 400, so the inputs go dead rather than the request
+        // failing after the admin has filled them in.
+        disabled: state.filters.neverOrdered === "true",
+      },
+      {
+        kind: "numberRange",
+        minKey: "propertyCountMin",
+        maxKey: "propertyCountMax",
+        label: t("filters.propertyCount"),
+      },
+      {
+        kind: "numberRange",
+        minKey: "taskCountMin",
+        maxKey: "taskCountMax",
+        label: t("filters.taskCount"),
+      },
+    ],
+    [t, countries.data, cities.data, locale, state.filters.neverOrdered],
   );
 
-  const TabBar = (
-    <Tabs value={tab} onValueChange={(v) => reset(setTab)(v as OwnerTab)}>
-      <TabsList variant="line" className="self-start">
-        {TABS.map((key) => (
-          <TabsTrigger key={key} value={key}>
-            {t(`tabs.${key}` as Parameters<typeof t>[0])}
-          </TabsTrigger>
-        ))}
-      </TabsList>
-    </Tabs>
+  /**
+   * Column order is identity first, then how to reach them, then where they are,
+   * then how much of them there is, and last what they have been doing.
+   *
+   * `owner` and `onboarding` are **locked**: between them they are the row's
+   * identity, and a row that can be reduced to counts alone is not a row anybody
+   * can act on. The picker still lists them, greyed with a lock.
+   *
+   * Numbers, dates and the phone are mono and the two counts are right-aligned,
+   * per §08 · Table: digits stack into a column the eye can compare down.
+   */
+  const columns = useMemo<DataColumn<OwnerRowDto>[]>(
+    () => [
+      {
+        id: "owner",
+        label: t("columns.owner"),
+        locked: true,
+        className: "min-w-[220px]",
+        cell: (o) => (
+          <div className="flex min-w-0 items-center gap-3">
+            <Avatar className="size-8 shrink-0">
+              {/*
+                A quiet green ground with forest initials, the same treatment the
+                documents queue uses: `--accent` is `--forest-100` (#E1EFE8), the
+                value the design names, and it inverts correctly in dark mode
+                where the default cool grey does not. No ring — the design gives
+                the avatar no outline, and beside a forest tint the border read as
+                a second circle.
+              */}
+              <AvatarFallback className="bg-accent text-xs font-semibold text-primary">
+                {initials(o.fullName)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex min-w-0 flex-col gap-0.5">
+              <span className="truncate text-sm font-medium leading-tight">
+                {o.fullName || "—"}
+              </span>
+              {/* The second line is the mono context line §08 draws under the
+                  identifier — an email is the id an admin actually pastes. */}
+              <span className="truncate font-mono text-[11px] text-muted-foreground">
+                {o.email || "—"}
+              </span>
+            </div>
+          </div>
+        ),
+      },
+      {
+        id: "phone",
+        label: t("directory.columns.phone"),
+        cell: (o) => (
+          <span className="font-mono text-sm text-muted-foreground">
+            {o.phoneNumber || "—"}
+          </span>
+        ),
+      },
+      {
+        id: "onboarding",
+        label: t("columns.onboarding"),
+        locked: true,
+        cell: (o) => {
+          const p = onboardingStatusPresentation(o.onboardingStatus);
+          return (
+            <Badge variant={p.variant} className={p.className}>
+              {tOnboarding(
+                `status.${p.labelKey}` as Parameters<typeof tOnboarding>[0],
+              )}
+            </Badge>
+          );
+        },
+      },
+      {
+        id: "companyCity",
+        label: t("columns.companyCity"),
+        // Blanks are rendered deliberately: these are exactly the rows a
+        // company-city filter can never return, so showing them is what lets a
+        // short filtered list explain itself.
+        cell: (o) => (
+          <span className="text-sm text-muted-foreground">{o.companyCity || "—"}</span>
+        ),
+      },
+      {
+        id: "properties",
+        label: t("columns.properties"),
+        align: "right",
+        cell: (o) => (
+          <span className="flex items-center justify-end gap-1.5 font-mono text-sm text-muted-foreground">
+            <Building2 className="size-3.5" />
+            {o.propertyCount}
+          </span>
+        ),
+      },
+      {
+        id: "tasks",
+        label: t("columns.tasks"),
+        align: "right",
+        cell: (o) => (
+          <span className="font-mono text-sm text-muted-foreground">{o.taskCount}</span>
+        ),
+      },
+      {
+        id: "lastOrdered",
+        // "Last order", never "last activity" — it measures ordering, and this
+        // API has no login-recency data for any user type.
+        label: t("columns.lastOrdered"),
+        cell: (o) => (
+          <span className="font-mono text-sm text-muted-foreground">
+            {o.lastOrderedAt ? formatDay(o.lastOrderedAt, locale) : "—"}
+          </span>
+        ),
+      },
+      {
+        id: "joined",
+        label: t("account.joined"),
+        // Off by default: seven columns is the system's cap and this is the one
+        // an admin never acts on from a list.
+        defaultVisible: false,
+        cell: (o) => (
+          <span className="font-mono text-sm text-muted-foreground">
+            {formatDay(o.createdAt, locale)}
+          </span>
+        ),
+      },
+    ],
+    [t, tOnboarding, locale],
   );
 
-  if (isError) {
-    const msg =
-      (error as { response?: { data?: { message?: string } } })?.response?.data?.message ??
-      (error as Error)?.message ??
-      t("errorConnect");
-    const status = (error as { response?: { status?: number } })?.response?.status;
-    return (
-      <div className="flex flex-col gap-6">
-        {Header}
-        <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-5 text-sm text-destructive">
-          <p className="font-semibold">
-            {t("errorLoad")}
-            {status ? ` (${status})` : ""}
-          </p>
-          <p className="mt-1 text-destructive/80">{msg}</p>
-        </div>
-      </div>
-    );
-  }
+  const tabs = useMemo(
+    () =>
+      TABS.map((key) => ({
+        value: key,
+        label: t(`tabs.${key}` as Parameters<typeof t>[0]),
+        // No counts: this endpoint pages, so a count would need one probe request
+        // per tab and would still only ever be the server's, not the page's.
+      })),
+    [t],
+  );
 
   return (
-    <div className="flex flex-col gap-6">
-      {Header}
-
-      <div className="flex flex-col gap-4">
-        {TabBar}
-
-        {/* A refused combination must explain itself: the table below is still
-            showing the tab/search result, so without this it reads as "no owners
-            match" rather than "these filters were not applied". */}
-        {!built.ok && (
-          <p className="text-xs text-destructive">{t("filters.invalidCombination")}</p>
-        )}
-
-        {isLoading ? (
-          <div className="flex flex-col gap-2 rounded-xl border border-border p-4">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Skeleton key={i} className="h-12 w-full rounded-lg" />
-            ))}
-          </div>
-        ) : (
-          <DataTableCard
-            title={t("list")}
-            count={data?.total ?? 0}
-            searchPlaceholder={t("directory.search")}
-            searchValue={search}
-            onSearchChange={reset(setSearch)}
-            // The trigger belongs on the toolbar row, before search: narrow the
-            // set, then find within it. Seven dimensions never fitted a row of
-            // their own — they ran off the right edge.
-            filter={
-              <FilterBar
-                fields={fields}
-                values={filters}
-                onChange={setFilter}
-                onReset={clearFilters}
-                allLabel={tCommon("all")}
-                clearLabel={tCommon("clearFilters")}
-                orderErrorLabel={t("filters.rangeOrder")}
-                negativeErrorLabel={t("filters.rangeNegative")}
-                collapsible
-              />
-            }
-            // `undefined` rather than an empty node, so the toolbar stays a single
-            // row until something is actually filtered.
-            filters={
-              hasFilters ? (
-                <FilterChips
-                  fields={fields}
-                  values={filters}
-                  onChange={setFilter}
-                  onReset={clearFilters}
-                  clearLabel={tCommon("clearFilters")}
-                />
-              ) : undefined
-            }
-            columns={columns}
-            data={owners}
-            renderRow={(o: OwnerRowDto) => {
-              const p = onboardingStatusPresentation(o.onboardingStatus);
-              return (
-                <TableRow
-                  key={o.id}
-                  className="group/row relative cursor-pointer transition-colors duration-150 hover:bg-accent/40"
-                >
-                  <TableCell className="py-3">
-                    <RowLink href={`/dashboard/owners/${o.id}`} label={o.fullName} />
-                    <div className="flex items-center gap-3">
-                      <Avatar className="size-9 ring-1 ring-border">
-                        <AvatarFallback className="bg-muted text-[11px] font-semibold">
-                          {(o.fullName || "??").slice(0, 2).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex min-w-0 flex-col gap-0.5">
-                        <span className="text-sm font-medium leading-tight">
-                          {o.fullName || "—"}
-                        </span>
-                        <span className="text-[11px] text-muted-foreground">
-                          {o.email || "—"}
-                        </span>
-                      </div>
-                    </div>
-                  </TableCell>
-
-                  <TableCell className="text-sm tabular-nums text-muted-foreground">
-                    {o.phoneNumber || "—"}
-                  </TableCell>
-
-                  <TableCell>
-                    <Badge variant={p.variant} className={p.className}>
-                      {tOnboarding(`status.${p.labelKey}` as Parameters<typeof tOnboarding>[0])}
-                    </Badge>
-                  </TableCell>
-
-                  {/* Blanks are rendered deliberately: these are exactly the rows a
-                      company-city filter can never return, so showing them is what
-                      lets a short filtered list explain itself. */}
-                  <TableCell className="text-sm text-muted-foreground">
-                    {o.companyCity || "—"}
-                  </TableCell>
-
-                  <TableCell>
-                    <span className="flex items-center justify-center gap-1.5 text-sm tabular-nums text-muted-foreground">
-                      <Building2 className="size-3.5" />
-                      {o.propertyCount}
-                    </span>
-                  </TableCell>
-
-                  <TableCell className="text-center text-sm tabular-nums text-muted-foreground">
-                    {o.taskCount}
-                  </TableCell>
-
-                  {/* "Last order", never "last activity" — it measures ordering, and
-                      this API has no login-recency data for any user type. */}
-                  <TableCell className="text-sm tabular-nums text-muted-foreground">
-                    {o.lastOrderedAt ? formatJoined(o.lastOrderedAt, locale) : "—"}
-                  </TableCell>
-
-                  <TableCell className="text-sm tabular-nums text-muted-foreground">
-                    {formatJoined(o.createdAt, locale)}
-                  </TableCell>
-                </TableRow>
-              );
-            }}
-          />
-        )}
-
-        {!isLoading && (data?.total ?? 0) > 0 && (
-          <TablePagination
-            page={data?.page ?? 1}
-            pageSize={data?.pageSize ?? pageSize}
-            total={data?.total ?? 0}
-            onPageChange={setPage}
-            onPageSizeChange={reset(setPageSize)}
-          />
-        )}
+    /*
+      Grows so the card can reach the bottom of the window — `main` in the
+      dashboard layout is already a full-height flex column and this is the link
+      between it and the card.
+    */
+    <div className="flex grow flex-col gap-5">
+      <div className="flex flex-col gap-1">
+        <h1 className="font-heading text-3xl font-bold leading-tight tracking-tight">
+          {t("title")}
+        </h1>
+        <p className="text-sm text-muted-foreground">{t("directory.subtitle")}</p>
       </div>
+
+      {/* A refused combination must explain itself: the table below is still
+          showing the tab/search result, so without this it reads as "no owners
+          match" rather than "these filters were not applied". */}
+      {!built.ok && (
+        <p className="text-xs text-destructive">{t("filters.invalidCombination")}</p>
+      )}
+
+      <DataTable
+        state={{ ...state, setFilter }}
+        scope="owners"
+        columns={columns}
+        source={{
+          mode: "server",
+          rows: data?.items ?? [],
+          total: data?.total ?? 0,
+          isLoading,
+          isError,
+          // A refusal is not a failure: the shell names the missing grant instead
+          // of telling an admin to reload a page they may simply not read.
+          isForbidden: isPermissionDenied(error),
+        }}
+        rowKey={(o) => o.id}
+        rowHref={(o) => `/dashboard/owners/${o.id}`}
+        rowLabel={(o) => o.fullName || o.id}
+        title={t("list")}
+        // No subtitle: the page header above already carries that sentence, and
+        // the count pill beside the title is what the row actually adds.
+        tabs={tabs}
+        tabsLabel={t("tabsLabel")}
+        fields={fields}
+        searchPlaceholder={t("directory.search")}
+        empty={{ title: t("emptyTitle"), body: t("emptyBody") }}
+      />
     </div>
   );
 }

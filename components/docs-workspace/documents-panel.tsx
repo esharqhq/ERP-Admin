@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
+import { resolveFileUrl } from "@/lib/http/files";
 import { cn } from "@/lib/utils";
 import type { OnboardingStatus } from "@/lib/types/onboarding.types";
 
@@ -16,10 +17,11 @@ export interface ReviewDoc {
   type: string | null;
   fileName: string | null;
   /**
-   * Used directly as an href, matching what `components/workers/doc-table.tsx` and
-   * `components/kyc/kyc-doc-review.tsx` already do and what `upload.service` stores.
-   * (The v2 guides describe a `storageKey` + files-base convention; reconciling the
-   * two is tracked separately — this panel deliberately does not invent a second one.)
+   * **A storage key, not a URL** — resolve with `resolveFileUrl` before it reaches
+   * an `href`. Owner and Worker both post the presign key and the server echoes it
+   * back verbatim; using it raw resolved against this app's own origin and 404'd.
+   * Absolute values (pre-migration rows, anything `upload.service` stored) still
+   * occur and pass through that helper untouched.
    */
   fileUrl: string | null;
   /** TitleCase on the wire: "Pending" | "Approved" | "Rejected". */
@@ -58,6 +60,7 @@ function DocRow({
   const [reason, setReason] = useState("");
 
   const typeKey = (doc.type ?? "other").charAt(0).toLowerCase() + (doc.type ?? "other").slice(1);
+  const fileHref = resolveFileUrl(doc.fileUrl);
 
   return (
     <li className="flex flex-col gap-2 rounded-lg border border-border p-3">
@@ -111,13 +114,13 @@ function DocRow({
         </div>
       ) : (
         <div className="flex flex-wrap items-center gap-1 pl-6">
-          {doc.fileUrl && (
+          {fileHref && (
             <Button
               size="sm"
               variant="ghost"
               nativeButton={false}
               className="gap-1.5 text-muted-foreground"
-              render={<a href={doc.fileUrl} target="_blank" rel="noreferrer" />}
+              render={<a href={fileHref} target="_blank" rel="noreferrer" />}
             >
               <ExternalLink className="size-3.5" />
               {t("docView")}
