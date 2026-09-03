@@ -75,7 +75,7 @@ const EXPECTED_FIELDS = {
     "isVerified", "propertyCount", "createdAt", "ownerType",
     "companyCity", "lastOrderedAt", "taskCount"],
   OwnerRowDtoPagedResult: ["items", "total", "page", "pageSize", "totalPages"],
-  WorkerRowDto: ["id", "fullName", "email", "phoneNumber", "status", "onboardingStatus",
+  WorkerRowDto: ["id", "fullName", "email", "phoneNumber", "licenseExpiry", "status", "onboardingStatus",
     "employeeType", "skills", "rating", "experience", "completedTasks",
     "hasActiveContract", "onTask", "createdAt"],
   WorkerRowDtoPagedResult: ["items", "total", "page", "pageSize", "totalPages"],

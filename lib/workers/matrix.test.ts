@@ -20,6 +20,7 @@ function worker(over: Partial<WorkerRowDto> = {}): WorkerRowDto {
     fullName: "Dilnoza Karimova",
     email: "d@uyer.app",
     phoneNumber: null,
+    licenseExpiry: null,
     status: "Active",
     onboardingStatus: "Active",
     skills: ["General Worker"],
