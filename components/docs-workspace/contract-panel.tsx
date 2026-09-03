@@ -23,12 +23,10 @@ import type {
   OnboardingStatus,
 } from "@/lib/types/onboarding.types";
 
-/** What the form collects. Owner contracts add the four term fields; worker ones don't. */
+/** What the form collects. Owner contracts add the two term fields; worker ones don't. */
 export interface ContractFormValues {
   eligibleFrom: string;
   eligibleTo: string;
-  commissionPercent: string;
-  paymentOrder: string;
   generalTerms: string;
   extraClauses: string;
 }
@@ -53,8 +51,6 @@ export interface ContractSummary {
 const EMPTY: ContractFormValues = {
   eligibleFrom: "",
   eligibleTo: "",
-  commissionPercent: "",
-  paymentOrder: "",
   generalTerms: "",
   extraClauses: "",
 };
@@ -517,26 +513,6 @@ export function ContractPanel({
 
         {variant === "owner" && (
           <>
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="commission">{t("contract.commissionPercent")}</Label>
-              <Input
-                id="commission"
-                type="number"
-                min="0"
-                max="100"
-                step="0.1"
-                value={values.commissionPercent}
-                onChange={(e) => set("commissionPercent")(e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="payment-order">{t("contract.paymentOrder")}</Label>
-              <Input
-                id="payment-order"
-                value={values.paymentOrder}
-                onChange={(e) => set("paymentOrder")(e.target.value)}
-              />
-            </div>
             <div className="flex flex-col gap-1.5 sm:col-span-2">
               <Label htmlFor="general-terms">{t("contract.generalTerms")}</Label>
               <Textarea

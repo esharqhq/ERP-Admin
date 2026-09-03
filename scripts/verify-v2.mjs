@@ -88,7 +88,7 @@ const EXPECTED_FIELDS = {
   AdminWorkerContractDto: ["id", "status", "phase", "previewUrl", "documentUrl",
     "workerId", "workerFullName", "workerEmail", "renewalStartsAt"],
   CreateOwnerContractRequest: ["eligibleFrom", "eligibleTo", "fileName", "fileUrl",
-    "commissionPercent", "paymentOrder", "generalTerms", "extraClauses"],
+    "generalTerms", "extraClauses"],
   CreateWorkerContractRequest: ["eligibleFrom", "eligibleTo", "fileName", "fileUrl"],
   // F-02c reshaped these and this gate did not notice, because nothing property-
   // shaped was ever listed here. `category` is the field that replaced `type`;

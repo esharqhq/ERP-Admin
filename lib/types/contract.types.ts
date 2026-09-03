@@ -94,16 +94,12 @@ export interface ContractPeriodFields {
 }
 
 /**
- * Owner create/renew/draft-edit body. The four term fields feed the generated PDF
- * and are owner-only.
- *
- * They are optional in Phase 0 because no UI collects them yet — omitting
- * `commissionPercent` makes the server default it to 0. Phase 1 builds the form
- * and makes them required.
+ * Owner create/renew/draft-edit body. `generalTerms`/`extraClauses` feed the
+ * generated PDF and are owner-only. `commissionPercent`/`paymentOrder` were
+ * removed backend-side on 2026-09-03 — the server never rejects them, it
+ * silently discards them, so don't add them back.
  */
 export interface CreateOwnerContractRequest extends ContractPeriodFields {
-  commissionPercent?: number;
-  paymentOrder?: string | null;
   generalTerms?: string | null;
   extraClauses?: string | null;
 }

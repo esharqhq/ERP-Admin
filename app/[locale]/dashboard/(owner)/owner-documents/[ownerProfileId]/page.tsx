@@ -240,8 +240,6 @@ export default function OwnerDocsDetailPage() {
         eligibleTo: toUtcIso(values.eligibleTo, true),
         fileName: file?.name ?? "",
         fileUrl,
-        commissionPercent: Number(values.commissionPercent) || 0,
-        paymentOrder: values.paymentOrder.trim() || null,
         generalTerms: values.generalTerms.trim() || null,
         extraClauses: values.extraClauses.trim() || null,
       };
