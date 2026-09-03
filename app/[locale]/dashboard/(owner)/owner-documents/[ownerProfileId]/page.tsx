@@ -51,7 +51,7 @@ import { firstToRead } from "@/lib/onboarding/doc-set";
 import { canAuthorContract } from "@/lib/onboarding/status";
 import { describeApiError, isPermissionDenied } from "@/lib/onboarding/errors";
 import { buildHistory } from "@/lib/onboarding/review-history";
-import type { KycDocDto } from "@/lib/types/kyc.types";
+import { kycDocToReviewDoc, type ReviewDoc } from "@/lib/types/review-doc.types";
 
 /**
  * One owner's KYC bundle: read the file, check it against the facts, decide.
@@ -115,7 +115,10 @@ export default function OwnerDocsDetailPage() {
   const renewKey = useRef<string | null>(null);
   const [renewing, setRenewing] = useState(false);
 
-  const docs = useMemo(() => owner?.documents ?? [], [owner?.documents]);
+  const reviewDocs = useMemo(
+    () => (owner?.documents ?? []).map(kycDocToReviewDoc),
+    [owner?.documents],
+  );
 
   /**
    * Which file is open — **derived**, not synchronised.
@@ -127,7 +130,8 @@ export default function OwnerDocsDetailPage() {
    * somewhere else.
    */
   const [pickedId, setPickedId] = useState<string | null>(null);
-  const selected = docs.find((d) => d.id === pickedId) ?? firstToRead(docs);
+  const selected =
+    reviewDocs.find((d) => d.id === pickedId) ?? firstToRead(reviewDocs);
   const selectedId = selected?.id ?? null;
 
   /**
@@ -336,7 +340,7 @@ export default function OwnerDocsDetailPage() {
           screen with the **centre first** — it is what the screen is for. */}
       <div className="flex flex-col gap-4 lg:flex-row">
         <FilesRail
-          docs={docs}
+          docs={reviewDocs}
           hasCompany={owner.company !== null}
           approved={approved}
           /* Nothing is `aria-current` while the contract holds the column — the
@@ -344,7 +348,7 @@ export default function OwnerDocsDetailPage() {
           selectedId={centre === "file" ? selectedId : null}
           /* Picking a file is also how the viewer comes back once the contract
              has taken the column. The rail is the index in both stages. */
-          onSelect={(doc: KycDocDto) => {
+          onSelect={(doc: ReviewDoc) => {
             setPickedId(doc.id);
             setPane("file");
           }}

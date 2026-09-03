@@ -10,25 +10,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { resolveFileUrl } from "@/lib/http/files";
 import { cn } from "@/lib/utils";
 import type { OnboardingStatus } from "@/lib/types/onboarding.types";
+import type { ReviewDoc } from "@/lib/types/review-doc.types";
 
-/** The shape both sides share — owner KYC docs and worker docs now carry the same review fields. */
-export interface ReviewDoc {
-  id: string;
-  type: string | null;
-  fileName: string | null;
-  /**
-   * **A storage key, not a URL** — resolve with `resolveFileUrl` before it reaches
-   * an `href`. Owner and Worker both post the presign key and the server echoes it
-   * back verbatim; using it raw resolved against this app's own origin and 404'd.
-   * Absolute values (pre-migration rows, anything `upload.service` stored) still
-   * occur and pass through that helper untouched.
-   */
-  fileUrl: string | null;
-  /** TitleCase on the wire: "Pending" | "Approved" | "Rejected". */
-  status: string | null;
-  rejectReason: string | null;
-  createdAt: string;
-}
+export type { ReviewDoc } from "@/lib/types/review-doc.types";
 
 function statusTone(status: string | null) {
   switch (status) {
