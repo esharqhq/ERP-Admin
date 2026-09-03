@@ -51,6 +51,7 @@ import { firstToRead } from "@/lib/onboarding/doc-set";
 import { canAuthorContract } from "@/lib/onboarding/status";
 import { describeApiError, isPermissionDenied } from "@/lib/onboarding/errors";
 import { buildHistory } from "@/lib/onboarding/review-history";
+import { ownerToFactsData } from "@/lib/types/facts.types";
 import { kycDocToReviewDoc, type ReviewDoc } from "@/lib/types/review-doc.types";
 
 /**
@@ -411,11 +412,7 @@ export default function OwnerDocsDetailPage() {
         */}
         <div className="flex w-full shrink-0 flex-col gap-3 lg:w-[19rem]">
           {approved && decision}
-          <FactsRail
-            identity={owner.identity}
-            company={owner.company}
-            today={today}
-          />
+          <FactsRail data={ownerToFactsData(owner.identity, owner.company)} today={today} />
           {!approved && decision}
 
           {/* Only while the centre column genuinely has nothing to switch to —
