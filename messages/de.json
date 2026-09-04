@@ -395,6 +395,8 @@
     "queue": {
       "ownerSubtitle": "Einreichungen, die auf eine Entscheidung warten · älteste zuerst",
       "ownerSearch": "Name oder E-Mail",
+      "workerSubtitle": "Einreichungen, die auf eine Entscheidung warten · älteste zuerst",
+      "workerSearch": "Name oder E-Mail",
       "naturalPerson": "Natürliche Person",
       "waitingDays": "{days} T",
       "colSubject": "Person",
@@ -404,6 +406,8 @@
       "colLastDecision": "Letzte Entscheidung",
       "colContract": "Vertrag",
       "colRejectReason": "Ablehnungsgrund",
+      "colLicenceExpiry": "Lizenzablauf",
+      "colProfessions": "Berufe",
       "filterPhase": "Vertrag",
       "phaseNone": "Kein Vertrag",
       "filterDecided": "Entschieden",

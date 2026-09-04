@@ -395,6 +395,8 @@
     "queue": {
       "ownerSubtitle": "Submissions waiting on a decision · oldest first",
       "ownerSearch": "Name or email",
+      "workerSubtitle": "Submissions waiting on a decision · oldest first",
+      "workerSearch": "Name or email",
       "naturalPerson": "Natural person",
       "waitingDays": "{days} d",
       "colSubject": "Subject",
@@ -404,6 +406,8 @@
       "colLastDecision": "Last decision",
       "colContract": "Contract",
       "colRejectReason": "Reject reason",
+      "colLicenceExpiry": "Licence expiry",
+      "colProfessions": "Professions",
       "filterPhase": "Contract",
       "phaseNone": "No contract",
       "filterDecided": "Decided",
