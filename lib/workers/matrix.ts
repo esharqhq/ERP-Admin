@@ -109,19 +109,6 @@ export interface MatrixDay {
   failed: boolean;
 }
 
-/** The aggregate row above the workers: what the week needs. */
-export interface DemandCell {
-  /** Every task that day is counted, not only the ones a visible worker is on. */
-  assigned: number;
-  required: number;
-  /** Earliest start – latest deadline across the day, e.g. `08:30–15:00`. */
-  window: string;
-  /** The property when the day has only one, else how many. */
-  label: string;
-  propertyCount: number;
-  taskCount: number;
-}
-
 /**
  * One task a free day's Assign popover can offer — the same fields a chip
  * carries, minus this-worker's-relationship-to-it, since there isn't one yet.
@@ -147,7 +134,6 @@ export interface OpenTaskCandidate {
 
 export interface MatrixWeek {
   days: MatrixDay[];
-  demand: DemandCell[];
   /** Tasks that day with nobody at all on them — invisible to attendance. */
   openShifts: number[];
   /** Index-aligned with `days`: every task that day still short a worker. */
@@ -160,7 +146,7 @@ export interface MatrixWeek {
 /** A worker who left a task no longer occupies its slot. */
 const VACATED = new Set(["removed", "cancelled", "noshow"]);
 
-/** These never count as demand — nobody is expected to staff them. */
+/** These never count toward staffing — nobody is expected to be on them. */
 const DEAD_TASK = new Set(["cancelled", "completed"]);
 
 interface TaskFacts {
@@ -178,8 +164,8 @@ interface TaskFacts {
 /**
  * Everything the grid needs about the week's tasks, keyed by task id.
  *
- * Exported for the demand row's sake as much as the chips': it is the only source
- * that knows a task exists when nobody is on it.
+ * Exported for the open-shifts row and the free-day assign candidates as much as
+ * the chips': it is the only source that knows a task exists when nobody is on it.
  */
 export function indexTasks(
   groups: TaskGroupDto[],
@@ -244,8 +230,8 @@ export function buildMatrixWeek({
     };
   });
 
-  /* ── the two aggregate rows, from the tasks rather than from attendance ── */
-  const demand: DemandCell[] = [];
+  /* ── the open-shifts row and the free-day candidates, from the tasks rather
+     than from attendance ── */
   const openShifts: number[] = [];
   const openTasksByDay: OpenTaskCandidate[][] = [];
 
@@ -254,16 +240,6 @@ export function buildMatrixWeek({
       ([, t]) => t.scheduledDate === key && !DEAD_TASK.has(t.status),
     );
     const dayTasks = dayEntries.map(([, t]) => t);
-    const properties = new Set(dayTasks.map((t) => t.propertyName).filter(Boolean));
-    demand.push({
-      assigned: sum(dayTasks.map((t) => t.assigned)),
-      required: sum(dayTasks.map((t) => t.required)),
-      window: dayWindow(dayTasks),
-      label:
-        properties.size === 1 ? [...properties][0] : "",
-      propertyCount: properties.size,
-      taskCount: dayTasks.length,
-    });
     // Zero assigned means zero attendance rows, so this number cannot come from
     // the seven reads. It is the whole reason the groups read exists.
     openShifts.push(dayTasks.filter((t) => t.assigned === 0).length);
@@ -324,7 +300,6 @@ export function buildMatrixWeek({
 
   return {
     days,
-    demand,
     openShifts,
     openTasksByDay,
     rows,
@@ -378,27 +353,6 @@ function hoursBetween(from: string, to: string): number | null {
   const b = Date.parse(to);
   if (Number.isNaN(a) || Number.isNaN(b) || b <= a) return null;
   return (b - a) / 3_600_000;
-}
-
-/**
- * The day's span — earliest start to latest deadline.
- *
- * ⚠ Deliberately **not** one task's window. The design's artboard shows a single
- * job per day; a real day holds several, and printing the first one's hours as
- * "what the week needs" would understate every other. A day whose tasks carry no
- * deadline shows only the start.
- */
-function dayWindow(dayTasks: TaskFacts[]): string {
-  if (dayTasks.length === 0) return "";
-  const starts = dayTasks.map((t) => clockOf(t.scheduledAt)).filter(Boolean).sort();
-  const ends = dayTasks
-    .map((t) => (t.deadline ? clockOf(t.deadline) : ""))
-    .filter(Boolean)
-    .sort();
-  if (starts.length === 0) return "";
-  const first = starts[0];
-  const last = ends.length > 0 ? ends[ends.length - 1] : "";
-  return last ? `${first}–${last}` : first;
 }
 
 function sum(ns: number[]): number {

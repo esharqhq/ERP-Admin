@@ -211,14 +211,7 @@ describe("buildMatrixWeek — columns", () => {
   });
 });
 
-describe("buildMatrixWeek — demand and open shifts", () => {
-  it("totals assigned and required across every task of the day", () => {
-    const g = group();
-    g.tasks[0].requiredWorkerCount = 3;
-    const m = build({ groups: [g] });
-    expect(m.demand[0]).toMatchObject({ assigned: 1, required: 3, taskCount: 1 });
-  });
-
+describe("buildMatrixWeek — open shifts", () => {
   /*
     A task nobody is on produces NO attendance row, so it is invisible to all
     seven reads. This is the whole reason the groups read exists.
@@ -228,7 +221,6 @@ describe("buildMatrixWeek — demand and open shifts", () => {
     g.tasks[0].workers = [];
     const m = build({ groups: [g], attendance: EMPTY_WEEK });
     expect(m.openShifts[0]).toBe(1);
-    expect(m.demand[0]).toMatchObject({ assigned: 0, required: 1 });
   });
 
   it("ignores a task somebody has already left", () => {
@@ -239,12 +231,11 @@ describe("buildMatrixWeek — demand and open shifts", () => {
     expect(build({ groups: [g] }).openShifts[0]).toBe(1);
   });
 
-  it("leaves cancelled and completed tasks out of demand", () => {
+  it("leaves cancelled and completed tasks out of open shifts", () => {
     for (const status of ["Cancelled", "Completed"]) {
       const g = group();
       g.tasks[0].status = status;
       const m = build({ groups: [g] });
-      expect(m.demand[0].taskCount, status).toBe(0);
       expect(m.openShifts[0], status).toBe(0);
     }
   });
@@ -253,31 +244,7 @@ describe("buildMatrixWeek — demand and open shifts", () => {
   it("drops tasks outside the week on screen", () => {
     const g = group();
     g.tasks[0].scheduledDate = "2026-07-01";
-    expect(build({ groups: [g] }).demand[0].taskCount).toBe(0);
-  });
-
-  it("spans the day from the earliest start to the latest deadline", () => {
-    const g = group();
-    g.tasks.push({
-      ...g.tasks[0],
-      id: "t2",
-      scheduledAt: "2026-08-31T06:00:00",
-      deadline: "2026-08-31T19:00:00",
-    });
-    expect(build({ groups: [g] }).demand[0].window).toBe("06:00–19:00");
-  });
-
-  it("names the property when the day has one, and counts them when it has more", () => {
-    const g = group();
-    expect(build({ groups: [g] }).demand[0]).toMatchObject({
-      label: "Sonnenhof",
-      propertyCount: 1,
-    });
-    g.tasks.push({ ...g.tasks[0], id: "t2", propertyName: "Arte Hotel" });
-    expect(build({ groups: [g] }).demand[0]).toMatchObject({
-      label: "",
-      propertyCount: 2,
-    });
+    expect(build({ groups: [g] }).openShifts[0]).toBe(0);
   });
 });
 

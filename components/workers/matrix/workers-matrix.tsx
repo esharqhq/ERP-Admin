@@ -52,7 +52,6 @@ export function WorkersMatrix({
   workers,
   attendance,
   groups,
-  groupsLoading,
   isForbidden,
   isLoading,
   onAssign,
@@ -65,7 +64,6 @@ export function WorkersMatrix({
   workers: WorkerRowDto[];
   attendance: AttendanceWeek;
   groups: TaskGroupDto[];
-  groupsLoading: boolean;
   isForbidden: boolean;
   isLoading: boolean;
   onAssign: (chip: MatrixChip) => void;
@@ -168,65 +166,6 @@ export function WorkersMatrix({
                       refused={day.refused}
                       loading={attendance.days[i].isLoading}
                     />
-                  )}
-                </div>
-              );
-            })}
-          </div>
-
-          {/* ── what the week needs ─────────────────────────────────────── */}
-          <div className="flex border-b border-border bg-card">
-            <div
-              className={cn(
-                IDENTITY,
-                "flex flex-col justify-center gap-0.5 border-r border-border px-3.5 py-2",
-              )}
-            >
-              <span className="text-[11.5px] font-semibold text-primary">
-                {t("demand")}
-              </span>
-              <span className="font-mono text-[9.5px] text-muted-foreground">
-                {t("demandWhy")}
-              </span>
-            </div>
-            {grid.demand.map((cell, i) => {
-              const full = cell.required > 0 && cell.assigned >= cell.required;
-              return (
-                <div
-                  key={week.dayKeys[i]}
-                  className="flex min-w-0 flex-1 flex-col justify-center border-r border-border/60 p-1.5"
-                >
-                  {groupsLoading ? (
-                    <Skeleton className="h-8 w-full rounded-md" />
-                  ) : cell.taskCount === 0 ? (
-                    <span className="self-center font-mono text-sm text-border">–</span>
-                  ) : (
-                    <div
-                      className={cn(
-                        "flex min-w-0 flex-col gap-0.5 rounded-md px-1.5 py-1 ring-1 ring-inset",
-                        full
-                          ? "bg-status-active-tint/60 text-status-active ring-status-active/20"
-                          : "bg-status-pending-tint/60 text-status-pending-deep ring-status-pending/30",
-                      )}
-                    >
-                      <span className="flex items-center justify-between gap-1">
-                        <span className="min-w-0 truncate font-mono text-[9.5px] font-semibold">
-                          {cell.window}
-                        </span>
-                        <span className="flex-none rounded bg-background/70 px-1 font-mono text-[9px] font-bold">
-                          {cell.assigned}/{cell.required}
-                        </span>
-                      </span>
-                      {/*
-                        ⚠ At ~140 owners this line reads "12 properties" rather
-                        than a name — which is the argument for cutting this row.
-                        Kept so that judgement is made against a real screen.
-                      */}
-                      <span className="min-w-0 truncate text-[9.5px] opacity-80">
-                        {cell.label ||
-                          t("properties", { count: cell.propertyCount })}
-                      </span>
-                    </div>
                   )}
                 </div>
               );
