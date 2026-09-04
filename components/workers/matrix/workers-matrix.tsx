@@ -7,7 +7,6 @@ import {
   Clock,
   Crosshair,
   EyeOff,
-  Plus,
   RotateCcw,
 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
@@ -172,43 +171,6 @@ export function WorkersMatrix({
             })}
           </div>
 
-          {/* ── nobody assigned yet ────────────────────────────────── */}
-          <div className="flex border-b border-border bg-card">
-            <div
-              className={cn(
-                IDENTITY,
-                "flex flex-col justify-center gap-0.5 border-r border-border px-3.5 py-1.5",
-              )}
-            >
-              <span className="text-[11.5px] font-semibold text-status-pending-deep">
-                {t("openShifts")}
-              </span>
-              {/*
-                These are invisible to attendance — a task with nobody on it has no
-                attendance row at all — so this line comes from the task-groups
-                read. Worth saying, because it is why that second read exists.
-              */}
-              <span className="font-mono text-[9.5px] text-muted-foreground">
-                {t("openShiftsWhy")}
-              </span>
-            </div>
-            {grid.openShifts.map((n, i) => (
-              <div
-                key={week.dayKeys[i]}
-                className="flex min-w-0 flex-1 items-center justify-center border-r border-border/60 px-1.5 py-1.5"
-              >
-                {n === 0 ? (
-                  <span className="font-mono text-sm text-border">–</span>
-                ) : (
-                  <span className="flex items-center gap-1 whitespace-nowrap rounded-md bg-status-pending-tint px-1.5 py-1 text-[10.5px] font-semibold text-status-pending-deep ring-1 ring-inset ring-status-pending/30">
-                    {t("openCount", { count: n })}
-                    <Plus className="size-2.5" strokeWidth={2.6} />
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
-
           {/* ── the rows ────────────────────────────────────────────────── */}
           {isLoading ? (
             Array.from({ length: 5 }, (_, i) => (
@@ -310,14 +272,13 @@ export function WorkersMatrix({
  * paged/visible row set below — so this line can never disagree with the
  * per-column retry state right above it.
  *
- * ⚠ **Deliberately no longer reads `demand`/`openShifts`.** Those describe a
+ * ⚠ **Deliberately no longer reads `demand`/`openShifts`.** Those answered a
  * different question ("what does the week need", from the task-groups read)
- * that the two aggregate rows below still answer today. This line only ever
- * answered "how many bookings, and how many refused", and now says exactly
- * that in the design's own `dayDefs` format (`"24 booked"`, `"26 · 2
- * refused"`) instead of the demand-derived `"0/1 staffed · 1 open"` it used
- * to print — which also retires the very overlap this comment used to warn
- * about, since the two questions no longer share one line.
+ * and both aggregate rows that drew them are gone now — reading A is
+ * people-only, and "what the week needs" is Tasks' question, not this
+ * screen's. This line only ever answered "how many bookings, and how many
+ * refused", and says exactly that in the design's own `dayDefs` format
+ * (`"24 booked"`, `"26 · 2 refused"`).
  */
 function DayMeta({
   booked,

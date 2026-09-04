@@ -13,7 +13,7 @@ import type { DayKey } from "@/lib/ui/week";
  *   who is on what, whether they turned up, and whether a check-in was refused.
  * - **One task-groups read.** Attendance has no `requiredWorkerCount`, and a task
  *   **nobody is assigned to produces no attendance row at all** — so without this
- *   the open-shifts row and the short-staffed fraction are both unbuildable.
+ *   neither the `short` chip kind nor a free day's Assign candidates are buildable.
  *
  * ⚠ The groups read is unbounded and undated (`ListAllGroupsAsync`), so the week
  * filter is applied here, client-side.
@@ -134,8 +134,6 @@ export interface OpenTaskCandidate {
 
 export interface MatrixWeek {
   days: MatrixDay[];
-  /** Tasks that day with nobody at all on them — invisible to attendance. */
-  openShifts: number[];
   /** Index-aligned with `days`: every task that day still short a worker. */
   openTasksByDay: OpenTaskCandidate[][];
   rows: MatrixRow[];
@@ -164,8 +162,8 @@ interface TaskFacts {
 /**
  * Everything the grid needs about the week's tasks, keyed by task id.
  *
- * Exported for the open-shifts row and the free-day assign candidates as much as
- * the chips': it is the only source that knows a task exists when nobody is on it.
+ * Exported for the free-day assign candidates as much as the chips': it is the
+ * only source that knows a task exists when nobody is on it.
  */
 export function indexTasks(
   groups: TaskGroupDto[],
@@ -230,19 +228,17 @@ export function buildMatrixWeek({
     };
   });
 
-  /* ── the open-shifts row and the free-day candidates, from the tasks rather
-     than from attendance ── */
-  const openShifts: number[] = [];
+  /* ── the free-day assign candidates, from the tasks rather than from
+     attendance ── */
   const openTasksByDay: OpenTaskCandidate[][] = [];
 
   for (const key of dayKeys) {
     const dayEntries = [...tasks.entries()].filter(
       ([, t]) => t.scheduledDate === key && !DEAD_TASK.has(t.status),
     );
-    const dayTasks = dayEntries.map(([, t]) => t);
-    // Zero assigned means zero attendance rows, so this number cannot come from
-    // the seven reads. It is the whole reason the groups read exists.
-    openShifts.push(dayTasks.filter((t) => t.assigned === 0).length);
+    // A task nobody is assigned to (0 of N required) produces zero attendance
+    // rows, so it is invisible to the seven reads — this filter, fed by the
+    // groups read, is the only way such a task is ever offered as a candidate.
     openTasksByDay.push(
       dayEntries
         .filter(([, t]) => t.assigned < t.required)
@@ -300,7 +296,6 @@ export function buildMatrixWeek({
 
   return {
     days,
-    openShifts,
     openTasksByDay,
     rows,
     hiddenCount: all.length - rows.length,

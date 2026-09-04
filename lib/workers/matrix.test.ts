@@ -211,16 +211,21 @@ describe("buildMatrixWeek — columns", () => {
   });
 });
 
-describe("buildMatrixWeek — open shifts", () => {
+describe("buildMatrixWeek — open task candidates for the free-day assign flow", () => {
   /*
     A task nobody is on produces NO attendance row, so it is invisible to all
-    seven reads. This is the whole reason the groups read exists.
+    seven reads. This is the whole reason the groups read exists. (Moved here
+    from the now-deleted "open shifts" describe block — reading-A's own
+    open-shifts count is gone, but the underlying `indexTasks` assigned-count
+    behaviour this exercises is still exactly what feeds this list.)
   */
   it("finds a task with nobody on it, which attendance cannot see", () => {
     const g = group();
     g.tasks[0].workers = [];
     const m = build({ groups: [g], attendance: EMPTY_WEEK });
-    expect(m.openShifts[0]).toBe(1);
+    expect(m.openTasksByDay[0]).toMatchObject([
+      { taskId: "t1", assigned: 0, required: 1 },
+    ]);
   });
 
   it("ignores a task somebody has already left", () => {
@@ -228,27 +233,11 @@ describe("buildMatrixWeek — open shifts", () => {
     g.tasks[0].workers = [
       { ...g.tasks[0].workers[0], outcome: "Removed" },
     ];
-    expect(build({ groups: [g] }).openShifts[0]).toBe(1);
+    expect(build({ groups: [g] }).openTasksByDay[0]).toMatchObject([
+      { taskId: "t1", assigned: 0, required: 1 },
+    ]);
   });
 
-  it("leaves cancelled and completed tasks out of open shifts", () => {
-    for (const status of ["Cancelled", "Completed"]) {
-      const g = group();
-      g.tasks[0].status = status;
-      const m = build({ groups: [g] });
-      expect(m.openShifts[0], status).toBe(0);
-    }
-  });
-
-  /* The endpoint is undated and returns every group ever created. */
-  it("drops tasks outside the week on screen", () => {
-    const g = group();
-    g.tasks[0].scheduledDate = "2026-07-01";
-    expect(build({ groups: [g] }).openShifts[0]).toBe(0);
-  });
-});
-
-describe("buildMatrixWeek — open task candidates for the free-day assign flow", () => {
   it("lists a task that still wants more workers", () => {
     const g = group();
     g.tasks[0].requiredWorkerCount = 2;
