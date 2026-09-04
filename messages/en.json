@@ -241,8 +241,6 @@
       "for": "For",
       "from": "Cover starts",
       "to": "Cover ends",
-      "commissionPercent": "Commission %",
-      "paymentOrder": "Payment terms",
       "generalTerms": "General terms",
       "extraClauses": "Additional clauses",
       "sourceFile": "Source document (PDF)",
@@ -397,6 +395,8 @@
     "queue": {
       "ownerSubtitle": "Submissions waiting on a decision · oldest first",
       "ownerSearch": "Name or email",
+      "workerSubtitle": "Submissions waiting on a decision · oldest first",
+      "workerSearch": "Name or email",
       "naturalPerson": "Natural person",
       "waitingDays": "{days} d",
       "colSubject": "Subject",
@@ -406,6 +406,8 @@
       "colLastDecision": "Last decision",
       "colContract": "Contract",
       "colRejectReason": "Reject reason",
+      "colLicenceExpiry": "Licence expiry",
+      "colProfessions": "Professions",
       "filterPhase": "Contract",
       "phaseNone": "No contract",
       "filterDecided": "Decided",
@@ -811,6 +813,8 @@
       "untimed": "+{count} untimed",
       "untimedHint": "Some tasks carry no deadline, so the total is a floor rather than a sum.",
       "tasks": "{count, plural, =0 {no tasks} one {# task} other {# tasks}}",
+      "freeDays": "{count, plural, one {# free} other {# free}}",
+      "fullWeek": "full week",
       "toggleAvailability": "Declared availability for {name}",
       "declared": "Declared availability",
       "oneRequest": "1 request · this row only",
@@ -838,6 +842,12 @@
         "refused": "Refused check-in"
       },
       "assign": "Assign",
+      "assignDaySheet": {
+        "title": "Assign {name} — {day}",
+        "subtitle": "{count, plural, one {# job fits this free day.} other {# jobs fit this free day.}}",
+        "cancel": "Cancel",
+        "assigning": "Assigning…"
+      },
       "assignSheet": {
         "title": "Fill this shift",
         "subtitle": "{property} · {window} — {assigned} of {required} assigned.",

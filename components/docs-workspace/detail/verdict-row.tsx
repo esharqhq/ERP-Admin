@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { verdictOf } from "@/lib/onboarding/doc-set";
-import type { KycDocDto } from "@/lib/types/kyc.types";
+import type { ReviewDoc } from "@/lib/types/review-doc.types";
 import { RejectDialog } from "./reject-dialog";
 
 /**
@@ -30,7 +30,7 @@ export function VerdictRow({
   onApprove,
   onReject,
 }: {
-  doc: KycDocDto;
+  doc: ReviewDoc;
   /**
    * Two grants, not one. `kyc:approve` and `kyc:reject` are separate permissions
    * on the backend (`KycController.cs:263-340`), so an admin can genuinely hold

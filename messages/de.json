@@ -241,8 +241,6 @@
       "for": "Für",
       "from": "Deckung beginnt",
       "to": "Deckung endet",
-      "commissionPercent": "Provision %",
-      "paymentOrder": "Zahlungsbedingungen",
       "generalTerms": "Allgemeine Bedingungen",
       "extraClauses": "Zusätzliche Klauseln",
       "sourceFile": "Quelldokument (PDF)",
@@ -397,6 +395,8 @@
     "queue": {
       "ownerSubtitle": "Einreichungen, die auf eine Entscheidung warten · älteste zuerst",
       "ownerSearch": "Name oder E-Mail",
+      "workerSubtitle": "Einreichungen, die auf eine Entscheidung warten · älteste zuerst",
+      "workerSearch": "Name oder E-Mail",
       "naturalPerson": "Natürliche Person",
       "waitingDays": "{days} T",
       "colSubject": "Person",
@@ -406,6 +406,8 @@
       "colLastDecision": "Letzte Entscheidung",
       "colContract": "Vertrag",
       "colRejectReason": "Ablehnungsgrund",
+      "colLicenceExpiry": "Lizenzablauf",
+      "colProfessions": "Berufe",
       "filterPhase": "Vertrag",
       "phaseNone": "Kein Vertrag",
       "filterDecided": "Entschieden",
@@ -811,6 +813,8 @@
       "untimed": "+{count} ohne Zeit",
       "untimedHint": "Einige Aufträge haben keine Frist, die Summe ist daher eine Untergrenze.",
       "tasks": "{count, plural, =0 {keine Aufträge} one {# Auftrag} other {# Aufträge}}",
+      "freeDays": "{count, plural, one {# frei} other {# frei}}",
+      "fullWeek": "voll gebucht",
       "toggleAvailability": "Angegebene Verfügbarkeit von {name}",
       "declared": "Angegebene Verfügbarkeit",
       "oneRequest": "1 Anfrage · nur diese Zeile",
@@ -838,6 +842,12 @@
         "refused": "Check-in abgelehnt"
       },
       "assign": "Zuweisen",
+      "assignDaySheet": {
+        "title": "{name} zuweisen — {day}",
+        "subtitle": "{count, plural, one {# Auftrag passt an diesem freien Tag.} other {# Aufträge passen an diesem freien Tag.}}",
+        "cancel": "Abbrechen",
+        "assigning": "Wird zugewiesen …"
+      },
       "assignSheet": {
         "title": "Schicht besetzen",
         "subtitle": "{property} · {window} — {assigned} von {required} zugewiesen.",

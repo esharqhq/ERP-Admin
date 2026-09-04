@@ -1,5 +1,5 @@
 import { normalizeStatus } from "@/lib/types/task.types";
-import type { KycDocDto } from "@/lib/types/kyc.types";
+import type { ReviewDoc } from "@/lib/types/review-doc.types";
 import type { DocVerdict } from "@/lib/onboarding/queue-detail";
 
 /**
@@ -40,7 +40,7 @@ export function groupOf(type: string | null): DocGroup {
 
 export interface DocumentGroup {
   group: DocGroup;
-  docs: KycDocDto[];
+  docs: ReviewDoc[];
 }
 
 /**
@@ -51,7 +51,7 @@ export interface DocumentGroup {
  * it — a natural person has no company section at all, which is the shape of the
  * account rather than a gap in it.
  */
-export function groupDocuments(docs: KycDocDto[]): DocumentGroup[] {
+export function groupDocuments(docs: ReviewDoc[]): DocumentGroup[] {
   const order: DocGroup[] = ["identity", "company", "other"];
   return order
     .map((group) => ({ group, docs: docs.filter((d) => groupOf(d.type) === group) }))
@@ -71,7 +71,7 @@ export interface RequiredSet {
  * `hasCompany` comes from the profile's `company` being non-null — for a natural
  * person the required set is the identity document alone.
  */
-export function requiredSet(docs: KycDocDto[], hasCompany: boolean): RequiredSet {
+export function requiredSet(docs: ReviewDoc[], hasCompany: boolean): RequiredSet {
   const types = new Set(docs.map((d) => d.type).filter(Boolean) as string[]);
   const missing: MissingDoc[] = [];
 
@@ -99,7 +99,7 @@ export function verdictOf(status: string | null): DocVerdict {
   return "pending";
 }
 
-export function verdictCounts(docs: KycDocDto[]): VerdictCounts {
+export function verdictCounts(docs: ReviewDoc[]): VerdictCounts {
   const counts: VerdictCounts = { approved: 0, pending: 0, rejected: 0, total: docs.length };
   for (const doc of docs) counts[verdictOf(doc.status)] += 1;
   return counts;
@@ -112,7 +112,7 @@ export function verdictCounts(docs: KycDocDto[]): VerdictCounts {
  * why — then the oldest undecided one, then simply the first. A viewer that opens
  * on an already-approved passport makes the admin hunt for the work.
  */
-export function firstToRead(docs: KycDocDto[]): KycDocDto | null {
+export function firstToRead(docs: ReviewDoc[]): ReviewDoc | null {
   if (docs.length === 0) return null;
   const rejected = docs.find((d) => verdictOf(d.status) === "rejected");
   if (rejected) return rejected;

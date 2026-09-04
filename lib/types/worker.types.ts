@@ -41,6 +41,17 @@ export interface WorkerRowDto {
   email: string | null;
   phoneNumber: string | null;
   /**
+   * Worker's own driving licence expiry. Byte-identical to
+   * WorkerIdentityDto.licenseExpiry — same server column, same serializer,
+   * so the two can never disagree. Null at KYC stage or when no licence
+   * has been captured yet. No filter or sort key on the backend
+   * (?sortBy=licenseExpiry returns 400 invalid_sort_column); the 30-day
+   * red-lapse rule in the worker queue is a client-side decision.
+   *
+   * Added 2026-09-03 per B10 handoff (docs/handoff/CHANGELOG.md).
+   */
+  licenseExpiry: string | null;
+  /**
    * Coarse account status: `Active` | `Pending` | `Deleted` | `Lapsed` |
    * `Blocked`. ⚠ The old `Blocked` is now `Lapsed` (contract ran out); the new
    * `Blocked` is an admin sanction. The export's `Status` column prints the same

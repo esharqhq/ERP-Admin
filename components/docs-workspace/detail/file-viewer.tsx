@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { formatDate } from "@/components/docs-workspace/queue-cells";
 import { resolveFileUrl } from "@/lib/http/files";
 import { viewerKind } from "@/lib/onboarding/doc-set";
-import type { KycDocDto } from "@/lib/types/kyc.types";
+import type { ReviewDoc } from "@/lib/types/review-doc.types";
 import { cn } from "@/lib/utils";
 
 /**
@@ -29,7 +29,7 @@ import { cn } from "@/lib/utils";
  * resolution as commit 28affcf, which fixed wide tables by letting the inset
  * shrink rather than by locking a height.
  */
-export function FileViewer({ doc }: { doc: KycDocDto | null }) {
+export function FileViewer({ doc }: { doc: ReviewDoc | null }) {
   const t = useTranslations("docsWorkspace.detail");
   const locale = useLocale();
 

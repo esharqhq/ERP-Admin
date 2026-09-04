@@ -5,7 +5,7 @@ import { formatDate } from "@/components/docs-workspace/queue-cells";
 import { companyTypeLabelKey } from "@/lib/onboarding/company";
 import { daysUntil } from "@/lib/detail/attention";
 import { CRITICAL_DAYS, WARN_DAYS } from "@/lib/onboarding/subject-row";
-import type { OwnerCompanyDto, OwnerIdentityDto } from "@/lib/types/identity.types";
+import type { FactsData } from "@/lib/types/facts.types";
 import { cn } from "@/lib/utils";
 
 /**
@@ -17,19 +17,20 @@ import { cn } from "@/lib/utils";
  * An edit affordance here would be one the API could never honour.
  */
 export function FactsRail({
-  identity,
-  company,
+  data,
   /** Start of today in ms, from `useToday()`. `0` = clock not known. */
   today,
 }: {
-  identity: OwnerIdentityDto | null;
-  /** `null` means a natural person — a complete state, not a gap. */
-  company: OwnerCompanyDto | null;
+  data: FactsData;
   today: number;
 }) {
   const t = useTranslations("docsWorkspace.detail");
   const tCompany = useTranslations("onboarding.companyType");
   const locale = useLocale();
+
+  const identity = data.identity;
+  /** `null` for a worker too — the block below only reads it on the owner branch. */
+  const company = data.kind === "owner" ? data.company : null;
 
   const legalName =
     [identity?.firstName, identity?.lastName].filter(Boolean).join(" ") || null;
@@ -55,35 +56,58 @@ export function FactsRail({
 
       <dl className="flex flex-col">
         <Fact label={t("legalName")} value={legalName} />
-        {/* The absence of a company row IS the fact. Stated in words rather than
-            left as a missing section, which reads as data that failed to load. */}
-        <Fact
-          label={t("legalForm")}
-          value={
-            company
-              ? tCompany(companyTypeLabelKey(company.type) as "gmbh")
-              : t("naturalPerson")
-          }
-        />
-        <Fact label={t("passportNo")} value={identity?.passportNumber ?? null} mono />
-        <Expiry
-          label={t("passportExpires")}
-          iso={identity?.passportExpiry ?? null}
-          today={today}
-          locale={locale}
-        />
 
-        {company && (
+        {data.kind === "owner" ? (
           <>
-            <Fact label={t("licenceNo")} value={company.licenseNumber} mono />
+            {/* The absence of a company row IS the fact. Stated in words rather than
+                left as a missing section, which reads as data that failed to load. */}
+            <Fact
+              label={t("legalForm")}
+              value={
+                company
+                  ? tCompany(companyTypeLabelKey(company.type) as "gmbh")
+                  : t("naturalPerson")
+              }
+            />
+            <Fact label={t("passportNo")} value={identity?.passportNumber ?? null} mono />
             <Expiry
-              label={t("licenceExpires")}
-              iso={company.licenseExpiry}
+              label={t("passportExpires")}
+              iso={identity?.passportExpiry ?? null}
               today={today}
               locale={locale}
             />
-            <Fact label={t("taxNumber")} value={company.taxNumber} mono />
-            <Fact label={t("registeredIn")} value={registeredIn} />
+
+            {company && (
+              <>
+                <Fact label={t("licenceNo")} value={company.licenseNumber} mono />
+                <Expiry
+                  label={t("licenceExpires")}
+                  iso={company.licenseExpiry}
+                  today={today}
+                  locale={locale}
+                />
+                <Fact label={t("taxNumber")} value={company.taxNumber} mono />
+                <Fact label={t("registeredIn")} value={registeredIn} />
+              </>
+            )}
+          </>
+        ) : (
+          <>
+            {/* No legal-form concept for a worker — omitted entirely, not "Natural
+                person": that sentence only makes sense beside a real company axis. */}
+            <Fact label={t("passportNo")} value={identity?.passportNumber ?? null} mono />
+            <Expiry
+              label={t("passportExpires")}
+              iso={identity?.passportExpiry ?? null}
+              today={today}
+              locale={locale}
+            />
+            <Expiry
+              label={t("licenceExpires")}
+              iso={data.identity?.licenseExpiry ?? null}
+              today={today}
+              locale={locale}
+            />
           </>
         )}
       </dl>

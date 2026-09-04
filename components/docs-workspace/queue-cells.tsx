@@ -12,6 +12,8 @@ import {
   type DocVerdict,
 } from "@/lib/onboarding/queue-detail";
 import type { SubjectRow } from "@/lib/onboarding/subject-row";
+import { WARN_DAYS } from "@/lib/onboarding/subject-row";
+import { daysUntil } from "@/lib/detail/attention";
 import { initials } from "@/lib/ui/initials";
 import { cn } from "@/lib/utils";
 
@@ -179,6 +181,73 @@ export function WaitingCell({ days }: { days: number | null }) {
     >
       {t("waitingDays", { days })}
     </span>
+  );
+}
+
+/**
+ * The worker's own service licence expiry — worker queue only.
+ *
+ * One red state, not two: the design draws a single rung at 30 days (comp line
+ * 527), unlike `WaitingCell`'s amber-then-red ladder. A lapsed licence drops the
+ * account back to KYC and makes every future shift unfillable, which is why it is
+ * worth catching before it happens rather than only once it has.
+ *
+ * `today` drives the threshold, not `Date.now()` — matches `daysUntil`'s own
+ * day-snapped math (`lib/detail/attention.ts`), so this column and the detail
+ * screen's facts rail can never disagree about whether a licence has "30 days
+ * left" a few hours apart.
+ */
+export function LicenceExpiryCell({
+  iso,
+  today,
+}: {
+  iso: string | null;
+  today: number;
+}) {
+  const locale = useLocale();
+  if (!iso) return <Dash />;
+  const days = daysUntil(iso, today);
+  return (
+    <span
+      className={cn(
+        "text-sm tabular-nums",
+        days !== null && days <= WARN_DAYS && "font-medium text-status-cancelled",
+      )}
+    >
+      {formatDate(iso, locale)}
+    </span>
+  );
+}
+
+/**
+ * Up to two profession chips, then a count — worker queue only.
+ *
+ * ⚠ `register-merge` (2026-08-19) shrank the seeded profession table to
+ * `GENERAL` alone, so a single chip on every row is correct, not broken.
+ */
+export function ProfessionsCell({ professions }: { professions: string[] | null }) {
+  const list = professions ?? [];
+  if (list.length === 0) return <Dash />;
+  // Two, then a count. Three chips overrun the column and truncate mid-word,
+  // which reads as a bug rather than as a list — same rule the directory's own
+  // professions column follows (components/workers/worker-columns.tsx).
+  const shown = list.slice(0, 2);
+  return (
+    <div className="flex min-w-0 items-center gap-1.5">
+      {shown.map((p) => (
+        <span
+          key={p}
+          className="flex h-[21px] flex-none items-center rounded-md bg-muted px-2 text-[11.5px]"
+        >
+          <span className="truncate">{p}</span>
+        </span>
+      ))}
+      {list.length > shown.length && (
+        <span className="flex-none font-mono text-[11px] text-muted-foreground">
+          +{list.length - shown.length}
+        </span>
+      )}
+    </div>
   );
 }
 

@@ -48,6 +48,15 @@ export interface SubjectRow {
   /** When the submission was last decided. `null` = never decided, not "unknown". */
   reviewedAt: string | null;
   rejectReason: string | null;
+
+  /**
+   * The two below are **worker-only**, and `null` on every owner row — the mirror
+   * image of the three above. `KycProfileSummaryDto` carries neither a licence
+   * nor a profession list; `WorkerRowDto` carries both (`licenseExpiry` since
+   * B10, 2026-09-03; `skills` since the list endpoint shipped).
+   */
+  licenseExpiry: string | null;
+  professions: string[] | null;
 }
 
 export interface SubjectCover {
@@ -69,6 +78,8 @@ export function ownerSubjectRow(dto: KycProfileSummaryDto): SubjectRow {
     documentCount: dto.documentCount,
     reviewedAt: dto.onboardingReviewedAt,
     rejectReason: dto.onboardingRejectReason,
+    licenseExpiry: null,
+    professions: null,
   };
 }
 
@@ -84,6 +95,8 @@ export function workerSubjectRow(dto: WorkerRowDto): SubjectRow {
     documentCount: null,
     reviewedAt: null,
     rejectReason: null,
+    licenseExpiry: dto.licenseExpiry,
+    professions: dto.skills,
   };
 }
 

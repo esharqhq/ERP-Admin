@@ -1,5 +1,6 @@
 import { verdictOf } from "@/lib/onboarding/doc-set";
 import type { KycProfileDto } from "@/lib/types/kyc.types";
+import type { WorkerDetailDto } from "@/lib/types/worker.types";
 
 /**
  * What has been decided on this bundle, newest first.
@@ -62,6 +63,40 @@ export function buildHistory(profile: KycProfileDto | null | undefined): History
       kind: rejected ? "submissionRejected" : "submissionApproved",
       at: profile.onboardingReviewedAt,
       reason: rejected ? profile.onboardingRejectReason : null,
+    });
+  }
+
+  return entries.sort((a, b) => b.at.localeCompare(a.at));
+}
+
+/** The worker-side sibling of `buildHistory` — same shape, no owner_profile id. */
+export function buildWorkerHistory(
+  worker: WorkerDetailDto | null | undefined,
+): HistoryEntry[] {
+  if (!worker) return [];
+  const entries: HistoryEntry[] = [];
+
+  for (const doc of worker.documents ?? []) {
+    if (!doc.reviewedAt) continue;
+    const verdict = verdictOf(doc.status);
+    if (verdict === "pending") continue;
+
+    entries.push({
+      id: doc.id,
+      kind: verdict === "approved" ? "docApproved" : "docRejected",
+      at: doc.reviewedAt,
+      docType: doc.type,
+      reason: verdict === "rejected" ? doc.rejectReason : null,
+    });
+  }
+
+  if (worker.onboardingReviewedAt) {
+    const rejected = worker.onboardingStatus === "Rejected";
+    entries.push({
+      id: `submission:${worker.id}`,
+      kind: rejected ? "submissionRejected" : "submissionApproved",
+      at: worker.onboardingReviewedAt,
+      reason: rejected ? worker.onboardingRejectReason : null,
     });
   }
 

@@ -176,6 +176,8 @@ describe("withCover", () => {
     documentCount: 3,
     reviewedAt: null,
     rejectReason: null,
+    licenseExpiry: null,
+    professions: null,
   };
 
   it("attaches a cover when one exists and null when none does", () => {

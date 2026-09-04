@@ -10,7 +10,7 @@ import {
   type DocGroup,
 } from "@/lib/onboarding/doc-set";
 import type { DocVerdict } from "@/lib/onboarding/queue-detail";
-import type { KycDocDto } from "@/lib/types/kyc.types";
+import type { ReviewDoc } from "@/lib/types/review-doc.types";
 import { cn } from "@/lib/utils";
 
 /**
@@ -46,7 +46,7 @@ export function FilesRail({
   selectedId,
   onSelect,
 }: {
-  docs: KycDocDto[];
+  docs: ReviewDoc[];
   /** Drives which required set applies — a natural person owes no company file. */
   hasCompany: boolean;
   /**
@@ -56,7 +56,7 @@ export function FilesRail({
    */
   approved: boolean;
   selectedId: string | null;
-  onSelect: (doc: KycDocDto) => void;
+  onSelect: (doc: ReviewDoc) => void;
 }) {
   const t = useTranslations("docsWorkspace.detail");
   const counts = verdictCounts(docs);
@@ -170,7 +170,7 @@ function FileRow({
   onSelect,
   label,
 }: {
-  doc: KycDocDto;
+  doc: ReviewDoc;
   selected: boolean;
   onSelect: () => void;
   label: string;
