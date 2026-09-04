@@ -21,7 +21,6 @@ import type { WorkerRowDto } from "@/lib/types/worker.types";
 import { weekdayLabels, type DayKey, type Week } from "@/lib/ui/week";
 import {
   buildMatrixWeek,
-  type DemandCell,
   type MatrixChip,
   type OpenTaskCandidate,
 } from "@/lib/workers/matrix";
@@ -165,10 +164,9 @@ export function WorkersMatrix({
                     </button>
                   ) : (
                     <DayMeta
-                      demand={grid.demand[i]}
-                      open={grid.openShifts[i]}
+                      booked={day.booked}
                       refused={day.refused}
-                      loading={groupsLoading}
+                      loading={attendance.days[i].isLoading}
                     />
                   )}
                 </div>
@@ -368,49 +366,38 @@ export function WorkersMatrix({
 }
 
 /**
- * What this day is, in one line under the date.
+ * What this day is, in one line under the date: platform-wide attendance
+ * counts from `MatrixDay` itself (`day.booked`/`day.refused`) — not the
+ * paged/visible row set below — so this line can never disagree with the
+ * per-column retry state right above it.
  *
- * ⚠ **This line and the two aggregate rows below now say overlapping things**, and
- * that is a deliberate, temporary state (2026-09-01): the rows were cut on the
- * user's call and then restored at their request so the trade-off could be judged
- * against a real screen rather than a description.
- *
- * The head is **not** being reverted with them. It used to read *"nothing
- * booked"* directly above a row announcing an open shift — both true, one counting
- * bookings and the other counting jobs, and together reading as a bug. Whatever is
- * decided about the rows, that sentence should not come back.
- *
- * **If the rows go again, this line is the only thing left saying that unstaffed
- * work exists** — a task nobody is assigned to produces no attendance row at all,
- * so a week holding three unstaffed jobs would otherwise draw exactly like a week
- * holding none.
+ * ⚠ **Deliberately no longer reads `demand`/`openShifts`.** Those describe a
+ * different question ("what does the week need", from the task-groups read)
+ * that the two aggregate rows below still answer today. This line only ever
+ * answered "how many bookings, and how many refused", and now says exactly
+ * that in the design's own `dayDefs` format (`"24 booked"`, `"26 · 2
+ * refused"`) instead of the demand-derived `"0/1 staffed · 1 open"` it used
+ * to print — which also retires the very overlap this comment used to warn
+ * about, since the two questions no longer share one line.
  */
 function DayMeta({
-  demand,
-  open,
+  booked,
   refused,
   loading,
 }: {
-  demand: DemandCell;
-  open: number;
+  booked: number;
   refused: number;
-  /** The task-groups read is still in flight. */
+  /** This day's own attendance read — one of the seven independent calls. */
   loading: boolean;
 }) {
   const t = useTranslations("workers.matrix");
 
-  /*
-    ⚠ Not "no jobs" while the read is in flight. Every count here comes from the
-    task-groups call, so before it lands `taskCount` is legitimately 0 — and
-    printing "no jobs" would state, for a second, the exact opposite of what this
-    line exists to say.
-  */
   if (loading) {
     return <Skeleton className="h-2.5 w-14 rounded" />;
   }
 
-  // Nothing is scheduled at all. Quiet — an empty day is not a problem.
-  if (demand.taskCount === 0) {
+  // Nobody was on the roster at all that day. Quiet — an empty day is not a problem.
+  if (booked === 0) {
     return (
       <span className="whitespace-nowrap text-[9.5px] text-muted-foreground/60">
         {t("dayNoJobs")}
@@ -418,26 +405,14 @@ function DayMeta({
     );
   }
 
-  const short = demand.assigned < demand.required;
-
   return (
     <span
       className={cn(
-        "flex items-center gap-1 whitespace-nowrap text-[9.5px]",
-        short || refused > 0
-          ? "font-semibold text-status-pending-deep"
-          : "text-muted-foreground/70",
+        "whitespace-nowrap text-[9.5px]",
+        refused > 0 ? "font-semibold text-status-cancelled" : "text-muted-foreground/70",
       )}
     >
-      {t("dayStaffed", { assigned: demand.assigned, required: demand.required })}
-      {/* Distinct from "short-staffed": these are jobs with nobody at all on
-          them, which is the one an admin can act on from the assign sheet. */}
-      {open > 0 && <span>{t("dayOpen", { count: open })}</span>}
-      {refused > 0 && (
-        <span className="text-status-cancelled">
-          {t("dayRefused", { count: refused })}
-        </span>
-      )}
+      {refused > 0 ? t("dayBookedRefused", { booked, refused }) : t("dayBooked", { count: booked })}
     </span>
   );
 }
