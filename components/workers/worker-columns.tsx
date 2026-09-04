@@ -10,7 +10,7 @@ import { useClock } from "@/hooks/use-today";
 import type { WorkerRowDto } from "@/lib/types/worker.types";
 import { initials } from "@/lib/ui/initials";
 import { formatDay, formatRelativeAge } from "@/lib/ui/relative-time";
-import { stageKey, workerStatusPresentation } from "@/lib/workers/worker-status";
+import { stageKey, stageTone, workerStatusPresentation } from "@/lib/workers/worker-status";
 import { cn } from "@/lib/utils";
 
 /**
@@ -466,21 +466,6 @@ export function workerRowClassName(w: WorkerRowDto): string | undefined {
     return "bg-status-pending-tint/25";
   }
   return undefined;
-}
-
-/**
- * The stage badge's tone.
- *
- * Quiet by default and coloured only at the two ends that mean something: the
- * review queue is the one an admin acts on, `Rejected` is a stop, `Active` is
- * done. A distinct colour per stage would make a page of rows into a rainbow in
- * which none of the three carried any signal.
- */
-function stageTone(labelKey: string): "warning" | "danger" | "success" | "neutral" {
-  if (labelKey === "review") return "warning";
-  if (labelKey === "rejected") return "danger";
-  if (labelKey === "active") return "success";
-  return "neutral";
 }
 
 /**

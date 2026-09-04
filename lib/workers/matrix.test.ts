@@ -281,6 +281,59 @@ describe("buildMatrixWeek — demand and open shifts", () => {
   });
 });
 
+describe("buildMatrixWeek — open task candidates for the free-day assign flow", () => {
+  it("lists a task that still wants more workers", () => {
+    const g = group();
+    g.tasks[0].requiredWorkerCount = 2;
+    const m = build({ groups: [g] });
+    expect(m.openTasksByDay[0]).toMatchObject([
+      {
+        taskId: "t1",
+        groupId: "g1",
+        from: "08:00",
+        to: "15:30",
+        propertyName: "Sonnenhof",
+        taskTitle: "Housekeeping",
+        assigned: 1,
+        required: 2,
+      },
+    ]);
+  });
+
+  it("excludes a task that is already fully staffed", () => {
+    const g = group(); // requiredWorkerCount: 1, one worker already assigned
+    expect(build({ groups: [g] }).openTasksByDay[0]).toEqual([]);
+  });
+
+  it("excludes cancelled and completed tasks even if short", () => {
+    for (const status of ["Cancelled", "Completed"]) {
+      const g = group();
+      g.tasks[0].status = status;
+      g.tasks[0].requiredWorkerCount = 2;
+      expect(build({ groups: [g] }).openTasksByDay[0], status).toEqual([]);
+    }
+  });
+
+  it("orders same-day candidates by start time", () => {
+    const g = group();
+    g.tasks[0].requiredWorkerCount = 2;
+    g.tasks.push({
+      ...g.tasks[0],
+      id: "t2",
+      scheduledAt: "2026-08-31T06:00:00",
+    });
+    const candidates = build({ groups: [g] }).openTasksByDay[0];
+    expect(candidates.map((c) => c.taskId)).toEqual(["t2", "t1"]);
+  });
+
+  it("drops candidates outside the week on screen — the endpoint is undated", () => {
+    const g = group();
+    g.tasks[0].scheduledDate = "2026-07-01";
+    g.tasks[0].requiredWorkerCount = 2;
+    expect(build({ groups: [g] }).openTasksByDay[0]).toEqual([]);
+  });
+});
+
 describe("buildMatrixWeek — rows", () => {
   it("puts a worker's chips in the day they belong to, sorted by start", () => {
     const attendance = WEEK.map((_, i) =>

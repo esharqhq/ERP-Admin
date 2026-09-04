@@ -160,3 +160,23 @@ export function workerStatusPresentation(row: {
 export function stageKey(status: OnboardingStatus | string): string {
   return status.charAt(0).toLowerCase() + status.slice(1);
 }
+
+/**
+ * The stage badge's tone.
+ *
+ * Quiet by default and coloured only at the two ends that mean something: the
+ * review queue is the one an admin acts on, `Rejected` is a stop, `Active` is
+ * done. A distinct colour per stage would make a page of rows into a rainbow in
+ * which none of the three carried any signal.
+ *
+ * Shared by the Table's Status column and the Matrix's row identity, so the
+ * same badge reads the same colour in both drawings of the same worker.
+ */
+export function stageTone(
+  labelKey: string,
+): "warning" | "danger" | "success" | "neutral" {
+  if (labelKey === "review") return "warning";
+  if (labelKey === "rejected") return "danger";
+  if (labelKey === "active") return "success";
+  return "neutral";
+}

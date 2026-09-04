@@ -23,6 +23,7 @@ import {
   buildMatrixWeek,
   type DemandCell,
   type MatrixChip,
+  type OpenTaskCandidate,
 } from "@/lib/workers/matrix";
 import { cn } from "@/lib/utils";
 import { MatrixRow } from "./matrix-row";
@@ -41,7 +42,8 @@ import { MatrixRow } from "./matrix-row";
  * of the directory has no work in any given week.
  */
 
-const IDENTITY = "w-[252px] flex-none";
+/** The frozen identity column, matched to the design's 300px. */
+const IDENTITY = "w-[300px] flex-none";
 const INITIAL_ROWS = 5;
 const ROW_STEP = 20;
 
@@ -56,6 +58,7 @@ export function WorkersMatrix({
   isLoading,
   onAssign,
   onOpenChip,
+  onAssignDay,
 }: {
   week: Week;
   todayKey: DayKey;
@@ -68,6 +71,7 @@ export function WorkersMatrix({
   isLoading: boolean;
   onAssign: (chip: MatrixChip) => void;
   onOpenChip: (chip: MatrixChip) => void;
+  onAssignDay: (worker: WorkerRowDto, dayKey: DayKey, candidates: OpenTaskCandidate[]) => void;
 }) {
   const t = useTranslations("workers.matrix");
   const locale = useLocale();
@@ -107,7 +111,7 @@ export function WorkersMatrix({
         sideways. Same rule as the table.
       */}
       <div className="scrollbar-slim w-full overflow-x-auto">
-        <div className="min-w-[900px]">
+        <div className="min-w-[948px]">
           {/* ── the seven column heads ─────────────────────────────────── */}
           <div className="flex border-b border-border bg-muted/20">
             <div className={cn(IDENTITY, "border-r border-border px-3.5 py-2")}>
@@ -308,6 +312,7 @@ export function WorkersMatrix({
                 dayKeys={week.dayKeys}
                 todayKey={todayKey}
                 failedDays={failedDays}
+                openTasksByDay={grid.openTasksByDay}
                 // One row at a time: each open row is one request, and a grid
                 // where every row is open is the cost this reading exists to avoid.
                 expanded={expanded === row.worker.id}
@@ -316,6 +321,9 @@ export function WorkersMatrix({
                 }
                 onAssign={onAssign}
                 onOpenChip={onOpenChip}
+                onAssignDay={(dayKey, candidates) =>
+                  onAssignDay(row.worker, dayKey, candidates)
+                }
               />
             ))
           )}

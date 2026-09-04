@@ -6,6 +6,7 @@ import {
   Clock,
   Crosshair,
   Minus,
+  Plus,
   X,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -58,8 +59,10 @@ export function MatrixCell({
   isToday,
   isWeekend,
   failed,
+  assignable,
   onAssign,
   onOpenChip,
+  onAssignDay,
 }: {
   chips: MatrixChip[];
   /** Only present while the row is expanded — the layer, never the ground. */
@@ -68,20 +71,29 @@ export function MatrixCell({
   isWeekend: boolean;
   /** This column's read failed; the cell says nothing rather than "nothing". */
   failed: boolean;
+  /**
+   * A free day is an affordance, but only when it actually is one: the worker
+   * can be booked (stage Active, account Active) **and** this day holds at
+   * least one task still short a worker. Neither is knowable inside the cell,
+   * so the row passes the verdict down rather than the cell re-deriving it.
+   */
+  assignable: boolean;
   onAssign: (chip: MatrixChip) => void;
   onOpenChip: (chip: MatrixChip) => void;
+  onAssignDay: () => void;
 }) {
   const t = useTranslations("workers.matrix");
 
   const shown = chips.slice(0, MAX_CHIPS);
   const more = chips.length - shown.length;
   const closed = availability?.state === "closed";
+  const empty = chips.length === 0 && !closed;
 
   return (
     <div
       className={cn(
         "flex min-w-0 flex-1 flex-col gap-1 border-r border-border/60 p-1.5",
-        chips.length === 0 && !closed ? "justify-center" : "justify-start",
+        empty ? "justify-center" : "justify-start",
         failed
           ? "bg-muted/40"
           : closed
@@ -106,7 +118,19 @@ export function MatrixCell({
         <span className="self-center text-[10px] text-muted-foreground/60">
           {t("dayFailedShort")}
         </span>
-      ) : chips.length === 0 && !closed ? (
+      ) : empty && assignable ? (
+        // The design's own thesis: an empty cell on a bookable worker is where
+        // work gets put, not a blank. Only drawn when the day actually has
+        // something to offer — the row already checked.
+        <button
+          type="button"
+          onClick={onAssignDay}
+          className="flex min-h-8 flex-1 flex-col items-center justify-center gap-0.5 rounded-md text-[10px] font-semibold text-status-active ring-1 ring-inset ring-status-active/35 outline-none transition-colors hover:bg-status-active-tint/40 focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <Plus className="size-3" strokeWidth={2.6} />
+          <span className="text-[9px] uppercase tracking-[0.04em]">{t("assign")}</span>
+        </button>
+      ) : empty ? (
         // One muted dash, centred. Not an error, not availability — simply nothing.
         <span className="self-center font-mono text-sm text-border">–</span>
       ) : null}

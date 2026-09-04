@@ -122,11 +122,36 @@ export interface DemandCell {
   taskCount: number;
 }
 
+/**
+ * One task a free day's Assign popover can offer — the same fields a chip
+ * carries, minus this-worker's-relationship-to-it, since there isn't one yet.
+ *
+ * ⚠ **No eligibility here, on purpose.** `GET /api/tasks/admin/groups` carries
+ * no profession or rating-floor field on the task it hands back — only the
+ * *create* request (`CreateTaskGroupRequest.eligibleProfessionIds`) has one, and
+ * it is not echoed back. So "which jobs fit" cannot be honestly pre-filtered
+ * client-side; every task still short a worker is offered, and the real assign
+ * call is the judge — same as the existing short-staffed sheet already does for
+ * "which workers fit".
+ */
+export interface OpenTaskCandidate {
+  taskId: string;
+  groupId: string;
+  from: string;
+  to: string;
+  propertyName: string;
+  taskTitle: string;
+  assigned: number;
+  required: number;
+}
+
 export interface MatrixWeek {
   days: MatrixDay[];
   demand: DemandCell[];
   /** Tasks that day with nobody at all on them — invisible to attendance. */
   openShifts: number[];
+  /** Index-aligned with `days`: every task that day still short a worker. */
+  openTasksByDay: OpenTaskCandidate[][];
   rows: MatrixRow[];
   /** Rows dropped by `hideUnbooked`. */
   hiddenCount: number;
@@ -222,11 +247,13 @@ export function buildMatrixWeek({
   /* ── the two aggregate rows, from the tasks rather than from attendance ── */
   const demand: DemandCell[] = [];
   const openShifts: number[] = [];
+  const openTasksByDay: OpenTaskCandidate[][] = [];
 
   for (const key of dayKeys) {
-    const dayTasks = [...tasks.values()].filter(
-      (t) => t.scheduledDate === key && !DEAD_TASK.has(t.status),
+    const dayEntries = [...tasks.entries()].filter(
+      ([, t]) => t.scheduledDate === key && !DEAD_TASK.has(t.status),
     );
+    const dayTasks = dayEntries.map(([, t]) => t);
     const properties = new Set(dayTasks.map((t) => t.propertyName).filter(Boolean));
     demand.push({
       assigned: sum(dayTasks.map((t) => t.assigned)),
@@ -240,6 +267,21 @@ export function buildMatrixWeek({
     // Zero assigned means zero attendance rows, so this number cannot come from
     // the seven reads. It is the whole reason the groups read exists.
     openShifts.push(dayTasks.filter((t) => t.assigned === 0).length);
+    openTasksByDay.push(
+      dayEntries
+        .filter(([, t]) => t.assigned < t.required)
+        .map(([taskId, t]) => ({
+          taskId,
+          groupId: t.groupId,
+          from: clockOf(t.scheduledAt),
+          to: t.deadline ? clockOf(t.deadline) : "",
+          propertyName: t.propertyName,
+          taskTitle: t.title,
+          assigned: t.assigned,
+          required: t.required,
+        }))
+        .sort((a, b) => a.from.localeCompare(b.from)),
+    );
   }
 
   /* ── one row per worker ───────────────────────────────────────────────── */
@@ -280,7 +322,14 @@ export function buildMatrixWeek({
   */
   const rows = hideUnbooked ? all.filter((r) => r.taskCount > 0) : all;
 
-  return { days, demand, openShifts, rows, hiddenCount: all.length - rows.length };
+  return {
+    days,
+    demand,
+    openShifts,
+    openTasksByDay,
+    rows,
+    hiddenCount: all.length - rows.length,
+  };
 }
 
 function toChip(row: AttendanceRowDto, facts: TaskFacts | undefined): MatrixChip {

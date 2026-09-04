@@ -21,6 +21,10 @@ import {
   type FilterSection,
 } from "@/components/ui/filter-bar";
 import { Card } from "@/components/ui/card";
+import {
+  AssignDaySheet,
+  type AssignDayTarget,
+} from "@/components/workers/matrix/assign-day-sheet";
 import { AssignSheet } from "@/components/workers/matrix/assign-sheet";
 import { MatrixToolbar } from "@/components/workers/matrix/matrix-toolbar";
 import { WorkersMatrix } from "@/components/workers/matrix/workers-matrix";
@@ -130,6 +134,7 @@ export default function WorkersPage() {
   const todayKey = useTodayKey();
   const week = useMemo(() => weekOf(weekStart, todayKey), [weekStart, todayKey]);
   const [assigning, setAssigning] = useState<MatrixChip | null>(null);
+  const [assigningDay, setAssigningDay] = useState<AssignDayTarget | null>(null);
   const [matrixFiltersOpen, setMatrixFiltersOpen] = useState(false);
 
   const countries = useCountries();
@@ -641,6 +646,9 @@ export default function WorkersPage() {
             isLoading={isLoading || attendance.isLoading}
             onAssign={setAssigning}
             onOpenChip={(chip) => setAssigning(chip.kind === "short" ? chip : null)}
+            onAssignDay={(worker, dayKey, candidates) =>
+              setAssigningDay({ worker, dayKey, candidates })
+            }
           />
 
           <AssignSheet
@@ -649,6 +657,8 @@ export default function WorkersPage() {
             workers={data?.items ?? []}
             onClose={() => setAssigning(null)}
           />
+
+          <AssignDaySheet target={assigningDay} onClose={() => setAssigningDay(null)} />
         </>
       ) : (
         <DataTable
