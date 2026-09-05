@@ -58,12 +58,6 @@ export function MatrixRow({
   const tProfessions = useTranslations("workers.professions");
   const status = workerStatusPresentation(row.worker);
 
-  // How many of the seven cells on screen are a plain "nothing booked" —
-  // the design's own reason this matrix exists: "a free day on a bookable
-  // worker is an assign target". Cell-level only; it says nothing about
-  // whether the worker is actually reachable that day.
-  const freeCount = row.cells.filter((c) => c.chips.length === 0).length;
-
   // The design's own gate on the badge's colour: a free day only reads as an
   // opportunity when the worker could actually be given the work. Mirrors
   // `bookable = stage Active && account Active` from the design's `matrix()`.
@@ -157,12 +151,12 @@ export function MatrixRow({
               <span
                 className={cn(
                   "rounded-md px-1.5 text-[10px] font-semibold",
-                  bookable && freeCount > 0
+                  bookable && row.freeDays > 0
                     ? "bg-status-active-tint text-status-active"
                     : "bg-muted text-muted-foreground",
                 )}
               >
-                {freeCount > 0 ? t("freeDays", { count: freeCount }) : t("fullWeek")}
+                {row.freeDays > 0 ? t("freeDays", { count: row.freeDays }) : t("fullWeek")}
               </span>
             </span>
             <span className="flex min-w-0 items-center gap-1 truncate text-[10px] text-muted-foreground">

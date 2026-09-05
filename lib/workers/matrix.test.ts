@@ -126,7 +126,6 @@ function build(over: Partial<Parameters<typeof buildMatrixWeek>[0]> = {}) {
     dayKeys: WEEK,
     attendance: EMPTY_WEEK,
     groups: [],
-    hideUnbooked: false,
     ...over,
   });
 }
@@ -362,32 +361,18 @@ describe("buildMatrixWeek — rows", () => {
   });
 });
 
-describe("buildMatrixWeek — hiding the unbooked", () => {
-  const workers = [worker({ id: "w1" }), worker({ id: "w2" }), worker({ id: "w3" })];
-  const attendance = WEEK.map((_, i) => (i === 0 ? [att({ workerId: "w2" })] : []));
-
-  it("keeps everyone when the bar is off", () => {
-    const m = buildMatrixWeek({
-      workers,
-      dayKeys: WEEK,
-      attendance,
-      groups: [],
-      hideUnbooked: false,
-    });
+describe("buildMatrixWeek — row order", () => {
+  /*
+    Adapted from the deleted "hiding the unbooked" describe block: the same
+    fixture (three workers, one booked) once proved a worker with no booking
+    could be filtered out; now it proves the opposite on purpose — nobody is
+    ever dropped, matching the design's own "no hidden-worker notice".
+  */
+  it("shows every worker the Table's filters matched — nobody hidden", () => {
+    const workers = [worker({ id: "w1" }), worker({ id: "w2" }), worker({ id: "w3" })];
+    const attendance = WEEK.map((_, i) => (i === 0 ? [att({ workerId: "w2" })] : []));
+    const m = buildMatrixWeek({ workers, dayKeys: WEEK, attendance, groups: [] });
     expect(m.rows).toHaveLength(3);
-    expect(m.hiddenCount).toBe(0);
-  });
-
-  it("drops the workless rows and says how many", () => {
-    const m = buildMatrixWeek({
-      workers,
-      dayKeys: WEEK,
-      attendance,
-      groups: [],
-      hideUnbooked: true,
-    });
-    expect(m.rows.map((r) => r.worker.id)).toEqual(["w2"]);
-    expect(m.hiddenCount).toBe(2);
   });
 });
 

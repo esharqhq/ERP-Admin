@@ -97,6 +97,18 @@ export interface MatrixRow {
   hours: number | null;
   /** Tasks whose window is unknown, so `hours` is a floor rather than a total. */
   untimedCount: number;
+  /**
+   * How many of the seven cells are a plain "nothing booked" — the design's own
+   * reason this matrix exists: a free day is where work gets put. Cell-level
+   * only; it says nothing about whether the worker is actually bookable, which
+   * is why the row (not this count) also gates the free-days badge's colour and
+   * the empty-cell Assign affordance on `workerStatusPresentation`.
+   *
+   * Drives the row order (`buildMatrixWeek`'s default sort): free days first, so
+   * the worker with the most room to take new work is the one an admin sees
+   * without paging.
+   */
+  freeDays: number;
 }
 
 /** One column head: the date, and what happened on it. */
@@ -136,9 +148,8 @@ export interface MatrixWeek {
   days: MatrixDay[];
   /** Index-aligned with `days`: every task that day still short a worker. */
   openTasksByDay: OpenTaskCandidate[][];
+  /** Every worker the Table's own filters matched — sorted free-days first, never hidden. */
   rows: MatrixRow[];
-  /** Rows dropped by `hideUnbooked`. */
-  hiddenCount: number;
 }
 
 /** A worker who left a task no longer occupies its slot. */
@@ -202,8 +213,6 @@ export interface BuildMatrixInput {
   /** Index-aligned with `dayKeys`. `null` for a day whose read failed. */
   attendance: (AttendanceRowDto[] | null)[];
   groups: TaskGroupDto[];
-  /** Default on — the design's "n workers with no booking this week are hidden". */
-  hideUnbooked: boolean;
 }
 
 export function buildMatrixWeek({
@@ -211,7 +220,6 @@ export function buildMatrixWeek({
   dayKeys,
   attendance,
   groups,
-  hideUnbooked,
 }: BuildMatrixInput): MatrixWeek {
   const tasks = indexTasks(groups, dayKeys);
 
@@ -284,21 +292,27 @@ export function buildMatrixWeek({
       taskCount: chips.length,
       hours: timed.length > 0 ? sum(timed.map((c) => c.hours as number)) : null,
       untimedCount: chips.length - timed.length,
+      freeDays: cells.filter((c) => c.chips.length === 0).length,
     };
   });
 
   /*
-    Hiding the unbooked is the design's own row-reduction, and it is why a window
-    of five is not absurd: on a real page most of the directory has no work in any
-    given week, and a grid of empty rows is a grid nobody can read.
+    Free days first, then name — the worker with the most room to take new work
+    is the one an admin sees without paging. A sort, not a filter: every worker
+    the Table's own query matched is shown, matching the design's own "no
+    hidden-worker notice" — unbooked workers are the whole point of this
+    reading, so finding one is a sort key, not something to page past.
   */
-  const rows = hideUnbooked ? all.filter((r) => r.taskCount > 0) : all;
+  const rows = [...all].sort(
+    (a, b) =>
+      b.freeDays - a.freeDays ||
+      (a.worker.fullName ?? "").localeCompare(b.worker.fullName ?? ""),
+  );
 
   return {
     days,
     openTasksByDay,
     rows,
-    hiddenCount: all.length - rows.length,
   };
 }
 

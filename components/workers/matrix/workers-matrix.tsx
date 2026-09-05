@@ -6,7 +6,6 @@ import {
   Check,
   Clock,
   Crosshair,
-  EyeOff,
   RotateCcw,
 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
@@ -35,9 +34,9 @@ import { MatrixRow } from "./matrix-row";
  * when a row is expanded.
  *
  * ⚠ **Rows are windowed and there is no infinite scroll.** The design's numbers —
- * five drawn, twenty more per press — with the workless rows hidden by default,
- * which is the mechanism that makes five a sensible number: on a real page most
- * of the directory has no work in any given week.
+ * five drawn, twenty more per press — with every worker sorted free-days first
+ * rather than hidden, so the window opens on the rows most worth seeing instead
+ * of on whichever five happen to sort first alphabetically.
  */
 
 /** The frozen identity column, matched to the design's 300px. */
@@ -72,7 +71,6 @@ export function WorkersMatrix({
   const t = useTranslations("workers.matrix");
   const locale = useLocale();
 
-  const [hideUnbooked, setHideUnbooked] = useState(true);
   const [visible, setVisible] = useState(INITIAL_ROWS);
   const [expanded, setExpanded] = useState<string | null>(null);
 
@@ -83,9 +81,8 @@ export function WorkersMatrix({
         dayKeys: week.dayKeys,
         attendance: attendance.rowsByDay,
         groups,
-        hideUnbooked,
       }),
-    [workers, week.dayKeys, attendance.rowsByDay, groups, hideUnbooked],
+    [workers, week.dayKeys, attendance.rowsByDay, groups],
   );
 
   const labels = useMemo(() => weekdayLabels(locale), [locale]);
@@ -189,19 +186,7 @@ export function WorkersMatrix({
             <TableState
               icon={<Clock className="size-4" />}
               title={t("emptyTitle")}
-              body={hideUnbooked ? t("emptyHiddenBody") : t("emptyBody")}
-              action={
-                hideUnbooked && grid.hiddenCount > 0 ? (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setHideUnbooked(false)}
-                    className="mt-1"
-                  >
-                    {t("showAll")}
-                  </Button>
-                ) : undefined
-              }
+              body={t("emptyBody")}
             />
           ) : (
             shown.map((row) => (
@@ -228,19 +213,6 @@ export function WorkersMatrix({
           )}
         </div>
       </div>
-
-      {/* ── the hidden-rows bar ───────────────────────────────────────── */}
-      {hideUnbooked && grid.hiddenCount > 0 && (
-        <button
-          type="button"
-          onClick={() => setHideUnbooked(false)}
-          className="flex items-center justify-center gap-2 border-t border-status-pending/25 bg-status-pending-tint/40 py-2 text-[11.5px] font-semibold text-status-pending-deep outline-none hover:bg-status-pending-tint/60 focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          <EyeOff className="size-3.5" />
-          {t("hidden", { count: grid.hiddenCount })}
-          <span className="underline underline-offset-2">{t("showAll")}</span>
-        </button>
-      )}
 
       {/* ── legend and the row window ─────────────────────────────────── */}
       <div className="flex flex-wrap items-center gap-2 border-t border-border px-4 py-2.5 sm:px-5">
