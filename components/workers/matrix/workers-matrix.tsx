@@ -17,11 +17,7 @@ import type { AttendanceWeek } from "@/hooks/use-attendance-week";
 import type { TaskGroupDto } from "@/lib/types/task.types";
 import type { WorkerRowDto } from "@/lib/types/worker.types";
 import { weekdayLabels, type DayKey, type Week } from "@/lib/ui/week";
-import {
-  buildMatrixWeek,
-  type MatrixChip,
-  type OpenTaskCandidate,
-} from "@/lib/workers/matrix";
+import { buildMatrixWeek, type MatrixChip } from "@/lib/workers/matrix";
 import { cn } from "@/lib/utils";
 import { MatrixRow } from "./matrix-row";
 
@@ -54,7 +50,6 @@ export function WorkersMatrix({
   isLoading,
   onAssign,
   onOpenChip,
-  onAssignDay,
 }: {
   week: Week;
   todayKey: DayKey;
@@ -66,7 +61,6 @@ export function WorkersMatrix({
   isLoading: boolean;
   onAssign: (chip: MatrixChip) => void;
   onOpenChip: (chip: MatrixChip) => void;
-  onAssignDay: (worker: WorkerRowDto, dayKey: DayKey, candidates: OpenTaskCandidate[]) => void;
 }) {
   const t = useTranslations("workers.matrix");
   const locale = useLocale();
@@ -205,9 +199,6 @@ export function WorkersMatrix({
                 }
                 onAssign={onAssign}
                 onOpenChip={onOpenChip}
-                onAssignDay={(dayKey, candidates) =>
-                  onAssignDay(row.worker, dayKey, candidates)
-                }
               />
             ))
           )}

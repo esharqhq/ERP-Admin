@@ -37,7 +37,6 @@ export function MatrixRow({
   onToggle,
   onAssign,
   onOpenChip,
-  onAssignDay,
 }: {
   row: Row;
   dayKeys: DayKey[];
@@ -49,7 +48,6 @@ export function MatrixRow({
   onToggle: () => void;
   onAssign: (chip: MatrixChip) => void;
   onOpenChip: (chip: MatrixChip) => void;
-  onAssignDay: (dayKey: DayKey, candidates: OpenTaskCandidate[]) => void;
 }) {
   const t = useTranslations("workers.matrix");
   const tStage = useTranslations("workers.stage");
@@ -220,9 +218,12 @@ export function MatrixRow({
             isWeekend={i > 4}
             failed={failedDays[i]}
             assignable={bookable && openTasksByDay[i].length > 0}
+            candidates={openTasksByDay[i]}
+            workerId={row.worker.id}
+            workerName={row.worker.fullName}
+            date={dayKeys[i]}
             onAssign={onAssign}
             onOpenChip={onOpenChip}
-            onAssignDay={() => onAssignDay(dayKeys[i], openTasksByDay[i])}
           />
         ))}
       </div>

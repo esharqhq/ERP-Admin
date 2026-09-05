@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   AlertTriangle,
   Check, CheckCheck,
@@ -10,9 +11,12 @@ import {
   X,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import type { DayKey } from "@/lib/ui/week";
 import type { AvailabilityDay } from "@/lib/workers/availability";
-import type { ChipKind, MatrixChip } from "@/lib/workers/matrix";
+import type { ChipKind, MatrixChip, OpenTaskCandidate } from "@/lib/workers/matrix";
 import { cn } from "@/lib/utils";
+import { AssignDayPopover } from "./assign-day-popover";
 
 /** next-intl's own bound translator, so the helpers below cannot widen its values. */
 type T = ReturnType<typeof useTranslations<"workers.matrix">>;
@@ -60,9 +64,12 @@ export function MatrixCell({
   isWeekend,
   failed,
   assignable,
+  candidates,
+  workerId,
+  workerName,
+  date,
   onAssign,
   onOpenChip,
-  onAssignDay,
 }: {
   chips: MatrixChip[];
   /** Only present while the row is expanded — the layer, never the ground. */
@@ -78,11 +85,18 @@ export function MatrixCell({
    * so the row passes the verdict down rather than the cell re-deriving it.
    */
   assignable: boolean;
+  /** This day's open-task candidates — only meaningful when `assignable`. */
+  candidates: OpenTaskCandidate[];
+  workerId: string;
+  workerName: string | null;
+  date: DayKey;
   onAssign: (chip: MatrixChip) => void;
   onOpenChip: (chip: MatrixChip) => void;
-  onAssignDay: () => void;
 }) {
   const t = useTranslations("workers.matrix");
+  // Owned here, not lifted: the popover is anchored to this cell's own
+  // trigger, so this cell is the one thing that knows when it should close.
+  const [assignOpen, setAssignOpen] = useState(false);
 
   const shown = chips.slice(0, MAX_CHIPS);
   const more = chips.length - shown.length;
@@ -122,14 +136,32 @@ export function MatrixCell({
         // The design's own thesis: an empty cell on a bookable worker is where
         // work gets put, not a blank. Only drawn when the day actually has
         // something to offer — the row already checked.
-        <button
-          type="button"
-          onClick={onAssignDay}
-          className="flex min-h-8 flex-1 flex-col items-center justify-center gap-0.5 rounded-md text-[10px] font-semibold text-status-active ring-1 ring-inset ring-status-active/35 outline-none transition-colors hover:bg-status-active-tint/40 focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          <Plus className="size-3" strokeWidth={2.6} />
-          <span className="text-[9px] uppercase tracking-[0.04em]">{t("assign")}</span>
-        </button>
+        //
+        // The popover is anchored to *this* trigger, not rendered from the
+        // page: an admin never loses which cell they're assigning into,
+        // which a screen-centred modal cannot promise.
+        <Popover open={assignOpen} onOpenChange={setAssignOpen}>
+          <PopoverTrigger
+            render={
+              <button
+                type="button"
+                className="flex min-h-8 flex-1 flex-col items-center justify-center gap-0.5 rounded-md text-[10px] font-semibold text-status-active ring-1 ring-inset ring-status-active/35 outline-none transition-colors hover:bg-status-active-tint/40 focus-visible:ring-2 focus-visible:ring-ring"
+              />
+            }
+          >
+            <Plus className="size-3" strokeWidth={2.6} />
+            <span className="text-[9px] uppercase tracking-[0.04em]">{t("assign")}</span>
+          </PopoverTrigger>
+          <PopoverContent align="start" side="bottom" sideOffset={4} className="w-72 p-0">
+            <AssignDayPopover
+              workerId={workerId}
+              workerName={workerName}
+              date={date}
+              candidates={candidates}
+              onAssigned={() => setAssignOpen(false)}
+            />
+          </PopoverContent>
+        </Popover>
       ) : empty ? (
         // One muted dash, centred. Not an error, not availability — simply nothing.
         <span className="self-center font-mono text-sm text-border">–</span>
