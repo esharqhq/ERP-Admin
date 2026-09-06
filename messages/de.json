@@ -2388,7 +2388,11 @@
       "Missed": "Verpasst"
     },
     "filters": {
-      "status": "Status"
+      "status": "Status",
+      "allStatuses": "Alle Status",
+      "singleValueNote": "Immer nur ein Status — GET /api/broadcasts?status= akzeptiert einen einzelnen Wert.",
+      "sortedBy": "Sortiert nach",
+      "sortedByCreated": "Erstellt — neueste zuerst"
     },
     "row": {
       "titleFallbackNote": "titleDe leer — Englisch angezeigt",

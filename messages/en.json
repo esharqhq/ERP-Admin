@@ -2388,7 +2388,11 @@
       "Missed": "Missed"
     },
     "filters": {
-      "status": "Status"
+      "status": "Status",
+      "allStatuses": "All statuses",
+      "singleValueNote": "One status at a time — GET /api/broadcasts?status= takes a single value.",
+      "sortedBy": "Sorted by",
+      "sortedByCreated": "Created — newest"
     },
     "row": {
       "titleFallbackNote": "titleDe empty — English shown",

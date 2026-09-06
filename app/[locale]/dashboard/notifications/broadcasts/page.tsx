@@ -10,6 +10,7 @@ import { Can } from "@/components/auth/can";
 import { DataTable, type DataColumn } from "@/components/ui/data-table";
 import {
   BroadcastAudienceBadge,
+  BroadcastStatusDropdown,
   BroadcastStatusPill,
   BroadcastTitleCell,
   recipientsSubline,
@@ -37,40 +38,12 @@ function formatAbs(iso: string, locale: string): string {
   });
 }
 
-/**
- * Tab keys double as the URL's `?tab=` value. "all" is a sentinel; the other
- * five are the exact `BroadcastStatus` wire values, which is what lets
- * `queryFor` and the label lookup below both stay a plain switch/key-into-`t`
- * with no cast on the query side and no new i18n keys — `statusLabels.*`
- * already exists from the column pill (Phase 2) and is reused verbatim.
- * Order matches the ask: All, then the chronological status flow.
- */
-const TABS = ["all", "Scheduled", "Sending", "Sent", "Cancelled", "Missed"] as const;
-type BroadcastTab = (typeof TABS)[number];
-const DEFAULT_TAB: BroadcastTab = "all";
-
-/**
- * Same shape as `owners/page.tsx` and `workers/page.tsx`'s `queryFor`: a
- * switch with a `default` that degrades to "no filter" rather than casting a
- * possibly-stale `?tab=` straight through. A hand-edited or dead link should
- * show everything, not 400 or silently narrow to nothing.
- */
-function queryFor(tab: string): BroadcastStatus | undefined {
-  switch (tab) {
-    case "Scheduled":
-      return "Scheduled";
-    case "Sending":
-      return "Sending";
-    case "Sent":
-      return "Sent";
-    case "Cancelled":
-      return "Cancelled";
-    case "Missed":
-      return "Missed";
-    default:
-      return undefined;
-  }
-}
+/** The three the design's quick-count chips name — Scheduled/Sending/Missed. */
+const QUICK_CHIPS: { status: BroadcastStatus; className: string; dot: string }[] = [
+  { status: "Scheduled", className: "bg-muted text-muted-foreground", dot: "bg-muted-foreground/60" },
+  { status: "Sending", className: "bg-accent text-primary ring-1 ring-inset ring-primary/20", dot: "bg-primary" },
+  { status: "Missed", className: "bg-destructive/10 text-destructive ring-1 ring-inset ring-destructive/20", dot: "bg-destructive" },
+];
 
 /**
  * Locale-aware, no hardcoded English. `scheduledAtUtc` can be in the future
@@ -109,30 +82,46 @@ export default function BroadcastsPage() {
   const locale = useLocale();
   const router = useRouter();
 
-  const state = useTableUrlState({ defaultTab: DEFAULT_TAB });
+  const state = useTableUrlState({ filterKeys: ["status"] });
+  const selectedStatus = (state.filters.status || undefined) as
+    | BroadcastStatus
+    | undefined;
 
   const query = useMemo(
     () => ({
-      status: queryFor(state.tab),
+      status: selectedStatus,
       page: state.page,
       pageSize: state.pageSize,
     }),
-    [state.tab, state.page, state.pageSize],
+    [selectedStatus, state.page, state.pageSize],
   );
 
   const { data, isLoading, isError, error } = useBroadcastList(query);
 
-  const tabs = useMemo(
-    () =>
-      TABS.map((key) => ({
-        value: key,
-        label:
-          key === "all"
-            ? tCommon("all")
-            : t(`statusLabels.${key}` as Parameters<typeof t>[0]),
-      })),
-    [t, tCommon],
-  );
+  /**
+   * Per-status counts for the dropdown and the quick-count chips — five
+   * `pageSize: 1` probes, one per status, reading `.total` off the envelope.
+   * NOT a client-side filter of the current page: that's the "filter that
+   * quietly lies" the shell's own docs warn against, since the current page
+   * is at most 20 rows of whatever the active filter already narrowed to.
+   * "All statuses" is the sum of the five, not a 6th probe — the enum is
+   * closed and every row has exactly one status, so the sum is exact.
+   * Filed as B18 upstream: a cheap aggregate would replace this.
+   */
+  const scheduledCount = useBroadcastList({ status: "Scheduled", page: 1, pageSize: 1 });
+  const sendingCount = useBroadcastList({ status: "Sending", page: 1, pageSize: 1 });
+  const sentCount = useBroadcastList({ status: "Sent", page: 1, pageSize: 1 });
+  const cancelledCount = useBroadcastList({ status: "Cancelled", page: 1, pageSize: 1 });
+  const missedCount = useBroadcastList({ status: "Missed", page: 1, pageSize: 1 });
+
+  const statusCounts: Record<BroadcastStatus, number> = {
+    Scheduled: scheduledCount.data?.total ?? 0,
+    Sending: sendingCount.data?.total ?? 0,
+    Sent: sentCount.data?.total ?? 0,
+    Cancelled: cancelledCount.data?.total ?? 0,
+    Missed: missedCount.data?.total ?? 0,
+  };
+  const statusTotal = Object.values(statusCounts).reduce((sum, n) => sum + n, 0);
 
   const columns = useMemo<DataColumn<BroadcastRowDto>[]>(
     () => [
@@ -233,11 +222,27 @@ export default function BroadcastsPage() {
 
   return (
     <div className="flex grow flex-col gap-5">
-      <div className="flex flex-col gap-1">
-        <h1 className="font-heading text-3xl font-bold leading-tight tracking-tight">
-          {t("title")}
-        </h1>
-        <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="flex flex-col gap-1">
+          <h1 className="font-heading text-3xl font-bold leading-tight tracking-tight">
+            {t("title")}
+          </h1>
+          <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
+        </div>
+        {/* Moved here from the shell's own row 1 — the design puts "Create
+            broadcast" in the page header, not inside the card, and the custom
+            `toolbar` below replaces the card's row 1 entirely anyway. */}
+        <Can permission="notification:broadcast">
+          <Button
+            size="sm"
+            className="gap-2"
+            nativeButton={false}
+            render={<Link href="/dashboard/notifications/broadcasts/new" />}
+          >
+            <Plus className="size-4" />
+            {t("createBroadcast")}
+          </Button>
+        </Can>
       </div>
 
       <DataTable
@@ -268,21 +273,52 @@ export default function BroadcastsPage() {
               : undefined
         }
         title={t("list")}
-        actions={
-          <Can permission="notification:broadcast">
-            <Button
-              size="sm"
-              className="gap-2"
-              nativeButton={false}
-              render={<Link href="/dashboard/notifications/broadcasts/new" />}
-            >
-              <Plus className="size-4" />
-              {t("createBroadcast")}
-            </Button>
-          </Can>
-        }
-        tabs={tabs}
-        tabsLabel={tCommon("status")}
+        // The design's own toolbar (§02) in place of the shell's three rows —
+        // a status dropdown with per-option counts and dots, three quick-count
+        // chips, and a static "Sorted by" label. No `fields`/`Filters` band,
+        // no column picker, no density toggle: the design's toolbar shows
+        // none of them, so none are drawn. `searchPlaceholder` below is still
+        // required by DataTableProps but nothing renders it once `toolbar` is
+        // supplied — the design's toolbar has no search box either, matching
+        // the "no server-side search on this endpoint" note from Phase 2.
+        toolbar={() => (
+          <div className="flex flex-none flex-wrap items-center gap-2.5 border-b border-border px-4 py-3 sm:px-5">
+            <span className="flex-none text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              {tCommon("status")}
+            </span>
+            <BroadcastStatusDropdown
+              value={selectedStatus}
+              onChange={(v) => state.setFilter("status", v ?? "")}
+              counts={statusCounts}
+              total={statusTotal}
+            />
+            <span className="h-5 w-px flex-none bg-border" />
+            {QUICK_CHIPS.map((c) => (
+              <span
+                key={c.status}
+                className={cn(
+                  "flex h-7 flex-none items-center gap-1.5 rounded-full px-2.5 text-xs font-medium",
+                  c.className,
+                )}
+              >
+                <span className={cn("size-[6px] shrink-0 rounded-full", c.dot)} />
+                {t(`statusLabels.${c.status}` as Parameters<typeof t>[0])}
+                <span className="font-mono font-semibold">{statusCounts[c.status]}</span>
+              </span>
+            ))}
+            <div className="flex-1" />
+            {/* Static — no column on this table has a sortKey, matching the
+                same honest-inert-control choice owners/page.tsx makes for an
+                unsortable column, rather than wiring a control that orders
+                nothing. */}
+            <span className="flex-none text-[11px] text-muted-foreground">
+              {t("filters.sortedBy")}
+            </span>
+            <span className="flex h-8 flex-none items-center gap-1.5 rounded-md bg-muted px-2.5 text-xs text-muted-foreground">
+              {t("filters.sortedByCreated")}
+            </span>
+          </div>
+        )}
         searchPlaceholder={t("searchPlaceholder")}
         // ⚠ TableEmpty's glyph is hardcoded to Inbox (table-states.tsx, out of
         // this phase's file scope) — the design's megaphone icon is not drawn.

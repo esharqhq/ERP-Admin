@@ -1,9 +1,23 @@
 "use client";
 
 import type { MouseEvent } from "react";
-import { Image as ImageIcon, FileText, RotateCcw, AlertTriangle } from "lucide-react";
+import {
+  Image as ImageIcon,
+  FileText,
+  RotateCcw,
+  AlertTriangle,
+  ChevronDown,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import type { BroadcastRowDto, BroadcastStatus } from "@/lib/types/broadcast.types";
 
@@ -177,6 +191,105 @@ export function BroadcastImageMarker({ hasImage }: { hasImage: boolean }) {
         <FileText className="size-3.5" strokeWidth={1.9} />
       )}
     </span>
+  );
+}
+
+const STATUS_ORDER: BroadcastStatus[] = [
+  "Scheduled",
+  "Sending",
+  "Sent",
+  "Cancelled",
+  "Missed",
+];
+
+/** The dropdown row's own dot color — same read as the status pill's dot. */
+const STATUS_DOT: Record<BroadcastStatus, string> = {
+  Scheduled: "bg-muted-foreground/60",
+  Sending: "bg-primary",
+  Sent: "bg-status-active/70",
+  Cancelled: "bg-muted-foreground/30",
+  Missed: "bg-destructive",
+};
+
+/**
+ * The single-select status filter, drawn as the design's own dropdown (§02)
+ * rather than the shared `FilterBar`'s select field — that field can't carry
+ * a per-option count or dot, both of which the design calls for by name.
+ * `properties/page.tsx` already sets a precedent for a page-specific toolbar
+ * replacing the shell's own filter idiom when the design draws one; this is
+ * the same trade for a different reason (per-option decoration, not a
+ * pill-vs-band layout preference).
+ *
+ * Lives here, not in a third new file — this phase's CREATE list only
+ * authorizes `broadcast-row.tsx` and `cancel-broadcast-dialog.tsx`.
+ */
+export function BroadcastStatusDropdown({
+  value,
+  onChange,
+  counts,
+  total,
+}: {
+  value: BroadcastStatus | undefined;
+  onChange: (value: BroadcastStatus | undefined) => void;
+  /** Per-status count, from the five `pageSize:1` probes — never client-filtered. */
+  counts: Record<BroadcastStatus, number>;
+  /** Sum of the five — the true "all statuses" count, independent of any active filter. */
+  total: number;
+}) {
+  const t = useTranslations("broadcasts");
+  const label = value
+    ? t(`statusLabels.${value}` as Parameters<typeof t>[0])
+    : t("filters.allStatuses");
+  const count = value ? counts[value] : total;
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <button
+            type="button"
+            className="flex h-8 shrink-0 items-center gap-2 rounded-md bg-background px-2.5 text-[12.5px] font-medium ring-1 ring-inset ring-border"
+          />
+        }
+      >
+        {label}
+        <span className="font-mono text-[11px] text-muted-foreground">{count}</span>
+        <ChevronDown className="size-3.5 text-muted-foreground" />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-64">
+        <DropdownMenuRadioGroup
+          value={value ?? ""}
+          onValueChange={(v) =>
+            onChange(v ? (v as BroadcastStatus) : undefined)
+          }
+        >
+          <DropdownMenuRadioItem value="" className="justify-between pr-8">
+            <span className="flex-1 font-medium">{t("filters.allStatuses")}</span>
+            <span className="font-mono text-xs text-muted-foreground">{total}</span>
+          </DropdownMenuRadioItem>
+          {STATUS_ORDER.map((s) => (
+            <DropdownMenuRadioItem key={s} value={s} className="justify-between pr-8">
+              <span className="flex flex-1 items-center gap-2">
+                <span className={cn("size-[7px] shrink-0 rounded-full", STATUS_DOT[s])} />
+                {t(`statusLabels.${s}` as Parameters<typeof t>[0])}
+              </span>
+              <span
+                className={cn(
+                  "font-mono text-xs",
+                  s === "Missed" ? "font-semibold text-destructive" : "text-muted-foreground",
+                )}
+              >
+                {counts[s]}
+              </span>
+            </DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
+        <DropdownMenuSeparator />
+        <p className="px-1.5 py-1.5 text-[11px] text-muted-foreground">
+          {t("filters.singleValueNote")}
+        </p>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
