@@ -6,6 +6,7 @@ import { useRouter } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { LanguageBlock } from "@/components/broadcasts/language-block";
 import { BannerUploader } from "@/components/broadcasts/banner-uploader";
+import { AudiencePicker } from "@/components/broadcasts/audience-picker";
 import type {
   BroadcastAudience,
   BroadcastCustomAudienceDto,
@@ -99,14 +100,19 @@ export function ComposeForm({
   );
   const allTextFilled = filledCount === 4;
 
+  // A Custom audience with nothing named or filtered isn't really "chosen" —
+  // it would submit as broadcast_selection_required. AudiencePicker already
+  // reports selection as `null` whenever nothing's been picked or filtered.
+  const hasUsableAudience =
+    values.audience !== null && (values.audience !== "Custom" || values.selection !== null);
+
   // Timing has no "unset" state of its own — `scheduledAtUtc: null` legitimately
   // means "send now" (commit 4 adds the Send-now/Schedule toggle that lets an
   // admin choose that on purpose, vs. just never having touched it). Until that
   // toggle exists nothing can express "timing chosen" beyond audience being set,
-  // so this reduces to `allTextFilled && audience !== null` today — which, since
-  // nothing sets `audience` before commit 3 either, keeps Save correctly disabled
-  // in the meantime rather than only appearing to be.
-  const canSubmit = allTextFilled && values.audience !== null;
+  // so this reduces to `allTextFilled && hasUsableAudience` today — which keeps
+  // Save correctly disabled in the meantime rather than only appearing to be.
+  const canSubmit = allTextFilled && hasUsableAudience;
 
   const reasonText = !canSubmit ? t("disabledReason") : null;
 
@@ -118,48 +124,72 @@ export function ComposeForm({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4">
-        <div className="flex items-center gap-2.5">
-          <span className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-            {t("contentLabel")}
-          </span>
-          <span className="flex h-5 items-center rounded-md bg-fresh-tint px-2 text-[11px] font-semibold text-primary">
-            {t("filledCounter", { count: filledCount })}
-          </span>
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <div className="flex flex-col gap-4 lg:col-span-2">
+          <div className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4">
+            <div className="flex items-center gap-2.5">
+              <span className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                {t("contentLabel")}
+              </span>
+              <span className="flex h-5 items-center rounded-md bg-fresh-tint px-2 text-[11px] font-semibold text-primary">
+                {t("filledCounter", { count: filledCount })}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <LanguageBlock
+                language="de"
+                title={values.titleDe}
+                body={values.bodyDe}
+                onTitleChange={(v) => set("titleDe", v)}
+                onBodyChange={(v) => set("bodyDe", v)}
+                needsText={needsTextDe}
+              />
+              <LanguageBlock
+                language="en"
+                title={values.titleEn}
+                body={values.bodyEn}
+                onTitleChange={(v) => set("titleEn", v)}
+                onBodyChange={(v) => set("bodyEn", v)}
+                needsText={needsTextEn}
+              />
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-border bg-card p-4">
+            <BannerUploader
+              value={{ storageKey: values.imageStorageKey, previewUrl: values.imagePreviewUrl }}
+              onChange={(next) => {
+                setValues((prev) => ({
+                  ...prev,
+                  imageStorageKey: next.storageKey,
+                  imagePreviewUrl: next.previewUrl,
+                }));
+              }}
+              existingImageUrl={mode === "edit" ? existingImageUrl : null}
+            />
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <LanguageBlock
-            language="de"
-            title={values.titleDe}
-            body={values.bodyDe}
-            onTitleChange={(v) => set("titleDe", v)}
-            onBodyChange={(v) => set("bodyDe", v)}
-            needsText={needsTextDe}
-          />
-          <LanguageBlock
-            language="en"
-            title={values.titleEn}
-            body={values.bodyEn}
-            onTitleChange={(v) => set("titleEn", v)}
-            onBodyChange={(v) => set("bodyEn", v)}
-            needsText={needsTextEn}
+        <div className="flex flex-col gap-4">
+          <AudiencePicker
+            audience={values.audience}
+            selection={values.selection}
+            onAudienceChange={(audience) =>
+              setValues((prev) => ({
+                ...prev,
+                audience,
+                // Custom's picks/filters are meaningless under any other mode
+                // — and would trip broadcast_selection_not_allowed if sent —
+                // so switching away clears them rather than leaving them to
+                // linger in state (design §08: "this list freezes when you
+                // save", nothing implies it survives an audience change too).
+                selection: audience === "Custom" ? prev.selection : null,
+              }))
+            }
+            onSelectionChange={(selection) => set("selection", selection)}
           />
         </div>
-      </div>
-
-      <div className="rounded-xl border border-border bg-card p-4">
-        <BannerUploader
-          value={{ storageKey: values.imageStorageKey, previewUrl: values.imagePreviewUrl }}
-          onChange={(next) => {
-            setValues((prev) => ({
-              ...prev,
-              imageStorageKey: next.storageKey,
-              imagePreviewUrl: next.previewUrl,
-            }));
-          }}
-          existingImageUrl={mode === "edit" ? existingImageUrl : null}
-        />
       </div>
 
       <div className="flex items-center justify-end gap-3 border-t border-border pt-4">

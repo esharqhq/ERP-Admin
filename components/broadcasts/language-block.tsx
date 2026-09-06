@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -50,6 +51,7 @@ export function LanguageBlock({
   onBodyChange,
   needsText,
 }: LanguageBlockProps) {
+  const t = useTranslations("broadcasts.compose.language");
   const languageLabel = language === "de" ? "Deutsch" : "English";
 
   return (
@@ -62,12 +64,14 @@ export function LanguageBlock({
       <div className="flex items-center justify-between">
         <span className="text-sm font-semibold text-foreground">{languageLabel}</span>
         {needsText && (
-          <span className="text-xs font-medium text-destructive">needs text</span>
+          <span className="text-xs font-medium text-destructive">{t("needsText")}</span>
         )}
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor={`title-${language}`}>Title</Label>
+        <Label htmlFor={`title-${language}`}>
+          {t("title")} <span className="text-destructive">*</span>
+        </Label>
         <Input
           id={`title-${language}`}
           value={title}
@@ -81,7 +85,9 @@ export function LanguageBlock({
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor={`body-${language}`}>Body</Label>
+        <Label htmlFor={`body-${language}`}>
+          {t("body")} <span className="text-destructive">*</span>
+        </Label>
         <Textarea
           id={`body-${language}`}
           value={body}

@@ -15,12 +15,19 @@ import type { KycProfileDto } from "@/lib/types/kyc.types";
  * Paged, filtered owner rows. `keepPreviousData` holds the current page on
  * screen while the next one loads, so paging and tab changes do not blank the
  * table and collapse its height under the cursor.
+ *
+ * `enabled` should be gated on `owner:list` when used as a filter/search
+ * picker on a page whose own gate is a *different* permission (the broadcast
+ * Custom-audience picker, e.g.) — same fail-open class `useWorkers` already
+ * documents, so an admin lacking `owner:list` doesn't 403 on the picker and
+ * force the spurious permission refetch `lib/http/on-forbidden.ts` triggers.
  */
-export function useOwners(query: OwnerListQuery = {}) {
+export function useOwners(query: OwnerListQuery = {}, enabled = true) {
   return useQuery({
     queryKey: ["owners-table", query],
     queryFn: () => ownerService.getOwners(query),
     placeholderData: keepPreviousData,
+    enabled,
   });
 }
 
