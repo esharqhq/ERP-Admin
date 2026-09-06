@@ -8,19 +8,45 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Can } from "@/components/auth/can";
 import { DataTable, type DataColumn } from "@/components/ui/data-table";
-import type { FilterField } from "@/components/ui/filter-bar";
 import { useTableUrlState } from "@/hooks/use-table-url-state";
 import { useBroadcastList } from "@/hooks/use-broadcasts";
 import { isPermissionDenied } from "@/lib/onboarding/errors";
 import type { BroadcastRowDto, BroadcastStatus } from "@/lib/types/broadcast.types";
 
-const STATUS_OPTIONS: BroadcastStatus[] = [
-  "Scheduled",
-  "Sending",
-  "Sent",
-  "Cancelled",
-  "Missed",
-];
+/**
+ * Tab keys double as the URL's `?tab=` value. "all" is a sentinel; the other
+ * five are the exact `BroadcastStatus` wire values, which is what lets
+ * `queryFor` and the label lookup below both stay a plain switch/key-into-`t`
+ * with no cast on the query side and no new i18n keys — `statusLabels.*`
+ * already exists from the column pill (Phase 2) and is reused verbatim.
+ * Order matches the ask: All, then the chronological status flow.
+ */
+const TABS = ["all", "Scheduled", "Sending", "Sent", "Cancelled", "Missed"] as const;
+type BroadcastTab = (typeof TABS)[number];
+const DEFAULT_TAB: BroadcastTab = "all";
+
+/**
+ * Same shape as `owners/page.tsx` and `workers/page.tsx`'s `queryFor`: a
+ * switch with a `default` that degrades to "no filter" rather than casting a
+ * possibly-stale `?tab=` straight through. A hand-edited or dead link should
+ * show everything, not 400 or silently narrow to nothing.
+ */
+function queryFor(tab: string): BroadcastStatus | undefined {
+  switch (tab) {
+    case "Scheduled":
+      return "Scheduled";
+    case "Sending":
+      return "Sending";
+    case "Sent":
+      return "Sent";
+    case "Cancelled":
+      return "Cancelled";
+    case "Missed":
+      return "Missed";
+    default:
+      return undefined;
+  }
+}
 
 /**
  * §"STATUS PILL COLORS": neutral/blue → info, warning/amber → warning,
@@ -72,33 +98,32 @@ function relativeTime(iso: string, locale: string): string {
  */
 export default function BroadcastsPage() {
   const t = useTranslations("broadcasts");
+  const tCommon = useTranslations("common");
   const locale = useLocale();
 
-  const state = useTableUrlState({ filterKeys: ["status"] });
+  const state = useTableUrlState({ defaultTab: DEFAULT_TAB });
 
   const query = useMemo(
     () => ({
-      status: (state.filters.status || undefined) as BroadcastStatus | undefined,
+      status: queryFor(state.tab),
       page: state.page,
       pageSize: state.pageSize,
     }),
-    [state.filters.status, state.page, state.pageSize],
+    [state.tab, state.page, state.pageSize],
   );
 
   const { data, isLoading, isError, error } = useBroadcastList(query);
 
-  const fields = useMemo<FilterField[]>(
-    () => [
-      {
-        key: "status",
-        label: t("filters.status"),
-        options: STATUS_OPTIONS.map((s) => ({
-          value: s,
-          label: t(`statusLabels.${s}`),
-        })),
-      },
-    ],
-    [t],
+  const tabs = useMemo(
+    () =>
+      TABS.map((key) => ({
+        value: key,
+        label:
+          key === "all"
+            ? tCommon("all")
+            : t(`statusLabels.${key}` as Parameters<typeof t>[0]),
+      })),
+    [t, tCommon],
   );
 
   const columns = useMemo<DataColumn<BroadcastRowDto>[]>(
@@ -198,7 +223,8 @@ export default function BroadcastsPage() {
             </Button>
           </Can>
         }
-        fields={fields}
+        tabs={tabs}
+        tabsLabel={tCommon("status")}
         searchPlaceholder={t("searchPlaceholder")}
         empty={{ title: t("emptyTitle"), body: t("emptyBody") }}
       />
