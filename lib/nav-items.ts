@@ -112,16 +112,28 @@ export const navGroups: NavGroup[] = [
     ],
   },
   {
-    id: "notifications",
-    label: "Notifications",
-    // Reuses the existing "Notifications" label — unused as a nav labelKey
-    // until now (the bell page itself is reached from the header dropdown,
-    // not the sidebar, and needs no gate: every seeded role holds
-    // `notification:read_self`). Broadcasts is admin-authored and
-    // SUPER_ADMIN-only, so it earns its own group rather than living under
-    // Support.
-    labelKey: "nav.notifications",
+    id: "platform",
+    label: "Platform",
+    // Renamed from Phase 2's "Notifications" per the shipped design
+    // (`Uyer Admin Broadcasts.dc.html` §01: "The nav item lives in a new
+    // Platform group"). The design's own group also carries Support
+    // alongside Broadcasts — deliberately NOT moved here: this round's ask
+    // was scoped to Broadcasts only, and Support is a live, shipped item
+    // with its own history; regrouping it wasn't requested and isn't done
+    // here.
+    labelKey: "nav.platform",
     items: [
+      // ⚠ Still dim + lock + `/forbidden?permission=…` on a missing grant,
+      // NOT hidden outright. The design's own decision #05 says "The nav
+      // item is hidden, not disabled" — but the *only* nav-gating mechanism
+      // that exists in this app (`app-sidebar.tsx`'s `canSeeItem`/
+      // `lockedHref`) does the opposite for every row, deliberately, and the
+      // user approved that exact behaviour for this item one phase ago.
+      // Reversing it again here — silently, on a design file's say-so alone
+      // — isn't this file's call to make twice without being asked; flagged
+      // in the PR rather than re-decided. True hiding would mean filtering
+      // this item out of the rendered list in `app-sidebar.tsx`, which is
+      // out of this commit's file scope (`lib/nav-items.ts` only).
       { title: "Broadcasts", labelKey: "nav.broadcasts", url: "/dashboard/notifications/broadcasts", icon: Megaphone, permission: "notification:broadcast" },
     ],
   },

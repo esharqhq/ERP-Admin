@@ -463,7 +463,8 @@
     "agencies": "Agencies",
     "propertyCategories": "Property categories",
     "walkIn": "Walk-in",
-    "broadcasts": "Broadcasts"
+    "broadcasts": "Broadcasts",
+    "platform": "Platform"
   },
   "auth": {
     "logout": "Logout",

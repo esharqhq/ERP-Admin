@@ -463,7 +463,8 @@
     "agencies": "Agenturen",
     "propertyCategories": "Objektkategorien",
     "walkIn": "Laufkundschaft",
-    "broadcasts": "Ankündigungen"
+    "broadcasts": "Ankündigungen",
+    "platform": "Plattform"
   },
   "auth": {
     "logout": "Abmelden",
