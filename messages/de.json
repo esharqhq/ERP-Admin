@@ -2427,6 +2427,17 @@
       "confirm": "Ankündigung abbrechen",
       "errorNotCancellable": "Diese Ankündigung ist nicht mehr Geplant — der Versandjob hat sie möglicherweise bereits übernommen. Liste aktualisieren.",
       "errorGeneric": "Ankündigung konnte nicht abgebrochen werden. Bitte erneut versuchen."
+    },
+    "compose": {
+      "backToList": "Zurück zu Ankündigungen",
+      "newTitle": "Neue Ankündigung",
+      "newSubtitle": "Ein Push, einmal auf Deutsch und Englisch verfasst, gesendet an Mitarbeitende, Eigentümer:innen oder eine von Ihnen gewählte Liste.",
+      "noAccess": "Sie haben keine Berechtigung, Ankündigungen zu verfassen.",
+      "filledCounter": "{count} von 4 ausgefüllt",
+      "discard": "Verwerfen",
+      "submit": "Weiter",
+      "saveChanges": "Änderungen speichern",
+      "disabledReason": "Beide Sprachen, eine Zielgruppe und einen Zeitpunkt hinzufügen"
     }
   }
 }

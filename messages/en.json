@@ -2427,6 +2427,17 @@
       "confirm": "Cancel broadcast",
       "errorNotCancellable": "This broadcast is no longer Scheduled — the dispatch job may have already claimed it. Refresh the list.",
       "errorGeneric": "Could not cancel this broadcast. Try again."
+    },
+    "compose": {
+      "backToList": "Back to broadcasts",
+      "newTitle": "New broadcast",
+      "newSubtitle": "One push, written once in German and English, sent to workers, owners, or a list you pick.",
+      "noAccess": "You don't have permission to compose broadcasts.",
+      "filledCounter": "{count} of 4 filled",
+      "discard": "Discard",
+      "submit": "Continue",
+      "saveChanges": "Save changes",
+      "disabledReason": "Add both languages, an audience and a time"
     }
   }
 }
