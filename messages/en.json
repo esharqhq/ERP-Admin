@@ -2474,7 +2474,33 @@
         "dateLabel": "Date",
         "timeLabel": "Time",
         "utcTranslation": "= {utc}",
-        "pickBoth": "Pick both a date and a time."
+        "pickBoth": "Pick both a date and a time.",
+        "scheduleInPast": "That time has already passed — pick a later one, or send now."
+      },
+      "confirm": {
+        "titleSendNow": "Send this broadcast now?",
+        "titleSchedule": "Schedule this broadcast?",
+        "factNamed": "{count} named people — a frozen list. Anyone who joins after you save will not receive it.",
+        "factEligible": "{count} {audience} eligible right now — resolved again at send time, so anyone who joins beforehand is still included.",
+        "factLanguageSplit": "Each person sees one version only — the server picks from their own profile language at send time.",
+        "factDispatchNow": "Leaves within a minute — dispatch runs on a one-minute tick.",
+        "factDispatchScheduled": "Leaves {local} ({utc} UTC), within a minute of the hour.",
+        "warningEditableUntil": "You can edit or cancel it until it leaves. After that nothing can be changed, stopped, or taken back.",
+        "warningCannotUndoNow": "This cannot be edited or cancelled once you confirm — it leaves within a minute.",
+        "keepEditing": "Keep editing",
+        "confirmSendNow": "Send it now",
+        "confirmSchedule": "Schedule it"
+      },
+      "aftermath": {
+        "scheduledTitle": "Scheduled for {datetime}",
+        "sendingTitle": "Sending now…",
+        "scheduledDescription": "Editable and cancellable until it starts.",
+        "sendingDescription": "Fan-out started. This one can no longer be edited or cancelled."
+      },
+      "errors": {
+        "notEditable": "This broadcast is no longer Scheduled — someone may already be sending it. Refresh and try again, or save it as a new broadcast.",
+        "saveAsNew": "Save as a new broadcast",
+        "generic": "Could not save this broadcast. Try again."
       },
       "reach": {
         "label": "Reach & preview",

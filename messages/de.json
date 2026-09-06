@@ -2474,7 +2474,33 @@
         "dateLabel": "Datum",
         "timeLabel": "Uhrzeit",
         "utcTranslation": "= {utc}",
-        "pickBoth": "Bitte Datum und Uhrzeit wählen."
+        "pickBoth": "Bitte Datum und Uhrzeit wählen.",
+        "scheduleInPast": "Dieser Zeitpunkt liegt bereits in der Vergangenheit — bitte einen späteren wählen oder sofort senden."
+      },
+      "confirm": {
+        "titleSendNow": "Diese Ankündigung jetzt senden?",
+        "titleSchedule": "Diese Ankündigung planen?",
+        "factNamed": "{count} namentlich genannte Personen — eine eingefrorene Liste. Wer sich danach registriert, erhält sie nicht.",
+        "factEligible": "{count} {audience} aktuell berechtigt — wird beim Versand erneut ermittelt, sodass Personen, die vorher hinzukommen, ebenfalls eingeschlossen sind.",
+        "factLanguageSplit": "Jede Person sieht nur eine Version — der Server wählt anhand des eigenen Profils zum Versandzeitpunkt.",
+        "factDispatchNow": "Wird innerhalb einer Minute gesendet — der Versand läuft im Minutentakt.",
+        "factDispatchScheduled": "Wird {local} gesendet ({utc} UTC), innerhalb einer Minute nach der vollen Stunde.",
+        "warningEditableUntil": "Sie können sie bearbeiten oder abbrechen, bis sie gesendet wird. Danach kann nichts mehr geändert, gestoppt oder rückgängig gemacht werden.",
+        "warningCannotUndoNow": "Dies kann nach der Bestätigung nicht mehr bearbeitet oder abgebrochen werden — sie wird innerhalb einer Minute gesendet.",
+        "keepEditing": "Weiter bearbeiten",
+        "confirmSendNow": "Jetzt senden",
+        "confirmSchedule": "Planen"
+      },
+      "aftermath": {
+        "scheduledTitle": "Geplant für {datetime}",
+        "sendingTitle": "Wird jetzt gesendet…",
+        "scheduledDescription": "Bearbeitbar und abbrechbar, bis sie startet.",
+        "sendingDescription": "Versand hat begonnen. Kann nicht mehr bearbeitet oder abgebrochen werden."
+      },
+      "errors": {
+        "notEditable": "Diese Ankündigung ist nicht mehr Geplant — der Versand hat möglicherweise bereits begonnen. Aktualisieren und erneut versuchen, oder als neue Ankündigung speichern.",
+        "saveAsNew": "Als neue Ankündigung speichern",
+        "generic": "Ankündigung konnte nicht gespeichert werden. Bitte erneut versuchen."
       },
       "reach": {
         "label": "Reichweite & Vorschau",

@@ -29,6 +29,8 @@ export interface TimingPickerProps {
   onSendModeChange: (mode: SendMode) => void;
   onDateChange: (date: string) => void;
   onTimeChange: (time: string) => void;
+  /** `broadcast_schedule_in_past`, rendered here per §09's error spec — never a page-top banner. */
+  pastError?: boolean;
 }
 
 export function TimingPicker({
@@ -38,6 +40,7 @@ export function TimingPicker({
   onSendModeChange,
   onDateChange,
   onTimeChange,
+  pastError = false,
 }: TimingPickerProps) {
   const t = useTranslations("broadcasts.compose.timing");
 
@@ -90,7 +93,7 @@ export function TimingPicker({
 
       {sendMode === "schedule" && (
         <div className="flex flex-col gap-2">
-          <div className="flex gap-1.5">
+          <div className={cn("flex gap-1.5 rounded-lg", pastError && "ring-1 ring-inset ring-destructive")}>
             <div className="flex-1">
               <DayControl label={t("dateLabel")} value={date} onChange={onDateChange} />
             </div>
@@ -99,12 +102,17 @@ export function TimingPicker({
               aria-label={t("timeLabel")}
               value={time}
               onChange={(e) => onTimeChange(e.target.value)}
-              className="h-10 w-[118px] flex-none rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+              aria-invalid={pastError}
+              className="h-10 w-[118px] flex-none rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20"
             />
           </div>
-          <p className="text-xs text-muted-foreground">
-            {utcLabel ? t("utcTranslation", { utc: utcLabel }) : t("pickBoth")}
-          </p>
+          {pastError ? (
+            <p className="text-xs text-destructive">{t("scheduleInPast")}</p>
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              {utcLabel ? t("utcTranslation", { utc: utcLabel }) : t("pickBoth")}
+            </p>
+          )}
         </div>
       )}
     </div>
