@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { LanguageBlock } from "@/components/broadcasts/language-block";
 import { BannerUploader } from "@/components/broadcasts/banner-uploader";
 import { AudiencePicker } from "@/components/broadcasts/audience-picker";
+import { computeScheduledAtUtc, TimingPicker, type SendMode } from "@/components/broadcasts/timing-picker";
+import { ReachPreviewPanel } from "@/components/broadcasts/reach-preview-panel";
 import type {
   BroadcastAudience,
   BroadcastCustomAudienceDto,
@@ -42,6 +44,16 @@ export interface ComposeFormValues {
   imagePreviewUrl: string | null;
   /** Only meaningful, and only ever sent, when `audience === "Custom"`. */
   selection: BroadcastCustomAudienceDto | null;
+  /**
+   * UI-only — `scheduledAtUtc` is the only timing field the API sees.
+   * `"unset"` and `"now"` both leave `scheduledAtUtc: null`, but only
+   * `"now"` counts as "timing chosen" for Save; `"unset"` is the true
+   * neither-preselected starting state (design §07 #03).
+   */
+  sendMode: SendMode;
+  /** UI-only, local time — `YYYY-MM-DD` / `HH:MM`. Combined into `scheduledAtUtc`. */
+  scheduleDate: string;
+  scheduleTime: string;
 }
 
 export const DEFAULT_COMPOSE_VALUES: ComposeFormValues = {
@@ -54,6 +66,9 @@ export const DEFAULT_COMPOSE_VALUES: ComposeFormValues = {
   imageStorageKey: null,
   imagePreviewUrl: null,
   selection: null,
+  sendMode: "unset",
+  scheduleDate: "",
+  scheduleTime: "",
 };
 
 export interface ComposeFormProps {
@@ -106,13 +121,10 @@ export function ComposeForm({
   const hasUsableAudience =
     values.audience !== null && (values.audience !== "Custom" || values.selection !== null);
 
-  // Timing has no "unset" state of its own — `scheduledAtUtc: null` legitimately
-  // means "send now" (commit 4 adds the Send-now/Schedule toggle that lets an
-  // admin choose that on purpose, vs. just never having touched it). Until that
-  // toggle exists nothing can express "timing chosen" beyond audience being set,
-  // so this reduces to `allTextFilled && hasUsableAudience` today — which keeps
-  // Save correctly disabled in the meantime rather than only appearing to be.
-  const canSubmit = allTextFilled && hasUsableAudience;
+  const hasUsableTiming =
+    values.sendMode === "now" || (values.sendMode === "schedule" && values.scheduledAtUtc !== null);
+
+  const canSubmit = allTextFilled && hasUsableAudience && hasUsableTiming;
 
   const reasonText = !canSubmit ? t("disabledReason") : null;
 
@@ -188,6 +200,54 @@ export function ComposeForm({
               }))
             }
             onSelectionChange={(selection) => set("selection", selection)}
+          />
+
+          <TimingPicker
+            sendMode={values.sendMode}
+            date={values.scheduleDate}
+            time={values.scheduleTime}
+            onSendModeChange={(sendMode) =>
+              setValues((prev) => ({
+                ...prev,
+                sendMode,
+                scheduledAtUtc:
+                  sendMode === "schedule"
+                    ? computeScheduledAtUtc(prev.scheduleDate, prev.scheduleTime)
+                    : null,
+              }))
+            }
+            onDateChange={(scheduleDate) =>
+              setValues((prev) => ({
+                ...prev,
+                scheduleDate,
+                scheduledAtUtc:
+                  prev.sendMode === "schedule"
+                    ? computeScheduledAtUtc(scheduleDate, prev.scheduleTime)
+                    : prev.scheduledAtUtc,
+              }))
+            }
+            onTimeChange={(scheduleTime) =>
+              setValues((prev) => ({
+                ...prev,
+                scheduleTime,
+                scheduledAtUtc:
+                  prev.sendMode === "schedule"
+                    ? computeScheduledAtUtc(prev.scheduleDate, scheduleTime)
+                    : prev.scheduledAtUtc,
+              }))
+            }
+          />
+
+          <ReachPreviewPanel
+            audience={values.audience}
+            selection={values.selection}
+            content={{
+              titleDe: values.titleDe,
+              bodyDe: values.bodyDe,
+              titleEn: values.titleEn,
+              bodyEn: values.bodyEn,
+              imagePreviewUrl: values.imagePreviewUrl,
+            }}
           />
         </div>
       </div>

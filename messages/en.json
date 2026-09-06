@@ -2467,6 +2467,29 @@
         "workerBadge": "Worker",
         "ownerBadge": "Owner"
       },
+      "timing": {
+        "label": "Timing",
+        "sendNow": "Send now",
+        "schedule": "Schedule",
+        "dateLabel": "Date",
+        "timeLabel": "Time",
+        "utcTranslation": "= {utc}",
+        "pickBoth": "Pick both a date and a time."
+      },
+      "reach": {
+        "label": "Reach & preview",
+        "pickAudienceTitle": "Pick an audience to see the reach",
+        "pickAudienceBody": "The preview call runs on selection, not on every keystroke — it counts people, and that is not free.",
+        "namedCard": "people on the frozen list",
+        "eligibleCard": "eligible right now",
+        "eligibleSingle": "eligible {audience}",
+        "onWorkerPhone": "On a worker's phone",
+        "onOwnerPhone": "On an owner's phone",
+        "noDeepLink": "Push carries no deep link, so tapping opens the app's own notification list — not this broadcast.",
+        "now": "now",
+        "tooLargeToPreview": "This selection is too large to preview.",
+        "previewError": "Could not load the reach preview."
+      },
       "banner": {
         "label": "Banner image",
         "optional": "Optional",

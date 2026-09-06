@@ -2467,6 +2467,29 @@
         "workerBadge": "Mitarbeiter:in",
         "ownerBadge": "Eigentümer:in"
       },
+      "timing": {
+        "label": "Zeitpunkt",
+        "sendNow": "Sofort senden",
+        "schedule": "Planen",
+        "dateLabel": "Datum",
+        "timeLabel": "Uhrzeit",
+        "utcTranslation": "= {utc}",
+        "pickBoth": "Bitte Datum und Uhrzeit wählen."
+      },
+      "reach": {
+        "label": "Reichweite & Vorschau",
+        "pickAudienceTitle": "Zielgruppe wählen, um die Reichweite zu sehen",
+        "pickAudienceBody": "Der Vorschau-Aufruf erfolgt bei Auswahl, nicht bei jedem Tastendruck — er zählt Personen, und das ist nicht kostenlos.",
+        "namedCard": "Personen auf der eingefrorenen Liste",
+        "eligibleCard": "aktuell berechtigt",
+        "eligibleSingle": "berechtigt: {audience}",
+        "onWorkerPhone": "Auf dem Telefon eines Mitarbeiters",
+        "onOwnerPhone": "Auf dem Telefon einer Eigentümerin",
+        "noDeepLink": "Der Push enthält keinen Deep Link — ein Tippen öffnet nur die Benachrichtigungsliste der App, nicht diese Ankündigung.",
+        "now": "jetzt",
+        "tooLargeToPreview": "Diese Auswahl ist zu groß für eine Vorschau.",
+        "previewError": "Reichweiten-Vorschau konnte nicht geladen werden."
+      },
       "banner": {
         "label": "Bannerbild",
         "optional": "Optional",
