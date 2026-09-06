@@ -62,24 +62,26 @@ export function TableState({
   );
 }
 
-/** Nothing is waiting — and that is good news, not an error. */
+/**
+ * Nothing is waiting — and that is good news, not an error.
+ *
+ * `icon` is optional, defaulting to the plain `Inbox` every existing queue
+ * already renders — a screen with something more specific to say (a
+ * broadcasts page saying "no broadcasts yet" with a megaphone, say) can pass
+ * its own without every other caller changing.
+ */
 export function TableEmpty({
   title,
   body,
   action,
+  icon = <Inbox className="size-4" />,
 }: {
   title: string;
   body: string;
   action?: ReactNode;
+  icon?: ReactNode;
 }) {
-  return (
-    <TableState
-      icon={<Inbox className="size-4" />}
-      title={title}
-      body={body}
-      action={action}
-    />
-  );
+  return <TableState icon={icon} title={title} body={body} action={action} />;
 }
 
 /**

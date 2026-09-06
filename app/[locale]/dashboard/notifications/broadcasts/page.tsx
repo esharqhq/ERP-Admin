@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
-import { Plus } from "lucide-react";
+import { Megaphone, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Can } from "@/components/auth/can";
 import { DataTable, type DataColumn } from "@/components/ui/data-table";
@@ -348,11 +348,10 @@ export default function BroadcastsPage() {
           </div>
         )}
         searchPlaceholder={t("searchPlaceholder")}
-        // ⚠ TableEmpty's glyph is hardcoded to Inbox (table-states.tsx, out of
-        // this phase's file scope) — the design's megaphone icon is not drawn.
         empty={{
           title: t("emptyTitle"),
           body: t("emptyBody"),
+          icon: <Megaphone className="size-4" />,
           action: (
             <Can permission="notification:broadcast">
               <Button
