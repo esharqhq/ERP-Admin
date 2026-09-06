@@ -1,12 +1,16 @@
 "use client";
 
-import type { MouseEvent } from "react";
+import type { MouseEvent, ReactNode } from "react";
 import {
   Image as ImageIcon,
   FileText,
   RotateCcw,
   AlertTriangle,
   ChevronDown,
+  ChevronRight,
+  Pencil,
+  Ban,
+  Eye,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
@@ -343,6 +347,112 @@ export function BroadcastTitleCell({
             </button>
           </span>
         )}
+      </div>
+    </div>
+  );
+}
+
+function ActionButton({
+  label,
+  icon,
+  tone,
+  onClick,
+}: {
+  label: string;
+  icon: ReactNode;
+  tone: "primary" | "quiet" | "danger";
+  onClick: (e: MouseEvent) => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "flex h-7 shrink-0 items-center gap-1.5 rounded-md px-2 text-[12px] font-semibold whitespace-nowrap",
+        tone === "primary" && "bg-primary text-primary-foreground",
+        tone === "quiet" && "text-foreground/80 ring-1 ring-inset ring-border hover:bg-muted",
+        tone === "danger" && "text-destructive ring-1 ring-inset ring-destructive/35 hover:bg-destructive/5",
+      )}
+    >
+      {icon}
+      {label}
+    </button>
+  );
+}
+
+/**
+ * Row actions, per §05's capability matrix — the API offers exactly three
+ * verbs on an existing broadcast (PUT, POST /cancel, both Scheduled-only) and
+ * no DELETE route at all, so "Recreate" is a client-side jump to compose,
+ * never a real verb.
+ *
+ * Lives in a dedicated trailing column, not literally replacing the Created
+ * cell on hover as §05's demo panel draws it — Created is 104px, and
+ * Scheduled alone needs three buttons. A chevron shows at rest; the row's
+ * own `group` class (set via `rowClassName`) reveals these on hover. Every
+ * button stops propagation — this column still sits inside the row's
+ * `RowLink` overlay for its non-hover chevron state.
+ */
+export function BroadcastRowActions({
+  row,
+  onEdit,
+  onCancel,
+  onRecreate,
+  onOpen,
+}: {
+  row: Pick<BroadcastRowDto, "id" | "status">;
+  onEdit: (e: MouseEvent) => void;
+  onCancel: (e: MouseEvent) => void;
+  onRecreate: (e: MouseEvent) => void;
+  onOpen: (e: MouseEvent) => void;
+}) {
+  const t = useTranslations("broadcasts");
+  const buttons: { label: string; icon: ReactNode; tone: "primary" | "quiet" | "danger"; onClick: (e: MouseEvent) => void }[] =
+    (() => {
+      switch (row.status) {
+        case "Scheduled":
+          return [
+            { label: t("row.edit"), icon: <Pencil className="size-3" />, tone: "quiet" as const, onClick: onEdit },
+            { label: t("row.cancel"), icon: <Ban className="size-3" />, tone: "danger" as const, onClick: onCancel },
+            { label: t("row.open"), icon: <ChevronRight className="size-3" />, tone: "primary" as const, onClick: onOpen },
+          ];
+        case "Sending":
+          return [
+            { label: t("row.open"), icon: <ChevronRight className="size-3" />, tone: "primary" as const, onClick: onOpen },
+          ];
+        case "Missed":
+          return [
+            { label: t("row.open"), icon: <Eye className="size-3" />, tone: "quiet" as const, onClick: onOpen },
+            { label: t("row.recreate"), icon: <RotateCcw className="size-3" />, tone: "danger" as const, onClick: onRecreate },
+          ];
+        // Sent and Cancelled: identical, read-only.
+        default:
+          return [
+            { label: t("row.recreate"), icon: <RotateCcw className="size-3" />, tone: "quiet" as const, onClick: onRecreate },
+            { label: t("row.open"), icon: <ChevronRight className="size-3" />, tone: "primary" as const, onClick: onOpen },
+          ];
+      }
+    })();
+
+  return (
+    <div className="relative z-[2] flex w-full items-center justify-end">
+      <span className="flex items-center text-muted-foreground/50 group-hover:hidden">
+        <ChevronRight className="size-4" aria-hidden />
+      </span>
+      <div className="hidden items-center gap-1.5 group-hover:flex">
+        {buttons.map((b) => (
+          <ActionButton
+            key={b.label}
+            label={b.label}
+            icon={b.icon}
+            tone={b.tone}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              b.onClick(e);
+            }}
+          />
+        ))}
       </div>
     </div>
   );

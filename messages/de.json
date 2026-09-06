@@ -2413,7 +2413,20 @@
       "recipientsCountedAtSend": "wird beim Senden gezählt",
       "recipientsRowsWritten": "Zeilen geschrieben",
       "recipientsNeverStarted": "nie gestartet",
-      "recipientsNothingSent": "nichts gesendet"
+      "recipientsNothingSent": "nichts gesendet",
+      "edit": "Bearbeiten",
+      "cancel": "Abbrechen",
+      "open": "Öffnen"
+    },
+    "cancelDialog": {
+      "title": "Diese Ankündigung abbrechen?",
+      "body": "<strong>{title}</strong> wird <strong>{time}</strong> gesendet. Ein Abbruch stoppt sie, bevor etwas geschrieben wird — niemand erhält sie, und niemandem wird mitgeteilt, dass sie geplant war.",
+      "factStaysListed": "Die Zeile bleibt in dieser Liste als <strong>Abgebrochen</strong> stehen.",
+      "factCannotUndo": "Der Abbruch kann nicht rückgängig gemacht werden — Sie würden eine neue erstellen.",
+      "keepScheduled": "Geplant belassen",
+      "confirm": "Ankündigung abbrechen",
+      "errorNotCancellable": "Diese Ankündigung ist nicht mehr Geplant — der Versandjob hat sie möglicherweise bereits übernommen. Liste aktualisieren.",
+      "errorGeneric": "Ankündigung konnte nicht abgebrochen werden. Bitte erneut versuchen."
     }
   }
 }

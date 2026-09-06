@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
@@ -10,12 +10,14 @@ import { Can } from "@/components/auth/can";
 import { DataTable, type DataColumn } from "@/components/ui/data-table";
 import {
   BroadcastAudienceBadge,
+  BroadcastRowActions,
   BroadcastStatusDropdown,
   BroadcastStatusPill,
   BroadcastTitleCell,
   recipientsSubline,
   statusSubline,
 } from "@/components/broadcasts/broadcast-row";
+import { CancelBroadcastDialog } from "@/components/broadcasts/cancel-broadcast-dialog";
 import { useTableUrlState } from "@/hooks/use-table-url-state";
 import { useBroadcastList } from "@/hooks/use-broadcasts";
 import { isPermissionDenied } from "@/lib/onboarding/errors";
@@ -25,6 +27,11 @@ import type { BroadcastRowDto, BroadcastStatus } from "@/lib/types/broadcast.typ
 /** Where "Recreate" jumps. Not wired this phase — see the compose form (Phase 3b). */
 function recreateHref(id: string): string {
   return `/dashboard/notifications/broadcasts/new?recreateFrom=${id}`;
+}
+
+/** Where "Edit" jumps — Scheduled only. Not wired this phase either. */
+function editHref(id: string): string {
+  return `/dashboard/notifications/broadcasts/${id}/edit`;
 }
 
 function formatAbs(iso: string, locale: string): string {
@@ -81,6 +88,7 @@ export default function BroadcastsPage() {
   const tCommon = useTranslations("common");
   const locale = useLocale();
   const router = useRouter();
+  const [cancelTarget, setCancelTarget] = useState<BroadcastRowDto | null>(null);
 
   const state = useTableUrlState({ filterKeys: ["status"] });
   const selectedStatus = (state.filters.status || undefined) as
@@ -216,6 +224,20 @@ export default function BroadcastsPage() {
           </div>
         ),
       },
+      {
+        id: "actions",
+        label: "",
+        className: "w-[200px]",
+        cell: (b) => (
+          <BroadcastRowActions
+            row={b}
+            onEdit={() => router.push(editHref(b.id))}
+            onCancel={() => setCancelTarget(b)}
+            onRecreate={() => router.push(recreateHref(b.id))}
+            onOpen={() => router.push(`/dashboard/notifications/broadcasts/${b.id}`)}
+          />
+        ),
+      },
     ],
     [t, locale, router],
   );
@@ -265,12 +287,18 @@ export default function BroadcastsPage() {
         // 3px rail without fighting the row's own RowLink overlay for z-index.
         // `status-cancelled-tint` is the closest token to the design's
         // near-white #FFFCFC ground; it reads visibly stronger, flagged.
+        // `group` on every row (not just Missed/Sending) is what lets
+        // BroadcastRowActions reveal its buttons via `group-hover` instead of
+        // component state — a chevron at rest, buttons on hover, per §05.
         rowClassName={(b) =>
-          b.status === "Missed"
-            ? "border-l-[3px] border-l-status-cancelled-deep bg-status-cancelled-tint"
-            : b.status === "Sending"
-              ? "border-l-[3px] border-l-primary"
-              : undefined
+          cn(
+            "group",
+            b.status === "Missed"
+              ? "border-l-[3px] border-l-status-cancelled-deep bg-status-cancelled-tint"
+              : b.status === "Sending"
+                ? "border-l-[3px] border-l-primary"
+                : undefined,
+          )
         }
         title={t("list")}
         // The design's own toolbar (§02) in place of the shell's three rows —
@@ -340,6 +368,13 @@ export default function BroadcastsPage() {
           ),
         }}
       />
+
+      {cancelTarget && (
+        <CancelBroadcastDialog
+          broadcast={cancelTarget}
+          onClose={() => setCancelTarget(null)}
+        />
+      )}
     </div>
   );
 }

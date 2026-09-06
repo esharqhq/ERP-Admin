@@ -2413,7 +2413,20 @@
       "recipientsCountedAtSend": "counted at send",
       "recipientsRowsWritten": "rows written",
       "recipientsNeverStarted": "never started",
-      "recipientsNothingSent": "nothing sent"
+      "recipientsNothingSent": "nothing sent",
+      "edit": "Edit",
+      "cancel": "Cancel",
+      "open": "Open"
+    },
+    "cancelDialog": {
+      "title": "Cancel this broadcast?",
+      "body": "<strong>{title}</strong> is due to go out <strong>{time}</strong>. Cancelling stops it before anything is written — nobody receives it and nobody is told it was planned.",
+      "factStaysListed": "The row stays in this list as <strong>Cancelled</strong>.",
+      "factCannotUndo": "Cancelling cannot be undone — you would author a new one.",
+      "keepScheduled": "Keep it scheduled",
+      "confirm": "Cancel broadcast",
+      "errorNotCancellable": "This broadcast is no longer Scheduled — the dispatch job may have already claimed it. Refresh the list.",
+      "errorGeneric": "Could not cancel this broadcast. Try again."
     }
   }
 }
