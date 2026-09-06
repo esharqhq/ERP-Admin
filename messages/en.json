@@ -462,7 +462,8 @@
     "agencyRequests": "Requests",
     "agencies": "Agencies",
     "propertyCategories": "Property categories",
-    "walkIn": "Walk-in"
+    "walkIn": "Walk-in",
+    "broadcasts": "Broadcasts"
   },
   "auth": {
     "logout": "Logout",
@@ -2353,6 +2354,39 @@
         "WorkerTaskRated": "Task rated",
         "WorkerTaskOutcomeOverridden": "Task outcome overridden"
       }
+    }
+  },
+  "broadcasts": {
+    "title": "Broadcasts",
+    "subtitle": "Announcements sent to workers and owners.",
+    "list": "Broadcasts list",
+    "searchPlaceholder": "Search broadcasts...",
+    "createBroadcast": "Create broadcast",
+    "emptyTitle": "No broadcasts yet",
+    "emptyBody": "Announcements you create will appear here.",
+    "columns": {
+      "title": "Title",
+      "audience": "Audience",
+      "status": "Status",
+      "scheduled": "Scheduled",
+      "recipients": "Recipients",
+      "created": "Created"
+    },
+    "audienceLabels": {
+      "Workers": "Workers",
+      "Owners": "Owners",
+      "Both": "Both",
+      "Custom": "Custom"
+    },
+    "statusLabels": {
+      "Scheduled": "Scheduled",
+      "Sending": "Sending",
+      "Sent": "Sent",
+      "Cancelled": "Cancelled",
+      "Missed": "Missed"
+    },
+    "filters": {
+      "status": "Status"
     }
   }
 }

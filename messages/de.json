@@ -462,7 +462,8 @@
     "agencyRequests": "Anfragen",
     "agencies": "Agenturen",
     "propertyCategories": "Objektkategorien",
-    "walkIn": "Laufkundschaft"
+    "walkIn": "Laufkundschaft",
+    "broadcasts": "Ankündigungen"
   },
   "auth": {
     "logout": "Abmelden",
@@ -2353,6 +2354,39 @@
         "WorkerTaskRated": "Aufgabe bewertet",
         "WorkerTaskOutcomeOverridden": "Aufgabenergebnis überschrieben"
       }
+    }
+  },
+  "broadcasts": {
+    "title": "Ankündigungen",
+    "subtitle": "Ankündigungen an Mitarbeiter und Eigentümer.",
+    "list": "Ankündigungsliste",
+    "searchPlaceholder": "Ankündigungen suchen...",
+    "createBroadcast": "Ankündigung erstellen",
+    "emptyTitle": "Noch keine Ankündigungen",
+    "emptyBody": "Von Ihnen erstellte Ankündigungen erscheinen hier.",
+    "columns": {
+      "title": "Titel",
+      "audience": "Zielgruppe",
+      "status": "Status",
+      "scheduled": "Geplant",
+      "recipients": "Empfänger",
+      "created": "Erstellt"
+    },
+    "audienceLabels": {
+      "Workers": "Mitarbeiter",
+      "Owners": "Eigentümer",
+      "Both": "Beide",
+      "Custom": "Benutzerdefiniert"
+    },
+    "statusLabels": {
+      "Scheduled": "Geplant",
+      "Sending": "Wird gesendet",
+      "Sent": "Gesendet",
+      "Cancelled": "Abgebrochen",
+      "Missed": "Verpasst"
+    },
+    "filters": {
+      "status": "Status"
     }
   }
 }
