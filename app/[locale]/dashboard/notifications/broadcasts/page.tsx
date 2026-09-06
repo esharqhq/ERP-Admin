@@ -3,15 +3,39 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Can } from "@/components/auth/can";
 import { DataTable, type DataColumn } from "@/components/ui/data-table";
+import {
+  BroadcastAudienceBadge,
+  BroadcastStatusPill,
+  BroadcastTitleCell,
+  recipientsSubline,
+  statusSubline,
+} from "@/components/broadcasts/broadcast-row";
 import { useTableUrlState } from "@/hooks/use-table-url-state";
 import { useBroadcastList } from "@/hooks/use-broadcasts";
 import { isPermissionDenied } from "@/lib/onboarding/errors";
+import { cn } from "@/lib/utils";
 import type { BroadcastRowDto, BroadcastStatus } from "@/lib/types/broadcast.types";
+
+/** Where "Recreate" jumps. Not wired this phase — see the compose form (Phase 3b). */
+function recreateHref(id: string): string {
+  return `/dashboard/notifications/broadcasts/new?recreateFrom=${id}`;
+}
+
+function formatAbs(iso: string, locale: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleString(locale, {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
 
 /**
  * Tab keys double as the URL's `?tab=` value. "all" is a sentinel; the other
@@ -49,23 +73,6 @@ function queryFor(tab: string): BroadcastStatus | undefined {
 }
 
 /**
- * §"STATUS PILL COLORS": neutral/blue → info, warning/amber → warning,
- * success/green → success, muted/gray → neutral, danger/red → danger. All off
- * the shared `--status-*` scale via `Badge`'s `tone` prop — no hardcoded hex,
- * no new component.
- */
-const STATUS_TONE: Record<
-  BroadcastStatus,
-  "info" | "warning" | "success" | "neutral" | "danger"
-> = {
-  Scheduled: "info",
-  Sending: "warning",
-  Sent: "success",
-  Cancelled: "neutral",
-  Missed: "danger",
-};
-
-/**
  * Locale-aware, no hardcoded English. `scheduledAtUtc` can be in the future
  * (a still-`Scheduled` broadcast), which `Intl.RelativeTimeFormat` renders
  * correctly ("in 10 minutes") from a negative delta — the same call handles
@@ -100,6 +107,7 @@ export default function BroadcastsPage() {
   const t = useTranslations("broadcasts");
   const tCommon = useTranslations("common");
   const locale = useLocale();
+  const router = useRouter();
 
   const state = useTableUrlState({ defaultTab: DEFAULT_TAB });
 
@@ -132,57 +140,95 @@ export default function BroadcastsPage() {
         id: "title",
         label: t("columns.title"),
         locked: true,
-        className: "min-w-[220px]",
+        className: "min-w-[240px]",
         cell: (b) => (
-          <span className="truncate text-sm font-medium">
-            {b.titleDe || b.titleEn || "—"}
-          </span>
+          <BroadcastTitleCell
+            row={b}
+            onRecreate={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              router.push(recreateHref(b.id));
+            }}
+          />
         ),
       },
       {
         id: "audience",
         label: t("columns.audience"),
-        cell: (b) => (
-          <Badge variant="outline">{t(`audienceLabels.${b.audience}`)}</Badge>
-        ),
+        className: "w-[140px]",
+        cell: (b) => <BroadcastAudienceBadge row={b} />,
       },
       {
         id: "status",
         label: t("columns.status"),
+        className: "w-[172px]",
         cell: (b) => (
-          <Badge tone={STATUS_TONE[b.status]}>{t(`statusLabels.${b.status}`)}</Badge>
+          <div className="flex flex-col items-start gap-0.5">
+            <BroadcastStatusPill status={b.status} />
+            <span className="text-[10px] text-muted-foreground">
+              {statusSubline(b, t, (iso) => formatAbs(iso, locale))}
+            </span>
+          </div>
         ),
       },
       {
         id: "scheduled",
         label: t("columns.scheduled"),
+        className: "w-[130px]",
         cell: (b) => (
-          <span className="font-mono text-sm text-muted-foreground">
-            {b.scheduledAtUtc ? relativeTime(b.scheduledAtUtc, locale) : "—"}
-          </span>
+          <div className="flex flex-col gap-0.5">
+            <span
+              className={cn(
+                "text-[12.5px]",
+                b.status === "Scheduled" ? "font-semibold" : "text-muted-foreground",
+              )}
+            >
+              {b.scheduledAtUtc ? relativeTime(b.scheduledAtUtc, locale) : t("row.sendNow")}
+            </span>
+            <span className="font-mono text-[10px] text-muted-foreground/70">
+              {b.scheduledAtUtc ? formatAbs(b.scheduledAtUtc, locale) : ""}
+            </span>
+          </div>
         ),
       },
       {
         id: "recipients",
         label: t("columns.recipients"),
         align: "right",
-        cell: (b) => (
-          <span className="font-mono text-sm text-muted-foreground">
-            {b.recipientCount}
-          </span>
-        ),
+        className: "w-[104px]",
+        cell: (b) => {
+          // Decision #01: Scheduled draws "—", never the DTO's real `0` —
+          // recipientCount is only meaningful once fan-out has started.
+          const scheduled = b.status === "Scheduled";
+          return (
+            <div className="flex flex-col items-end gap-0.5">
+              <span className="font-mono text-[13px] font-semibold">
+                {scheduled ? "—" : b.recipientCount.toLocaleString(locale)}
+              </span>
+              <span className="text-[10px] text-muted-foreground">
+                {recipientsSubline(b.status, t)}
+              </span>
+            </div>
+          );
+        },
       },
       {
         id: "created",
         label: t("columns.created"),
+        className: "w-[104px]",
         cell: (b) => (
-          <span className="font-mono text-sm text-muted-foreground">
-            {relativeTime(b.createdAt, locale)}
-          </span>
+          <div className="flex flex-col gap-0.5">
+            <span className="text-xs text-foreground/80">
+              {relativeTime(b.createdAt, locale)}
+            </span>
+            <span className="font-mono text-[10px] text-muted-foreground/70">
+              {formatAbs(b.createdAt, locale)}
+            </span>
+          </div>
         ),
       },
     ],
-    [t, locale],
+    [t, locale, router],
   );
 
   return (
@@ -209,6 +255,18 @@ export default function BroadcastsPage() {
         rowKey={(b) => b.id}
         rowHref={(b) => `/dashboard/notifications/broadcasts/${b.id}`}
         rowLabel={(b) => b.titleDe || b.titleEn || b.id}
+        // ⚠ Left border, not an absolutely-positioned rail span — `DataTable`
+        // hands the row only a className, and a border reproduces the design's
+        // 3px rail without fighting the row's own RowLink overlay for z-index.
+        // `status-cancelled-tint` is the closest token to the design's
+        // near-white #FFFCFC ground; it reads visibly stronger, flagged.
+        rowClassName={(b) =>
+          b.status === "Missed"
+            ? "border-l-[3px] border-l-status-cancelled-deep bg-status-cancelled-tint"
+            : b.status === "Sending"
+              ? "border-l-[3px] border-l-primary"
+              : undefined
+        }
         title={t("list")}
         actions={
           <Can permission="notification:broadcast">
@@ -226,7 +284,25 @@ export default function BroadcastsPage() {
         tabs={tabs}
         tabsLabel={tCommon("status")}
         searchPlaceholder={t("searchPlaceholder")}
-        empty={{ title: t("emptyTitle"), body: t("emptyBody") }}
+        // ⚠ TableEmpty's glyph is hardcoded to Inbox (table-states.tsx, out of
+        // this phase's file scope) — the design's megaphone icon is not drawn.
+        empty={{
+          title: t("emptyTitle"),
+          body: t("emptyBody"),
+          action: (
+            <Can permission="notification:broadcast">
+              <Button
+                size="sm"
+                className="mt-1 gap-2"
+                nativeButton={false}
+                render={<Link href="/dashboard/notifications/broadcasts/new" />}
+              >
+                <Plus className="size-4" />
+                {t("emptyAction")}
+              </Button>
+            </Can>
+          ),
+        }}
       />
     </div>
   );

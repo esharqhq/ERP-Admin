@@ -2364,7 +2364,8 @@
     "searchPlaceholder": "Ankündigungen suchen...",
     "createBroadcast": "Ankündigung erstellen",
     "emptyTitle": "Noch keine Ankündigungen",
-    "emptyBody": "Von Ihnen erstellte Ankündigungen erscheinen hier.",
+    "emptyBody": "Eine Ankündigung ist ein Push, einmal auf Deutsch und Englisch verfasst, gesendet an Mitarbeiter, Eigentümer oder eine von Ihnen gewählte Liste. Es wurde noch nichts gesendet — Ihre erste Ankündigung erscheint hier mit Zeitplan und Reichweite.",
+    "emptyAction": "Erste Ankündigung erstellen",
     "columns": {
       "title": "Titel",
       "audience": "Zielgruppe",
@@ -2388,6 +2389,27 @@
     },
     "filters": {
       "status": "Status"
+    },
+    "row": {
+      "titleFallbackNote": "titleDe leer — Englisch angezeigt",
+      "audienceBoth": "Mitarbeiter + Eigentümer",
+      "audienceAllEligible": "alle berechtigten",
+      "audienceNamed": "{count} ausgewählt",
+      "imageTipHasImage": "Bannerbild vorhanden — Vorschau auf der Detailseite.",
+      "imageTipNone": "Nur Text, kein Banner.",
+      "missedAlert": "Nicht gesendet — Versandzeit abgelaufen. Neu erstellen, um es erneut zu versuchen.",
+      "recreate": "Neu erstellen",
+      "sendNow": "sofort senden",
+      "statusSubScheduled": "Abbrechbar",
+      "statusSubSending": "Versand läuft",
+      "statusSubSent": "Abgeschlossen",
+      "statusSubSentAt": "Abgeschlossen {time}",
+      "statusSubCancelled": "Abgebrochen",
+      "statusSubMissed": "Abgelaufen · 6-Std.-Fenster",
+      "recipientsCountedAtSend": "wird beim Senden gezählt",
+      "recipientsRowsWritten": "Zeilen geschrieben",
+      "recipientsNeverStarted": "nie gestartet",
+      "recipientsNothingSent": "nichts gesendet"
     }
   }
 }

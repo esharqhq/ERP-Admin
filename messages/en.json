@@ -2364,7 +2364,8 @@
     "searchPlaceholder": "Search broadcasts...",
     "createBroadcast": "Create broadcast",
     "emptyTitle": "No broadcasts yet",
-    "emptyBody": "Announcements you create will appear here.",
+    "emptyBody": "A broadcast is one push, written once in German and English, sent to workers, owners, or a list you pick. Nothing has gone out yet — the first one you write will show up here with its schedule and its reach.",
+    "emptyAction": "Create the first broadcast",
     "columns": {
       "title": "Title",
       "audience": "Audience",
@@ -2388,6 +2389,27 @@
     },
     "filters": {
       "status": "Status"
+    },
+    "row": {
+      "titleFallbackNote": "titleDe empty — English shown",
+      "audienceBoth": "workers + owners",
+      "audienceAllEligible": "all eligible",
+      "audienceNamed": "{count} named",
+      "imageTipHasImage": "Banner image attached — preview on the detail page.",
+      "imageTipNone": "Text only, no banner.",
+      "missedAlert": "Not sent — dispatch time expired. Create a new one to retry.",
+      "recreate": "Recreate",
+      "sendNow": "send now",
+      "statusSubScheduled": "Cancellable",
+      "statusSubSending": "Fan-out running",
+      "statusSubSent": "Finished",
+      "statusSubSentAt": "Finished {time}",
+      "statusSubCancelled": "Cancelled",
+      "statusSubMissed": "Expired · 6 h window",
+      "recipientsCountedAtSend": "counted at send",
+      "recipientsRowsWritten": "rows written",
+      "recipientsNeverStarted": "never started",
+      "recipientsNothingSent": "nothing sent"
     }
   }
 }
