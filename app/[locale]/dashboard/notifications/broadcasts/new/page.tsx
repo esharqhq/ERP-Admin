@@ -1,23 +1,32 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useHasPermission } from "@/hooks/use-current-permissions";
-import { ComposeForm } from "@/components/broadcasts/compose-form";
+import { useBroadcastDetail } from "@/hooks/use-broadcasts";
+import { ComposeForm, broadcastDetailToRecreateValues } from "@/components/broadcasts/compose-form";
 
-// Route only this commit — always "create" mode. Reading `?recreateFrom=`
-// (the list page's Recreate action already links here with that param, see
-// Phase 3a's broadcasts/page.tsx `recreateHref`) is commit 6's job, once
-// prefill-from-an-existing-broadcast has somewhere to load into.
+// Plain create mode, or recreate when `?recreateFrom=` is present — the list
+// page's Recreate action already links here with that param (Phase 3a's
+// broadcasts/page.tsx `recreateHref`). `useBroadcastDetail("")` no-ops
+// (its own `enabled: !!id`), so the common create-mode case never fires an
+// extra request.
 
 export default function NewBroadcastPage() {
   const t = useTranslations("broadcasts.compose");
   const router = useRouter();
   const canCompose = useHasPermission("notification:broadcast");
+
+  const searchParams = useSearchParams();
+  const recreateFrom = searchParams.get("recreateFrom") ?? "";
+
+  const { data: source, isLoading } = useBroadcastDetail(recreateFrom);
 
   const Header = (
     <div className="flex flex-col gap-1">
@@ -53,11 +62,29 @@ export default function NewBroadcastPage() {
     );
   }
 
+  // Waiting on the source broadcast, not on the create-mode default —
+  // mounting ComposeForm before it lands would freeze the form on the empty
+  // defaults, since its initial state is only ever read once.
+  if (recreateFrom && isLoading) {
+    return (
+      <div className="flex flex-col gap-6">
+        {Header}
+        <div className="flex flex-col gap-4">
+          <Skeleton className="h-48 w-full rounded-xl" />
+          <Skeleton className="h-32 w-full rounded-xl" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-6">
       {Header}
       <ComposeForm
-        mode="create"
+        mode={source ? "recreate" : "create"}
+        initialValues={source ? broadcastDetailToRecreateValues(source) : undefined}
+        existingImageUrl={source?.imageUrl}
+        notice={source?.audience === "Custom" ? t("recreate.customAudienceDropped") : undefined}
         onSaved={() => router.push("/dashboard/notifications/broadcasts")}
       />
     </div>

@@ -2500,7 +2500,21 @@
       "errors": {
         "notEditable": "This broadcast is no longer Scheduled — someone may already be sending it. Refresh and try again, or save it as a new broadcast.",
         "saveAsNew": "Save as a new broadcast",
-        "generic": "Could not save this broadcast. Try again."
+        "generic": "Could not save this broadcast. Try again.",
+        "forbidden": "You can't modify this broadcast — only its creator or a Super Admin can."
+      },
+      "edit": {
+        "title": "Edit broadcast",
+        "subtitle": "Only Scheduled broadcasts can be edited.",
+        "loading": "Loading broadcast…",
+        "notFound": "This broadcast doesn't exist, or was already handled elsewhere.",
+        "notScheduled": "This broadcast can no longer be edited — it is no longer Scheduled. Recreate it instead.",
+        "customNotEditable": "This broadcast's audience was hand-picked, and the API doesn't return who was selected — so it can't be re-saved without silently changing who receives it. Cancel it and create a new one instead.",
+        "backToList": "Back to broadcasts",
+        "recreateInstead": "Recreate instead"
+      },
+      "recreate": {
+        "customAudienceDropped": "The original audience was a hand-picked list, which can't be carried over automatically — pick one below."
       },
       "reach": {
         "label": "Reach & preview",

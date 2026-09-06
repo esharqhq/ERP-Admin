@@ -2500,7 +2500,21 @@
       "errors": {
         "notEditable": "Diese Ankündigung ist nicht mehr Geplant — der Versand hat möglicherweise bereits begonnen. Aktualisieren und erneut versuchen, oder als neue Ankündigung speichern.",
         "saveAsNew": "Als neue Ankündigung speichern",
-        "generic": "Ankündigung konnte nicht gespeichert werden. Bitte erneut versuchen."
+        "generic": "Ankündigung konnte nicht gespeichert werden. Bitte erneut versuchen.",
+        "forbidden": "Sie können diese Ankündigung nicht ändern — nur die erstellende Person oder ein Super Admin kann das."
+      },
+      "edit": {
+        "title": "Ankündigung bearbeiten",
+        "subtitle": "Nur geplante Ankündigungen können bearbeitet werden.",
+        "loading": "Ankündigung wird geladen…",
+        "notFound": "Diese Ankündigung existiert nicht oder wurde bereits anderswo bearbeitet.",
+        "notScheduled": "Diese Ankündigung kann nicht mehr bearbeitet werden — sie ist nicht mehr Geplant. Stattdessen neu erstellen.",
+        "customNotEditable": "Die Zielgruppe dieser Ankündigung wurde von Hand ausgewählt, und die API gibt nicht zurück, wer ausgewählt wurde — sie kann daher nicht gespeichert werden, ohne unbemerkt zu ändern, wer sie erhält. Bitte abbrechen und neu erstellen.",
+        "backToList": "Zurück zu Ankündigungen",
+        "recreateInstead": "Stattdessen neu erstellen"
+      },
+      "recreate": {
+        "customAudienceDropped": "Die ursprüngliche Zielgruppe war eine von Hand ausgewählte Liste, die nicht automatisch übernommen werden kann — bitte unten eine neue wählen."
       },
       "reach": {
         "label": "Reichweite & Vorschau",

@@ -22,6 +22,21 @@ export function computeScheduledAtUtc(date: string, time: string): string | null
   return Number.isNaN(local.getTime()) ? null : local.toISOString();
 }
 
+/**
+ * The inverse of `computeScheduledAtUtc`, for edit-mode prefill — reads
+ * local getters (`getFullYear`/`getHours`/…), NOT `iso.slice(...)`, which
+ * would read the UTC components and land the reconstructed date/time an
+ * offset away from what's actually stored for any admin not in UTC+0.
+ */
+export function isoToLocalParts(iso: string): { date: string; time: string } {
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return {
+    date: `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`,
+    time: `${pad(d.getHours())}:${pad(d.getMinutes())}`,
+  };
+}
+
 export interface TimingPickerProps {
   sendMode: SendMode;
   date: string;

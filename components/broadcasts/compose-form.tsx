@@ -9,7 +9,12 @@ import { Button } from "@/components/ui/button";
 import { LanguageBlock } from "@/components/broadcasts/language-block";
 import { BannerUploader } from "@/components/broadcasts/banner-uploader";
 import { AudiencePicker } from "@/components/broadcasts/audience-picker";
-import { computeScheduledAtUtc, TimingPicker, type SendMode } from "@/components/broadcasts/timing-picker";
+import {
+  computeScheduledAtUtc,
+  isoToLocalParts,
+  TimingPicker,
+  type SendMode,
+} from "@/components/broadcasts/timing-picker";
 import { ReachPreviewPanel } from "@/components/broadcasts/reach-preview-panel";
 import { ScheduleConfirmDialog } from "@/components/broadcasts/schedule-confirm-dialog";
 import { broadcastService } from "@/lib/services/broadcast.service";
@@ -84,18 +89,76 @@ export interface ComposeFormProps {
   /** Defaults for "create"; prefilled for "edit"/"recreate". */
   initialValues?: ComposeFormValues;
   /**
-   * Edit mode only: the current banner's public URL
-   * (`BroadcastDetailDto.imageUrl`). `BroadcastDetailDto` carries no
-   * `imageStorageKey` to round-trip, so an edit that does not upload a
-   * replacement cannot silently re-send the existing key — see the banner
-   * uploader (commit 2) for how this is drawn honest rather than guessed.
+   * Edit and recreate: the source broadcast's banner, if it had one
+   * (`BroadcastDetailDto.imageUrl`). Neither mode can round-trip
+   * `imageStorageKey` — the DTO never returns it — so neither can silently
+   * carry the banner forward; the uploader shows it read-only with an
+   * explicit "upload a replacement or it won't carry over" note instead of
+   * guessing (see banner-uploader.tsx).
    */
   existingImageUrl?: string | null;
+  /** A one-line disclosure shown above the form — e.g. recreate silently dropping a Custom audience. */
+  notice?: string;
   onSaved: (detail: BroadcastDetailDto, savedMode: "create" | "edit") => void;
 }
 
 function isTextFilled(v: string): boolean {
   return v.trim().length > 0;
+}
+
+/**
+ * Edit-mode prefill. Callers must not invoke this for a Custom-audience
+ * broadcast — `BroadcastDetailDto` has no `selection` field at all (16 keys,
+ * f-01-a-broadcast-core.md §5.2), so there is no way to know who was picked,
+ * and a PUT resends whatever `selection` the form holds wholesale. Re-saving
+ * with an empty or re-picked selection would silently narrow or wipe the
+ * frozen audience rather than leave it alone — the edit route itself blocks
+ * this case (see [id]/edit/page.tsx) rather than trusting a caller to.
+ */
+export function broadcastDetailToEditValues(detail: BroadcastDetailDto): ComposeFormValues {
+  const sendMode: SendMode = detail.scheduledAtUtc ? "schedule" : "now";
+  const { date, time } = detail.scheduledAtUtc
+    ? isoToLocalParts(detail.scheduledAtUtc)
+    : { date: "", time: "" };
+  return {
+    titleDe: detail.titleDe,
+    bodyDe: detail.bodyDe,
+    titleEn: detail.titleEn,
+    bodyEn: detail.bodyEn,
+    audience: detail.audience,
+    scheduledAtUtc: detail.scheduledAtUtc,
+    imageStorageKey: null,
+    imagePreviewUrl: null,
+    selection: null,
+    sendMode,
+    scheduleDate: date,
+    scheduleTime: time,
+  };
+}
+
+/**
+ * Recreate-mode prefill: everything but the schedule carries over (§05 —
+ * "Recreate loads from an existing broadcast BUT scheduledAtUtc starts
+ * empty"). A Custom source resets to `audience: null` rather than "Custom"
+ * with an empty selection — same root gap as the edit case above, but here
+ * it's benign: nothing stops the admin from picking a fresh audience, so the
+ * form reads as "not yet chosen" instead of "chosen but stuck."
+ */
+export function broadcastDetailToRecreateValues(detail: BroadcastDetailDto): ComposeFormValues {
+  return {
+    titleDe: detail.titleDe,
+    bodyDe: detail.bodyDe,
+    titleEn: detail.titleEn,
+    bodyEn: detail.bodyEn,
+    audience: detail.audience === "Custom" ? null : detail.audience,
+    scheduledAtUtc: null,
+    imageStorageKey: null,
+    imagePreviewUrl: null,
+    selection: null,
+    sendMode: "unset",
+    scheduleDate: "",
+    scheduleTime: "",
+  };
 }
 
 /**
@@ -121,6 +184,7 @@ export function ComposeForm({
   broadcastId,
   initialValues,
   existingImageUrl,
+  notice,
   onSaved,
 }: ComposeFormProps) {
   const t = useTranslations("broadcasts.compose");
@@ -230,6 +294,12 @@ export function ComposeForm({
           setTextRequiredError(true);
         } else if (code === "broadcast_not_editable" && mode === "edit") {
           setNotEditable(true);
+        } else if (code === "broadcast_forbidden") {
+          // Not retryable — holding notification:broadcast doesn't make this
+          // admin the row's creator or a SUPER_ADMIN, and that won't change
+          // on a second click, so this must not fall into the generic
+          // "Try again" copy.
+          setGenericError(t("errors.forbidden"));
         } else {
           setGenericError(getValidationMessage(error) ?? t("errors.generic"));
         }
@@ -242,6 +312,9 @@ export function ComposeForm({
 
   return (
     <div className="flex flex-col gap-4">
+      {notice && (
+        <p className="rounded-lg bg-status-info-tint px-3 py-2 text-xs text-status-info">{notice}</p>
+      )}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="flex flex-col gap-4 lg:col-span-2">
           <div className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4">
@@ -284,7 +357,7 @@ export function ComposeForm({
                   imagePreviewUrl: next.previewUrl,
                 }));
               }}
-              existingImageUrl={mode === "edit" ? existingImageUrl : null}
+              existingImageUrl={mode === "edit" || mode === "recreate" ? existingImageUrl : null}
             />
           </div>
         </div>
