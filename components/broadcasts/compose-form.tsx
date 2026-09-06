@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { LanguageBlock } from "@/components/broadcasts/language-block";
+import { BannerUploader } from "@/components/broadcasts/banner-uploader";
 import type {
   BroadcastAudience,
   BroadcastCustomAudienceDto,
@@ -79,7 +80,7 @@ export function ComposeForm({
   mode,
   broadcastId: _broadcastId,
   initialValues,
-  existingImageUrl: _existingImageUrl,
+  existingImageUrl,
   onSaved: _onSaved,
 }: ComposeFormProps) {
   const t = useTranslations("broadcasts.compose");
@@ -116,29 +117,48 @@ export function ComposeForm({
   const needsTextEn = submitAttempted && (!isTextFilled(values.titleEn) || !isTextFilled(values.bodyEn));
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-muted-foreground">
-          {t("filledCounter", { count: filledCount })}
-        </span>
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4">
+        <div className="flex items-center gap-2.5">
+          <span className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+            {t("contentLabel")}
+          </span>
+          <span className="flex h-5 items-center rounded-md bg-fresh-tint px-2 text-[11px] font-semibold text-primary">
+            {t("filledCounter", { count: filledCount })}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <LanguageBlock
+            language="de"
+            title={values.titleDe}
+            body={values.bodyDe}
+            onTitleChange={(v) => set("titleDe", v)}
+            onBodyChange={(v) => set("bodyDe", v)}
+            needsText={needsTextDe}
+          />
+          <LanguageBlock
+            language="en"
+            title={values.titleEn}
+            body={values.bodyEn}
+            onTitleChange={(v) => set("titleEn", v)}
+            onBodyChange={(v) => set("bodyEn", v)}
+            needsText={needsTextEn}
+          />
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <LanguageBlock
-          language="de"
-          title={values.titleDe}
-          body={values.bodyDe}
-          onTitleChange={(v) => set("titleDe", v)}
-          onBodyChange={(v) => set("bodyDe", v)}
-          needsText={needsTextDe}
-        />
-        <LanguageBlock
-          language="en"
-          title={values.titleEn}
-          body={values.bodyEn}
-          onTitleChange={(v) => set("titleEn", v)}
-          onBodyChange={(v) => set("bodyEn", v)}
-          needsText={needsTextEn}
+      <div className="rounded-xl border border-border bg-card p-4">
+        <BannerUploader
+          value={{ storageKey: values.imageStorageKey, previewUrl: values.imagePreviewUrl }}
+          onChange={(next) => {
+            setValues((prev) => ({
+              ...prev,
+              imageStorageKey: next.storageKey,
+              imagePreviewUrl: next.previewUrl,
+            }));
+          }}
+          existingImageUrl={mode === "edit" ? existingImageUrl : null}
         />
       </div>
 

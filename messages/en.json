@@ -2433,11 +2433,23 @@
       "newTitle": "New broadcast",
       "newSubtitle": "One push, written once in German and English, sent to workers, owners, or a list you pick.",
       "noAccess": "You don't have permission to compose broadcasts.",
+      "contentLabel": "Content",
       "filledCounter": "{count} of 4 filled",
       "discard": "Discard",
       "submit": "Continue",
       "saveChanges": "Save changes",
-      "disabledReason": "Add both languages, an audience and a time"
+      "disabledReason": "Add both languages, an audience and a time",
+      "banner": {
+        "label": "Banner image",
+        "optional": "Optional",
+        "platformNote": "Shows as the big picture on Android and as an attachment on iOS",
+        "upload": "Upload",
+        "replace": "Replace",
+        "remove": "Remove",
+        "presignNote": "Uploaded through the shared presign flow into the broadcasts category, so the URL never expires. The form holds the storage key, not the file.",
+        "existingWillBeRemoved": "This broadcast already has a banner. Saving without uploading a replacement will remove it — the API has no way to keep it automatically.",
+        "uploadFailed": "Upload failed. Try again."
+      }
     }
   }
 }

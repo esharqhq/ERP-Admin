@@ -2433,11 +2433,23 @@
       "newTitle": "Neue Ankündigung",
       "newSubtitle": "Ein Push, einmal auf Deutsch und Englisch verfasst, gesendet an Mitarbeitende, Eigentümer:innen oder eine von Ihnen gewählte Liste.",
       "noAccess": "Sie haben keine Berechtigung, Ankündigungen zu verfassen.",
+      "contentLabel": "Inhalt",
       "filledCounter": "{count} von 4 ausgefüllt",
       "discard": "Verwerfen",
       "submit": "Weiter",
       "saveChanges": "Änderungen speichern",
-      "disabledReason": "Beide Sprachen, eine Zielgruppe und einen Zeitpunkt hinzufügen"
+      "disabledReason": "Beide Sprachen, eine Zielgruppe und einen Zeitpunkt hinzufügen",
+      "banner": {
+        "label": "Bannerbild",
+        "optional": "Optional",
+        "platformNote": "Erscheint auf Android als großes Bild und auf iOS als Anhang",
+        "upload": "Hochladen",
+        "replace": "Ersetzen",
+        "remove": "Entfernen",
+        "presignNote": "Hochgeladen über den gemeinsamen Presign-Ablauf in die Kategorie broadcasts, sodass die URL nie abläuft. Das Formular speichert den Storage Key, nicht die Datei.",
+        "existingWillBeRemoved": "Diese Ankündigung hat bereits ein Banner. Speichern ohne ein Ersatzbild hochzuladen entfernt es — die API kann es nicht automatisch beibehalten.",
+        "uploadFailed": "Hochladen fehlgeschlagen. Bitte erneut versuchen."
+      }
     }
   }
 }
