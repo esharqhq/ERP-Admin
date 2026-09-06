@@ -13,7 +13,7 @@ import type { DayKey } from "@/lib/ui/week";
  *   who is on what, whether they turned up, and whether a check-in was refused.
  * - **One task-groups read.** Attendance has no `requiredWorkerCount`, and a task
  *   **nobody is assigned to produces no attendance row at all** — so without this
- *   the open-shifts row and the short-staffed fraction are both unbuildable.
+ *   neither the `short` chip kind nor a free day's Assign candidates are buildable.
  *
  * ⚠ The groups read is unbounded and undated (`ListAllGroupsAsync`), so the week
  * filter is applied here, client-side.
@@ -97,6 +97,18 @@ export interface MatrixRow {
   hours: number | null;
   /** Tasks whose window is unknown, so `hours` is a floor rather than a total. */
   untimedCount: number;
+  /**
+   * How many of the seven cells are a plain "nothing booked" — the design's own
+   * reason this matrix exists: a free day is where work gets put. Cell-level
+   * only; it says nothing about whether the worker is actually bookable, which
+   * is why the row (not this count) also gates the free-days badge's colour and
+   * the empty-cell Assign affordance on `workerStatusPresentation`.
+   *
+   * Drives the row order (`buildMatrixWeek`'s default sort): free days first, so
+   * the worker with the most room to take new work is the one an admin sees
+   * without paging.
+   */
+  freeDays: number;
 }
 
 /** One column head: the date, and what happened on it. */
@@ -109,33 +121,41 @@ export interface MatrixDay {
   failed: boolean;
 }
 
-/** The aggregate row above the workers: what the week needs. */
-export interface DemandCell {
-  /** Every task that day is counted, not only the ones a visible worker is on. */
+/**
+ * One task a free day's Assign popover can offer — the same fields a chip
+ * carries, minus this-worker's-relationship-to-it, since there isn't one yet.
+ *
+ * ⚠ **No eligibility here, on purpose.** `GET /api/tasks/admin/groups` carries
+ * no profession or rating-floor field on the task it hands back — only the
+ * *create* request (`CreateTaskGroupRequest.eligibleProfessionIds`) has one, and
+ * it is not echoed back. So "which jobs fit" cannot be honestly pre-filtered
+ * client-side; every task still short a worker is offered, and the real assign
+ * call is the judge — same as the existing short-staffed sheet already does for
+ * "which workers fit".
+ */
+export interface OpenTaskCandidate {
+  taskId: string;
+  groupId: string;
+  from: string;
+  to: string;
+  propertyName: string;
+  taskTitle: string;
   assigned: number;
   required: number;
-  /** Earliest start – latest deadline across the day, e.g. `08:30–15:00`. */
-  window: string;
-  /** The property when the day has only one, else how many. */
-  label: string;
-  propertyCount: number;
-  taskCount: number;
 }
 
 export interface MatrixWeek {
   days: MatrixDay[];
-  demand: DemandCell[];
-  /** Tasks that day with nobody at all on them — invisible to attendance. */
-  openShifts: number[];
+  /** Index-aligned with `days`: every task that day still short a worker. */
+  openTasksByDay: OpenTaskCandidate[][];
+  /** Every worker the Table's own filters matched — sorted free-days first, never hidden. */
   rows: MatrixRow[];
-  /** Rows dropped by `hideUnbooked`. */
-  hiddenCount: number;
 }
 
 /** A worker who left a task no longer occupies its slot. */
 const VACATED = new Set(["removed", "cancelled", "noshow"]);
 
-/** These never count as demand — nobody is expected to staff them. */
+/** These never count toward staffing — nobody is expected to be on them. */
 const DEAD_TASK = new Set(["cancelled", "completed"]);
 
 interface TaskFacts {
@@ -153,8 +173,8 @@ interface TaskFacts {
 /**
  * Everything the grid needs about the week's tasks, keyed by task id.
  *
- * Exported for the demand row's sake as much as the chips': it is the only source
- * that knows a task exists when nobody is on it.
+ * Exported for the free-day assign candidates as much as the chips': it is the
+ * only source that knows a task exists when nobody is on it.
  */
 export function indexTasks(
   groups: TaskGroupDto[],
@@ -193,8 +213,6 @@ export interface BuildMatrixInput {
   /** Index-aligned with `dayKeys`. `null` for a day whose read failed. */
   attendance: (AttendanceRowDto[] | null)[];
   groups: TaskGroupDto[];
-  /** Default on — the design's "n workers with no booking this week are hidden". */
-  hideUnbooked: boolean;
 }
 
 export function buildMatrixWeek({
@@ -202,7 +220,6 @@ export function buildMatrixWeek({
   dayKeys,
   attendance,
   groups,
-  hideUnbooked,
 }: BuildMatrixInput): MatrixWeek {
   const tasks = indexTasks(groups, dayKeys);
 
@@ -219,27 +236,32 @@ export function buildMatrixWeek({
     };
   });
 
-  /* ── the two aggregate rows, from the tasks rather than from attendance ── */
-  const demand: DemandCell[] = [];
-  const openShifts: number[] = [];
+  /* ── the free-day assign candidates, from the tasks rather than from
+     attendance ── */
+  const openTasksByDay: OpenTaskCandidate[][] = [];
 
   for (const key of dayKeys) {
-    const dayTasks = [...tasks.values()].filter(
-      (t) => t.scheduledDate === key && !DEAD_TASK.has(t.status),
+    const dayEntries = [...tasks.entries()].filter(
+      ([, t]) => t.scheduledDate === key && !DEAD_TASK.has(t.status),
     );
-    const properties = new Set(dayTasks.map((t) => t.propertyName).filter(Boolean));
-    demand.push({
-      assigned: sum(dayTasks.map((t) => t.assigned)),
-      required: sum(dayTasks.map((t) => t.required)),
-      window: dayWindow(dayTasks),
-      label:
-        properties.size === 1 ? [...properties][0] : "",
-      propertyCount: properties.size,
-      taskCount: dayTasks.length,
-    });
-    // Zero assigned means zero attendance rows, so this number cannot come from
-    // the seven reads. It is the whole reason the groups read exists.
-    openShifts.push(dayTasks.filter((t) => t.assigned === 0).length);
+    // A task nobody is assigned to (0 of N required) produces zero attendance
+    // rows, so it is invisible to the seven reads — this filter, fed by the
+    // groups read, is the only way such a task is ever offered as a candidate.
+    openTasksByDay.push(
+      dayEntries
+        .filter(([, t]) => t.assigned < t.required)
+        .map(([taskId, t]) => ({
+          taskId,
+          groupId: t.groupId,
+          from: clockOf(t.scheduledAt),
+          to: t.deadline ? clockOf(t.deadline) : "",
+          propertyName: t.propertyName,
+          taskTitle: t.title,
+          assigned: t.assigned,
+          required: t.required,
+        }))
+        .sort((a, b) => a.from.localeCompare(b.from)),
+    );
   }
 
   /* ── one row per worker ───────────────────────────────────────────────── */
@@ -270,17 +292,28 @@ export function buildMatrixWeek({
       taskCount: chips.length,
       hours: timed.length > 0 ? sum(timed.map((c) => c.hours as number)) : null,
       untimedCount: chips.length - timed.length,
+      freeDays: cells.filter((c) => c.chips.length === 0).length,
     };
   });
 
   /*
-    Hiding the unbooked is the design's own row-reduction, and it is why a window
-    of five is not absurd: on a real page most of the directory has no work in any
-    given week, and a grid of empty rows is a grid nobody can read.
+    Free days first, then name — the worker with the most room to take new work
+    is the one an admin sees without paging. A sort, not a filter: every worker
+    the Table's own query matched is shown, matching the design's own "no
+    hidden-worker notice" — unbooked workers are the whole point of this
+    reading, so finding one is a sort key, not something to page past.
   */
-  const rows = hideUnbooked ? all.filter((r) => r.taskCount > 0) : all;
+  const rows = [...all].sort(
+    (a, b) =>
+      b.freeDays - a.freeDays ||
+      (a.worker.fullName ?? "").localeCompare(b.worker.fullName ?? ""),
+  );
 
-  return { days, demand, openShifts, rows, hiddenCount: all.length - rows.length };
+  return {
+    days,
+    openTasksByDay,
+    rows,
+  };
 }
 
 function toChip(row: AttendanceRowDto, facts: TaskFacts | undefined): MatrixChip {
@@ -329,27 +362,6 @@ function hoursBetween(from: string, to: string): number | null {
   const b = Date.parse(to);
   if (Number.isNaN(a) || Number.isNaN(b) || b <= a) return null;
   return (b - a) / 3_600_000;
-}
-
-/**
- * The day's span — earliest start to latest deadline.
- *
- * ⚠ Deliberately **not** one task's window. The design's artboard shows a single
- * job per day; a real day holds several, and printing the first one's hours as
- * "what the week needs" would understate every other. A day whose tasks carry no
- * deadline shows only the start.
- */
-function dayWindow(dayTasks: TaskFacts[]): string {
-  if (dayTasks.length === 0) return "";
-  const starts = dayTasks.map((t) => clockOf(t.scheduledAt)).filter(Boolean).sort();
-  const ends = dayTasks
-    .map((t) => (t.deadline ? clockOf(t.deadline) : ""))
-    .filter(Boolean)
-    .sort();
-  if (starts.length === 0) return "";
-  const first = starts[0];
-  const last = ends.length > 0 ? ends[ends.length - 1] : "";
-  return last ? `${first}–${last}` : first;
 }
 
 function sum(ns: number[]): number {

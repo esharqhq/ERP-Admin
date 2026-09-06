@@ -857,6 +857,8 @@
         "cancel": "Abbrechen"
       },
       "dayNoJobs": "keine Aufträge",
+      "dayBooked": "{count, plural, one {# gebucht} other {# gebucht}}",
+      "dayBookedRefused": "{booked} · {refused, plural, one {# abgelehnt} other {# abgelehnt}}",
       "dayStaffed": "{assigned}/{required} besetzt",
       "dayOpen": "· {count} offen",
       "dayRefused": "· {count} abgelehnt",

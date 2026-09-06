@@ -126,7 +126,6 @@ function build(over: Partial<Parameters<typeof buildMatrixWeek>[0]> = {}) {
     dayKeys: WEEK,
     attendance: EMPTY_WEEK,
     groups: [],
-    hideUnbooked: false,
     ...over,
   });
 }
@@ -211,24 +210,21 @@ describe("buildMatrixWeek — columns", () => {
   });
 });
 
-describe("buildMatrixWeek — demand and open shifts", () => {
-  it("totals assigned and required across every task of the day", () => {
-    const g = group();
-    g.tasks[0].requiredWorkerCount = 3;
-    const m = build({ groups: [g] });
-    expect(m.demand[0]).toMatchObject({ assigned: 1, required: 3, taskCount: 1 });
-  });
-
+describe("buildMatrixWeek — open task candidates for the free-day assign flow", () => {
   /*
     A task nobody is on produces NO attendance row, so it is invisible to all
-    seven reads. This is the whole reason the groups read exists.
+    seven reads. This is the whole reason the groups read exists. (Moved here
+    from the now-deleted "open shifts" describe block — reading-A's own
+    open-shifts count is gone, but the underlying `indexTasks` assigned-count
+    behaviour this exercises is still exactly what feeds this list.)
   */
   it("finds a task with nobody on it, which attendance cannot see", () => {
     const g = group();
     g.tasks[0].workers = [];
     const m = build({ groups: [g], attendance: EMPTY_WEEK });
-    expect(m.openShifts[0]).toBe(1);
-    expect(m.demand[0]).toMatchObject({ assigned: 0, required: 1 });
+    expect(m.openTasksByDay[0]).toMatchObject([
+      { taskId: "t1", assigned: 0, required: 1 },
+    ]);
   });
 
   it("ignores a task somebody has already left", () => {
@@ -236,48 +232,60 @@ describe("buildMatrixWeek — demand and open shifts", () => {
     g.tasks[0].workers = [
       { ...g.tasks[0].workers[0], outcome: "Removed" },
     ];
-    expect(build({ groups: [g] }).openShifts[0]).toBe(1);
+    expect(build({ groups: [g] }).openTasksByDay[0]).toMatchObject([
+      { taskId: "t1", assigned: 0, required: 1 },
+    ]);
   });
 
-  it("leaves cancelled and completed tasks out of demand", () => {
+  it("lists a task that still wants more workers", () => {
+    const g = group();
+    g.tasks[0].requiredWorkerCount = 2;
+    const m = build({ groups: [g] });
+    expect(m.openTasksByDay[0]).toMatchObject([
+      {
+        taskId: "t1",
+        groupId: "g1",
+        from: "08:00",
+        to: "15:30",
+        propertyName: "Sonnenhof",
+        taskTitle: "Housekeeping",
+        assigned: 1,
+        required: 2,
+      },
+    ]);
+  });
+
+  it("excludes a task that is already fully staffed", () => {
+    const g = group(); // requiredWorkerCount: 1, one worker already assigned
+    expect(build({ groups: [g] }).openTasksByDay[0]).toEqual([]);
+  });
+
+  it("excludes cancelled and completed tasks even if short", () => {
     for (const status of ["Cancelled", "Completed"]) {
       const g = group();
       g.tasks[0].status = status;
-      const m = build({ groups: [g] });
-      expect(m.demand[0].taskCount, status).toBe(0);
-      expect(m.openShifts[0], status).toBe(0);
+      g.tasks[0].requiredWorkerCount = 2;
+      expect(build({ groups: [g] }).openTasksByDay[0], status).toEqual([]);
     }
   });
 
-  /* The endpoint is undated and returns every group ever created. */
-  it("drops tasks outside the week on screen", () => {
+  it("orders same-day candidates by start time", () => {
     const g = group();
-    g.tasks[0].scheduledDate = "2026-07-01";
-    expect(build({ groups: [g] }).demand[0].taskCount).toBe(0);
-  });
-
-  it("spans the day from the earliest start to the latest deadline", () => {
-    const g = group();
+    g.tasks[0].requiredWorkerCount = 2;
     g.tasks.push({
       ...g.tasks[0],
       id: "t2",
       scheduledAt: "2026-08-31T06:00:00",
-      deadline: "2026-08-31T19:00:00",
     });
-    expect(build({ groups: [g] }).demand[0].window).toBe("06:00–19:00");
+    const candidates = build({ groups: [g] }).openTasksByDay[0];
+    expect(candidates.map((c) => c.taskId)).toEqual(["t2", "t1"]);
   });
 
-  it("names the property when the day has one, and counts them when it has more", () => {
+  it("drops candidates outside the week on screen — the endpoint is undated", () => {
     const g = group();
-    expect(build({ groups: [g] }).demand[0]).toMatchObject({
-      label: "Sonnenhof",
-      propertyCount: 1,
-    });
-    g.tasks.push({ ...g.tasks[0], id: "t2", propertyName: "Arte Hotel" });
-    expect(build({ groups: [g] }).demand[0]).toMatchObject({
-      label: "",
-      propertyCount: 2,
-    });
+    g.tasks[0].scheduledDate = "2026-07-01";
+    g.tasks[0].requiredWorkerCount = 2;
+    expect(build({ groups: [g] }).openTasksByDay[0]).toEqual([]);
   });
 });
 
@@ -353,32 +361,18 @@ describe("buildMatrixWeek — rows", () => {
   });
 });
 
-describe("buildMatrixWeek — hiding the unbooked", () => {
-  const workers = [worker({ id: "w1" }), worker({ id: "w2" }), worker({ id: "w3" })];
-  const attendance = WEEK.map((_, i) => (i === 0 ? [att({ workerId: "w2" })] : []));
-
-  it("keeps everyone when the bar is off", () => {
-    const m = buildMatrixWeek({
-      workers,
-      dayKeys: WEEK,
-      attendance,
-      groups: [],
-      hideUnbooked: false,
-    });
+describe("buildMatrixWeek — row order", () => {
+  /*
+    Adapted from the deleted "hiding the unbooked" describe block: the same
+    fixture (three workers, one booked) once proved a worker with no booking
+    could be filtered out; now it proves the opposite on purpose — nobody is
+    ever dropped, matching the design's own "no hidden-worker notice".
+  */
+  it("shows every worker the Table's filters matched — nobody hidden", () => {
+    const workers = [worker({ id: "w1" }), worker({ id: "w2" }), worker({ id: "w3" })];
+    const attendance = WEEK.map((_, i) => (i === 0 ? [att({ workerId: "w2" })] : []));
+    const m = buildMatrixWeek({ workers, dayKeys: WEEK, attendance, groups: [] });
     expect(m.rows).toHaveLength(3);
-    expect(m.hiddenCount).toBe(0);
-  });
-
-  it("drops the workless rows and says how many", () => {
-    const m = buildMatrixWeek({
-      workers,
-      dayKeys: WEEK,
-      attendance,
-      groups: [],
-      hideUnbooked: true,
-    });
-    expect(m.rows.map((r) => r.worker.id)).toEqual(["w2"]);
-    expect(m.hiddenCount).toBe(2);
   });
 });
 

@@ -857,6 +857,8 @@
         "cancel": "Cancel"
       },
       "dayNoJobs": "no jobs",
+      "dayBooked": "{count, plural, one {# booked} other {# booked}}",
+      "dayBookedRefused": "{booked} · {refused, plural, one {# refused} other {# refused}}",
       "dayStaffed": "{assigned}/{required} staffed",
       "dayOpen": "· {count} open",
       "dayRefused": "· {count} refused",

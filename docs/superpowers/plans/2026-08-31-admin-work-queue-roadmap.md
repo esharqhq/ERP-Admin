@@ -158,7 +158,7 @@ deliberately or by oversight — the user decides.
 | ↳ 1a | — Owners — **✅ done 2026-08-31**, see the section below | | | |
 | ↳ 1b | — Properties — **✅ done 2026-08-31**, see the section below | | | |
 | ↳ 1c | — Workers, **Table state** — **✅ done 2026-09-01**, see `2026-09-01-workers-table-state.md`. Carries the `onTask` → `booked` rename and the 22 filters. ⚠ The **Matrix** half of that screen is a separate phase and is not built. | | | |
-| ↳ 1d | — Workers, **Matrix state** — code complete 2026-09-01, see `2026-09-01-workers-matrix-state.md`. Replaces the old Calendar view and keeps its assign flow. ⚠ **Unrendered** — not closed. | | | |
+| ↳ 1d | — Workers, **Matrix state** — code complete 2026-09-01, rendered and closed 2026-09-02, see `2026-09-01-workers-matrix-state.md`. Replaces the old Calendar view and keeps its assign flow. ⚠ The free-day "which jobs fit" popover from §02's own prose and the §08 mobile layout are both still unbuilt — noted in the file, not silently dropped. | | | |
 | **2** | Docs workspace tail: F3 worker queue, worker detail, F6 guards, and the render sweep | item 1 | shares F3 with #1 | M |
 | **3** | Agency: applications queue, detail, three verbs, agency edit, agency-links, worker-detail block | item 5 | #1 | L |
 | **4** | Walk-in parity, buildable half: before/after media, rating, outcome override | item 4 | #0b for accept/reject | M |

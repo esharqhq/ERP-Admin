@@ -105,3 +105,13 @@ export function weekRangeLabel(week: Week, locale: string): string {
   const fmt = new Intl.DateTimeFormat(locale, { day: "2-digit", month: "2-digit" });
   return `${fmt.format(week.days[0])} – ${fmt.format(week.days[6])}`;
 }
+
+/** `Sat, 05 Sep` — one day, spelled out, for a title that names a specific date. */
+export function dayLabel(key: DayKey, locale: string): string {
+  const fmt = new Intl.DateTimeFormat(locale, {
+    weekday: "short",
+    day: "2-digit",
+    month: "short",
+  });
+  return fmt.format(fromDayKey(key));
+}

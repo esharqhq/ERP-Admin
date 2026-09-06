@@ -634,9 +634,9 @@ export default function WorkersPage() {
             workers={data?.items ?? []}
             attendance={attendance}
             groups={groups.data ?? []}
-            groupsLoading={groups.isLoading}
             // The grid is unreadable without attendance; the groups read only
-            // costs it the two aggregate rows, so it is not a blocking refusal.
+            // costs the open-shifts row and the free-day Assign candidates, so
+            // it is not a blocking refusal.
             isForbidden={forbidden || (permissions !== null && !canReadAttendance)}
             isLoading={isLoading || attendance.isLoading}
             onAssign={setAssigning}

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  dayLabel,
   fromDayKey,
   isoWeek,
   mondayOf,
@@ -125,5 +126,18 @@ describe("weekRangeLabel", () => {
     expect(label).toContain("31");
     expect(label).toContain("06");
     expect(label).toContain("–");
+  });
+});
+
+describe("dayLabel", () => {
+  it("names one specific date, weekday and all", () => {
+    // 2026-09-05 is a Saturday.
+    const label = dayLabel("2026-09-05", "en");
+    expect(label).toMatch(/^Sat/);
+    expect(label).toContain("05");
+  });
+
+  it("speaks the locale it is given", () => {
+    expect(dayLabel("2026-09-05", "de")).toMatch(/^Sa/);
   });
 });
