@@ -13,6 +13,7 @@ import {
   Briefcase,
   Inbox,
   Phone,
+  Megaphone,
 } from "lucide-react"
 import { type LucideIcon } from "lucide-react"
 
@@ -108,6 +109,20 @@ export const navGroups: NavGroup[] = [
         anyOf: ["conversation:list_any", "support_ticket:list_any"], badge: "waiting" },
       { title: "Settings", labelKey: "nav.settings", url: "/dashboard/settings", icon: Settings,
         anyOf: ["system:settings:read", "admin:list", "system:permission:read", "system:audit:read", "profession:create"] },
+    ],
+  },
+  {
+    id: "notifications",
+    label: "Notifications",
+    // Reuses the existing "Notifications" label — unused as a nav labelKey
+    // until now (the bell page itself is reached from the header dropdown,
+    // not the sidebar, and needs no gate: every seeded role holds
+    // `notification:read_self`). Broadcasts is admin-authored and
+    // SUPER_ADMIN-only, so it earns its own group rather than living under
+    // Support.
+    labelKey: "nav.notifications",
+    items: [
+      { title: "Broadcasts", labelKey: "nav.broadcasts", url: "/dashboard/notifications/broadcasts", icon: Megaphone, permission: "notification:broadcast" },
     ],
   },
 ]
