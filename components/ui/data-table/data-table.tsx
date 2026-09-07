@@ -141,8 +141,12 @@ export interface DataTableProps<Row> {
   filterNote?: string;
 
   searchPlaceholder: string;
-  /** Copy for "nothing is waiting" — per queue, never a generic "no data". */
-  empty: { title: string; body: string; action?: ReactNode };
+  /**
+   * Copy for "nothing is waiting" — per queue, never a generic "no data".
+   * `icon` is optional and forwarded to `TableEmpty` as-is (default `Inbox`
+   * there covers every caller that omits it).
+   */
+  empty: { title: string; body: string; action?: ReactNode; icon?: ReactNode };
   /**
    * Must contain `state.pageSize` or the select is handed a value none of its
    * items carry. The default matches `DEFAULT_PAGE_SIZE` and what the design

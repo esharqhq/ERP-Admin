@@ -76,6 +76,54 @@ export function formatRelativeAge(
 }
 
 /**
+ * Bidirectional sibling of `relativeAge` — a future `iso` (a Scheduled dispatch
+ * time, "in 4 h") is exactly as valid an answer as a past one ("2 days ago").
+ * Kept separate rather than adding a `future` flag to `relativeAge`: every
+ * existing caller of that one is genuinely past-only (a sign-in, a completion),
+ * and a flag only one caller would ever set is a worse read than a second
+ * function.
+ *
+ * `now` is a parameter, not `Date.now()` read in here, for the same reason
+ * `relativeAge` takes one: a value computed at render time on the server and
+ * again on the client hydrates against two different clocks. Pass `useClock()`
+ * (or `0` before it resolves, in which case this returns `null`).
+ */
+export interface RelativeMoment {
+  /** Negative = past, positive = future, 0 = this minute. */
+  value: number;
+  unit: Intl.RelativeTimeFormatUnit;
+}
+
+export function relativeMoment(
+  iso: string | null | undefined,
+  now: number,
+): RelativeMoment | null {
+  if (!iso || !now) return null;
+  const target = new Date(iso).getTime();
+  if (Number.isNaN(target)) return null;
+
+  const diffMin = Math.round((target - now) / MINUTE);
+  if (Math.abs(diffMin) < 1) return { value: 0, unit: "minute" };
+  if (Math.abs(diffMin) < 60) return { value: diffMin, unit: "minute" };
+  const diffHr = Math.round(diffMin / 60);
+  if (Math.abs(diffHr) < 24) return { value: diffHr, unit: "hour" };
+  return { value: Math.round(diffHr / 24), unit: "day" };
+}
+
+export function formatRelativeMoment(
+  iso: string | null | undefined,
+  now: number,
+  locale: string,
+): string | null {
+  const m = relativeMoment(iso, now);
+  if (!m) return null;
+  return new Intl.RelativeTimeFormat(locale, { numeric: "auto" }).format(
+    m.value,
+    m.unit,
+  );
+}
+
+/**
  * A short absolute day — `27 Aug 2026`.
  *
  * Used wherever a relative age would be less useful than a date: a registration,
