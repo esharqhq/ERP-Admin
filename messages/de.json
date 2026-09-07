@@ -464,7 +464,7 @@
     "propertyCategories": "Objektkategorien",
     "walkIn": "Laufkundschaft",
     "broadcasts": "Ankündigungen",
-    "platform": "Plattform"
+    "system": "System"
   },
   "auth": {
     "logout": "Abmelden",
@@ -2543,6 +2543,86 @@
         "presignNote": "Hochgeladen über den gemeinsamen Presign-Ablauf in die Kategorie broadcasts, sodass die URL nie abläuft. Das Formular speichert den Storage Key, nicht die Datei.",
         "existingWillBeRemoved": "Diese Ankündigung hat bereits ein Banner. Speichern ohne ein Ersatzbild hochzuladen entfernt es — die API kann es nicht automatisch beibehalten.",
         "uploadFailed": "Hochladen fehlgeschlagen. Bitte erneut versuchen."
+      }
+    },
+    "detail": {
+      "copyId": "Vollständige ID kopieren",
+      "missedAlertBody": "Die Versandminute verstrich außerhalb des Job-Ticks, sodass keine Push-Einträge geschrieben wurden und niemand etwas erhielt. Diese Ankündigung ist unveränderlich — die einzige Abhilfe ist eine neue.",
+      "actionNoteSending": "Bearbeiten liefert broadcast_not_editable und Abbrechen wird verweigert — der Versand hat sie bereits übernommen.",
+      "actionNoteSent": "Erneut erstellen öffnet das Formular vorausgefüllt; die neue Ankündigung startet als Geplant.",
+      "notFound": "Diese Ankündigung existiert nicht oder wurde bereits anderweitig bearbeitet.",
+      "banner": "Banner",
+      "openOriginal": "Original öffnen",
+      "bannerCaption": "Ein breites Banner ist die vorgesehene Form, daher ist die Box fest auf 3:1 und das Bild wird eingepasst (cover). Quadratischeres wird hier mittig zugeschnitten und nie mit Balken versehen — die mobilen Apps schneiden genauso zu, daher entspricht diese Vorschau dem, was ein Empfänger sah.",
+      "content": "Inhalt",
+      "bothVersionsNote": "Beide Versionen wurden gesendet — die App wählt nach der Sprache des Empfängers",
+      "copyBoth": "Beide kopieren",
+      "audience": {
+        "label": "Zielgruppe",
+        "nounWorkers": "Mitarbeitende",
+        "nounOwners": "Eigentümer",
+        "nounBoth": "Mitarbeitende und Eigentümer",
+        "customHeadline": "{count} namentlich Ausgewählte",
+        "customBodyScheduled": "Eine handverlesene Liste von {count} Personen, eingefroren beim Speichern. Sie wird beim Versand exakt an diese Liste gesendet — niemand, der später hinzukommt, wird ergänzt.",
+        "customBodySending": "Eine handverlesene Liste von {count} Personen, eingefroren beim Speichern. Der Versand löst sie gerade auf.",
+        "customBodySent": "Eine handverlesene Liste von {count} Personen, eingefroren beim Speichern und vollständig versendet.",
+        "customBodyCancelled": "Eine handverlesene Liste von {count} Personen, eingefroren beim Speichern. Vor dem Versand abgebrochen — die Liste wurde nie gesendet.",
+        "customBodyMissed": "Eine handverlesene Liste von {count} Personen, mit der Ankündigung gespeichert. Niemand von ihnen hat etwas erhalten — die Liste selbst ist alles, was übrig blieb.",
+        "sentHeadline": "{label}, {count} Zeilen",
+        "sentLabelBoth": "Mitarbeitende und Eigentümer",
+        "sentBodyBoth": "Beide Live-Gruppen wurden beim Versand aufgelöst. Beide Zielgruppen erhielten identischen Text — die API kennt keine Variante je Gruppe, weshalb dringende Betriebsmeldungen an Beide statt zweimal einzeln gehen.",
+        "sentBody": "Beim Versand aufgelöst — dies ist genau die Menge an {noun}, die sie erhalten hat.",
+        "eligibleHeadline": "Alle berechtigten {noun} zum Versandzeitpunkt",
+        "eligibleBodyScheduled": "Die Zielgruppe wird vom Server erst in der Versandminute aufgelöst, nicht beim Speichern eingefroren — wer vorher berechtigt wird, ist noch eingeschlossen. Deshalb gibt es noch keine Empfängerzahl.",
+        "eligibleBodySending": "Live aufgelöst, während die Einträge geschrieben werden. Die Endzahl ist, was der Server in dieser Minute sah — nicht vergleichbar mit einer beim Erstellen angezeigten Vorschauzahl.",
+        "wouldHaveBeenHeadline": "Wäre an alle berechtigten {noun} gegangen",
+        "eligibleBodyCancelled": "Die Zielgruppe wurde nie aufgelöst, da die Auflösung erst beim Versand geschieht und der Versand nie lief. Es gibt keinen Nachweis, wie viele {noun} erreicht worden wären.",
+        "eligibleBodyMissed": "Das Versandfenster schloss, bevor der Versand laufen konnte, sodass die Zielgruppe nie aufgelöst wurde. Es gibt keinen Nachweis, wie viele {noun} erreicht worden wären.",
+        "frozenListNote": "Dies war eine eingefrorene Liste — wer nach dem Speichern dieser Ankündigung hinzukam, hat sie nicht erhalten.",
+        "noNamesNote": "Nur die Anzahl wird gespeichert. Die einzelnen Namen stehen nicht in der Detailantwort, daher kann diese Seite nicht auflisten, wer dabei war — und tut nicht so, als könnte sie."
+      },
+      "timing": {
+        "label": "Zeitplan",
+        "scheduledFor": "Geplant für",
+        "wasScheduledFor": "War geplant für",
+        "started": "Gestartet",
+        "completed": "Abgeschlossen",
+        "dispatchWindow": "Versandfenster",
+        "sendNow": "Jetzt senden",
+        "notStarted": "Nicht gestartet",
+        "inProgress": "Läuft",
+        "never": "Nie",
+        "expiredAfterSixHours": "Nach 6 Std. abgelaufen",
+        "expired": "abgelaufen",
+        "durationMinutes": "{count} Min."
+      },
+      "reach": {
+        "label": "Reichweite",
+        "tagLive": "Live",
+        "tagFinal": "Endgültig",
+        "tagNothingSent": "Nichts gesendet",
+        "recipients": "Empfänger",
+        "opened": "Geöffnet",
+        "recipientsSubClimbing": "bisher geschriebene Push-Einträge · steigt noch",
+        "recipientsSubFixed": "geschriebene Push-Einträge",
+        "openedNotYetMeaningful": "Geöffnet wird erst aussagekräftig, sobald jeder Eintrag existiert.",
+        "openedSub": "{pct}% von {count} Empfängern haben es geöffnet",
+        "noRecipientsNote": "Es wurden keine Empfänger erreicht, daher gibt es nichts, was geöffnet worden sein könnte.",
+        "pollingNote": "Alle 15 Sekunden abgefragt, solange dies Wird gesendet bleibt, danach noch einmal beim Abschluss, und dann nie wieder — es gibt kein Push-Ereignis für den Versandfortschritt.",
+        "snapshotNote": "Empfänger ist fest; Geöffnet steigt noch stundenlang weiter, daher ist dies eine Momentaufnahme zum Zeitpunkt des letzten Abrufs — zum erneuten Prüfen aktualisieren.",
+        "emptyHeadScheduled": "Gezählt beim Versand",
+        "emptyBodyScheduled": "Es wurde noch nichts geschrieben, daher gibt es keine Zahl zu zeigen — keine Null, die wie ein Fehlschlag wirken würde. Beide Kennzahlen erscheinen, sobald der Status auf Wird gesendet wechselt.",
+        "emptyHeadCancelled": "Nichts wurde gesendet",
+        "emptyBodyCancelled": "Der Abbruch erfolgte vor dem Versand, daher wurde nie ein Push-Eintrag geschrieben und es gibt keine Benachrichtigung zum Öffnen. Der Datensatz bleibt als Prüfpfad erhalten — es gibt keine Löschfunktion.",
+        "emptyHeadMissed": "Nichts wurde gesendet",
+        "emptyBodyMissed": "Das Fenster schloss, bevor der Versand-Job es übernahm, daher hat niemand etwas erhalten. Erneut erstellen ist die einzige Abhilfe — dieser Datensatz kann nicht erneut ausgelöst werden.",
+        "bothBlank": "— beide leer, bis der Versand Einträge schreibt"
+      },
+      "provenance": {
+        "label": "Herkunft",
+        "createdByAdminId": "createdByAdminId",
+        "created": "Erstellt",
+        "resolveNote": "Das Admin-Verzeichnis löst die ID auf; schlägt das fehl, wird die gekürzte ID angezeigt statt „Unbekannt“."
       }
     }
   }

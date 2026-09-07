@@ -464,7 +464,7 @@
     "propertyCategories": "Property categories",
     "walkIn": "Walk-in",
     "broadcasts": "Broadcasts",
-    "platform": "Platform"
+    "system": "System"
   },
   "auth": {
     "logout": "Logout",
@@ -2543,6 +2543,86 @@
         "presignNote": "Uploaded through the shared presign flow into the broadcasts category, so the URL never expires. The form holds the storage key, not the file.",
         "existingWillBeRemoved": "This broadcast already has a banner. Saving without uploading a replacement will remove it — the API has no way to keep it automatically.",
         "uploadFailed": "Upload failed. Try again."
+      }
+    },
+    "detail": {
+      "copyId": "Copy full id",
+      "missedAlertBody": "The dispatch minute passed while the job tick was outside its window, so no bell rows were written and nobody received anything. This broadcast is immutable — the fix is a new one.",
+      "actionNoteSending": "Edit returns broadcast_not_editable and cancel is refused — fan-out already claimed it.",
+      "actionNoteSent": "Recreate opens the compose form pre-filled; the new one starts as Scheduled.",
+      "notFound": "This broadcast doesn't exist, or was already handled elsewhere.",
+      "banner": "Banner",
+      "openOriginal": "Open original",
+      "bannerCaption": "A wide banner is the intended shape, so the box is a fixed 3:1 and the image covers it. Anything squarer is centre-cropped here and never letterboxed — the mobile apps crop the same way, so this preview matches what a recipient saw.",
+      "content": "Content",
+      "bothVersionsNote": "Both versions were sent — the app picks by the recipient's locale",
+      "copyBoth": "Copy both",
+      "audience": {
+        "label": "Audience",
+        "nounWorkers": "workers",
+        "nounOwners": "owners",
+        "nounBoth": "workers and owners",
+        "customHeadline": "{count} named people",
+        "customBodyScheduled": "A hand-picked list of {count} people, frozen when this was saved. It will be sent to exactly this list once dispatch runs — nobody who joins afterward is added.",
+        "customBodySending": "A hand-picked list of {count} people, frozen when this was saved. Fan-out is resolving it now.",
+        "customBodySent": "A hand-picked list of {count} people, frozen when this was saved and sent in full.",
+        "customBodyCancelled": "A hand-picked list of {count} people, frozen when this was saved. Cancelled before fan-out — the list was never sent.",
+        "customBodyMissed": "A hand-picked list of {count} people, saved with the broadcast. None of them received anything, so the list itself is the only thing that survived.",
+        "sentHeadline": "{label}, {count} rows",
+        "sentLabelBoth": "Workers and owners",
+        "sentBodyBoth": "Both live groups were resolved at fan-out. The two audiences received the identical text — there is no per-group variant in the API, which is why urgent operational notices go to Both rather than being sent twice.",
+        "sentBody": "Resolved at fan-out — this is the exact set of {noun} that received it.",
+        "eligibleHeadline": "All eligible {noun} at fan-out time",
+        "eligibleBodyScheduled": "The audience is resolved by the server the minute fan-out starts, not frozen when this was saved — anyone who becomes eligible beforehand is still included. That is why there is no recipient number yet.",
+        "eligibleBodySending": "Resolved live as the rows are written. The final count is whatever the server saw this minute — it is not comparable to a number you previewed while composing.",
+        "wouldHaveBeenHeadline": "Would have been all eligible {noun}",
+        "eligibleBodyCancelled": "The audience was never resolved, because resolution happens at fan-out and fan-out never ran. There is no record of how many {noun} it would have reached.",
+        "eligibleBodyMissed": "The dispatch window closed before fan-out could run, so the audience was never resolved. There is no record of how many {noun} it would have reached.",
+        "frozenListNote": "This was a frozen list — anyone who joined after this broadcast was saved did not receive it.",
+        "noNamesNote": "Only the count is retained. The individual names are not on the detail response, so this page cannot list who was in it — and does not pretend to."
+      },
+      "timing": {
+        "label": "Timing",
+        "scheduledFor": "Scheduled for",
+        "wasScheduledFor": "Was scheduled for",
+        "started": "Started",
+        "completed": "Completed",
+        "dispatchWindow": "Dispatch window",
+        "sendNow": "Send now",
+        "notStarted": "Not started",
+        "inProgress": "In progress",
+        "never": "Never",
+        "expiredAfterSixHours": "Expired after 6 h",
+        "expired": "expired",
+        "durationMinutes": "{count} min"
+      },
+      "reach": {
+        "label": "Reach",
+        "tagLive": "Live",
+        "tagFinal": "Final",
+        "tagNothingSent": "Nothing sent",
+        "recipients": "Recipients",
+        "opened": "Opened",
+        "recipientsSubClimbing": "bell rows written so far · still climbing",
+        "recipientsSubFixed": "bell rows written",
+        "openedNotYetMeaningful": "Opened only becomes meaningful once every row exists.",
+        "openedSub": "{pct}% of {count} recipients opened it",
+        "noRecipientsNote": "No recipients were reached, so there is nothing to have opened it.",
+        "pollingNote": "Polled every 15 seconds while this stays Sending, then once more when it finishes, and never again — there is no push event for fan-out progress.",
+        "snapshotNote": "Recipients is fixed; Opened keeps climbing for hours, so this is a snapshot as of the last fetch — refresh to check again.",
+        "emptyHeadScheduled": "Counted at fan-out",
+        "emptyBodyScheduled": "Nothing has been written yet, so there is no number to show — not a zero, which would read as a failure. Both metrics appear the moment the status turns Sending.",
+        "emptyHeadCancelled": "Nothing was sent",
+        "emptyBodyCancelled": "The cancel landed before fan-out, so no bell row was ever written and no notification exists to open. The record is kept as the audit trail — there is no delete route.",
+        "emptyHeadMissed": "Nothing was sent",
+        "emptyBodyMissed": "The window closed before the job tick claimed it, so nobody received anything. Recreating it is the only remedy — this record cannot be re-fired.",
+        "bothBlank": "— both blank until fan-out writes rows"
+      },
+      "provenance": {
+        "label": "Provenance",
+        "createdByAdminId": "createdByAdminId",
+        "created": "Created",
+        "resolveNote": "The admin directory resolves the id; if that lookup ever fails the truncated id is shown as-is rather than \"Unknown\"."
       }
     }
   }
