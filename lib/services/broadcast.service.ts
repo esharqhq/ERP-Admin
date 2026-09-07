@@ -12,8 +12,20 @@ import type {
 } from "@/lib/types/broadcast.types";
 
 export const broadcastService = {
-  create: async (body: CreateBroadcastRequest): Promise<BroadcastDetailDto> => {
-    const key = newIdempotencyKey();
+  /**
+   * `idempotencyKey` should be minted once per user-initiated attempt and
+   * held by the caller (compose-form.tsx does this in form state) so a retry
+   * of the same attempt replays instead of authoring a second broadcast.
+   * Minting it in here on every call — the previous behaviour — gave every
+   * retry, including a double-click, a fresh key, which meant the header
+   * protected against nothing. Omitting it keeps that fallback for any other
+   * call site that genuinely doesn't care.
+   */
+  create: async (
+    body: CreateBroadcastRequest,
+    idempotencyKey?: string,
+  ): Promise<BroadcastDetailDto> => {
+    const key = idempotencyKey ?? newIdempotencyKey();
     const { data } = await apiClient.post<BroadcastDetailDto>(
       "/api/broadcasts",
       body,

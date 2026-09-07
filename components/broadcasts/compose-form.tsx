@@ -18,6 +18,7 @@ import {
 import { ReachPreviewPanel } from "@/components/broadcasts/reach-preview-panel";
 import { ScheduleConfirmDialog } from "@/components/broadcasts/schedule-confirm-dialog";
 import { broadcastService } from "@/lib/services/broadcast.service";
+import { newIdempotencyKey } from "@/lib/http/idempotency";
 import { getApiErrorCode, getValidationMessage } from "@/lib/http/api-error";
 import type {
   BroadcastAudience,
@@ -196,6 +197,15 @@ export function ComposeForm({
   );
   const [confirmOpen, setConfirmOpen] = useState(false);
 
+  // Minted once per mounted form instance — i.e. once per user-initiated
+  // compose attempt — and held for as long as that attempt may retry, per
+  // lib/http/idempotency.ts's own contract. A successful create navigates
+  // away, discarding this along with the unmounted form; a failed one keeps
+  // it, so a retry replays instead of authoring a second broadcast. Not used
+  // for edit (broadcastService.update isn't idempotent — no key to thread
+  // through it).
+  const [idempotencyKey] = useState(() => newIdempotencyKey());
+
   // Driven by the save attempt's actual response, not by a synthetic
   // "submit was clicked" flag — `canSubmit` below already trim-checks, so a
   // whitespace-only text field can never reach a clickable Save in the first
@@ -246,7 +256,7 @@ export function ComposeForm({
     mutationFn: () =>
       mode === "edit" && broadcastId && !notEditable
         ? broadcastService.update(broadcastId, buildPayload(values))
-        : broadcastService.create(buildPayload(values)),
+        : broadcastService.create(buildPayload(values), idempotencyKey),
   });
 
   const handleConfirm = () => {
