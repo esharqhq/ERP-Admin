@@ -47,7 +47,7 @@ export default function BroadcastDetailPage() {
       variant="ghost"
       size="sm"
       nativeButton={false}
-      className="-ml-2 gap-1.5 text-muted-foreground"
+      className="-ml-2 self-start gap-1.5 text-muted-foreground"
       render={<Link href="/dashboard/notifications/broadcasts" />}
     >
       <ArrowLeft className="size-4" />
