@@ -1,3 +1,5 @@
+import type { PropertyCategoryDto } from "@/lib/types/lookup.types";
+
 /**
  * `PropertyCategory.color` is a free-text column (`MaxLength(32)`) with no
  * server-side format check, so a stored value can be anything an admin typed —
@@ -28,4 +30,23 @@ export function normalizeHexColor(value: string | null | undefined): string | nu
 
   const [, r, g, b] = hex;
   return `#${r}${r}${g}${g}${b}${b}`;
+}
+
+export const CATEGORY_FALLBACK_COLOR = "#B6C2CC";
+
+/**
+ * `PropertyDto.category` carries only `PropertyCategoryRefDto` — no colour
+ * (lib/types/lookup.types.ts:36-39). A row must resolve one against the full
+ * categories list instead of reading it off the property.
+ */
+export function resolveCategoryColor(
+  categoryId: string | null,
+  categories: PropertyCategoryDto[],
+): string {
+  if (categoryId === null) return CATEGORY_FALLBACK_COLOR;
+
+  const category = categories.find((c) => c.id === categoryId);
+  if (!category || !category.isActive) return CATEGORY_FALLBACK_COLOR;
+
+  return normalizeHexColor(category.color) ?? CATEGORY_FALLBACK_COLOR;
 }

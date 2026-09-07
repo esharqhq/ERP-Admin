@@ -1,5 +1,25 @@
 import { describe, expect, it } from "vitest";
-import { isHexColor, normalizeHexColor } from "@/lib/properties/category-color";
+import {
+  CATEGORY_FALLBACK_COLOR,
+  isHexColor,
+  normalizeHexColor,
+  resolveCategoryColor,
+} from "@/lib/properties/category-color";
+import type { PropertyCategoryDto } from "@/lib/types/lookup.types";
+
+function category(over: Partial<PropertyCategoryDto> = {}): PropertyCategoryDto {
+  return {
+    id: "cat-1",
+    code: "APARTMENT",
+    nameDe: "Wohnblock",
+    nameEn: "Apartment block",
+    icon: null,
+    color: "#2F6FED",
+    description: null,
+    isActive: true,
+    ...over,
+  };
+}
 
 describe("isHexColor", () => {
   it("accepts the three-digit and six-digit forms", () => {
@@ -39,5 +59,37 @@ describe("normalizeHexColor", () => {
     expect(normalizeHexColor("rebeccapurple")).toBeNull();
     expect(normalizeHexColor("")).toBeNull();
     expect(normalizeHexColor(null)).toBeNull();
+  });
+});
+
+describe("resolveCategoryColor", () => {
+  it("falls back for a null categoryId", () => {
+    expect(resolveCategoryColor(null, [category()])).toBe(CATEGORY_FALLBACK_COLOR);
+  });
+
+  it("falls back when the id has no match in the list", () => {
+    expect(resolveCategoryColor("missing", [category({ id: "cat-1" })])).toBe(
+      CATEGORY_FALLBACK_COLOR,
+    );
+  });
+
+  it("falls back for a retired (isActive: false) category", () => {
+    const cats = [category({ id: "cat-1", isActive: false })];
+    expect(resolveCategoryColor("cat-1", cats)).toBe(CATEGORY_FALLBACK_COLOR);
+  });
+
+  it("falls back when the stored colour is not a hex colour", () => {
+    const cats = [category({ id: "cat-1", color: "not-a-hex" })];
+    expect(resolveCategoryColor("cat-1", cats)).toBe(CATEGORY_FALLBACK_COLOR);
+  });
+
+  it("resolves the normalized hex colour for a valid, active match", () => {
+    const cats = [category({ id: "cat-1", color: "#2f6fed" })];
+    expect(resolveCategoryColor("cat-1", cats)).toBe("#2f6fed");
+  });
+
+  it("normalizes an uppercase-hex colour through the same path — regression guard", () => {
+    const cats = [category({ id: "cat-1", color: "#2F6FED" })];
+    expect(resolveCategoryColor("cat-1", cats)).toBe("#2f6fed");
   });
 });
