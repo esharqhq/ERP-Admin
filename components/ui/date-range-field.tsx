@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { forwardRef, useMemo, useState, type ComponentPropsWithoutRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
@@ -183,28 +183,39 @@ function pillClass(on: boolean): string {
   );
 }
 
-/** One bound. Mono, because it prints the wire's own `YYYY-MM-DD`. */
-function BoundBox({
-  placeholder,
-  children,
-}: {
-  placeholder: string;
-  children?: string;
-}) {
+/**
+ * One bound. Mono, because it prints the wire's own `YYYY-MM-DD`.
+ *
+ * `forwardRef` + spreading `...props` is load-bearing, not decoration:
+ * `DayPopover` passes this as `PopoverTrigger`'s `render` prop, and Base UI
+ * composes `render` via `React.cloneElement(renderElement, mergedProps)`
+ * (internals/useRenderElement.js) — the click handler, ref, and every
+ * `aria-*`/`data-*` the trigger needs all arrive as props on *this*
+ * component. A version that ignored them (as this one did before) renders
+ * a real-looking button that does nothing when clicked, silently, in every
+ * caller — this file's own `DateRangeControl` included.
+ */
+const BoundBox = forwardRef<
+  HTMLButtonElement,
+  { placeholder: string; children?: string } & ComponentPropsWithoutRef<"button">
+>(function BoundBox({ placeholder, children, className, ...props }, ref) {
   return (
     <button
+      ref={ref}
       type="button"
       className={cn(
         "flex h-8 flex-1 items-center rounded-[10px] bg-background px-2.5 font-mono text-xs transition-colors",
         "ring-1 ring-inset ring-border hover:bg-accent",
         "outline-none focus-visible:ring-2 focus-visible:ring-ring",
         children ? "text-foreground" : "text-muted-foreground",
+        className,
       )}
+      {...props}
     >
       {children || placeholder}
     </button>
   );
-}
+});
 
 /**
  * A month grid in a popover, for one bound.
