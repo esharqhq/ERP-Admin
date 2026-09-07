@@ -1,11 +1,10 @@
 "use client";
 
-import { ArrowLeft, Ban, Copy, Megaphone, Pencil, RotateCcw } from "lucide-react";
+import { ArrowLeft, Ban, Copy, Pencil, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { BroadcastStatusPill } from "@/components/broadcasts/broadcast-row";
 import { cn } from "@/lib/utils";
 import type { BroadcastAudience, BroadcastDetailDto } from "@/lib/types/broadcast.types";
@@ -104,7 +103,7 @@ function ActionSlot({ status, onEdit, onCancel, onRecreate }: ActionSlotProps) {
       );
     case "Sending":
       return (
-        <div className="flex flex-col items-end gap-1">
+        <div className="flex items-center gap-2">
           <Button
             variant="outline"
             size="sm"
@@ -115,19 +114,19 @@ function ActionSlot({ status, onEdit, onCancel, onRecreate }: ActionSlotProps) {
             <ArrowLeft className="size-3.5" />
             {tCompose("backToList")}
           </Button>
-          <span className="max-w-[220px] text-right text-[11px] leading-tight text-muted-foreground">
+          <span className="max-w-[210px] text-[12px] leading-tight text-muted-foreground">
             {t("detail.actionNoteSending")}
           </span>
         </div>
       );
     case "Sent":
       return (
-        <div className="flex flex-col items-end gap-1">
+        <div className="flex items-center gap-2">
           <Button size="sm" onClick={onRecreate} className="gap-1.5">
             <RotateCcw className="size-3.5" />
             {t("row.recreate")}
           </Button>
-          <span className="max-w-[220px] text-right text-[11px] leading-tight text-muted-foreground">
+          <span className="max-w-[210px] text-[12px] leading-tight text-muted-foreground">
             {t("detail.actionNoteSent")}
           </span>
         </div>
@@ -197,45 +196,41 @@ export function BroadcastDetailHeader({
         </div>
       )}
 
-      <Card>
-        <CardContent className="flex flex-wrap items-start justify-between gap-4">
-          <div className="flex min-w-0 flex-1 items-start gap-3.5">
-            <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <Megaphone className="size-5" />
+      {/* No Card here — the design draws this row directly on the page
+          background, with no border, shadow, or leading icon. Only the
+          Missed alert above and the cards below get the white-box treatment. */}
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+          <div className="flex min-w-0 flex-wrap items-center gap-2.5">
+            <h1 className="truncate font-heading text-xl font-bold tracking-tight sm:text-[22px]">
+              {title}
+            </h1>
+            <BroadcastStatusPill status={detail.status} />
+            <AudiencePill audience={detail.audience} />
+          </div>
+          <div className="flex min-w-0 flex-wrap items-center gap-2.5 text-[13px] text-muted-foreground">
+            {detail.titleEn && detail.titleEn !== title && (
+              <>
+                <span>{detail.titleEn}</span>
+                <span aria-hidden className="h-3.5 w-px bg-border" />
+              </>
+            )}
+            <span className="font-mono text-[11.5px] text-muted-foreground/70">
+              {detail.id}
             </span>
-            <div className="flex min-w-0 flex-col gap-2">
-              <div className="flex min-w-0 flex-wrap items-center gap-2">
-                <h1 className="truncate font-heading text-xl font-bold tracking-tight sm:text-[22px]">
-                  {title}
-                </h1>
-                <BroadcastStatusPill status={detail.status} />
-                <AudiencePill audience={detail.audience} />
-              </div>
-              <div className="flex min-w-0 flex-wrap items-center gap-2.5 text-[13px] text-muted-foreground">
-                {detail.titleEn && detail.titleEn !== title && (
-                  <>
-                    <span>{detail.titleEn}</span>
-                    <span aria-hidden className="h-3.5 w-px bg-border" />
-                  </>
-                )}
-                <span className="font-mono text-[11.5px] text-muted-foreground/70">
-                  {detail.id}
-                </span>
-                <CopyIdButton id={detail.id} label={t("detail.copyId")} />
-              </div>
-            </div>
+            <CopyIdButton id={detail.id} label={t("detail.copyId")} />
           </div>
+        </div>
 
-          <div className="flex shrink-0 items-start pt-0.5">
-            <ActionSlot
-              status={detail.status}
-              onEdit={onEdit}
-              onCancel={onCancel}
-              onRecreate={onRecreate}
-            />
-          </div>
-        </CardContent>
-      </Card>
+        <div className="flex shrink-0 items-start pt-0.5">
+          <ActionSlot
+            status={detail.status}
+            onEdit={onEdit}
+            onCancel={onCancel}
+            onRecreate={onRecreate}
+          />
+        </div>
+      </div>
     </div>
   );
 }

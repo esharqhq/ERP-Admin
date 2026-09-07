@@ -20,7 +20,7 @@ function BannerCard({ imageUrl }: { imageUrl: string }) {
   const t = useTranslations("broadcasts.detail");
   return (
     <Card size="sm">
-      <CardHeader className="flex-row items-center gap-2.5 border-b border-border pb-3">
+      <CardHeader className="flex flex-row items-center gap-2.5 border-b border-border pb-3">
         <span className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
           {t("banner")}
         </span>
@@ -108,7 +108,7 @@ function ContentCard({ detail }: { detail: BroadcastDetailDto }) {
 
   return (
     <Card size="sm">
-      <CardHeader className="flex-row items-center gap-2.5 border-b border-border pb-3">
+      <CardHeader className="flex flex-row items-center gap-2.5 border-b border-border pb-3">
         <span className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
           {t("content")}
         </span>
