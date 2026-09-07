@@ -231,7 +231,13 @@ export function TimingPicker({
       {sendMode === "schedule" && (
         <div className="flex flex-col gap-2">
           <div className="flex gap-1.5">
-            <div className="flex-1">
+            {/* `flex` here, not just `flex-1`: BoundBox (DayControl's inner
+                button) already carries its own `flex-1` class to stretch to
+                fill, but that only does anything once its immediate parent
+                is itself a flex container — without it the button shrinks
+                to its text width and leaves a wide gap before the time
+                field, which is exactly what this fixes. */}
+            <div className="flex flex-1">
               <DayControl label={t("dateLabel")} value={date} onChange={onDateChange} />
             </div>
             <TimeField value={time} onChange={onTimeChange} invalid={pastError} ariaLabel={t("timeLabel")} />
