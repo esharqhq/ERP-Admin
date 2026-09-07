@@ -219,7 +219,7 @@ export function AppSidebar() {
                 clipped both ends off the logo, and even `contain` left it
                 crowding all four sides of the white. 6px each way gives the
                 mark the breathing room the spec's own asset already carried. */}
-            <span className="flex size-9 shrink-0 items-center justify-center rounded-[11px] bg-white p-[6px]">
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-[11px] bg-white p-1.5">
               <Image
                 src="/uyer-mark.png"
                 alt="Uyer"
@@ -233,7 +233,7 @@ export function AppSidebar() {
               <span className="font-heading text-[14px] font-bold tracking-[0.16em] text-sidebar-foreground">
                 UYER
               </span>
-              <span className="truncate text-[11px] text-sidebar-foreground/55">
+              <span className="truncate text-overline text-sidebar-foreground/55">
                 {t("layout.sidebar.tagline")}
               </span>
             </span>
@@ -247,7 +247,7 @@ export function AppSidebar() {
           />
         </SidebarHeader>
 
-        <SidebarContent className="gap-3 px-3 pt-3.5 pb-2 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:gap-[3px] group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:pb-0">
+        <SidebarContent className="gap-3 px-3 pt-3.5 pb-2 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:gap-0.75 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:pb-0">
           {permissions === null ? (
             <div className="flex flex-col gap-2 px-2 py-2">
               {Array.from({ length: 6 }).map((_, i) => (
@@ -256,7 +256,7 @@ export function AppSidebar() {
                 // band, where a near-white neutral reads as a white slab.
                 <Skeleton
                   key={i}
-                  className="h-9 w-full rounded-[10px] bg-sidebar-foreground/10"
+                  className="h-9 w-full rounded-md bg-sidebar-foreground/10"
                 />
               ))}
             </div>
