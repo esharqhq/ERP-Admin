@@ -1,8 +1,11 @@
 "use client";
 
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { AlertTriangle, CalendarClock, Info, Send } from "lucide-react";
+import { AlertTriangle, CalendarClock, Clock, Info, Send } from "lucide-react";
 import { DayControl } from "@/components/ui/date-range-field";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 // Source of truth: assets/Uyer Admin Broadcasts.dc.html §06/§07 — Send
@@ -35,6 +38,123 @@ export function isoToLocalParts(iso: string): { date: string; time: string } {
     date: `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`,
     time: `${pad(d.getHours())}:${pad(d.getMinutes())}`,
   };
+}
+
+const TIME_STEP_MINUTES = 15;
+
+function timeOptions(): string[] {
+  const list: string[] = [];
+  for (let h = 0; h < 24; h++) {
+    for (let m = 0; m < 60; m += TIME_STEP_MINUTES) {
+      list.push(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`);
+    }
+  }
+  return list;
+}
+
+function isValidTime(v: string): boolean {
+  if (!/^\d{2}:\d{2}$/.test(v)) return false;
+  const [h, m] = v.split(":").map(Number);
+  return h >= 0 && h < 24 && m >= 0 && m < 60;
+}
+
+/**
+ * Replaces a bare `<input type="time">`: the native control's own chrome
+ * (spin buttons, calendar-picker icon, AM/PM segment) can't be restyled to
+ * match `BoundBox` — the same box `DayControl` renders for the date — so
+ * next to it a native input reads as a visibly different, foreign control
+ * rather than the app's own field. This mirrors `BoundBox`'s exact classes
+ * (h-8, rounded-[10px], ring-1 ring-inset ring-border, font-mono text-xs)
+ * and reuses `DayPopover`'s Popover-trigger-via-`render` pattern, so a
+ * Schedule row reads as two matching boxes, the way the design draws it.
+ */
+function TimeField({
+  value,
+  onChange,
+  invalid = false,
+  ariaLabel,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  invalid?: boolean;
+  ariaLabel: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState(value);
+  const listRef = useRef<HTMLDivElement>(null);
+  const options = useMemo(() => timeOptions(), []);
+
+  // Scrolling the selected option into view is a real DOM-sync effect (not a
+  // derived setState), so it stays here; seeding `draft` from `value` moves
+  // into `onOpenChange` below instead of a second effect watching `open`.
+  useEffect(() => {
+    if (!open) return;
+    const selected = listRef.current?.querySelector('[data-selected="true"]');
+    selected?.scrollIntoView({ block: "center" });
+  }, [open]);
+
+  const commit = (next: string) => {
+    if (!isValidTime(next)) return;
+    onChange(next);
+    setOpen(false);
+  };
+
+  return (
+    <Popover
+      open={open}
+      onOpenChange={(next) => {
+        if (next) setDraft(value);
+        setOpen(next);
+      }}
+    >
+      <PopoverTrigger
+        render={
+          <button
+            type="button"
+            className={cn(
+              "flex h-8 w-[104px] flex-none items-center gap-1.5 rounded-[10px] bg-background px-2.5 font-mono text-xs transition-colors",
+              "ring-1 ring-inset ring-border hover:bg-accent",
+              "outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              invalid && "ring-destructive",
+              value ? "text-foreground" : "text-muted-foreground",
+            )}
+          >
+            <Clock className="size-3.5 flex-none text-muted-foreground" />
+            {value || "--:--"}
+          </button>
+        }
+        aria-label={ariaLabel}
+      />
+      <PopoverContent className="w-36 p-2" align="start">
+        <Input
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") commit(draft);
+          }}
+          onBlur={() => commit(draft)}
+          placeholder="HH:MM"
+          className="mb-2 h-8 font-mono text-xs"
+        />
+        <div ref={listRef} className="flex max-h-48 flex-col gap-0.5 overflow-y-auto">
+          {options.map((o) => (
+            <button
+              key={o}
+              type="button"
+              data-selected={o === value}
+              onClick={() => commit(o)}
+              className={cn(
+                "shrink-0 rounded-md px-2 py-1 text-left font-mono text-xs",
+                o === value ? "bg-primary text-primary-foreground" : "hover:bg-muted",
+              )}
+            >
+              {o}
+            </button>
+          ))}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
 }
 
 export interface TimingPickerProps {
@@ -110,18 +230,11 @@ export function TimingPicker({
 
       {sendMode === "schedule" && (
         <div className="flex flex-col gap-2">
-          <div className={cn("flex gap-1.5 rounded-lg", pastError && "ring-1 ring-inset ring-destructive")}>
+          <div className="flex gap-1.5">
             <div className="flex-1">
               <DayControl label={t("dateLabel")} value={date} onChange={onDateChange} />
             </div>
-            <input
-              type="time"
-              aria-label={t("timeLabel")}
-              value={time}
-              onChange={(e) => onTimeChange(e.target.value)}
-              aria-invalid={pastError}
-              className="h-10 w-[118px] flex-none rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20"
-            />
+            <TimeField value={time} onChange={onTimeChange} invalid={pastError} ariaLabel={t("timeLabel")} />
           </div>
           {pastError ? (
             <p className="text-xs text-destructive">{t("scheduleInPast")}</p>
