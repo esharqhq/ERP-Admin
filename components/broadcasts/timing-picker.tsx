@@ -132,7 +132,6 @@ function TimeField({
           onKeyDown={(e) => {
             if (e.key === "Enter") commit(draft);
           }}
-          onBlur={() => commit(draft)}
           placeholder="HH:MM"
           className="mb-2 h-8 font-mono text-xs"
         />
@@ -142,6 +141,15 @@ function TimeField({
               key={o}
               type="button"
               data-selected={o === value}
+              // The Input above holds focus once the popover opens. Without
+              // this, clicking an option blurs the Input first — and the
+              // blur handler used to commit `draft` (the *old*, unchanged
+              // value) and close the popover before this button's own click
+              // finished, so picking a different time silently did nothing
+              // past the first change. Blocking the mousedown-driven focus
+              // shift keeps focus put, so no blur fires and this button's
+              // own click is the only thing that runs.
+              onMouseDown={(e) => e.preventDefault()}
               onClick={() => commit(o)}
               className={cn(
                 "shrink-0 rounded-md px-2 py-1 text-left font-mono text-xs",
