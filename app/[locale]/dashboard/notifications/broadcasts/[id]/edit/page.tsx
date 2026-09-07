@@ -139,15 +139,14 @@ export default function EditBroadcastPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      {Header}
-      <ComposeForm
-        mode="edit"
-        broadcastId={id}
-        initialValues={broadcastDetailToEditValues(detail)}
-        existingImageUrl={detail.imageUrl}
-        onSaved={() => router.push("/dashboard/notifications/broadcasts")}
-      />
-    </div>
+    <ComposeForm
+      mode="edit"
+      broadcastId={id}
+      initialValues={broadcastDetailToEditValues(detail)}
+      existingImageUrl={detail.imageUrl}
+      title={t("edit.title")}
+      subtitle={t("edit.subtitle")}
+      onSaved={() => router.push("/dashboard/notifications/broadcasts")}
+    />
   );
 }

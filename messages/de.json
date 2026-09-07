@@ -2435,6 +2435,8 @@
       "noAccess": "Sie haben keine Berechtigung, Ankündigungen zu verfassen.",
       "contentLabel": "Inhalt",
       "filledCounter": "{count} von 4 ausgefüllt",
+      "plainTextNote": "Nur Text · keine Formatierung, keine Platzhalter",
+      "perLanguageNote": "Jede Person sieht genau eine dieser Versionen, ausgewählt anhand des eigenen Profils zum Versandzeitpunkt. Die andere ist für sie nie sichtbar — daher darf keine Version von der anderen abhängen, um verständlich zu sein.",
       "discard": "Verwerfen",
       "submit": "Weiter",
       "saveChanges": "Änderungen speichern",
@@ -2473,9 +2475,10 @@
         "schedule": "Planen",
         "dateLabel": "Datum",
         "timeLabel": "Uhrzeit",
-        "utcTranslation": "= {utc}",
         "pickBoth": "Bitte Datum und Uhrzeit wählen.",
-        "scheduleInPast": "Dieser Zeitpunkt liegt bereits in der Vergangenheit — bitte einen späteren wählen oder sofort senden."
+        "scheduleInPast": "Dieser Zeitpunkt liegt bereits in der Vergangenheit — bitte einen späteren wählen oder sofort senden.",
+        "dispatchTickNote": "Der Versand läuft im Minutentakt, sodass eine Sendung innerhalb einer Minute nach ihrer Zeit abgeht — nicht auf die Sekunde genau.",
+        "missedAfterSixHours": "Kann die Plattform sie sechs Stunden lang nicht zustellen, wird sie als Verpasst markiert und nichts wird mehr gesendet, statt verspätet anzukommen."
       },
       "confirm": {
         "titleSendNow": "Diese Ankündigung jetzt senden?",

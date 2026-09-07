@@ -4,7 +4,8 @@ import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { useRouter } from "@/i18n/navigation";
+import { ArrowLeft } from "lucide-react";
+import { Link, useRouter } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { LanguageBlock } from "@/components/broadcasts/language-block";
 import { BannerUploader } from "@/components/broadcasts/banner-uploader";
@@ -100,6 +101,9 @@ export interface ComposeFormProps {
   existingImageUrl?: string | null;
   /** A one-line disclosure shown above the form — e.g. recreate silently dropping a Custom audience. */
   notice?: string;
+  /** Page title/subtitle — rendered in the form's own header row alongside Discard/Save (design §06: one action bar, at the top, not a second one at the bottom). */
+  title: string;
+  subtitle: string;
   onSaved: (detail: BroadcastDetailDto, savedMode: "create" | "edit") => void;
 }
 
@@ -186,6 +190,8 @@ export function ComposeForm({
   initialValues,
   existingImageUrl,
   notice,
+  title,
+  subtitle,
   onSaved,
 }: ComposeFormProps) {
   const t = useTranslations("broadcasts.compose");
@@ -320,8 +326,51 @@ export function ComposeForm({
   const needsTextDe = textRequiredError && (!isTextFilled(values.titleDe) || !isTextFilled(values.bodyDe));
   const needsTextEn = textRequiredError && (!isTextFilled(values.titleEn) || !isTextFilled(values.bodyEn));
 
+  const submitLabel = notEditable ? t("errors.saveAsNew") : mode === "edit" ? t("saveChanges") : t("submit");
+
   return (
     <div className="flex flex-col gap-4">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              nativeButton={false}
+              className="-ml-2 gap-1.5 text-muted-foreground"
+              render={<Link href="/dashboard/notifications/broadcasts" />}
+            >
+              <ArrowLeft className="size-4" />
+              {t("backToList")}
+            </Button>
+          </div>
+          <h1 className="font-heading text-2xl font-bold tracking-tight leading-tight">{title}</h1>
+          <p className="text-sm text-muted-foreground">{subtitle}</p>
+        </div>
+
+        <div className="flex flex-col items-end gap-1.5">
+          <div className="flex items-center gap-3">
+            {reasonText && (
+              <span className="max-w-[220px] text-right text-xs text-muted-foreground">
+                {reasonText}
+              </span>
+            )}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => router.push("/dashboard/notifications/broadcasts")}
+            >
+              {t("discard")}
+            </Button>
+            <Button type="button" disabled={!canSubmit} onClick={() => setConfirmOpen(true)}>
+              {submitLabel}
+            </Button>
+          </div>
+          {notEditable && <p className="text-xs text-status-pending-deep">{t("errors.notEditable")}</p>}
+          {genericError && <p className="text-xs text-destructive">{genericError}</p>}
+        </div>
+      </div>
+
       {notice && (
         <p className="rounded-lg bg-status-info-tint px-3 py-2 text-xs text-status-info">{notice}</p>
       )}
@@ -335,6 +384,8 @@ export function ComposeForm({
               <span className="flex h-5 items-center rounded-md bg-fresh-tint px-2 text-[11px] font-semibold text-primary">
                 {t("filledCounter", { count: filledCount })}
               </span>
+              <div className="flex-1" />
+              <span className="text-[11.5px] text-muted-foreground">{t("plainTextNote")}</span>
             </div>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -354,6 +405,12 @@ export function ComposeForm({
                 onBodyChange={(v) => set("bodyEn", v)}
                 needsText={needsTextEn}
               />
+            </div>
+
+            <div className="flex items-start gap-2 rounded-lg bg-muted/50 p-2.5 ring-1 ring-inset ring-border">
+              <span className="text-xs leading-relaxed text-muted-foreground text-pretty">
+                {t("perLanguageNote")}
+              </span>
             </div>
           </div>
 
@@ -442,24 +499,6 @@ export function ComposeForm({
               imagePreviewUrl: values.imagePreviewUrl,
             }}
           />
-        </div>
-      </div>
-
-      <div className="flex flex-col items-end gap-2 border-t border-border pt-4">
-        {notEditable && <p className="text-xs text-status-pending-deep">{t("errors.notEditable")}</p>}
-        {genericError && <p className="text-xs text-destructive">{genericError}</p>}
-        <div className="flex items-center gap-3">
-          {reasonText && <span className="text-xs text-muted-foreground">{reasonText}</span>}
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => router.push("/dashboard/notifications/broadcasts")}
-          >
-            {t("discard")}
-          </Button>
-          <Button type="button" disabled={!canSubmit} onClick={() => setConfirmOpen(true)}>
-            {notEditable ? t("errors.saveAsNew") : mode === "edit" ? t("saveChanges") : t("submit")}
-          </Button>
         </div>
       </div>
 

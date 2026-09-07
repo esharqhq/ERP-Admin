@@ -17,6 +17,16 @@ import { cn } from "@/lib/utils";
 // design's own "no char limits documented" note (B21) is about OneSignal
 // device-side truncation, a separate and still-open question — not about
 // whether a hard cap exists here.
+//
+// Two things the design mock shows here are deliberately NOT reproduced,
+// both because there's no honest data source for them:
+// - `l.share` ("default for 268 of 312"): how many of the eligible audience
+//   have this language as their profile default. Nothing exposes that split
+//   — same gap as the confirm dialog's fact 2 (schedule-confirm-dialog.tsx).
+// - The "· fits a push title" qualifier on the title count: a claim about
+//   on-device truncation, which B21 (still open) says is undocumented. The
+//   raw count is real; a fit/no-fit verdict against an unconfirmed
+//   threshold would be invented.
 const TITLE_MAX = 200;
 const BODY_MAX = 4000;
 
@@ -30,15 +40,15 @@ export interface LanguageBlockProps {
   needsText: boolean;
 }
 
-function CharCounter({ length, max, alarmed }: { length: number; max: number; alarmed: boolean }) {
+function CharCounter({ length, alarmed }: { length: number; alarmed: boolean }) {
   return (
     <span
       className={cn(
-        "text-xs tabular-nums",
+        "font-mono text-[10.5px] tabular-nums",
         alarmed ? "text-destructive" : "text-muted-foreground",
       )}
     >
-      {length}/{max}
+      {length}
     </span>
   );
 }
@@ -61,17 +71,28 @@ export function LanguageBlock({
         needsText && "border-destructive/50 ring-1 ring-inset ring-destructive/20",
       )}
     >
-      <div className="flex items-center justify-between">
+      <div className="flex items-center gap-2">
+        <span
+          className={cn(
+            "flex h-[22px] items-center rounded-md px-2 font-mono text-[11px] font-semibold",
+            language === "de" ? "bg-accent text-accent-foreground" : "bg-muted text-foreground",
+          )}
+        >
+          {language.toUpperCase()}
+        </span>
         <span className="text-sm font-semibold text-foreground">{languageLabel}</span>
         {needsText && (
-          <span className="text-xs font-medium text-destructive">{t("needsText")}</span>
+          <span className="ml-auto text-xs font-medium text-destructive">{t("needsText")}</span>
         )}
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor={`title-${language}`}>
-          {t("title")} <span className="text-destructive">*</span>
-        </Label>
+        <div className="flex items-baseline justify-between gap-2">
+          <Label htmlFor={`title-${language}`}>
+            {t("title")} <span className="text-destructive">*</span>
+          </Label>
+          <CharCounter length={title.length} alarmed={needsText && !title.trim()} />
+        </div>
         <Input
           id={`title-${language}`}
           value={title}
@@ -79,15 +100,15 @@ export function LanguageBlock({
           maxLength={TITLE_MAX}
           aria-invalid={needsText && !title.trim()}
         />
-        <div className="flex justify-end">
-          <CharCounter length={title.length} max={TITLE_MAX} alarmed={needsText && !title.trim()} />
-        </div>
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor={`body-${language}`}>
-          {t("body")} <span className="text-destructive">*</span>
-        </Label>
+        <div className="flex items-baseline justify-between gap-2">
+          <Label htmlFor={`body-${language}`}>
+            {t("body")} <span className="text-destructive">*</span>
+          </Label>
+          <CharCounter length={body.length} alarmed={needsText && !body.trim()} />
+        </div>
         <Textarea
           id={`body-${language}`}
           value={body}
@@ -96,9 +117,6 @@ export function LanguageBlock({
           rows={5}
           aria-invalid={needsText && !body.trim()}
         />
-        <div className="flex justify-end">
-          <CharCounter length={body.length} max={BODY_MAX} alarmed={needsText && !body.trim()} />
-        </div>
       </div>
     </div>
   );

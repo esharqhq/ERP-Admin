@@ -4,13 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Building2, Layers, SlidersHorizontal, Users, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useWorkers } from "@/hooks/use-workers";
 import { useOwners } from "@/hooks/use-owners";
 import { useHasPermission } from "@/hooks/use-current-permissions";
@@ -97,6 +90,55 @@ function buildSelection(
   if (wf) next.workerFilter = wf;
   if (of) next.ownerFilter = of;
   return Object.keys(next).length ? next : null;
+}
+
+/**
+ * A row of toggle pills — same visual language as the audience-mode grid
+ * above, rather than a `<Select>` — for a single-value status filter with a
+ * handful of options. Reused for both the worker and owner status filters.
+ */
+function StatusPillGroup<T extends string>({
+  options,
+  value,
+  onChange,
+  anyLabel,
+}: {
+  options: readonly T[];
+  value: T | undefined;
+  onChange: (value: T | undefined) => void;
+  anyLabel: string;
+}) {
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      <button
+        type="button"
+        onClick={() => onChange(undefined)}
+        className={cn(
+          "flex h-7 items-center rounded-full px-2.5 text-[11.5px] font-medium ring-1 ring-inset transition-colors",
+          value === undefined
+            ? "bg-primary text-primary-foreground ring-primary"
+            : "text-foreground ring-border hover:bg-muted",
+        )}
+      >
+        {anyLabel}
+      </button>
+      {options.map((option) => (
+        <button
+          key={option}
+          type="button"
+          onClick={() => onChange(option)}
+          className={cn(
+            "flex h-7 items-center rounded-full px-2.5 text-[11.5px] font-medium ring-1 ring-inset transition-colors",
+            value === option
+              ? "bg-primary text-primary-foreground ring-primary"
+              : "text-foreground ring-border hover:bg-muted",
+          )}
+        >
+          {option}
+        </button>
+      ))}
+    </div>
+  );
 }
 
 export interface AudiencePickerProps {
@@ -357,28 +399,15 @@ function CustomAudiencePanel({
               placeholder={t("filterSearchPlaceholder")}
               className="h-8 text-xs"
             />
-            <Select
-              value={workerFilter.status ?? "any"}
-              onValueChange={(v) =>
-                updateWorkerFilter({ status: v === "any" ? undefined : (v as WorkerStatusFilter) })
-              }
-              items={[
-                { value: "any", label: t("filterStatusAny") },
-                ...WORKER_STATUS_FILTERS.map((s) => ({ value: s, label: s })),
-              ]}
-            >
-              <SelectTrigger size="sm" className="w-full">
-                <SelectValue placeholder={t("filterStatusLabel")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="any">{t("filterStatusAny")}</SelectItem>
-                {WORKER_STATUS_FILTERS.map((s) => (
-                  <SelectItem key={s} value={s}>
-                    {s}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <span className="text-[11px] font-medium text-muted-foreground">
+              {t("filterStatusLabel")}
+            </span>
+            <StatusPillGroup
+              options={WORKER_STATUS_FILTERS}
+              value={workerFilter.status}
+              onChange={(status) => updateWorkerFilter({ status })}
+              anyLabel={t("filterStatusAny")}
+            />
           </div>
 
           <div className="flex flex-col gap-2 rounded-lg border border-border bg-background p-2.5">
@@ -389,28 +418,15 @@ function CustomAudiencePanel({
               placeholder={t("filterSearchPlaceholder")}
               className="h-8 text-xs"
             />
-            <Select
-              value={ownerFilter.status ?? "any"}
-              onValueChange={(v) =>
-                updateOwnerFilter({ status: v === "any" ? undefined : (v as AccountStatusFilter) })
-              }
-              items={[
-                { value: "any", label: t("filterStatusAny") },
-                ...ACCOUNT_STATUS_FILTERS.map((s) => ({ value: s, label: s })),
-              ]}
-            >
-              <SelectTrigger size="sm" className="w-full">
-                <SelectValue placeholder={t("filterStatusLabel")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="any">{t("filterStatusAny")}</SelectItem>
-                {ACCOUNT_STATUS_FILTERS.map((s) => (
-                  <SelectItem key={s} value={s}>
-                    {s}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <span className="text-[11px] font-medium text-muted-foreground">
+              {t("filterStatusLabel")}
+            </span>
+            <StatusPillGroup
+              options={ACCOUNT_STATUS_FILTERS}
+              value={ownerFilter.status}
+              onChange={(status) => updateOwnerFilter({ status })}
+              anyLabel={t("filterStatusAny")}
+            />
           </div>
 
           <p className="text-xs text-muted-foreground">{t("filterPreviewNote")}</p>

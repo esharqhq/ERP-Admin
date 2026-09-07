@@ -78,15 +78,14 @@ export default function NewBroadcastPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      {Header}
-      <ComposeForm
-        mode={source ? "recreate" : "create"}
-        initialValues={source ? broadcastDetailToRecreateValues(source) : undefined}
-        existingImageUrl={source?.imageUrl}
-        notice={source?.audience === "Custom" ? t("recreate.customAudienceDropped") : undefined}
-        onSaved={() => router.push("/dashboard/notifications/broadcasts")}
-      />
-    </div>
+    <ComposeForm
+      mode={source ? "recreate" : "create"}
+      initialValues={source ? broadcastDetailToRecreateValues(source) : undefined}
+      existingImageUrl={source?.imageUrl}
+      notice={source?.audience === "Custom" ? t("recreate.customAudienceDropped") : undefined}
+      title={t("newTitle")}
+      subtitle={t("newSubtitle")}
+      onSaved={() => router.push("/dashboard/notifications/broadcasts")}
+    />
   );
 }

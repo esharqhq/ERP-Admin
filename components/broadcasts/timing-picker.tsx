@@ -1,7 +1,7 @@
 "use client";
 
-import { useTranslations } from "next-intl";
-import { CalendarClock, Send } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
+import { AlertTriangle, CalendarClock, Info, Send } from "lucide-react";
 import { DayControl } from "@/components/ui/date-range-field";
 import { cn } from "@/lib/utils";
 
@@ -48,6 +48,17 @@ export interface TimingPickerProps {
   pastError?: boolean;
 }
 
+/** "in 2 days" / "in 3 hours" / "in 12 minutes" — whichever unit reads best. */
+function relativeLabel(iso: string, locale: string | undefined): string {
+  const diffMs = new Date(iso).getTime() - Date.now();
+  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
+  const diffMin = Math.round(diffMs / 60_000);
+  if (Math.abs(diffMin) < 60) return rtf.format(diffMin, "minute");
+  const diffHr = Math.round(diffMin / 60);
+  if (Math.abs(diffHr) < 24) return rtf.format(diffHr, "hour");
+  return rtf.format(Math.round(diffHr / 24), "day");
+}
+
 export function TimingPicker({
   sendMode,
   date,
@@ -58,18 +69,9 @@ export function TimingPicker({
   pastError = false,
 }: TimingPickerProps) {
   const t = useTranslations("broadcasts.compose.timing");
+  const locale = useLocale();
 
   const iso = computeScheduledAtUtc(date, time);
-  const utcLabel = iso
-    ? new Date(iso).toLocaleString("en-GB", {
-        timeZone: "UTC",
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      })
-    : null;
 
   return (
     <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4">
@@ -123,10 +125,28 @@ export function TimingPicker({
           </div>
           {pastError ? (
             <p className="text-xs text-destructive">{t("scheduleInPast")}</p>
+          ) : iso ? (
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-mono text-[11px] text-muted-foreground">= {iso}</span>
+              <span className="flex h-5 items-center rounded-md bg-muted px-2 text-[11px] font-semibold text-muted-foreground">
+                {relativeLabel(iso, locale)}
+              </span>
+            </div>
           ) : (
-            <p className="text-xs text-muted-foreground">
-              {utcLabel ? t("utcTranslation", { utc: utcLabel }) : t("pickBoth")}
-            </p>
+            <p className="text-xs text-muted-foreground">{t("pickBoth")}</p>
+          )}
+
+          {iso && !pastError && (
+            <div className="flex flex-col gap-1.5 rounded-lg bg-muted/50 p-2.5 ring-1 ring-inset ring-border">
+              <span className="flex items-start gap-2 text-[11.5px] leading-relaxed text-muted-foreground">
+                <Info className="mt-0.5 size-3.5 flex-none text-muted-foreground" />
+                {t("dispatchTickNote")}
+              </span>
+              <span className="flex items-start gap-2 text-[11.5px] leading-relaxed text-status-pending-deep">
+                <AlertTriangle className="mt-0.5 size-3.5 flex-none text-status-pending" />
+                {t("missedAfterSixHours")}
+              </span>
+            </div>
           )}
         </div>
       )}

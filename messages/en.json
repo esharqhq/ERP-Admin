@@ -2435,6 +2435,8 @@
       "noAccess": "You don't have permission to compose broadcasts.",
       "contentLabel": "Content",
       "filledCounter": "{count} of 4 filled",
+      "plainTextNote": "Plain text · no formatting, no placeholders",
+      "perLanguageNote": "Each recipient sees exactly one of these, chosen from their own profile language at send time. The other is never visible to them — so neither version may depend on the other to make sense.",
       "discard": "Discard",
       "submit": "Continue",
       "saveChanges": "Save changes",
@@ -2473,9 +2475,10 @@
         "schedule": "Schedule",
         "dateLabel": "Date",
         "timeLabel": "Time",
-        "utcTranslation": "= {utc}",
         "pickBoth": "Pick both a date and a time.",
-        "scheduleInPast": "That time has already passed — pick a later one, or send now."
+        "scheduleInPast": "That time has already passed — pick a later one, or send now.",
+        "dispatchTickNote": "Dispatch runs on a one-minute tick, so a send leaves within a minute of its time — not on the second.",
+        "missedAfterSixHours": "If the platform cannot reach it for six hours, it is marked Missed and sends nothing rather than arriving late."
       },
       "confirm": {
         "titleSendNow": "Send this broadcast now?",
