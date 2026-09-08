@@ -141,6 +141,7 @@ export function DayControl({
   onChange,
   disabled = false,
   placeholder,
+  className,
 }: {
   label: string;
   value: string;
@@ -148,6 +149,20 @@ export function DayControl({
   disabled?: boolean;
   /** Shown while nothing is picked. Defaults to the shared “pick a date”. */
   placeholder?: string;
+  /**
+   * Classes for the box itself.
+   *
+   * `BoundBox` is sized for **this file's filter band** — `h-8`, `flex-1`,
+   * `text-xs`, a 10px radius — and dropped into a form it sits a row shorter and
+   * a radius off from every `Input` beside it. Rather than fork the box or give
+   * the band's geometry to forms, a caller that is not the band says so:
+   * `className="h-10 w-full rounded-lg text-sm"` matches `components/ui/input.tsx`.
+   *
+   * Deliberately not a `size` variant. Two named sizes would have to be kept in
+   * step with `Input` from a file that has no reason to know about it, and the
+   * band would gain a prop it never sets.
+   */
+  className?: string;
 }) {
   const t = useTranslations("common");
   return (
@@ -157,7 +172,9 @@ export function DayControl({
       label={label}
       onPick={onChange}
       trigger={
-        <BoundBox placeholder={placeholder ?? t("pickDate")}>{value}</BoundBox>
+        <BoundBox className={className} placeholder={placeholder ?? t("pickDate")}>
+          {value}
+        </BoundBox>
       }
     />
   );

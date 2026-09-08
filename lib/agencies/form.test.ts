@@ -5,6 +5,7 @@ import {
   buildAgencyUpdate,
   emptyAgencyForm,
   endsAccessNow,
+  missingRequired,
   type AgencyFormState,
 } from "@/lib/agencies/form";
 import type { AgencyDto } from "@/lib/types/agency.types";
@@ -185,5 +186,49 @@ describe("endsAccessNow", () => {
         TODAY,
       ),
     ).toBe(false);
+  });
+});
+
+describe("missingRequired", () => {
+  it("is empty for a fully filled form", () => {
+    expect(missingRequired(form())).toEqual([]);
+  });
+
+  it("names every required field on an empty form, in form order", () => {
+    expect(missingRequired(emptyAgencyForm())).toEqual([
+      "legalName",
+      "registrationNumber",
+      "contactPersonName",
+      "countryId",
+      "cityId",
+      "contactEmail",
+    ]);
+  });
+
+  /**
+   * ⚠ Order matters: the submit line reads them out, and an operator scanning
+   * the dialog top to bottom should meet them in the order the fields appear —
+   * not in whatever order an object's keys happen to enumerate.
+   */
+  it("keeps form order rather than key order when only some are missing", () => {
+    expect(missingRequired(form({ contactEmail: "", legalName: "" }))).toEqual([
+      "legalName",
+      "contactEmail",
+    ]);
+  });
+
+  it("treats a whitespace-only value as missing", () => {
+    expect(missingRequired(form({ legalName: "   " }))).toEqual(["legalName"]);
+  });
+
+  /** The four optional fields never appear, however empty they are. */
+  it("never names an optional field", () => {
+    const bare = form({
+      licenceNumber: "",
+      contactPhone: "",
+      signedOn: "",
+      validUntil: "",
+    });
+    expect(missingRequired(bare)).toEqual([]);
   });
 });

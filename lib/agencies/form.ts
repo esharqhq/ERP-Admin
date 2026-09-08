@@ -134,3 +134,40 @@ export function endsAccessNow(
   const at = Date.parse(end);
   return !Number.isNaN(at) && at < today;
 }
+
+/**
+ * The six fields the API refuses a create without, in the order the form draws
+ * them — **not** in `AgencyFormState` key order.
+ *
+ * ⚠ The order is the point. The submit button's disabled line reads these out,
+ * and an operator scanning the dialog top to bottom should meet them in the
+ * order the controls appear; `Object.keys` order would put the location pair
+ * before the contact person because that is how the interface happens to be
+ * declared.
+ */
+export const REQUIRED_AGENCY_FIELDS = [
+  "legalName",
+  "registrationNumber",
+  "contactPersonName",
+  "countryId",
+  "cityId",
+  "contactEmail",
+] as const satisfies readonly (keyof AgencyFormState)[];
+
+export type RequiredAgencyField = (typeof REQUIRED_AGENCY_FIELDS)[number];
+
+/**
+ * Which required fields are still empty.
+ *
+ * Both dialogs need this and for different reasons: create disables submit until
+ * it is empty, and edit can be emptied by an operator clearing a box that the
+ * API will then refuse. Sharing it means the two forms cannot disagree about
+ * what "required" means.
+ *
+ * ⚠ Whitespace counts as empty, matching `base()` — which trims before sending,
+ * so a form holding `"   "` would otherwise pass the client check and be refused
+ * by the server as a missing field.
+ */
+export function missingRequired(form: AgencyFormState): RequiredAgencyField[] {
+  return REQUIRED_AGENCY_FIELDS.filter((key) => form[key].trim() === "");
+}
