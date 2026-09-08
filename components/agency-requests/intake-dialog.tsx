@@ -134,10 +134,33 @@ export function IntakeDialog({
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{t("title")}</DialogTitle>
-          <DialogDescription>
-            {step === 1 ? t("subtitle") : t(`step${step}` as "step2")}
-          </DialogDescription>
+          {/* The description describes the whole act and does not change: it is
+              why this door exists, which is as true at step 3 as at step 1. */}
+          <DialogDescription>{t("subtitle")}</DialogDescription>
         </DialogHeader>
+
+        {/*
+          The three step names, drawn as what they are. An earlier version put
+          `step2`/`step3` in the description and never used `step1` at all — two
+          labels doing duty as sentences, and one dead key.
+        */}
+        <ol className="flex items-center gap-1.5 text-[11px] font-medium">
+          {([1, 2, 3] as const).map((n) => (
+            <li
+              key={n}
+              aria-current={n === step ? "step" : undefined}
+              className={
+                n === step
+                  ? "rounded-full bg-primary px-2.5 py-1 text-primary-foreground"
+                  : n < step
+                    ? "rounded-full bg-accent px-2.5 py-1 text-primary"
+                    : "rounded-full bg-muted px-2.5 py-1 text-muted-foreground"
+              }
+            >
+              {n}. {t(`step${n}` as "step1")}
+            </li>
+          ))}
+        </ol>
 
         {/* ── Step 1: the company ──────────────────────────────────────────── */}
         {step === 1 ? (
@@ -297,7 +320,14 @@ export function IntakeDialog({
               size="sm"
               nativeButton={false}
               className="mt-1 w-fit"
-              onClick={close}
+              /*
+                ⚠ No `onClick={close}` beside this. `close()` flips the queue's
+                `intakeOpen`, and the queue mounts this dialog conditionally — so
+                the component would unmount in the same commit as the anchor's
+                pending navigation and the click would land nowhere. The route
+                change unmounts it anyway. Every other `render={<Link>}` in this
+                feature passes `render` alone for the same reason.
+              */
               render={
                 <Link
                   href={`/dashboard/agency-requests/${created.application.id}`}
