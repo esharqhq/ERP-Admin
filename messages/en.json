@@ -558,6 +558,31 @@
     "actions": {
       "backToList": "Back to Workers list"
     },
+    "agencyLink": {
+      "title": "Agency",
+      "status": {
+        "Confirmed": "Confirmed",
+        "Proposed": "Claimed · unconfirmed",
+        "Disputed": "Disputed",
+        "Rejected": "Rejected"
+      },
+      "turn": {
+        "admin": "Waiting on an admin decision. Resolve it on the Agency links screen.",
+        "worker": "Waiting on the worker to confirm or dispute this."
+      },
+      "reason": {
+        "byAdmin": "Why an admin attached this",
+        "byWorker": "Why the worker named this agency"
+      },
+      "disputeNote": "The worker's objection",
+      "resolution": "Resolution reason",
+      "createdAt": "Recorded",
+      "resolvedAt": "Resolved",
+      "empty": {
+        "title": "No agency link recorded",
+        "hint": "This does not mean the worker came independently — they may never have been asked, may have said no, or may have had a link rejected."
+      }
+    },
     "rating": {
       "title": "Rating snapshot",
       "calculatedAt": "Calculated {date}",
@@ -1888,6 +1913,8 @@
     "title": "Leave Requests",
     "subtitle": "Review and decide worker leave requests",
     "empty": "No leave requests found",
+    "emptyPending": "No one is waiting on you",
+    "listError": "The queue could not be loaded",
     "viewTicket": "Open linked ticket",
     "tabs": {
       "all": "All",
@@ -1896,21 +1923,53 @@
       "rejected": "Rejected",
       "cancelled": "Cancelled"
     },
-    "columns": {
-      "worker": "Worker",
-      "target": "Target",
-      "reason": "Reason",
-      "status": "Status",
-      "created": "Created"
+    "target": {
+      "task": "Task",
+      "group": "Group",
+      "taskLong": "One date",
+      "groupLong": "Whole group"
+    },
+    "row": {
+      "asked": "asked {age}"
+    },
+    "pane": {
+      "emptyTitle": "Pick a request",
+      "emptyHint": "The whole request opens here — the reason in full, the linked ticket, and the decision.",
+      "workerFile": "Worker file",
+      "openBooking": "Open booking",
+      "reasonHeading": "Reason, as written",
+      "consequenceHeading": "What the decision does",
+      "consequenceTask": "Approving removes this worker from that single date. Their enrolment stays, so they keep every other date in the group. It is refused if the task has already started or the worker has already checked in.",
+      "consequenceGroup": "Approving ends the enrolment and deletes every future pending assignment under it. Dates that have already started are marked as a no-show against the worker's rating. This is not reversible from this screen.",
+      "decisionHeading": "Decision note",
+      "noDecisionNote": "No note was left with this decision.",
+      "decidedAge": "Decided {age}",
+      "noteLabel": "Decision note · optional, goes to the audit log",
+      "approveAction": "Approve leave",
+      "footerWarning": "Either decision resolves the linked support ticket and notifies the worker. There is no undo."
+    },
+    "scope": {
+      "heading": "Affected dates",
+      "unresolved": "The dates could not be resolved. The decision still works — you just cannot see what it touches from here.",
+      "vacated": "{count, plural, =0 {nothing vacated} one {# shift vacated} other {# shifts vacated}}",
+      "vacatedUpTo": "{count, plural, =0 {nothing vacated} one {up to # shift vacated} other {up to # shifts vacated}}",
+      "noShow": "{count, plural, one {# no-show} other {# no-shows}}",
+      "kept": "{count, plural, one {# untouched} other {# untouched}}",
+      "tag": {
+        "vacated": "Vacated",
+        "noShowShort": "No-show",
+        "kept": "Kept"
+      },
+      "hedgeNote": "An upper bound. A one-off admin fill on one of these dates survives a group leave, and cannot be told apart from an enrolled assignment here."
+    },
+    "gates": {
+      "unchecked": "The two checks could not run — the booking did not load. Approving still works; the server decides.",
+      "groupServerSide": "The only check on a whole-group leave is that the enrolment is still active, and it runs on the server. It cannot be settled before the click.",
+      "taskClear": "Both checks pass: the task has not started and the worker has not checked in."
     },
     "decide": {
       "approve": "Approve",
       "reject": "Reject",
-      "approveTitle": "Approve leave request?",
-      "rejectTitle": "Reject leave request?",
-      "approveDesc": "Approving removes {name} from the affected task(s) and resolves the linked support ticket.",
-      "rejectDesc": "Rejecting keeps {name} assigned and resolves the linked support ticket. No assignments change.",
-      "note": "Decision note (optional)",
       "notePlaceholder": "Add an optional note for the audit log…"
     },
     "errors": {
@@ -2227,7 +2286,142 @@
       "toggleGeneric": "Could not change the category state. Please try again."
     }
   },
+  "agency": {
+    "requests": {
+      "title": "Agency requests",
+      "subtitle": "Partnership applications waiting on a review — approve, reject, or ask for a clearer document."
+    },
+    "list": {
+      "title": "Agencies",
+      "subtitle": "Partner recruitment agencies, their contract window, and whether they can sign in today."
+    }
+  },
+  "agencies": {
+    "title": "Agencies",
+    "subtitle": "Partner recruitment agencies, their contract window, and whether they can sign in today.",
+    "list": "Partner agencies",
+    "searchPlaceholder": "Search name, registration number, contact or city",
+    "emptyTitle": "No partner agencies yet",
+    "emptyBody": "Agencies arrive either through the application queue or by being created here.",
+    "columns": {
+      "agency": "Agency",
+      "standing": "Standing",
+      "contract": "Contract",
+      "location": "Location",
+      "contact": "Contact",
+      "lastSeen": "Last seen",
+      "actions": "Actions",
+      "createdAt": "Added",
+      "signedOn": "Signed on",
+      "licenceNumber": "Licence",
+      "contactPhone": "Phone"
+    },
+    "standing": {
+      "AwaitingContract": "Awaiting contract",
+      "NotYetActive": "Starts later",
+      "Active": "Active",
+      "Expired": "Contract ended"
+    },
+    "contract": {
+      "openEnded": "Open-ended",
+      "none": "No dates yet",
+      "endsIn": "ends in {days} d",
+      "endedAgo": "ended {days} d ago"
+    },
+    "invitation": {
+      "pending": "Invitation pending",
+      "pendingHint": "The set-password link has not been used yet, so this agency cannot sign in.",
+      "used": "Invitation used"
+    },
+    "lastSeen": {
+      "never": "Never signed in"
+    },
+    "loginEmailLabel": "Login",
+    "summary": {
+      "label": "on the platform",
+      "value": "{count, plural, =0 {no agencies} one {# agency} other {# agencies}}",
+      "invitationTitle": "Invitation pending",
+      "invitationDetail": "{count, plural, one {# agency has not set a password} other {# agencies have not set a password}}",
+      "awaitingTitle": "Awaiting contract",
+      "awaitingDetail": "{count, plural, one {# partner cannot sign in yet} other {# partners cannot sign in yet}}",
+      "expiredTitle": "Contract ended",
+      "expiredDetail": "{count, plural, one {# partnership has lapsed} other {# partnerships have lapsed}}",
+      "action": "Show"
+    },
+    "filters": {
+      "standing": "Standing",
+      "country": "Country",
+      "invitation": "Invitation"
+    },
+    "sort": {
+      "nameAsc": "Name A-Z",
+      "nameDesc": "Name Z-A",
+      "standing": "Needs attention first",
+      "contract": "Contract ending soonest",
+      "lastSeen": "Most recently seen"
+    },
+    "form": {
+      "legalName": "Legal name",
+      "registrationNumber": "Registration number",
+      "licenceNumber": "Licence number",
+      "country": "Country",
+      "city": "City",
+      "cityHint": "The city must belong to the selected country.",
+      "contactPersonName": "Contact person",
+      "contactEmail": "Company email",
+      "contactEmailHint": "The company's address. It is not the address the account signs in with, and no edit here moves that.",
+      "contactPhone": "Phone",
+      "signedOn": "Contract signed on",
+      "signedOnHint": "Leave this blank and the agency cannot sign in, even after setting a password. Fill it in when the signed paper contract comes back.",
+      "validUntil": "Contract valid until",
+      "validUntilHint": "Leave blank for an open-ended partnership. Pick the day again to clear it."
+    },
+    "create": {
+      "new": "New agency",
+      "title": "Create an agency",
+      "submit": "Create and invite",
+      "successTitle": "Agency created",
+      "successBody": "A one-time set-password link has been emailed to the contact. It is valid for 72 hours and works once.",
+      "successNoContract": "The agency still cannot sign in: no contract start date was set. Edit the agency once the signed paper contract is back."
+    },
+    "edit": {
+      "action": "Edit",
+      "title": "Edit agency",
+      "submit": "Save changes",
+      "endsAccessTitle": "This ends the partner's access",
+      "endsAccessBody": "Saving these dates switches off sign-in for this agency within one request, and nothing notifies them. Their portal stops answering on the next call.",
+      "endsAccessConfirm": "Save and end access"
+    },
+    "delete": {
+      "action": "Delete",
+      "title": "Delete this agency?",
+      "body": "The agency disappears from this list and can no longer sign in. Its login email is released, so the same company can be created or approved again — as a new record, with a fresh invitation and no contract dates. Its worker links are untouched and stay on the Agency links screen.",
+      "confirm": "Delete agency",
+      "hint": "To correct a mistake, edit the agency instead — re-creating costs the partner a new invitation."
+    },
+    "resend": {
+      "action": "Re-send invitation",
+      "title": "Re-send the set-password link?",
+      "body": "A new one-time link is emailed to the contact. The previous link stops working immediately, so an agency clicking an older email is refused.",
+      "confirm": "Send a new link",
+      "done": "A new set-password link has been sent."
+    },
+    "errors": {
+      "emailTaken": "An agency already uses this email address. It may still belong to a worker or an owner elsewhere — only agency logins clash.",
+      "countryNotFound": "That country is no longer available. Pick it again.",
+      "cityNotFound": "That city is no longer available. Pick it again.",
+      "cityCountryMismatch": "That city is not in the selected country. Pick the city again.",
+      "invalidContractWindow": "The end date is before the start date.",
+      "roleMissing": "The server is missing its AGENCY role, so no agency account can be created. This is a deployment fault, not a problem with what you entered.",
+      "notFound": "That agency no longer exists. Refresh the list.",
+      "generic": "That could not be saved. Please try again."
+    }
+  },
   "system": {
+    "notBuilt": {
+      "title": "This section is not built yet",
+      "body": "The backend is ready and this screen is next in the queue. Nothing is broken — the row is here so you know the section is coming."
+    },
     "notFound": {
       "label": "Not found",
       "title": "This page was not found",

@@ -558,6 +558,31 @@
     "actions": {
       "backToList": "Zurück zur Mitarbeiterliste"
     },
+    "agencyLink": {
+      "title": "Agentur",
+      "status": {
+        "Confirmed": "Bestätigt",
+        "Proposed": "Angegeben · unbestätigt",
+        "Disputed": "Bestritten",
+        "Rejected": "Abgelehnt"
+      },
+      "turn": {
+        "admin": "Wartet auf eine Admin-Entscheidung. Im Bereich Agenturverknüpfungen bearbeiten.",
+        "worker": "Wartet darauf, dass der Mitarbeiter bestätigt oder bestreitet."
+      },
+      "reason": {
+        "byAdmin": "Warum ein Admin diese Verknüpfung angelegt hat",
+        "byWorker": "Warum der Mitarbeiter diese Agentur genannt hat"
+      },
+      "disputeNote": "Einwand des Mitarbeiters",
+      "resolution": "Begründung der Entscheidung",
+      "createdAt": "Erfasst",
+      "resolvedAt": "Entschieden",
+      "empty": {
+        "title": "Keine Agenturverknüpfung erfasst",
+        "hint": "Das bedeutet nicht, dass der Mitarbeiter unabhängig kam — er wurde möglicherweise nie gefragt, hat abgelehnt, oder eine Verknüpfung wurde abgelehnt."
+      }
+    },
     "rating": {
       "title": "Bewertungsübersicht",
       "calculatedAt": "Berechnet am {date}",
@@ -1888,6 +1913,8 @@
     "title": "Urlaubsanträge",
     "subtitle": "Urlaubsanträge von Mitarbeitern prüfen und entscheiden",
     "empty": "Keine Urlaubsanträge gefunden",
+    "emptyPending": "Niemand wartet auf Sie",
+    "listError": "Die Warteschlange konnte nicht geladen werden",
     "viewTicket": "Verknüpftes Ticket öffnen",
     "tabs": {
       "all": "Alle",
@@ -1896,21 +1923,53 @@
       "rejected": "Abgelehnt",
       "cancelled": "Storniert"
     },
-    "columns": {
-      "worker": "Mitarbeiter",
-      "target": "Ziel",
-      "reason": "Grund",
-      "status": "Status",
-      "created": "Erstellt"
+    "target": {
+      "task": "Aufgabe",
+      "group": "Gruppe",
+      "taskLong": "Ein Datum",
+      "groupLong": "Ganze Gruppe"
+    },
+    "row": {
+      "asked": "gefragt {age}"
+    },
+    "pane": {
+      "emptyTitle": "Antrag auswählen",
+      "emptyHint": "Der gesamte Antrag öffnet sich hier — der vollständige Grund, das verknüpfte Ticket und die Entscheidung.",
+      "workerFile": "Mitarbeiterakte",
+      "openBooking": "Buchung öffnen",
+      "reasonHeading": "Grund, im Wortlaut",
+      "consequenceHeading": "Was die Entscheidung bewirkt",
+      "consequenceTask": "Bei Genehmigung wird der Mitarbeiter nur von diesem einen Datum entfernt. Die Zuordnung bleibt bestehen, alle übrigen Termine der Gruppe ebenfalls. Abgelehnt, wenn die Aufgabe bereits begonnen hat oder der Mitarbeiter bereits eingecheckt ist.",
+      "consequenceGroup": "Bei Genehmigung endet die Zuordnung und jede künftige ausstehende Zuweisung darunter wird gelöscht. Bereits begonnene Termine werden als Nichterscheinen gewertet und belasten die Bewertung des Mitarbeiters. Von diesem Bildschirm aus nicht umkehrbar.",
+      "decisionHeading": "Entscheidungsnotiz",
+      "noDecisionNote": "Zu dieser Entscheidung wurde keine Notiz hinterlassen.",
+      "decidedAge": "Entschieden {age}",
+      "noteLabel": "Entscheidungsnotiz · optional, geht ins Audit-Protokoll",
+      "approveAction": "Urlaub genehmigen",
+      "footerWarning": "Beide Entscheidungen lösen das verknüpfte Support-Ticket und benachrichtigen den Mitarbeiter. Es gibt kein Zurück."
+    },
+    "scope": {
+      "heading": "Betroffene Termine",
+      "unresolved": "Die Termine konnten nicht aufgelöst werden. Die Entscheidung funktioniert weiterhin — nur die Auswirkung ist von hier aus nicht sichtbar.",
+      "vacated": "{count, plural, =0 {nichts freigegeben} one {# Schicht freigegeben} other {# Schichten freigegeben}}",
+      "vacatedUpTo": "{count, plural, =0 {nichts freigegeben} one {bis zu # Schicht freigegeben} other {bis zu # Schichten freigegeben}}",
+      "noShow": "{count, plural, one {# Nichterscheinen} other {# Nichterscheinen}}",
+      "kept": "{count, plural, one {# unberührt} other {# unberührt}}",
+      "tag": {
+        "vacated": "Freigegeben",
+        "noShowShort": "Nichterscheinen",
+        "kept": "Unberührt"
+      },
+      "hedgeNote": "Eine Obergrenze. Eine einmalige Admin-Zuweisung an einem dieser Termine übersteht einen Gruppenaustritt und ist hier nicht von einer regulären Zuweisung zu unterscheiden."
+    },
+    "gates": {
+      "unchecked": "Die beiden Prüfungen konnten nicht laufen — die Buchung wurde nicht geladen. Genehmigen funktioniert weiterhin; der Server entscheidet.",
+      "groupServerSide": "Die einzige Prüfung beim Austritt aus einer ganzen Gruppe ist, ob die Zuordnung noch aktiv ist — und sie läuft auf dem Server. Vor dem Klick ist sie nicht zu klären.",
+      "taskClear": "Beide Prüfungen bestanden: die Aufgabe hat nicht begonnen und der Mitarbeiter ist nicht eingecheckt."
     },
     "decide": {
       "approve": "Genehmigen",
       "reject": "Ablehnen",
-      "approveTitle": "Urlaubsantrag genehmigen?",
-      "rejectTitle": "Urlaubsantrag ablehnen?",
-      "approveDesc": "Bei Genehmigung wird {name} aus den betroffenen Aufgaben entfernt und das verknüpfte Support-Ticket gelöst.",
-      "rejectDesc": "Bei Ablehnung bleibt {name} zugewiesen und das verknüpfte Support-Ticket wird gelöst. Es ändern sich keine Zuweisungen.",
-      "note": "Entscheidungsnotiz (optional)",
       "notePlaceholder": "Optionale Notiz für das Audit-Protokoll hinzufügen…"
     },
     "errors": {
@@ -2227,7 +2286,142 @@
       "toggleGeneric": "Status konnte nicht geändert werden. Bitte erneut versuchen."
     }
   },
+  "agency": {
+    "requests": {
+      "title": "Agenturanfragen",
+      "subtitle": "Partnerschaftsanträge, die auf eine Prüfung warten — genehmigen, ablehnen oder ein besseres Dokument anfordern."
+    },
+    "list": {
+      "title": "Agenturen",
+      "subtitle": "Partner-Personalagenturen, ihr Vertragszeitraum und ob sie sich heute anmelden können."
+    }
+  },
+  "agencies": {
+    "title": "Agenturen",
+    "subtitle": "Partner-Personalagenturen, ihr Vertragszeitraum und ob sie sich heute anmelden können.",
+    "list": "Partneragenturen",
+    "searchPlaceholder": "Name, Registernummer, Kontakt oder Stadt suchen",
+    "emptyTitle": "Noch keine Partneragenturen",
+    "emptyBody": "Agenturen kommen über die Anfragen-Warteschlange oder werden hier angelegt.",
+    "columns": {
+      "agency": "Agentur",
+      "standing": "Status",
+      "contract": "Vertrag",
+      "location": "Standort",
+      "contact": "Kontakt",
+      "lastSeen": "Zuletzt gesehen",
+      "actions": "Aktionen",
+      "createdAt": "Hinzugefügt",
+      "signedOn": "Unterzeichnet am",
+      "licenceNumber": "Lizenz",
+      "contactPhone": "Telefon"
+    },
+    "standing": {
+      "AwaitingContract": "Vertrag ausstehend",
+      "NotYetActive": "Beginnt später",
+      "Active": "Aktiv",
+      "Expired": "Vertrag beendet"
+    },
+    "contract": {
+      "openEnded": "Unbefristet",
+      "none": "Noch keine Daten",
+      "endsIn": "endet in {days} T",
+      "endedAgo": "endete vor {days} T"
+    },
+    "invitation": {
+      "pending": "Einladung offen",
+      "pendingHint": "Der Link zum Setzen des Passworts wurde noch nicht genutzt, daher kann sich diese Agentur nicht anmelden.",
+      "used": "Einladung genutzt"
+    },
+    "lastSeen": {
+      "never": "Nie angemeldet"
+    },
+    "loginEmailLabel": "Anmeldung",
+    "summary": {
+      "label": "auf der Plattform",
+      "value": "{count, plural, =0 {keine Agenturen} one {# Agentur} other {# Agenturen}}",
+      "invitationTitle": "Einladung offen",
+      "invitationDetail": "{count, plural, one {# Agentur hat kein Passwort gesetzt} other {# Agenturen haben kein Passwort gesetzt}}",
+      "awaitingTitle": "Vertrag ausstehend",
+      "awaitingDetail": "{count, plural, one {# Partner kann sich noch nicht anmelden} other {# Partner können sich noch nicht anmelden}}",
+      "expiredTitle": "Vertrag beendet",
+      "expiredDetail": "{count, plural, one {# Partnerschaft ist abgelaufen} other {# Partnerschaften sind abgelaufen}}",
+      "action": "Anzeigen"
+    },
+    "filters": {
+      "standing": "Status",
+      "country": "Land",
+      "invitation": "Einladung"
+    },
+    "sort": {
+      "nameAsc": "Name A-Z",
+      "nameDesc": "Name Z-A",
+      "standing": "Handlungsbedarf zuerst",
+      "contract": "Vertrag endet am ehesten",
+      "lastSeen": "Zuletzt gesehen"
+    },
+    "form": {
+      "legalName": "Firmenname",
+      "registrationNumber": "Registernummer",
+      "licenceNumber": "Lizenznummer",
+      "country": "Land",
+      "city": "Stadt",
+      "cityHint": "Die Stadt muss zum ausgewählten Land gehören.",
+      "contactPersonName": "Ansprechpartner",
+      "contactEmail": "Firmen-E-Mail",
+      "contactEmailHint": "Die Adresse des Unternehmens. Sie ist nicht die Anmeldeadresse des Kontos, und keine Änderung hier verschiebt diese.",
+      "contactPhone": "Telefon",
+      "signedOn": "Vertrag unterzeichnet am",
+      "signedOnHint": "Bleibt dieses Feld leer, kann sich die Agentur nicht anmelden — auch nicht nach dem Setzen eines Passworts. Nachtragen, sobald der unterschriebene Vertrag vorliegt.",
+      "validUntil": "Vertrag gültig bis",
+      "validUntilHint": "Leer lassen für eine unbefristete Partnerschaft. Den gewählten Tag erneut anklicken, um ihn zu löschen."
+    },
+    "create": {
+      "new": "Neue Agentur",
+      "title": "Agentur anlegen",
+      "submit": "Anlegen und einladen",
+      "successTitle": "Agentur angelegt",
+      "successBody": "Ein einmaliger Link zum Setzen des Passworts wurde an den Kontakt gesendet. Er ist 72 Stunden gültig und funktioniert einmal.",
+      "successNoContract": "Die Agentur kann sich noch nicht anmelden: es wurde kein Vertragsbeginn gesetzt. Die Agentur bearbeiten, sobald der unterschriebene Vertrag vorliegt."
+    },
+    "edit": {
+      "action": "Bearbeiten",
+      "title": "Agentur bearbeiten",
+      "submit": "Änderungen speichern",
+      "endsAccessTitle": "Das beendet den Zugang des Partners",
+      "endsAccessBody": "Mit diesen Daten wird die Anmeldung dieser Agentur innerhalb einer Anfrage abgeschaltet, und niemand benachrichtigt sie. Ihr Portal antwortet beim nächsten Aufruf nicht mehr.",
+      "endsAccessConfirm": "Speichern und Zugang beenden"
+    },
+    "delete": {
+      "action": "Löschen",
+      "title": "Diese Agentur löschen?",
+      "body": "Die Agentur verschwindet aus dieser Liste und kann sich nicht mehr anmelden. Ihre Anmelde-E-Mail wird freigegeben, sodass dasselbe Unternehmen erneut angelegt oder genehmigt werden kann — als neuer Datensatz, mit neuer Einladung und ohne Vertragsdaten. Ihre Mitarbeiter-Verknüpfungen bleiben unberührt und weiterhin im Bereich Agenturverknüpfungen sichtbar.",
+      "confirm": "Agentur löschen",
+      "hint": "Um einen Fehler zu korrigieren, die Agentur besser bearbeiten — ein Neuanlegen kostet den Partner eine neue Einladung."
+    },
+    "resend": {
+      "action": "Einladung erneut senden",
+      "title": "Link zum Setzen des Passworts erneut senden?",
+      "body": "Ein neuer einmaliger Link wird an den Kontakt gesendet. Der vorherige Link funktioniert sofort nicht mehr, eine Agentur, die eine ältere E-Mail anklickt, wird abgewiesen.",
+      "confirm": "Neuen Link senden",
+      "done": "Ein neuer Link zum Setzen des Passworts wurde gesendet."
+    },
+    "errors": {
+      "emailTaken": "Eine Agentur nutzt diese E-Mail-Adresse bereits. Sie kann anderswo weiterhin einem Mitarbeiter oder Eigentümer gehören — nur Agentur-Anmeldungen kollidieren.",
+      "countryNotFound": "Dieses Land ist nicht mehr verfügbar. Bitte erneut auswählen.",
+      "cityNotFound": "Diese Stadt ist nicht mehr verfügbar. Bitte erneut auswählen.",
+      "cityCountryMismatch": "Diese Stadt liegt nicht im ausgewählten Land. Bitte die Stadt erneut auswählen.",
+      "invalidContractWindow": "Das Enddatum liegt vor dem Startdatum.",
+      "roleMissing": "Auf dem Server fehlt die AGENCY-Rolle, daher kann kein Agenturkonto angelegt werden. Das ist ein Deployment-Fehler, nicht ein Problem mit Ihrer Eingabe.",
+      "notFound": "Diese Agentur existiert nicht mehr. Bitte die Liste neu laden.",
+      "generic": "Das konnte nicht gespeichert werden. Bitte erneut versuchen."
+    }
+  },
   "system": {
+    "notBuilt": {
+      "title": "Dieser Bereich ist noch nicht gebaut",
+      "body": "Das Backend ist fertig und dieser Screen ist als Nächstes in der Warteschlange. Es ist nichts defekt — die Zeile steht hier, damit Sie wissen, dass der Bereich kommt."
+    },
     "notFound": {
       "label": "Nicht gefunden",
       "title": "Diese Seite wurde nicht gefunden",
