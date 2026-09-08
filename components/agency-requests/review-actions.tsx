@@ -108,6 +108,22 @@ export function ReviewActions({
     return key === "generic" && detail ? detail : tErrors(key);
   }
 
+  /**
+   * ⚠ **Opening a verb resets the shared text.** One `text` state serves all
+   * three dialogs, and the `emailTaken` handler deliberately does *not* close —
+   * it leaves the panel up with the verb buttons still under it. Without this
+   * reset, the path *approve → type a note → email clash → Reject* pre-fills the
+   * rejection reason with the approve note, and that sentence is what the
+   * applicant receives as the reason they were rejected.
+   */
+  function openVerb(kind: "info" | "reject" | "approve") {
+    setText("");
+    setSignedOn("");
+    setValidUntil("");
+    setError(null);
+    setOpen(kind);
+  }
+
   function close() {
     setOpen(null);
     setText("");
@@ -127,6 +143,10 @@ export function ReviewActions({
     const name = blocking?.legalName;
     setDuplicate(false);
     setError(null);
+    // Not `openVerb`: the prefill *is* the point, so the dates are cleared here
+    // and the text is written rather than emptied.
+    setSignedOn("");
+    setValidUntil("");
     setText(name ? t("duplicate.title") + " — " + name : t("duplicate.title"));
     setOpen("reject");
   }
@@ -193,7 +213,19 @@ export function ReviewActions({
             <Button size="sm" className="w-fit" onClick={() => setDatesOpen(true)}>
               {t("approve.openDates")}
             </Button>
-          ) : agencies.isLoading ? (
+          ) : /*
+              ⚠ `isFetching`, NOT `isLoading`. This observer is still disabled
+              when approve succeeds — `createdId` is null until `onSuccess` runs
+              — so the mutation's `invalidateQueries(["agencies"])` only marks the
+              cache stale and refetches nothing. `setCreatedId` then enables it.
+              An admin who has opened /dashboard/agencies this session already has
+              cached rows, so `isPending` and therefore `isLoading` are both
+              false while the refetch is in flight, and the stale list does not
+              carry the new row: with `isLoading` here, neither branch rendered
+              and the panel sat with nothing but "Do it later" until the refetch
+              landed — the dead state this guard exists to prevent.
+            */
+            agencies.isFetching ? (
             <span className="flex items-center gap-1.5 text-[12px] text-muted-foreground">
               <Loader2 aria-hidden className="size-3.5 animate-spin" />
               {t("approve.openDates")}
@@ -253,17 +285,17 @@ export function ReviewActions({
       ) : null}
 
       <div className="flex flex-col gap-2">
-        <Button size="sm" onClick={() => setOpen("approve")}>
+        <Button size="sm" onClick={() => openVerb("approve")}>
           <Gavel className="size-3.5" />
           {t("verbs.approve")}
         </Button>
         {/* ⚠ Offered on `InfoRequested` too: asking twice replaces the note and
             re-stamps the reviewer, which is a legitimate second ask. */}
-        <Button variant="outline" size="sm" onClick={() => setOpen("info")}>
+        <Button variant="outline" size="sm" onClick={() => openVerb("info")}>
           <MessageSquarePlus className="size-3.5" />
           {t("verbs.requestInfo")}
         </Button>
-        <Button variant="outline" size="sm" onClick={() => setOpen("reject")}>
+        <Button variant="outline" size="sm" onClick={() => openVerb("reject")}>
           {t("verbs.reject")}
         </Button>
       </div>
