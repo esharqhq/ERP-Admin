@@ -1932,7 +1932,8 @@
       "groupLong": "Whole group"
     },
     "row": {
-      "asked": "asked {age}"
+      "asked": "asked {age}",
+      "affected": "work {when}"
     },
     "pane": {
       "emptyTitle": "Pick a request",
@@ -2525,6 +2526,41 @@
       "country": "Country",
       "city": "City",
       "submitted": "Submitted"
+    },
+    "intake": {
+      "action": "Key one in",
+      "title": "Key in an application",
+      "subtitle": "For an agency that phoned or emailed instead of using the form. They accepted the terms on paper.",
+      "step1": "The company",
+      "step2": "Their papers",
+      "step3": "Done",
+      "submit": "Create the application",
+      "expectedWorkerCount": "Workers they expect",
+      "message": "What they told you",
+      "endsPending": "This creates an application waiting on a review — not an agency. Approving it is a separate step, on the application itself.",
+      "step2Warning": "Attach their scans now. This upload link cannot be shown again — the only other copy is the receipt emailed to {email}, and it stops working the moment the application is decided.",
+      "tokenExpires": "The emailed link works until {date}.",
+      "skip": "No scans to attach",
+      "finish": "Finish",
+      "doneTitle": "Application created",
+      "doneBody": "It is waiting on a review, alongside the ones that came in online.",
+      "openApplication": "Open the application"
+    },
+    "upload": {
+      "heading": "Attach a paper",
+      "type": "What is it?",
+      "typePlaceholder": "Pick a document type",
+      "choose": "Choose a file",
+      "add": "Attach",
+      "uploading": "Attaching…",
+      "limits": "PDF, JPEG, PNG or WebP · up to 10 MB · at most 10 documents",
+      "uploaded": "{count, plural, =0 {Nothing attached yet} one {# paper attached} other {# papers attached}}",
+      "full": "This application already carries 10 documents.",
+      "refused": {
+        "mime": "That file type cannot be attached. Use a PDF, JPEG, PNG or WebP.",
+        "size": "That file is over 10 MB.",
+        "count": "This application already carries 10 documents."
+      }
     },
     "detail": {
       "back": "Back to the queue",

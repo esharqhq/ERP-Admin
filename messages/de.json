@@ -1932,7 +1932,8 @@
       "groupLong": "Ganze Gruppe"
     },
     "row": {
-      "asked": "gefragt {age}"
+      "asked": "gefragt {age}",
+      "affected": "Einsatz {when}"
     },
     "pane": {
       "emptyTitle": "Antrag auswählen",
@@ -2525,6 +2526,41 @@
       "country": "Land",
       "city": "Stadt",
       "submitted": "Eingegangen"
+    },
+    "intake": {
+      "action": "Manuell eintragen",
+      "title": "Antrag manuell eintragen",
+      "subtitle": "Für eine Agentur, die angerufen oder geschrieben hat, statt das Formular zu nutzen. Die Bedingungen wurden auf Papier akzeptiert.",
+      "step1": "Die Firma",
+      "step2": "Ihre Unterlagen",
+      "step3": "Fertig",
+      "submit": "Antrag anlegen",
+      "expectedWorkerCount": "Erwartete Mitarbeiter",
+      "message": "Was sie Ihnen gesagt haben",
+      "endsPending": "Damit entsteht ein Antrag, der auf eine Prüfung wartet — keine Agentur. Die Genehmigung ist ein eigener Schritt, am Antrag selbst.",
+      "step2Warning": "Hängen Sie ihre Scans jetzt an. Dieser Upload-Link kann nicht erneut angezeigt werden — die einzige weitere Kopie ist die Bestätigung per E-Mail an {email}, und sie verfällt, sobald der Antrag entschieden ist.",
+      "tokenExpires": "Der per E-Mail verschickte Link gilt bis {date}.",
+      "skip": "Keine Scans anzuhängen",
+      "finish": "Fertig",
+      "doneTitle": "Antrag angelegt",
+      "doneBody": "Er wartet auf eine Prüfung, zusammen mit den online eingegangenen.",
+      "openApplication": "Antrag öffnen"
+    },
+    "upload": {
+      "heading": "Unterlage anhängen",
+      "type": "Was ist es?",
+      "typePlaceholder": "Dokumenttyp wählen",
+      "choose": "Datei wählen",
+      "add": "Anhängen",
+      "uploading": "Wird angehängt…",
+      "limits": "PDF, JPEG, PNG oder WebP · bis 10 MB · maximal 10 Dokumente",
+      "uploaded": "{count, plural, =0 {Noch nichts angehängt} one {# Unterlage angehängt} other {# Unterlagen angehängt}}",
+      "full": "Dieser Antrag trägt bereits 10 Dokumente.",
+      "refused": {
+        "mime": "Dieser Dateityp kann nicht angehängt werden. Verwenden Sie PDF, JPEG, PNG oder WebP.",
+        "size": "Diese Datei ist größer als 10 MB.",
+        "count": "Dieser Antrag trägt bereits 10 Dokumente."
+      }
     },
     "detail": {
       "back": "Zurück zur Warteschlange",
