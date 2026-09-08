@@ -54,20 +54,16 @@ export const taskService = {
   /**
    * Full task group with dates, tasks and workers.
    *
-   * The backend exposes no single-group admin read endpoint — the owner route
-   * `/api/tasks/groups/{id}` is PROPERTY-scoped (task_group:read) and 403s for
-   * an admin, and no `/api/tasks/admin/groups/{id}` exists (verified 2026-06-10).
-   * The admin list already returns each group fully nested (dates, tasks,
-   * workers), so we derive the detail from it. See BACKEND-ASKS.md.
-   *
-   * NOTE: assumes the admin groups list is unpaginated/uncapped. If the backend
-   * ever caps that list, deep-linking to a group beyond the cap will 404 here.
+   * `GET /api/tasks/groups/{id}` accepts **either** the GLOBAL `task_group:read_any`
+   * (110031) or the PROPERTY-scoped `task_group:read` (110003) since 2026-09-08
+   * (`cb2d1ee`) — the attribute was replaced by a two-way check in the action,
+   * because `[RequirePermission]` cannot express OR. Both admin roles are seeded
+   * with `read_any`, so no per-environment role grant is needed any more and the
+   * whole-platform-list fallback this used to carry is gone.
    */
   getTaskGroup: async (id: string): Promise<TaskGroupDto> => {
-    const groups = await taskService.getAdminTaskGroups();
-    const group = groups.find((g) => g.id === id);
-    if (!group) throw new Error(`Task group ${id} not found`);
-    return group;
+    const { data } = await apiClient.get<TaskGroupDto>(`/api/tasks/groups/${id}`);
+    return data;
   },
 
   /** Admin: flat list of all tasks (capped server-side); optionally per owner. */

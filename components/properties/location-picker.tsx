@@ -21,21 +21,30 @@ const LocationMap = dynamic(
 export interface LocationPickerProps {
   value: { lat: number; long: number } | null;
   onChange: (lat: number, long: number) => void;
+  /**
+   * Override the field label and the empty-state hint. The defaults name *the
+   * property*, which is right for the two property dialogs and wrong on the
+   * walk-in order form, where the point is the order's own address and the
+   * property is a placeholder. Only these two strings mention the subject; the
+   * coordinate readout and the drag hint are subject-free and stay shared.
+   */
+  label?: string;
+  hint?: string;
 }
 
 /**
- * Pick a property's coordinates by clicking a map, replacing the pair of
- * latitude/longitude number inputs that used to sit here. `lat`/`long` are
- * non-nullable server-side, so a caller must treat `value === null` as "not
- * ready to submit" — there is no other source for them now.
+ * Pick coordinates by clicking a map, replacing the pair of latitude/longitude
+ * number inputs that used to sit here. `lat`/`long` are non-nullable server-side
+ * on the property doors and required on a walk-in order, so a caller must treat
+ * `value === null` as "not ready to submit" — there is no other source for them.
  */
-export function LocationPicker({ value, onChange }: LocationPickerProps) {
+export function LocationPicker({ value, onChange, label, hint }: LocationPickerProps) {
   const t = useTranslations("properties");
 
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-baseline justify-between gap-2">
-        <label className="text-sm font-medium">{t("form.location")}</label>
+        <label className="text-sm font-medium">{label ?? t("form.location")}</label>
         <span className="text-[11px] tabular-nums text-muted-foreground">
           {value
             ? `${value.lat.toFixed(5)}, ${value.long.toFixed(5)}`
@@ -50,7 +59,7 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
           // click it is asking for.
           <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[400] flex items-center justify-center gap-1.5 bg-background/85 py-1.5 text-[12px] font-medium text-muted-foreground backdrop-blur-sm">
             <MapPin className="size-3.5" />
-            {t("form.locationHint")}
+            {hint ?? t("form.locationHint")}
           </div>
         )}
       </div>

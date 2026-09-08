@@ -1,5 +1,6 @@
 import { apiClient } from "@/lib/http/client";
 import type { OnboardingStatus } from "@/lib/types/onboarding.types";
+import type { PagedQuery, PagedResult } from "@/lib/types/paged.types";
 import type {
   KycApprovalDto,
   KycProfileDto,
@@ -11,12 +12,21 @@ export const kycService = {
   /**
    * `status` is an OnboardingStatus **name** (`"Review"`), not a number.
    * The review queue is `?status=Review`; omit it for every owner with a KYC row.
+   *
+   * ⚠ **Paged since 2026-09-08** (`kyc-queue-load-audit`, breaking). It was a bare
+   * array silently capped at 200 rows; it is now the FND-3 `PagedResult` envelope
+   * with `pageSize` defaulting to **25**. A caller that wants more than one page
+   * must ask for it — the old implicit 200 is gone in both directions.
    */
   getList: async (
     status?: OnboardingStatus,
-  ): Promise<KycProfileSummaryDto[]> => {
-    const params = status !== undefined ? { status } : {};
-    const { data } = await apiClient.get<KycProfileSummaryDto[]>(
+    paging: PagedQuery = {},
+  ): Promise<PagedResult<KycProfileSummaryDto>> => {
+    const params: Record<string, string | number> = {};
+    if (status !== undefined) params.status = status;
+    if (paging.page !== undefined) params.page = paging.page;
+    if (paging.pageSize !== undefined) params.pageSize = paging.pageSize;
+    const { data } = await apiClient.get<PagedResult<KycProfileSummaryDto>>(
       "/api/admin/kyc",
       { params },
     );

@@ -2,6 +2,7 @@ import type {
   AdminOwnerContractDto,
   AdminWorkerContractDto,
 } from "@/lib/types/contract.types";
+import type { VerdictCounts } from "@/lib/onboarding/queue-detail";
 import type { KycProfileSummaryDto } from "@/lib/types/kyc.types";
 import type { ContractPhase, OnboardingStatus } from "@/lib/types/onboarding.types";
 import type { WorkerRowDto } from "@/lib/types/worker.types";
@@ -45,6 +46,17 @@ export interface SubjectRow {
    * day the DTO grows is one registry entry and no other change.
    */
   documentCount: number | null;
+  /**
+   * Per-verdict breakdown behind the row's dots, from the list row since
+   * 2026-09-08. `null` on a worker row, and on an owner row only if the field is
+   * absent — which the backend does not do; it sends zeros.
+   */
+  verdicts: VerdictCounts | null;
+  /**
+   * The owner's company, or `null` for a natural person — a complete answer,
+   * not a missing value.
+   */
+  company: string | null;
   /** When the submission was last decided. `null` = never decided, not "unknown". */
   reviewedAt: string | null;
   rejectReason: string | null;
@@ -76,6 +88,12 @@ export function ownerSubjectRow(dto: KycProfileSummaryDto): SubjectRow {
     onboardingStatus: dto.onboardingStatus,
     cover: null,
     documentCount: dto.documentCount,
+    verdicts: {
+      pending: dto.documentsPending,
+      approved: dto.documentsApproved,
+      rejected: dto.documentsRejected,
+    },
+    company: dto.companyName,
     reviewedAt: dto.onboardingReviewedAt,
     rejectReason: dto.onboardingRejectReason,
     licenseExpiry: null,
@@ -93,6 +111,8 @@ export function workerSubjectRow(dto: WorkerRowDto): SubjectRow {
     cover: null,
     // See the note on `SubjectRow` — the worker list DTO carries none of these.
     documentCount: null,
+    verdicts: null,
+    company: null,
     reviewedAt: null,
     rejectReason: null,
     licenseExpiry: dto.licenseExpiry,

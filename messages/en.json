@@ -174,7 +174,9 @@
       "targetOwnerMustBeBoss": "Properties can only be created for a BOSS owner.",
       "propertyNotFound": "This property no longer exists.",
       "ownerHasOpenTasks": "This owner has work in flight — wait for their open tasks to finish.",
-      "ownerIsSystem": "This is the permanent walk-in account — it cannot be edited, deleted, messaged or given a contract."
+      "ownerIsSystem": "This is the permanent walk-in account — it cannot be edited, deleted, messaged or given a contract.",
+      "walkinLocationRequired": "This is the Walk-in / Manual Orders account, and its orders need the address the work happens at. File it from the Walk-in orders page, which collects the map point.",
+      "groupLocationNotAllowed": "Only walk-in orders carry their own address. This property's orders are checked in against the property's own location."
     }
   },
   "docsWorkspace": {
@@ -323,6 +325,7 @@
       "viewerUnsupportedBody": "This file type has no inline preview. Open the original — the decision below is not blocked by it.",
       "viewerBrokenTitle": "This file could not be loaded",
       "viewerBrokenBody": "The document is missing from storage. That is a server problem, not something to retry from here.",
+      "reloadPreview": "Reload the preview",
       "fileVerdictTitle": "Verdict on this file",
       "fileVerdictSilent": "Silent — it moves no status and notifies nobody.",
       "approveFile": "Approve file",
@@ -393,6 +396,7 @@
       "contractLockedHint": "Opens in this column once the submission is approved."
     },
     "queue": {
+      "pageTruncated": "Showing {loaded} of {total}. Search, filters and sorting below apply to these {loaded} only — narrow with the tabs above to see the rest.",
       "ownerSubtitle": "Submissions waiting on a decision · oldest first",
       "ownerSearch": "Name or email",
       "workerSubtitle": "Submissions waiting on a decision · oldest first",
@@ -555,6 +559,31 @@
     },
     "actions": {
       "backToList": "Back to Workers list"
+    },
+    "agencyLink": {
+      "title": "Agency",
+      "status": {
+        "Confirmed": "Confirmed",
+        "Proposed": "Claimed · unconfirmed",
+        "Disputed": "Disputed",
+        "Rejected": "Rejected"
+      },
+      "turn": {
+        "admin": "Waiting on an admin decision. Resolve it on the Agency links screen.",
+        "worker": "Waiting on the worker to confirm or dispute this."
+      },
+      "reason": {
+        "byAdmin": "Why an admin attached this",
+        "byWorker": "Why the worker named this agency"
+      },
+      "disputeNote": "The worker's objection",
+      "resolution": "Resolution reason",
+      "createdAt": "Recorded",
+      "resolvedAt": "Resolved",
+      "empty": {
+        "title": "No agency link recorded",
+        "hint": "This does not mean the worker came independently — they may never have been asked, may have said no, or may have had a link rejected."
+      }
     },
     "rating": {
       "title": "Rating snapshot",
@@ -1193,8 +1222,11 @@
       "workers": "Workers needed",
       "instructions": "Instructions for the worker",
       "instructionsPlaceholder": "Real address: Hauptstr. 5, 10827 Berlin. Ring twice. Keys with the neighbour.",
-      "instructionsHint": "Include the real address — this account's property is a placeholder and carries no location.",
-      "submit": "File the order"
+      "instructionsHint": "Include the real address in words too — the map point below is what the app checks workers in against, but the worker still has to find the door.",
+      "submit": "File the order",
+      "location": "Where the work happens",
+      "locationHint": "Click the map to place the order's address",
+      "locationFinal": "Check the pin before filing: the address cannot be seen or changed afterwards. A wrong one has to be cancelled and re-filed, and every check-in at the job is refused until then."
     },
     "errors": {
       "titleRequired": "Give the job a name.",
@@ -1203,7 +1235,8 @@
       "deadlineRequired": "Set a deadline, or switch it off.",
       "workerLimitInvalid": "At least one worker is needed.",
       "propertyGone": "The walk-in property is no longer there. Reload the page.",
-      "generic": "The order could not be filed. Please try again."
+      "generic": "The order could not be filed. Please try again.",
+      "locationRequired": "Point at the map to set where the work happens. A walk-in order cannot be filed without it."
     },
     "tabs": {
       "create": "File an order",
@@ -1882,6 +1915,8 @@
     "title": "Leave Requests",
     "subtitle": "Review and decide worker leave requests",
     "empty": "No leave requests found",
+    "emptyPending": "No one is waiting on you",
+    "listError": "The queue could not be loaded",
     "viewTicket": "Open linked ticket",
     "tabs": {
       "all": "All",
@@ -1890,21 +1925,54 @@
       "rejected": "Rejected",
       "cancelled": "Cancelled"
     },
-    "columns": {
-      "worker": "Worker",
-      "target": "Target",
-      "reason": "Reason",
-      "status": "Status",
-      "created": "Created"
+    "target": {
+      "task": "Task",
+      "group": "Group",
+      "taskLong": "One date",
+      "groupLong": "Whole group"
+    },
+    "row": {
+      "asked": "asked {age}",
+      "affected": "work {when}"
+    },
+    "pane": {
+      "emptyTitle": "Pick a request",
+      "emptyHint": "The whole request opens here — the reason in full, the linked ticket, and the decision.",
+      "workerFile": "Worker file",
+      "openBooking": "Open booking",
+      "reasonHeading": "Reason, as written",
+      "consequenceHeading": "What the decision does",
+      "consequenceTask": "Approving removes this worker from that single date. Their enrolment stays, so they keep every other date in the group. It is refused if the task has already started or the worker has already checked in.",
+      "consequenceGroup": "Approving ends the enrolment and deletes every future pending assignment under it. Dates that have already started are marked as a no-show against the worker's rating. This is not reversible from this screen.",
+      "decisionHeading": "Decision note",
+      "noDecisionNote": "No note was left with this decision.",
+      "decidedAge": "Decided {age}",
+      "noteLabel": "Decision note · optional, goes to the audit log",
+      "approveAction": "Approve leave",
+      "footerWarning": "Either decision resolves the linked support ticket and notifies the worker. There is no undo."
+    },
+    "scope": {
+      "heading": "Affected dates",
+      "unresolved": "The dates could not be resolved. The decision still works — you just cannot see what it touches from here.",
+      "vacated": "{count, plural, =0 {nothing vacated} one {# shift vacated} other {# shifts vacated}}",
+      "vacatedUpTo": "{count, plural, =0 {nothing vacated} one {up to # shift vacated} other {up to # shifts vacated}}",
+      "noShow": "{count, plural, one {# no-show} other {# no-shows}}",
+      "kept": "{count, plural, one {# untouched} other {# untouched}}",
+      "tag": {
+        "vacated": "Vacated",
+        "noShowShort": "No-show",
+        "kept": "Kept"
+      },
+      "hedgeNote": "An upper bound. A one-off admin fill on one of these dates survives a group leave, and cannot be told apart from an enrolled assignment here."
+    },
+    "gates": {
+      "unchecked": "The two checks could not run — the booking did not load. Approving still works; the server decides.",
+      "groupServerSide": "The only check on a whole-group leave is that the enrolment is still active, and it runs on the server. It cannot be settled before the click.",
+      "taskClear": "Both checks pass: the task has not started and the worker has not checked in."
     },
     "decide": {
       "approve": "Approve",
       "reject": "Reject",
-      "approveTitle": "Approve leave request?",
-      "rejectTitle": "Reject leave request?",
-      "approveDesc": "Approving removes {name} from the affected task(s) and resolves the linked support ticket.",
-      "rejectDesc": "Rejecting keeps {name} assigned and resolves the linked support ticket. No assignments change.",
-      "note": "Decision note (optional)",
       "notePlaceholder": "Add an optional note for the audit log…"
     },
     "errors": {
@@ -2221,7 +2289,316 @@
       "toggleGeneric": "Could not change the category state. Please try again."
     }
   },
+  "agencies": {
+    "title": "Agencies",
+    "subtitle": "Partner recruitment agencies, their contract window, and whether they can sign in today.",
+    "list": "Partner agencies",
+    "searchPlaceholder": "Search name, registration number, contact or city",
+    "emptyTitle": "No partner agencies yet",
+    "emptyBody": "Agencies arrive either through the application queue or by being created here.",
+    "columns": {
+      "agency": "Agency",
+      "standing": "Standing",
+      "contract": "Contract",
+      "location": "Location",
+      "contact": "Contact",
+      "lastSeen": "Last seen",
+      "actions": "Actions",
+      "createdAt": "Added",
+      "signedOn": "Signed on",
+      "licenceNumber": "Licence",
+      "contactPhone": "Phone"
+    },
+    "standing": {
+      "AwaitingContract": "Awaiting contract",
+      "NotYetActive": "Starts later",
+      "Active": "Active",
+      "Expired": "Contract ended"
+    },
+    "contract": {
+      "openEnded": "Open-ended",
+      "none": "No dates yet",
+      "endsIn": "ends in {days} d",
+      "endedAgo": "ended {days} d ago"
+    },
+    "invitation": {
+      "pending": "Invitation pending",
+      "pendingHint": "The set-password link has not been used yet, so this agency cannot sign in.",
+      "used": "Invitation used"
+    },
+    "lastSeen": {
+      "never": "Never signed in"
+    },
+    "loginEmailLabel": "Login",
+    "summary": {
+      "label": "on the platform",
+      "value": "{count, plural, =0 {no agencies} one {# agency} other {# agencies}}",
+      "invitationTitle": "Invitation pending",
+      "invitationDetail": "{count, plural, one {# agency has not set a password} other {# agencies have not set a password}}",
+      "awaitingTitle": "Awaiting contract",
+      "awaitingDetail": "{count, plural, one {# partner cannot sign in yet} other {# partners cannot sign in yet}}",
+      "expiredTitle": "Contract ended",
+      "expiredDetail": "{count, plural, one {# partnership has lapsed} other {# partnerships have lapsed}}",
+      "action": "Show"
+    },
+    "filters": {
+      "standing": "Standing",
+      "country": "Country",
+      "invitation": "Invitation"
+    },
+    "sort": {
+      "nameAsc": "Name A-Z",
+      "nameDesc": "Name Z-A",
+      "standing": "Needs attention first",
+      "contract": "Contract ending soonest",
+      "lastSeen": "Most recently seen"
+    },
+    "form": {
+      "legalName": "Legal name",
+      "registrationNumber": "Registration number",
+      "licenceNumber": "Licence number",
+      "countryId": "Country",
+      "countryPlaceholder": "Choose a country",
+      "cityId": "City",
+      "cityPlaceholder": "Pick a country first",
+      "contactPersonName": "Contact person",
+      "contactEmail": "Company email",
+      "contactEmailHint": "The company's own address. It is not the address this account signs in with, and editing it here does not move the login.",
+      "contactPhone": "Phone",
+      "signedOn": "Signed on",
+      "validUntil": "Valid until",
+      "contractHeading": "Contract window",
+      "contractNote": "Sign-in is decided by these two dates, live, on every attempt. Leave the start date blank and the agency cannot sign in even after setting a password — fill it in when the signed paper contract comes back. Leave the end date blank for an open-ended partnership. Picking a date again clears it.",
+      "stillNeeded": "Still needed: {fields}"
+    },
+    "create": {
+      "new": "New agency",
+      "title": "Create an agency",
+      "submit": "Create and invite",
+      "successTitle": "Agency created",
+      "successBody": "A one-time set-password link has been emailed to the contact. It is valid for 72 hours and works once.",
+      "successNoContract": "The agency still cannot sign in: no contract start date was set. Edit the agency once the signed paper contract is back."
+    },
+    "edit": {
+      "action": "Edit",
+      "title": "Edit agency",
+      "submit": "Save changes",
+      "endsAccessTitle": "This ends the partner's access",
+      "endsAccessBody": "Saving these dates switches off sign-in for this agency within one request, and nothing notifies them. Their portal stops answering on the next call.",
+      "endsAccessConfirm": "Save and end access"
+    },
+    "delete": {
+      "action": "Delete",
+      "title": "Delete this agency?",
+      "body": "The agency disappears from this list and can no longer sign in. Its login email is released, so the same company can be created or approved again — as a new record, with a fresh invitation and no contract dates. Its worker links are untouched and stay on the Agency links screen.",
+      "confirm": "Delete agency",
+      "hint": "To correct a mistake, edit the agency instead — re-creating costs the partner a new invitation."
+    },
+    "resend": {
+      "action": "Re-send invitation",
+      "title": "Re-send the set-password link?",
+      "body": "A new one-time link is emailed to the contact. The previous link stops working immediately, so an agency clicking an older email is refused.",
+      "confirm": "Send a new link",
+      "done": "A new set-password link has been sent."
+    },
+    "errors": {
+      "emailTaken": "An agency already uses this email address. It may still belong to a worker or an owner elsewhere — only agency logins clash.",
+      "countryNotFound": "That country is no longer available. Pick it again.",
+      "cityNotFound": "That city is no longer available. Pick it again.",
+      "cityCountryMismatch": "That city is not in the selected country. Pick the city again.",
+      "invalidContractWindow": "The end date is before the start date.",
+      "roleMissing": "The server is missing its AGENCY role, so no agency account can be created. This is a deployment fault, not a problem with what you entered.",
+      "notFound": "That agency no longer exists. Refresh the list.",
+      "generic": "That could not be saved. Please try again."
+    }
+  },
+  "agencyRequests": {
+    "title": "Agency requests",
+    "subtitle": "Partnership applications waiting on a review — approve, reject, or ask for a clearer document.",
+    "list": "Review queue",
+    "searchPlaceholder": "Search company, registration number, contact or email",
+    "tabs": {
+      "Pending": "Waiting",
+      "InfoRequested": "Info requested",
+      "Approved": "Approved",
+      "Rejected": "Rejected",
+      "all": "All"
+    },
+    "columns": {
+      "company": "Company",
+      "status": "Status",
+      "contact": "Contact",
+      "location": "Location",
+      "documents": "Papers",
+      "submitted": "Submitted",
+      "flags": "Flags",
+      "reviewedAt": "Reviewed"
+    },
+    "status": {
+      "Pending": "Waiting on a review",
+      "InfoRequested": "Info requested",
+      "Approved": "Approved",
+      "Rejected": "Rejected"
+    },
+    "source": {
+      "Public": "Applied online",
+      "Admin": "Keyed in here",
+      "hint": "A colleague keyed this in from a call or an email. The terms were accepted on paper, not in the form."
+    },
+    "docs": {
+      "heading": "Papers",
+      "count": "{count, plural, =0 {no papers} one {# paper} other {# papers}}",
+      "allPresent": "Registration and licence are both here",
+      "missing": "Papers missing",
+      "missingOne": "{name} is missing",
+      "warningHint": "Some papers are missing. This blocks nothing — you can still approve, reject, or ask for them.",
+      "none": "No papers were uploaded",
+      "type": {
+        "RegistrationCertificate": "Registration certificate",
+        "Licence": "Recruitment licence",
+        "Other": "Other document"
+      },
+      "previewExpired": "This preview link has expired. Reload to mint a new one."
+    },
+    "flags": {
+      "rejectedBefore": "{count, plural, one {Rejected once before} other {Rejected # times before}}",
+      "rejectedBeforeHint": "This company has applied and been rejected before. That is context, not a verdict — judge this application on its own papers."
+    },
+    "facts": {
+      "heading": "The application",
+      "legalName": "Legal name",
+      "registrationNumber": "Registration number",
+      "licenceNumber": "Licence number",
+      "location": "Location",
+      "contactPerson": "Contact person",
+      "contactEmail": "Contact email",
+      "contactPhone": "Phone",
+      "expectedWorkers": "Workers expected",
+      "message": "Their message",
+      "terms": "Terms",
+      "termsAccepted": "Accepted {date}",
+      "source": "Came in via",
+      "none": "Not given"
+    },
+    "history": {
+      "heading": "Review history",
+      "infoRequested": "Info requested",
+      "decision": "Decision",
+      "empty": "Nobody has acted on this yet."
+    },
+    "verbs": {
+      "requestInfo": "Ask for more",
+      "requestInfoTitle": "Ask this company for more",
+      "requestInfoField": "What do you need from them?",
+      "requestInfoHint": "They are emailed your note and can send the papers again. The application stays open.",
+      "reject": "Reject",
+      "rejectTitle": "Reject this application?",
+      "rejectField": "Reason for the rejection",
+      "approve": "Approve",
+      "approveTitle": "Approve this application?",
+      "approveHint": "This creates the agency and emails a set-password link. Access does not open until you set the contract start date — the next step.",
+      "approveNote": "A note for the agency (optional)",
+      "approveConfirm": "Approve and create"
+    },
+    "approve": {
+      "accountCreatedTitle": "Agency created",
+      "accountCreatedBody": "The account exists and the invitation is on its way. The agency still cannot sign in until the contract dates are filled in.",
+      "openDates": "Set the contract dates",
+      "later": "Do it later"
+    },
+    "duplicate": {
+      "title": "An agency already uses this email",
+      "body": "A live agency is registered on this address, so a second account cannot be created for it. Check whether this is the same company applying twice.",
+      "viewAgency": "Open {name}",
+      "rejectAsDuplicate": "Reject as a duplicate"
+    },
+    "terminal": {
+      "approvedTitle": "Approved",
+      "approvedBody": "This application has been approved and the agency record now carries it forward.",
+      "rejectedTitle": "Rejected",
+      "openAgency": "Open the agency"
+    },
+    "empty": {
+      "queueTitle": "Nothing waiting",
+      "queueBody": "New partnership applications land here, whether a company applies online or a colleague keys one in."
+    },
+    "filters": {
+      "country": "Country",
+      "city": "City",
+      "submitted": "Submitted"
+    },
+    "intake": {
+      "action": "Key one in",
+      "title": "Key in an application",
+      "subtitle": "For an agency that phoned or emailed instead of using the form. They accepted the terms on paper.",
+      "step1": "The company",
+      "step2": "Their papers",
+      "step3": "Done",
+      "submit": "Create the application",
+      "expectedWorkerCount": "Workers they expect",
+      "message": "What they told you",
+      "endsPending": "This creates an application waiting on a review — not an agency. Approving it is a separate step, on the application itself.",
+      "step2Warning": "Attach their scans now. This upload link cannot be shown again — the only other copy is the receipt emailed to {email}, and it stops working the moment the application is decided.",
+      "tokenExpires": "The emailed link works until {date}.",
+      "skip": "No scans to attach",
+      "finish": "Finish",
+      "doneTitle": "Application created",
+      "doneBody": "It is waiting on a review, alongside the ones that came in online.",
+      "openApplication": "Open the application"
+    },
+    "upload": {
+      "heading": "Attach a paper",
+      "type": "What is it?",
+      "typePlaceholder": "Pick a document type",
+      "choose": "Choose a file",
+      "add": "Attach",
+      "uploading": "Attaching…",
+      "limits": "PDF, JPEG, PNG or WebP · up to 10 MB · at most 10 documents",
+      "uploaded": "{count, plural, =0 {Nothing attached yet} one {# paper attached} other {# papers attached}}",
+      "full": "This application already carries 10 documents.",
+      "refused": {
+        "mime": "That file type cannot be attached. Use a PDF, JPEG, PNG or WebP.",
+        "size": "That file is over 10 MB.",
+        "count": "This application already carries 10 documents."
+      }
+    },
+    "detail": {
+      "back": "Back to the queue",
+      "notFoundTitle": "This application no longer exists",
+      "notFoundBody": "It may have been removed. Go back to the queue and reload it.",
+      "forbiddenTitle": "You cannot open this application",
+      "forbiddenBody": "Your role does not include the permission this screen reads. Ask a super admin to grant it.",
+      "errorTitle": "This application could not be loaded",
+      "errorBody": "The request failed. Reload the page to try again."
+    },
+    "errors": {
+      "alreadyReviewed": "A colleague has already decided this one. Reload to see their decision.",
+      "noteRequired": "Write what you need from them.",
+      "reasonRequired": "Write the reason for the rejection.",
+      "notFound": "That application no longer exists. Reload the queue.",
+      "emailTaken": "An agency already uses this email address. It may still belong to a worker or an owner elsewhere — only agency logins clash.",
+      "invalidContractWindow": "The end date is before the start date.",
+      "locationMissing": "This application has no country or city on it, so no agency can be built from it. Ask the company for their location, or key the agency in by hand.",
+      "roleMissing": "The server is missing its AGENCY role, so no agency account can be created. This is a deployment fault, not a problem with what you entered.",
+      "termsNotConfigured": "No terms document is configured on the server, so an application cannot be keyed in yet. This is a deployment fault.",
+      "countryNotFound": "That country is no longer available. Pick it again.",
+      "cityNotFound": "That city is no longer available. Pick it again.",
+      "cityCountryMismatch": "That city is not in the selected country. Pick the city again.",
+      "invalidToken": "This upload link is not valid, or it has expired. Start the upload again to get a new one.",
+      "storageKeyMismatch": "That file does not belong to this upload. Start the upload again.",
+      "unsupportedType": "That document type cannot be uploaded here.",
+      "fileNotFound": "The file never reached storage. Upload it again.",
+      "mimeMismatch": "The file is not the kind it claims to be. Upload a PDF or an image.",
+      "tooLarge": "That file is over 10 MB.",
+      "limitReached": "This application already carries 10 documents.",
+      "generic": "That could not be done. Please try again."
+    }
+  },
   "system": {
+    "notBuilt": {
+      "title": "This section is not built yet",
+      "body": "The backend is ready and this screen is next in the queue. Nothing is broken — the row is here so you know the section is coming."
+    },
     "notFound": {
       "label": "Not found",
       "title": "This page was not found",

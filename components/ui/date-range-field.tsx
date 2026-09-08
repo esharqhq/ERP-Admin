@@ -141,6 +141,7 @@ export function DayControl({
   onChange,
   disabled = false,
   placeholder,
+  variant = "band",
 }: {
   label: string;
   value: string;
@@ -148,6 +149,11 @@ export function DayControl({
   disabled?: boolean;
   /** Shown while nothing is picked. Defaults to the shared “pick a date”. */
   placeholder?: string;
+  /**
+   * `"field"` in a form, `"band"` (the default) in a filter band. See
+   * `BoundBoxVariant` for why this is an enum and not a `className`.
+   */
+  variant?: BoundBoxVariant;
 }) {
   const t = useTranslations("common");
   return (
@@ -157,7 +163,9 @@ export function DayControl({
       label={label}
       onPick={onChange}
       trigger={
-        <BoundBox placeholder={placeholder ?? t("pickDate")}>{value}</BoundBox>
+        <BoundBox variant={variant} placeholder={placeholder ?? t("pickDate")}>
+          {value}
+        </BoundBox>
       }
     />
   );
@@ -195,18 +203,51 @@ function pillClass(on: boolean): string {
  * a real-looking button that does nothing when clicked, silently, in every
  * caller — this file's own `DateRangeControl` included.
  */
+/**
+ * How the box is dressed. Both variants print the same mono `YYYY-MM-DD`; only
+ * the geometry differs.
+ *
+ * - **`band`** — this file's filter band: 30-ish tall, `flex-1` inside a row of
+ *   controls, a hairline inset ring, 13px-ish text.
+ * - **`field`** — a form control, matching `components/ui/input.tsx` exactly:
+ *   `h-10`, full width, `rounded-lg`, a real `border-input` border.
+ *
+ * ⚠ **This is a variant rather than a `className` the caller passes**, and the
+ * first attempt got that wrong. Dressing the band's box as a field from outside
+ * took five overrides — height, radius, padding, `ring-0` to kill the ring the
+ * base class adds, and a hover reset — because `cn` can replace a utility but
+ * cannot remove one. Five override classes smeared across every caller is worse
+ * than one enum here: either way this file has to know `Input`'s geometry, and
+ * the only question is whether that knowledge lives in one place or in each
+ * call site's class string.
+ */
+type BoundBoxVariant = "band" | "field";
+
+const BOUND_BOX_VARIANT: Record<BoundBoxVariant, string> = {
+  band: "h-8 flex-1 rounded-[10px] bg-background px-2.5 text-xs ring-1 ring-inset ring-border hover:bg-accent",
+  field:
+    "h-10 w-full rounded-lg border border-input bg-transparent px-3 text-sm hover:bg-accent/40 dark:bg-input/30",
+};
+
 const BoundBox = forwardRef<
   HTMLButtonElement,
-  { placeholder: string; children?: string } & ComponentPropsWithoutRef<"button">
->(function BoundBox({ placeholder, children, className, ...props }, ref) {
+  {
+    placeholder: string;
+    children?: string;
+    variant?: BoundBoxVariant;
+  } & ComponentPropsWithoutRef<"button">
+>(function BoundBox(
+  { placeholder, children, variant = "band", className, ...props },
+  ref,
+) {
   return (
     <button
       ref={ref}
       type="button"
       className={cn(
-        "flex h-8 flex-1 items-center rounded-[10px] bg-background px-2.5 font-mono text-xs transition-colors",
-        "ring-1 ring-inset ring-border hover:bg-accent",
+        "flex items-center font-mono transition-colors",
         "outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        BOUND_BOX_VARIANT[variant],
         children ? "text-foreground" : "text-muted-foreground",
         className,
       )}

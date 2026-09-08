@@ -16,6 +16,7 @@ function draft(over: Partial<WalkInOrderDraft> = {}): WalkInOrderDraft {
     deadline: "",
     workerLimit: "1",
     instructions: "",
+    location: { lat: 53.550341, long: 9.992196 },
     ...over,
   };
 }
@@ -161,5 +162,56 @@ describe("propertyId", () => {
 describe("no company or note fields reach the wire", () => {
   it("never sends internalNote — it cannot be read back", () => {
     expect("internalNote" in ok()).toBe(false);
+  });
+});
+
+describe("location — required since F-06c (2026-08-26)", () => {
+  it("sends both coordinates on the wire", () => {
+    const body = ok({ location: { lat: 53.550341, long: 9.992196 } });
+    expect(body.lat).toBe(53.550341);
+    expect(body.long).toBe(9.992196);
+  });
+
+  it("names the field `long`, not `lng`", () => {
+    // The check-in doors use `lng`; the group and property doors use `long`.
+    // That inconsistency is the contract, so the wrong one is a silent 400.
+    const body = ok();
+    expect("lng" in body).toBe(false);
+    expect("long" in body).toBe(true);
+  });
+
+  it("refuses an order with no point picked", () => {
+    // Without this the route answers `400 walkin_location_required` and the
+    // form could not file an order at all — which is what shipped.
+    const result = buildWalkInOrder(draft({ location: null }), PROPERTY);
+    expect(result).toEqual({ ok: false, error: "locationRequired" });
+  });
+
+  it("passes a negative and a zero coordinate through unchanged", () => {
+    // A falsy 0 must not be read as "not set" — the prime meridian is a place.
+    const body = ok({ location: { lat: -33.8688, long: 0 } });
+    expect(body.lat).toBe(-33.8688);
+    expect(body.long).toBe(0);
+  });
+
+  it("does not round or reformat the picked point", () => {
+    const body = ok({ location: { lat: 52.5200066, long: 13.404954 } });
+    expect(body.lat).toBe(52.5200066);
+    expect(body.long).toBe(13.404954);
+  });
+});
+
+describe("refusal order — location is checked last", () => {
+  it("reports a typed field before sending the admin back to the map", () => {
+    const result = buildWalkInOrder(
+      draft({ workerLimit: "0", location: null }),
+      PROPERTY,
+    );
+    expect(result).toEqual({ ok: false, error: "workerLimitInvalid" });
+  });
+
+  it("still reports the title first", () => {
+    const result = buildWalkInOrder(draft({ title: "", location: null }), PROPERTY);
+    expect(result).toEqual({ ok: false, error: "titleRequired" });
   });
 });

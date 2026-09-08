@@ -131,6 +131,21 @@ const CATALOG: Record<string, Omit<ApiErrorInfo, "code">> = {
   // 409 on edit and delete (acting *on* the owner), 400 on ticket and contract
   // (the owner is an invalid argument to something else).
   owner_is_system: { labelKey: "ownerIsSystem", reaction: "toast" },
+  // ── filing an order: the location pair (F-06c, f-02b-6 §3) ───────────────
+  // Which of the two arrives is keyed on the *property*, not on the caller.
+  //
+  // `group_location_not_allowed` is the one a real owner's order can hit: the
+  // owner dialog files against an ordinary property, where sending coordinates
+  // is refused. `buildOrder` sends none, so it takes a new surface to produce.
+  //
+  // `walkin_location_required` is reachable here only through the known hole in
+  // `useWalkInOwnerId` — when that lookup *errors*, `isWalkIn` reads false and
+  // the walk-in account's actions are re-enabled against it (the hook documents
+  // the same effect on Edit, Delete, Message and Create contract). Worded rather
+  // than left generic so an admin who lands there is told to use the Walk-in
+  // page, which is the only surface that collects the point.
+  walkin_location_required: { labelKey: "walkinLocationRequired", reaction: "toast" },
+  group_location_not_allowed: { labelKey: "groupLocationNotAllowed", reaction: "toast" },
 
   property_category_not_found: { labelKey: "propertyCategoryNotFound", reaction: "toast" },
   property_category_inactive: { labelKey: "propertyCategoryInactive", reaction: "toast" },

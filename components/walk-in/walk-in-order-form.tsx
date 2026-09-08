@@ -10,9 +10,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { MonthDatePicker } from "@/components/tasks/month-date-picker";
+import { LocationPicker } from "@/components/properties/location-picker";
 import { useCreateTaskGroup } from "@/hooks/use-tasks";
 import { useHasPermission } from "@/hooks/use-current-permissions";
-import { getApiErrorCode } from "@/lib/http/api-error";
+import { getApiErrorCode, getValidationMessage } from "@/lib/http/api-error";
 import { newIdempotencyKey } from "@/lib/http/idempotency";
 import {
   buildWalkInOrder,
@@ -30,6 +31,7 @@ const EMPTY: WalkInOrderDraft = {
   deadline: "",
   workerLimit: "1",
   instructions: "",
+  location: null,
 };
 
 /**
@@ -92,10 +94,26 @@ export function WalkInOrderForm({
     );
   }
 
+  /**
+   * Three envelopes, in order of specificity.
+   *
+   * `walkin_location_required` should be unreachable — `buildWalkInOrder` refuses
+   * before the request — but it is worded rather than folded into the generic
+   * failure, because it is the one refusal that says *which* field is at fault and
+   * this form shipped for three weeks unable to file an order at all without it.
+   *
+   * An out-of-range coordinate is a `400` in **problem-details** shape
+   * (`f-06-c-checkin-proof.md` §5.2), which carries no `error` field at all — so
+   * `getApiErrorCode` returns `null` for it and the generic message would swallow
+   * the server's own field-specific wording.
+   */
   const serverError = create.isError
-    ? getApiErrorCode(create.error) === "property_not_found"
-      ? t("errors.propertyGone")
-      : t("errors.generic")
+    ? (() => {
+        const code = getApiErrorCode(create.error);
+        if (code === "property_not_found") return t("errors.propertyGone");
+        if (code === "walkin_location_required") return t("errors.locationRequired");
+        return getValidationMessage(create.error) ?? t("errors.generic");
+      })()
     : null;
 
   const disabled = !canCreate || create.isPending;
@@ -209,6 +227,36 @@ export function WalkInOrderForm({
           />
           <p className="text-xs text-muted-foreground">{t("form.instructionsHint")}</p>
         </div>
+
+        {/*
+          Directly under the instructions, where the street was just typed — the
+          same "type it, then point at it" order the property dialogs use.
+
+          This is not optional data: `POST /api/tasks/admin/groups` has refused a
+          walk-in order without `lat`/`long` since 2026-08-26 (F-06c), and the
+          point becomes the geofence target every worker's check-in is measured
+          against. A map rather than two number inputs is the guide's explicit
+          instruction (§4): a coordinate that is merely *wrong* rather than out of
+          range is accepted here and then refuses every check-in at the job with
+          `outside_geofence`.
+        */}
+        <LocationPicker
+          value={draft.location}
+          onChange={(lat, long) => set("location")({ lat, long })}
+          label={t("form.location")}
+          hint={t("form.locationHint")}
+        />
+
+        {/*
+          The order carries no read-back and no edit path (§4.2): `TaskGroupDto`
+          does not return the coordinates and `PUT /api/tasks/groups/{id}` cannot
+          change them, so a wrong address can only be cancelled and re-filed. The
+          warning belongs next to Submit because that is the last moment it can be
+          acted on.
+        */}
+        {draft.location ? (
+          <p className="text-xs text-muted-foreground">{t("form.locationFinal")}</p>
+        ) : null}
 
         {localError ? (
           <p className="text-sm text-destructive">

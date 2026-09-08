@@ -3,6 +3,8 @@ import {
   coverNoteKey,
   coverPresentation,
   indexCover,
+  ownerSubjectRow,
+  workerSubjectRow,
   ownerContractSubjectId,
   ownerContractUserId,
   withCover,
@@ -174,6 +176,8 @@ describe("withCover", () => {
     onboardingStatus: "Active",
     cover: null,
     documentCount: 3,
+    verdicts: null,
+    company: null,
     reviewedAt: null,
     rejectReason: null,
     licenseExpiry: null,
@@ -185,5 +189,64 @@ describe("withCover", () => {
     const [withIt, without] = withCover([base, { ...base, id: "z" }], map);
     expect(withIt.cover?.phase).toBe("InForce");
     expect(without.cover).toBeNull();
+  });
+});
+
+describe("ownerSubjectRow", () => {
+  const dto = {
+    ownerProfileId: "profile-1",
+    ownerUserId: "user-1",
+    ownerName: "Hans Müller",
+    ownerEmail: "hans@example.de",
+    onboardingStatus: "Review",
+    onboardingRejectReason: null,
+    onboardingReviewedAt: null,
+    documentCount: 4,
+    documentsPending: 2,
+    documentsApproved: 1,
+    documentsRejected: 1,
+    companyName: "Fixture Handels GmbH",
+    companyLegalForm: "Llc",
+  } as const;
+
+  // Three same-typed numbers next to each other: a swapped pair typechecks
+  // perfectly and only shows up as the wrong colour dot in a row.
+  it("maps each document count to its own verdict", () => {
+    expect(ownerSubjectRow(dto).verdicts).toEqual({
+      pending: 2,
+      approved: 1,
+      rejected: 1,
+    });
+  });
+
+  it("carries the company name for the subject line", () => {
+    expect(ownerSubjectRow(dto).company).toBe("Fixture Handels GmbH");
+  });
+
+  it("keeps a natural person's null company as null, not an empty string", () => {
+    expect(ownerSubjectRow({ ...dto, companyName: null }).company).toBeNull();
+  });
+
+  it("keys the row on ownerProfileId, not ownerUserId", () => {
+    expect(ownerSubjectRow(dto).id).toBe("profile-1");
+  });
+
+  it("still reads the total count from documentCount", () => {
+    expect(ownerSubjectRow(dto).documentCount).toBe(4);
+  });
+});
+
+describe("workerSubjectRow", () => {
+  it("has no verdicts and no company — the worker list DTO carries neither", () => {
+    const row = workerSubjectRow({
+      id: "w-1",
+      fullName: "Dilnoza Karimova",
+      email: "d@example.com",
+      onboardingStatus: "Active",
+      licenseExpiry: null,
+      skills: ["General Worker"],
+    } as never);
+    expect(row.verdicts).toBeNull();
+    expect(row.company).toBeNull();
   });
 });

@@ -8,8 +8,9 @@ import {
   onboardingStatusPresentation,
 } from "@/lib/onboarding/status";
 import {
-  WAITING_ALARM_DAYS,
+  verdictDots,
   type DocVerdict,
+  type VerdictCounts,
 } from "@/lib/onboarding/queue-detail";
 import type { SubjectRow } from "@/lib/onboarding/subject-row";
 import { WARN_DAYS } from "@/lib/onboarding/subject-row";
@@ -132,25 +133,33 @@ const DOT: Record<DocVerdict, string> = {
  * How many files, and how they were decided — the count, then one dot per file
  * in its verdict colour.
  *
- * *"A red dot in the row is the fastest read of 'this one has a problem'."* The
- * dots come from a per-row detail read, so before it lands the count stands alone
- * rather than showing a row of grey dots, which would say every file is
- * undecided.
+ * *"A red dot in the row is the fastest read of 'this one has a problem'."* Both
+ * halves now come from the list row, so the dots land with the count instead of
+ * a beat later. They are **grouped by verdict, not in file order** — the row
+ * carries three counts, not a per-file list; the ordered strip is on the detail
+ * view, which still reads the real `documents[]`.
+ *
+ * `count` is `documentCount` and stays authoritative — the dots are the
+ * breakdown beside it, capped at `MAX_DOTS`. If a verdict the client does not
+ * know about is ever added server-side the three counts will sum to less than
+ * `count`, and the honest reading is then "fewer dots than files", not a
+ * miscount.
  */
 export function FilesCell({
   count,
   verdicts,
 }: {
   count: number | null;
-  verdicts: DocVerdict[] | undefined;
+  verdicts: VerdictCounts | null | undefined;
 }) {
   if (count == null) return <Dash />;
+  const dots = verdictDots(verdicts);
   return (
     <span className="flex items-center gap-2">
       <span className="text-sm tabular-nums">{count}</span>
-      {verdicts && verdicts.length > 0 && (
+      {dots.length > 0 && (
         <span className="flex items-center gap-1">
-          {verdicts.map((verdict, i) => (
+          {dots.map((verdict, i) => (
             <span
               key={i}
               className={cn("size-[7px] shrink-0 rounded-full", DOT[verdict])}
@@ -163,32 +172,10 @@ export function FilesCell({
 }
 
 /**
- * How long this submission has been waiting, in whole days.
- *
- * Red past the alarm rung. An em dash on any stage that is not waiting — and on a
- * row whose detail has not arrived, because "0 d" would be a claim rather than a
- * blank.
- */
-export function WaitingCell({ days }: { days: number | null }) {
-  const t = useTranslations("docsWorkspace.queue");
-  if (days == null) return <Dash />;
-  return (
-    <span
-      className={cn(
-        "text-sm tabular-nums",
-        days >= WAITING_ALARM_DAYS && "font-medium text-destructive",
-      )}
-    >
-      {t("waitingDays", { days })}
-    </span>
-  );
-}
-
-/**
  * The worker's own service licence expiry — worker queue only.
  *
  * One red state, not two: the design draws a single rung at 30 days (comp line
- * 527), unlike `WaitingCell`'s amber-then-red ladder. A lapsed licence drops the
+ * 527), a single rung rather than a ladder. A lapsed licence drops the
  * account back to KYC and makes every future shift unfillable, which is why it is
  * worth catching before it happens rather than only once it has.
  *

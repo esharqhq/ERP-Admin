@@ -1,101 +1,65 @@
-import { normalizeStatus } from "@/lib/types/task.types";
-import type { KycProfileDto } from "@/lib/types/kyc.types";
-import type { OnboardingStatus } from "@/lib/types/onboarding.types";
-
 /**
- * The four things the queue's rows need that its list endpoint does not return.
+ * How the queue's rows describe a document bundle.
  *
- * `GET /api/admin/kyc` gives eight fields and none of these; `GET /api/admin/kyc/{id}`
- * gives all of them. The queue therefore reads the detail of the rows it is
- * **currently showing** — a bounded per-page cost, under the same query key the
- * detail page uses, so clicking through to a row is already warm.
+ * Since 2026-09-08 (`kyc-queue-load-audit`) the list row carries a per-verdict
+ * breakdown, so the queue no longer reads one detail per row to draw this. What
+ * it lost in that trade is **order**: the row knows how many files are approved,
+ * pending and rejected, not which file is which — so the dots are a grouped
+ * summary, and the per-file strip lives on the detail view, which still has the
+ * real `documents[]`.
+ *
+ * It also lost `submittedAt` outright. There is no column and no audit trail for
+ * when a bundle was put in front of an admin (`docs/handoff/CHANGELOG.md`,
+ * 2026-09-08), so the "waiting N days" column and its seven-day alarm are gone
+ * with it. Nothing on the row substitutes: `onboardingReviewedAt` is when a
+ * decision was *made*, and it is `null` on exactly the rows the queue is about.
  */
 
 export type DocVerdict = "approved" | "pending" | "rejected";
 
-export interface QueueDetail {
-  /** `null` is a complete answer — a natural person, not a missing value. */
-  company: string | null;
-  /** One entry per uploaded file, in the order the API returned them. */
-  verdicts: DocVerdict[];
-  /**
-   * When the bundle was put in front of an admin, taken as the **earliest**
-   * document upload. The design's own column spec maps "Submitted at" to
-   * `documents[0].createdAt`; earliest rather than first because the array's
-   * order is not promised to be chronological.
-   */
-  submittedAt: string | null;
-}
-
 /** How many dots a row draws before it stops. The count beside them is exact. */
 export const MAX_DOTS = 8;
 
-export function summariseDetail(dto: KycProfileDto): QueueDetail {
-  const docs = dto.documents ?? [];
-
-  const dates = docs
-    .map((d) => d.createdAt)
-    .filter((d): d is string => typeof d === "string" && d.length > 0)
-    .sort();
-
-  return {
-    company: dto.company?.name?.trim() || null,
-    verdicts: docs.slice(0, MAX_DOTS).map((d) => verdictOf(d.status)),
-    submittedAt: dates[0] ?? null,
-  };
+export interface VerdictCounts {
+  pending: number;
+  approved: number;
+  rejected: number;
 }
-
-function verdictOf(status: string | null): DocVerdict {
-  const normalized = normalizeStatus(status ?? "pending");
-  if (normalized === "approved") return "approved";
-  if (normalized === "rejected") return "rejected";
-  return "pending";
-}
-
-const DAY_MS = 86_400_000;
 
 /**
- * Whole days this submission has been waiting on a decision.
+ * The dots for one row, grouped by verdict.
  *
- * `null` on any stage that is **not** waiting — the row is then an em dash rather
- * than a zero, because a decided submission has not been waiting no time, it has
- * stopped waiting. `null` too while the clock or the detail is unknown, so a
- * pending read never renders as "0 d".
+ * Rejected first, then pending, then approved — the read the design asks for is
+ * *"a red dot in the row is the fastest read of 'this one has a problem'"*, and
+ * that only works if red is never pushed past `MAX_DOTS` by a pile of green.
  */
-export function waitingDays(
-  status: OnboardingStatus,
-  detail: QueueDetail | undefined,
-  today: number,
-): number | null {
-  if (status !== "Review") return null;
-  if (!detail?.submittedAt || !today) return null;
-
-  const at = Date.parse(detail.submittedAt);
-  if (Number.isNaN(at)) return null;
-
-  // Floored to the day at both ends, so a bundle submitted yesterday afternoon
-  // reads "1 d" all of today rather than flipping at the hour it arrived.
-  return Math.max(0, Math.round((today - Math.floor(at / DAY_MS) * DAY_MS) / DAY_MS));
+export function verdictDots(counts: VerdictCounts | null | undefined): DocVerdict[] {
+  if (!counts) return [];
+  const dots: DocVerdict[] = [
+    ...Array<DocVerdict>(Math.max(0, counts.rejected)).fill("rejected"),
+    ...Array<DocVerdict>(Math.max(0, counts.pending)).fill("pending"),
+    ...Array<DocVerdict>(Math.max(0, counts.approved)).fill("approved"),
+  ];
+  return dots.slice(0, MAX_DOTS);
 }
-
-/** Past this, a waiting submission is late enough to colour. The design's rung. */
-export const WAITING_ALARM_DAYS = 7;
 
 /**
  * The second line under a subject's name: their company, then their email.
  *
  * "Natural person" when there is no company — a complete state, not a gap, and
- * the design says so in as many words. Rendered only once the detail has
- * arrived: guessing "Natural person" for a row still loading would state the one
- * fact the read exists to establish.
+ * the design says so in as many words. `companyName` is `null` (never an empty
+ * string) for an owner with no `OwnerCompany` row, so absence is the answer and
+ * the line can be drawn on first paint rather than waiting for a second read.
  */
 export function subjectSide(
-  detail: QueueDetail | undefined,
+  company: string | null,
   email: string | null,
   naturalPerson: string,
+  /** Worker rows have no company concept at all — they get email only. */
+  hasCompanyConcept = true,
 ): string | null {
   const parts = [
-    detail ? (detail.company ?? naturalPerson) : null,
+    hasCompanyConcept ? (company ?? naturalPerson) : null,
     email,
   ].filter(Boolean);
   return parts.length > 0 ? parts.join(" · ") : null;
