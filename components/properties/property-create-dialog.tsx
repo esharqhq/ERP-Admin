@@ -65,12 +65,18 @@ export function PropertyCreateDialog({
   // authored yet) and `Contract` (sent, not yet InForce) would foreseeably 403.
   // `Active` is the stored projection and can lag real cover by up to an hour;
   // the 403 handler below remains the real guard for that edge.
+  // Narrowed on the wire, not after it. The route is paged since 2026-09-08 and
+  // caps at 100 rows, so asking for every status and filtering to Active here
+  // would spend that budget on owners the picker cannot offer. `?status=` takes
+  // all six OnboardingStatus values.
   const { data: ownerRows = [], isLoading: ownersLoading } = useOwnerList(
-    undefined,
+    "Active",
     !lockedOwner,
   );
   // `items` lets <SelectValue> render the owner's NAME in the trigger instead of the raw id.
   const ownerItems = ownerRows
+    // Belt and braces: the server filter above is the real one, but a row that
+    // slipped through must not become a pick the create call would refuse.
     .filter((o) => o.onboardingStatus === "Active")
     .map((o) => ({
       value: o.ownerUserId,

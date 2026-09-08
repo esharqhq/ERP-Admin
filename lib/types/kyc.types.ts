@@ -45,6 +45,21 @@ export interface KycProfileSummaryDto {
   onboardingRejectReason: string | null;
   onboardingReviewedAt: string | null;
   documentCount: number;
+  /**
+   * Per-verdict breakdown alongside the total above, added 2026-09-08
+   * (`kyc-queue-load-audit`). Counts only — **which** file holds which verdict
+   * is still detail-only, so a row can draw a grouped summary but not a
+   * per-file strip in API order.
+   */
+  documentsPending: number;
+  documentsApproved: number;
+  documentsRejected: number;
+  /**
+   * ⚠ `null` for a natural-person owner (no `OwnerCompany` row) — not an empty
+   * string. Absence is the answer, not a missing value.
+   */
+  companyName: string | null;
+  companyLegalForm: string | null;
 }
 
 /** `GET /api/admin/kyc/{ownerProfileId}` and `/api/admin/kyc/owner/{ownerUserId}`. */

@@ -3,11 +3,19 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { kycService } from "@/lib/services/kyc.service";
 import type { OnboardingStatus } from "@/lib/types/onboarding.types";
+import type { PagedQuery } from "@/lib/types/paged.types";
 
-export function useKycList(status?: OnboardingStatus) {
+/**
+ * The owner KYC queue, one page at a time.
+ *
+ * ⚠ Paging is part of the key. `GET /api/admin/kyc` became a `PagedResult` on
+ * 2026-09-08 with `pageSize` defaulting to 25; keying only on `status` would
+ * serve page 2 out of page 1's cache entry.
+ */
+export function useKycList(status?: OnboardingStatus, paging: PagedQuery = {}) {
   return useQuery({
-    queryKey: ["kyc", status],
-    queryFn: () => kycService.getList(status),
+    queryKey: ["kyc", status, paging.page ?? null, paging.pageSize ?? null],
+    queryFn: () => kycService.getList(status, paging),
   });
 }
 

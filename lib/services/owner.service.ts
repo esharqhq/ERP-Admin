@@ -7,17 +7,32 @@ import type {
   OwnerRowDto,
   OwnerSummaryDto,
 } from "@/lib/types/owner.types";
-import type { PagedResult } from "@/lib/types/paged.types";
+import { MAX_PAGE_SIZE, type PagedResult } from "@/lib/types/paged.types";
 import type { PropertyDto } from "@/lib/types/property.types";
 import type { TaskGroupDto } from "@/lib/types/task.types";
 
 export const ownerService = {
   // ── KYC verification queue (GET /api/admin/kyc) — used by the Contracts owner picker ──
 
+  /**
+   * ⚠ **Paged since 2026-09-08** (`kyc-queue-load-audit`, breaking) — it was a
+   * bare array. The picker wants as many owners as one request can carry, so it
+   * asks for `MAX_PAGE_SIZE`; the default of 25 would hide most of the list
+   * behind no control at all, since a `<select>` has no pager.
+   *
+   * ⚠ Still a ceiling, not "everything": past 100 owners the picker is short and
+   * says nothing about it. That is the same class of silent truncation the
+   * backend just removed from this route, and the reason the picker should move
+   * to a searching combobox rather than a longer page.
+   */
   getOwnerList: async (status?: string): Promise<KycProfileSummaryDto[]> => {
-    const params = status !== undefined ? { status } : {};
-    const { data } = await apiClient.get<KycProfileSummaryDto[]>("/api/admin/kyc", { params });
-    return data;
+    const params: Record<string, string | number> = { pageSize: MAX_PAGE_SIZE };
+    if (status !== undefined) params.status = status;
+    const { data } = await apiClient.get<PagedResult<KycProfileSummaryDto>>(
+      "/api/admin/kyc",
+      { params },
+    );
+    return data.items ?? [];
   },
 
   // ── The owners TABLE (FND-3) — paged, filtered, BOSS-owners only ──

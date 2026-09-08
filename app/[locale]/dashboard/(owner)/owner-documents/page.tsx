@@ -9,23 +9,20 @@ import {
   ReasonCell,
   StageCell,
   SubjectCell,
-  WaitingCell,
 } from "@/components/docs-workspace/queue-cells";
 import { DataTable, type DataColumn } from "@/components/ui/data-table";
 import type { FilterField, FilterOption } from "@/components/ui/filter-bar";
 import { useOwnerContracts } from "@/hooks/use-contracts";
 import { useHasPermission } from "@/hooks/use-current-permissions";
 import { useKycList } from "@/hooks/use-kyc";
-import { useQueueDetails } from "@/hooks/use-queue-details";
+import { MAX_PAGE_SIZE } from "@/lib/types/paged.types";
 import { useTableUrlState } from "@/hooks/use-table-url-state";
-import { useToday } from "@/hooks/use-today";
 import { isPermissionDenied } from "@/lib/onboarding/errors";
-import { subjectSide, waitingDays } from "@/lib/onboarding/queue-detail";
+import { subjectSide } from "@/lib/onboarding/queue-detail";
 import {
   DEFAULT_QUEUE_TAB,
   QUEUE_TABS,
-  countByTab,
-  inTab,
+  statusForTab,
 } from "@/lib/onboarding/queue-tabs";
 import {
   indexCover,
@@ -64,20 +61,46 @@ export default function OwnerDocumentsPage() {
   const tQueue = useTranslations("docsWorkspace.queue");
   const tPhase = useTranslations("onboarding.phase");
   const tStatus = useTranslations("onboarding.status");
-  const today = useToday();
 
   const state = useTableUrlState({
     filterKeys: FILTER_KEYS,
     defaultTab: DEFAULT_QUEUE_TAB,
     /**
-     * Longest wait first — the design's default, and now reachable: the
-     * submission date comes off each row's detail read. Rows that are not waiting
-     * sort below every real wait, so the queue opens on the work.
+     * Undecided first.
+     *
+     * ⚠ Not the design's default, which was longest-wait-first. That column is
+     * gone: it read `submittedAt`, which came from a per-row detail request, and
+     * the backend has no column for it to move onto (`docs/handoff/CHANGELOG.md`,
+     * 2026-09-08 — deferred, it would need a migration). Nothing on the row is an
+     * age.
+     *
+     * `reviewedAt` is `null` on every row nobody has decided, and ascending sorts
+     * a null first — so the queue still opens on the work, it just cannot say
+     * which piece has waited longest. Within the undecided block the order is
+     * arbitrary, and that is the honest state until an age exists to sort on.
      */
-    defaultSort: { key: "waiting", dir: "desc" },
+    defaultSort: { key: "lastDecision", dir: "asc" },
   });
 
-  const list = useKycList();
+  /**
+   * One page of the tab an admin is actually in.
+   *
+   * ⚠ `?status=` is the **only** narrowing this route offers — it takes no search
+   * and no sort key — so the tab goes to the server and everything else in the
+   * toolbar stays a client pipeline over the page. Converting the table to
+   * `mode: "server"` would delete four working controls (search, the two filters
+   * and every sortable column) to gain nothing the wire supports.
+   *
+   * Paging matters because the route became a `PagedResult` on 2026-09-08 with
+   * `pageSize` defaulting to 25. `MAX_PAGE_SIZE` is the ceiling it allows, and
+   * per-status it goes a long way — Review, the tab that is worked, is the short
+   * one. Where it does not reach, `truncated` below says so out loud rather than
+   * quietly showing a short list, which is the failure the backend just removed
+   * from this route.
+   */
+  const list = useKycList(statusForTab(state.tab), { pageSize: MAX_PAGE_SIZE });
+  const loaded = list.data?.items?.length ?? 0;
+  const truncated = (list.data?.total ?? 0) > loaded;
 
   /**
    * `GET /api/contracts/admin/owner` is unpaginated and returns every owner's
@@ -91,35 +114,8 @@ export default function OwnerDocumentsPage() {
 
   const rows = useMemo(() => {
     const cover = indexCover(contracts.data ?? [], ownerContractSubjectId);
-    return withCover((list.data ?? []).map(ownerSubjectRow), cover);
+    return withCover((list.data?.items ?? []).map(ownerSubjectRow), cover);
   }, [contracts.data, list.data]);
-
-  // Counted over the whole list, before the tab narrows it — see `countByTab`.
-  const counts = useMemo(() => countByTab(rows), [rows]);
-
-  const tabRows = useMemo(
-    () => rows.filter((row) => inTab(row.onboardingStatus, state.tab)),
-    [rows, state.tab],
-  );
-
-  /**
-   * The per-row extras four of the columns need, for the **current tab**.
-   *
-   * Scoped to the tab rather than to the page on screen, which is the tighter
-   * bound and the one that does not work. Sorting by Waiting reads a value that
-   * only arrives with these details, so page-scoped enrichment feeds itself: the
-   * page decides what to fetch, the fetch changes the sort, the sort changes the
-   * page. Descending settles after a round; ascending does not — rows with no
-   * detail sort to the top, get fetched, drop away, and pull the next unfetched
-   * rows up behind them, for ever.
-   *
-   * So: one read per row of the tab an admin is actually in. "In review" is the
-   * one they work, and it is the short one. Ask #24 removes this entirely by
-   * putting the four fields on the list row.
-   */
-  const { details } = useQueueDetails(
-    useMemo(() => tabRows.map((row) => row.id), [tabRows]),
-  );
 
   /**
    * Labelled from `onboarding.status.*`, the same strings the Stage cell prints —
@@ -131,9 +127,16 @@ export default function OwnerDocumentsPage() {
       QUEUE_TABS.map(({ key }) => ({
         value: key,
         label: key === "all" ? t("allTab") : tStatus(key as "review"),
-        count: counts[key] ?? 0,
+        /**
+         * Only the open tab carries a number, and it is the server's own `total`
+         * for that status — exact at any size. The others cannot be counted
+         * without a request each, and counting the loaded page instead would
+         * "put a number beside a tab that describes neither the tab nor the
+         * page" (`lib/onboarding/queue-tabs.ts`).
+         */
+        count: key === state.tab ? (list.data?.total ?? 0) : undefined,
       })),
-    [counts, t, tStatus],
+    [list.data?.total, state.tab, t, tStatus],
   );
 
   /**
@@ -152,7 +155,7 @@ export default function OwnerDocumentsPage() {
         cell: (row) => (
           <SubjectCell
             row={row}
-            side={subjectSide(details.get(row.id), row.email, tQueue("naturalPerson"))}
+            side={subjectSide(row.company, row.email, tQueue("naturalPerson"))}
           />
         ),
         compare: (a, b) => (a.fullName ?? "").localeCompare(b.fullName ?? ""),
@@ -170,30 +173,9 @@ export default function OwnerDocumentsPage() {
         label: tQueue("colFiles"),
         className: "min-w-[7rem]",
         cell: (row) => (
-          <FilesCell
-            count={row.documentCount}
-            verdicts={details.get(row.id)?.verdicts}
-          />
+          <FilesCell count={row.documentCount} verdicts={row.verdicts} />
         ),
         compare: (a, b) => (a.documentCount ?? 0) - (b.documentCount ?? 0),
-      },
-      {
-        id: "waiting",
-        label: tQueue("colWaiting"),
-        className: "min-w-[6rem]",
-        cell: (row) => (
-          <WaitingCell days={waitingDays(row.onboardingStatus, details.get(row.id), today)} />
-        ),
-        /**
-         * Rows that are not waiting sort as `-1`, below every real wait in
-         * descending order — which is the order this column exists for: the
-         * longest-waiting submission at the top, the decided ones out of the way.
-         */
-        compare: (a, b) => {
-          const days = (row: SubjectRow) =>
-            waitingDays(row.onboardingStatus, details.get(row.id), today) ?? -1;
-          return days(a) - days(b);
-        },
       },
       {
         id: "lastDecision",
@@ -223,7 +205,7 @@ export default function OwnerDocumentsPage() {
         cell: (row) => <ReasonCell reason={row.rejectReason} />,
       },
     ],
-    [details, today, tQueue],
+    [tQueue],
   );
 
   /**
@@ -284,13 +266,23 @@ export default function OwnerDocumentsPage() {
         <p className="text-sm text-muted-foreground">{t("ownerListSubtitle")}</p>
       </div>
 
+      {/* Said out loud, because a short list that says nothing is exactly the
+          failure the backend removed from this route on 2026-09-08. The search,
+          the filters and the sort below all run over the loaded rows only, so an
+          operator has to know the set is not the whole tab. */}
+      {truncated && (
+        <p className="rounded-lg bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
+          {tQueue("pageTruncated", { loaded, total: list.data?.total ?? 0 })}
+        </p>
+      )}
+
       <DataTable
         state={state}
         scope="owner-documents"
         columns={columns}
         source={{
           mode: "client",
-          rows: tabRows,
+          rows,
           isLoading: list.isLoading,
           isError: list.isError,
           // A refusal is not a failure: the shell names the missing grant instead
