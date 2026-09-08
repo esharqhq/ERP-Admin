@@ -1,11 +1,15 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { Plus } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 
+import { Button } from "@/components/ui/button";
+import { Can } from "@/components/auth/can";
 import { DataTable } from "@/components/ui/data-table/data-table";
 import type { FilterField } from "@/components/ui/filter-bar";
 import type { StageTab } from "@/components/ui/data-table/types";
+import { IntakeDialog } from "@/components/agency-requests/intake-dialog";
 import { useApplicationColumns } from "@/components/agency-requests/queue-columns";
 import { useAgencyApplications } from "@/hooks/use-agency-applications";
 import { useCurrentPermissions } from "@/hooks/use-current-permissions";
@@ -50,9 +54,10 @@ function lookupLabel(c: { nameDe: string; nameEn: string }, locale: string): str
  * probes, which is the same call the workers queue declined to make; a count taken
  * from `data.total` would describe the *current* tab four times over.
  *
- * The intake button (F-05a §6, an admin keying an application in from a phone
- * call) lands in phase 3B — this page ships with no `actions` rather than with a
- * disabled one.
+ * The intake button is the **second door into the same queue** (F-05a §6.3): an
+ * admin keying in an agency that phoned instead of using the form. Behind its own
+ * `Can`, because `agency_application:manage` and the read grant come apart — a
+ * MODERATOR holds the read and none of the writes.
  */
 export default function AgencyRequestsPage() {
   const t = useTranslations("agencyRequests");
@@ -108,6 +113,8 @@ export default function AgencyRequestsPage() {
   );
 
   const columns = useApplicationColumns();
+
+  const [intakeOpen, setIntakeOpen] = useState(false);
 
   /**
    * The country picker owns two params, so it writes both at once.
@@ -191,6 +198,14 @@ export default function AgencyRequestsPage() {
         rowHref={(a) => `/dashboard/agency-requests/${a.id}`}
         rowLabel={(a) => a.legalName}
         title={t("list")}
+        actions={
+          <Can permission="agency_application:manage">
+            <Button size="sm" className="gap-1.5" onClick={() => setIntakeOpen(true)}>
+              <Plus className="size-3.5" />
+              {t("intake.action")}
+            </Button>
+          </Can>
+        }
         tabs={tabs}
         tabsLabel={t("title")}
         fields={fields}
@@ -203,6 +218,11 @@ export default function AgencyRequestsPage() {
         */
         empty={{ title: t("empty.queueTitle"), body: t("empty.queueBody") }}
       />
+
+      {/* Mounted only while open: it holds an upload token in state, and a closed
+          dialog that keeps one alive is a token living longer than the act that
+          needed it. */}
+      {intakeOpen && <IntakeDialog open onClose={() => setIntakeOpen(false)} />}
     </div>
   );
 }
