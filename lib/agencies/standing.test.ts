@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  compareContractEnd,
   contractDays,
   standingRank,
   standingTone,
@@ -95,5 +96,41 @@ describe("contractDays", () => {
       TODAY,
     );
     expect(Object.keys(result).sort()).toEqual(["untilEnd", "untilStart"]);
+  });
+});
+
+describe("compareContractEnd", () => {
+  const dated = { signedOn: "2026-01-01T00:00:00Z", validUntil: "2027-01-01T00:00:00Z" };
+  const later = { signedOn: "2026-01-01T00:00:00Z", validUntil: "2028-01-01T00:00:00Z" };
+  const openEnded = { signedOn: "2026-01-01T00:00:00Z", validUntil: null };
+  const noDates = { signedOn: null, validUntil: null };
+
+  it("orders real end dates soonest first", () => {
+    expect(compareContractEnd(dated, later)).toBeLessThan(0);
+  });
+
+  /**
+   * ⚠ The reason this is not a plain nulls-last compare. Both of these have a
+   * null `validUntil` and they mean opposite things — unlimited access against
+   * cannot sign in at all — so they must not interleave.
+   */
+  it("puts open-ended before no-dates-at-all", () => {
+    expect(compareContractEnd(openEnded, noDates)).toBeLessThan(0);
+    expect(compareContractEnd(noDates, openEnded)).toBeGreaterThan(0);
+  });
+
+  it("puts both null cases after every real end date", () => {
+    expect(compareContractEnd(later, openEnded)).toBeLessThan(0);
+    expect(compareContractEnd(later, noDates)).toBeLessThan(0);
+  });
+
+  it("sorts a mixed column into dated, open-ended, then undated", () => {
+    const rows = [noDates, later, openEnded, dated];
+    expect(rows.slice().sort(compareContractEnd)).toEqual([
+      dated,
+      later,
+      openEnded,
+      noDates,
+    ]);
   });
 });

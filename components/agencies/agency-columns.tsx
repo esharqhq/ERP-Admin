@@ -7,7 +7,11 @@ import { useLocale, useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import type { DataColumn } from "@/components/ui/data-table/types";
 import { formatDay } from "@/lib/ui/relative-time";
-import { standingRank, standingTone } from "@/lib/agencies/standing";
+import {
+  compareContractEnd,
+  standingRank,
+  standingTone,
+} from "@/lib/agencies/standing";
 import type { AgencyDto } from "@/lib/types/agency.types";
 
 /** Nulls last in BOTH directions — an unknown is not a small value. */
@@ -125,7 +129,9 @@ export function useAgencyColumns(
             </span>
           );
         },
-        compare: (a, b) => byNullableDate(a.validUntil, b.validUntil),
+        // ⚠ NOT `byNullableDate`: this cell draws THREE states and two of them
+        // are a null `validUntil` meaning opposite things. See the comparator.
+        compare: compareContractEnd,
       },
       {
         id: "location",

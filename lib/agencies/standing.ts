@@ -86,3 +86,35 @@ export function contractDays(
     untilEnd: daysFrom(today, agency.validUntil),
   };
 }
+
+/**
+ * Order for the Contract column, over **three** states rather than two.
+ *
+ * ⚠ `validUntil === null` covers two opposite facts, and a plain nulls-last
+ * comparator interleaves them:
+ *
+ * - **no dates at all** — the partner cannot sign in (`AwaitingContract`);
+ * - **open-ended** — a signed contract with no end, i.e. *unlimited* access.
+ *
+ * Sorting a column whose cell draws three states over two orderings would leave
+ * a partner who is switched off sitting among partners with the most access
+ * there is. So the rule is stated once, here, and tested: real end dates first
+ * (soonest to latest, which is what someone sorting this column is hunting),
+ * then open-ended, then no dates at all.
+ *
+ * The Standing column separates the same two cases by tone, but that does not
+ * make this ordering optional — an operator sorting by Contract is not
+ * simultaneously reading Standing.
+ */
+export function compareContractEnd(
+  a: Pick<AgencyDto, "signedOn" | "validUntil">,
+  b: Pick<AgencyDto, "signedOn" | "validUntil">,
+): number {
+  const rank = (x: Pick<AgencyDto, "signedOn" | "validUntil">) =>
+    x.validUntil ? 0 : x.signedOn ? 1 : 2;
+  const ra = rank(a);
+  const rb = rank(b);
+  if (ra !== rb) return ra - rb;
+  if (ra !== 0) return 0;
+  return Date.parse(a.validUntil!) - Date.parse(b.validUntil!);
+}

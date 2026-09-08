@@ -18,13 +18,10 @@ import { useTableUrlState } from "@/hooks/use-table-url-state";
 import { agencyErrorKey } from "@/lib/agencies/errors";
 import { agencySummary } from "@/lib/agencies/summary";
 import { isPermissionDenied } from "@/lib/onboarding/errors";
+import { looseIncludes } from "@/lib/ui/table-rows";
 import type { AgencyDto, CreateAgencyRequest } from "@/lib/types/agency.types";
 
 const FILTER_KEYS = ["standing", "country", "invitation"] as const;
-
-function loose(value: string | null | undefined, needle: string): boolean {
-  return (value ?? "").toLowerCase().includes(needle);
-}
 
 /**
  * The partner list — F-05·0 §5/§7 and F-05a §8.
@@ -158,13 +155,22 @@ export default function AgenciesPage() {
           isLoading,
           isError,
           isForbidden: isPermissionDenied(error),
+          /*
+            ⚠ `looseIncludes`, not a hand-rolled `toLowerCase().includes()`.
+            It folds diacritics and expands `ß` to `ss`
+            (`lib/ui/table-rows.ts:91`), which matters on exactly this screen:
+            German is the console's second language, the rows are German and
+            Austrian company names and cities, and an operator types `Muller`
+            for `Müller` and `strasse` for `Straße`. The shell already hands
+            `needle` in lower-cased and trimmed (`table-rows.ts:49`).
+          */
           matches: (a, needle) =>
-            loose(a.legalName, needle) ||
-            loose(a.registrationNumber, needle) ||
-            loose(a.contactPersonName, needle) ||
-            loose(a.contactEmail, needle) ||
-            loose(a.loginEmail, needle) ||
-            loose(a.city, needle),
+            looseIncludes(a.legalName, needle) ||
+            looseIncludes(a.registrationNumber, needle) ||
+            looseIncludes(a.contactPersonName, needle) ||
+            looseIncludes(a.contactEmail, needle) ||
+            looseIncludes(a.loginEmail, needle) ||
+            looseIncludes(a.city, needle),
           filter: (a, values) =>
             (!values.standing || a.standing === values.standing) &&
             (!values.country || a.country === values.country) &&
