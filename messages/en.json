@@ -174,7 +174,9 @@
       "targetOwnerMustBeBoss": "Properties can only be created for a BOSS owner.",
       "propertyNotFound": "This property no longer exists.",
       "ownerHasOpenTasks": "This owner has work in flight — wait for their open tasks to finish.",
-      "ownerIsSystem": "This is the permanent walk-in account — it cannot be edited, deleted, messaged or given a contract."
+      "ownerIsSystem": "This is the permanent walk-in account — it cannot be edited, deleted, messaged or given a contract.",
+      "walkinLocationRequired": "This is the Walk-in / Manual Orders account, and its orders need the address the work happens at. File it from the Walk-in orders page, which collects the map point.",
+      "groupLocationNotAllowed": "Only walk-in orders carry their own address. This property's orders are checked in against the property's own location."
     }
   },
   "docsWorkspace": {
@@ -1193,8 +1195,11 @@
       "workers": "Workers needed",
       "instructions": "Instructions for the worker",
       "instructionsPlaceholder": "Real address: Hauptstr. 5, 10827 Berlin. Ring twice. Keys with the neighbour.",
-      "instructionsHint": "Include the real address — this account's property is a placeholder and carries no location.",
-      "submit": "File the order"
+      "instructionsHint": "Include the real address in words too — the map point below is what the app checks workers in against, but the worker still has to find the door.",
+      "submit": "File the order",
+      "location": "Where the work happens",
+      "locationHint": "Click the map to place the order's address",
+      "locationFinal": "Check the pin before filing: the address cannot be seen or changed afterwards. A wrong one has to be cancelled and re-filed, and every check-in at the job is refused until then."
     },
     "errors": {
       "titleRequired": "Give the job a name.",
@@ -1203,7 +1208,8 @@
       "deadlineRequired": "Set a deadline, or switch it off.",
       "workerLimitInvalid": "At least one worker is needed.",
       "propertyGone": "The walk-in property is no longer there. Reload the page.",
-      "generic": "The order could not be filed. Please try again."
+      "generic": "The order could not be filed. Please try again.",
+      "locationRequired": "Point at the map to set where the work happens. A walk-in order cannot be filed without it."
     },
     "tabs": {
       "create": "File an order",

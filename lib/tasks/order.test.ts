@@ -148,3 +148,15 @@ describe("refusal order", () => {
     });
   });
 });
+
+describe("location is never sent from the shared builder", () => {
+  it("omits lat and long", () => {
+    // The shared builder files against an *ordinary* property, where the route
+    // refuses coordinates with `400 group_location_not_allowed` (F-06c §4.1).
+    // Only `buildWalkInOrder` attaches them, and only because its property is
+    // the walk-in one. There is deliberately no location field on `OrderDraft`.
+    const body = ok();
+    expect("lat" in body).toBe(false);
+    expect("long" in body).toBe(false);
+  });
+});

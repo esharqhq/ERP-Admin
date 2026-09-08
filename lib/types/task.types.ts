@@ -91,6 +91,11 @@ export interface TaskGroupDto {
  *
  * The five optional fields are unused by the walk-in form; they are typed so the
  * next consumer does not have to re-derive the contract.
+ *
+ * `lat`/`long` are optional **on this type** because whether they are required is
+ * keyed on the property, not on the caller — see the two fields below. The
+ * enforcement therefore lives in the builders: `buildWalkInOrder` refuses without
+ * them, `buildOrder` never sends them.
  */
 export interface CreateTaskGroupRequest {
   propertyId: string;
@@ -110,6 +115,32 @@ export interface CreateTaskGroupRequest {
   eligibleProfessionIds?: string[];
   /** Defaults to `true` server-side. */
   allowNewWorkers?: boolean;
+  /**
+   * The order's own address, `-90`..`90` (F-06c, handoff `f-02b-6` §3 and
+   * `f-06-c-checkin-proof.md` §4). **Required when `propertyId` is the walk-in
+   * property and REFUSED for any other property** — the same body therefore
+   * succeeds or fails on the `propertyId` alone:
+   *
+   * - walk-in property, both sent → `201`; this becomes the geofence target for
+   *   every task in the order
+   * - walk-in property, either missing → `400 walkin_location_required`
+   * - any ordinary property, sent → `400 group_location_not_allowed`
+   *
+   * ⚠ **Send both or neither.** `lat` without `long` is refused as
+   * `walkin_location_required`, which is why the drafts carry a single
+   * `{ lat, long } | null` and never two separate fields.
+   *
+   * ⚠ **No read-back and no edit path** (§4.2, tracked upstream as
+   * `G_WalkInGroupLocationNotReadableOrEditable`): `TaskGroupDto` does not return
+   * these and `PUT /api/tasks/groups/{id}` cannot change them. An order filed at
+   * the wrong address can only be cancelled and re-filed, and every check-in at
+   * that job is refused with `outside_geofence` in the meantime.
+   */
+  lat?: number;
+  /** The order's own address, `-180`..`180`. ⚠ `long`, **not** `lng` — the
+   * check-in doors use `lng`, the group and property doors use `long`. That
+   * inconsistency is the existing contract and was deliberately not tidied. */
+  long?: number;
 }
 
 /** Response of rate / outcome-override (mirror WorkerRatingDto). */

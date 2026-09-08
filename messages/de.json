@@ -174,7 +174,9 @@
       "targetOwnerMustBeBoss": "Objekte können nur für einen BOSS-Eigentümer angelegt werden.",
       "propertyNotFound": "Dieses Objekt existiert nicht mehr.",
       "ownerHasOpenTasks": "Dieser Eigentümer hat laufende Arbeit — warten Sie, bis die offenen Aufgaben abgeschlossen sind.",
-      "ownerIsSystem": "Dies ist das dauerhafte Laufkundschafts-Konto — es kann nicht bearbeitet, gelöscht, angeschrieben oder mit einem Vertrag versehen werden."
+      "ownerIsSystem": "Dies ist das dauerhafte Laufkundschafts-Konto — es kann nicht bearbeitet, gelöscht, angeschrieben oder mit einem Vertrag versehen werden.",
+      "walkinLocationRequired": "Dies ist das Konto „Laufkundschaft / Manuelle Aufträge“, und seine Aufträge brauchen die Adresse des Einsatzortes. Erfassen Sie ihn über die Seite „Laufkundschaft-Aufträge“, die den Kartenpunkt abfragt.",
+      "groupLocationNotAllowed": "Nur Laufkundschaft-Aufträge tragen ihre eigene Adresse. Aufträge zu diesem Objekt werden am Standort des Objekts geprüft."
     }
   },
   "docsWorkspace": {
@@ -1193,8 +1195,11 @@
       "workers": "Benötigte Mitarbeiter",
       "instructions": "Anweisungen für den Mitarbeiter",
       "instructionsPlaceholder": "Echte Adresse: Hauptstr. 5, 10827 Berlin. Zweimal klingeln. Schlüssel beim Nachbarn.",
-      "instructionsHint": "Die echte Adresse angeben — die Immobilie dieses Kontos ist ein Platzhalter ohne Standort.",
-      "submit": "Auftrag anlegen"
+      "instructionsHint": "Die echte Adresse auch ausschreiben — der Kartenpunkt unten ist die Grundlage für die Anwesenheitsprüfung, die Tür muss der Mitarbeiter aber trotzdem finden.",
+      "submit": "Auftrag anlegen",
+      "location": "Einsatzort",
+      "locationHint": "Klicken Sie auf die Karte, um die Adresse des Auftrags zu setzen",
+      "locationFinal": "Prüfen Sie die Markierung vor dem Erfassen: die Adresse ist danach nicht sichtbar und nicht änderbar. Eine falsche muss storniert und neu erfasst werden, und bis dahin wird jede Anwesenheitsmeldung am Auftrag abgelehnt."
     },
     "errors": {
       "titleRequired": "Bitte einen Auftragsnamen angeben.",
@@ -1203,7 +1208,8 @@
       "deadlineRequired": "Bitte eine Frist setzen oder die Option ausschalten.",
       "workerLimitInvalid": "Mindestens ein Mitarbeiter ist erforderlich.",
       "propertyGone": "Die Walk-in-Immobilie existiert nicht mehr. Bitte die Seite neu laden.",
-      "generic": "Der Auftrag konnte nicht angelegt werden. Bitte erneut versuchen."
+      "generic": "Der Auftrag konnte nicht angelegt werden. Bitte erneut versuchen.",
+      "locationRequired": "Setzen Sie eine Markierung auf der Karte, um den Einsatzort festzulegen. Ohne ihn kann kein Laufkundschaft-Auftrag erfasst werden."
     },
     "tabs": {
       "create": "Auftrag anlegen",
