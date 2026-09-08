@@ -2496,6 +2496,7 @@
       "approve": "Approve",
       "approveTitle": "Approve this application?",
       "approveHint": "This creates the agency and emails a set-password link. Access does not open until you set the contract start date — the next step.",
+      "approveNote": "A note for the agency (optional)",
       "approveConfirm": "Approve and create"
     },
     "approve": {

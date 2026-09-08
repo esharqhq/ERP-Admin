@@ -14,6 +14,7 @@ import {
   DocumentRail,
   docTypeLabel,
 } from "@/components/agency-requests/document-rail";
+import { ReviewActions } from "@/components/agency-requests/review-actions";
 import { ReviewHistory } from "@/components/agency-requests/review-history";
 import { useAgencyApplication } from "@/hooks/use-agency-applications";
 import { statusTone } from "@/lib/agencies/application-status";
@@ -25,8 +26,8 @@ import { isPermissionDenied } from "@/lib/onboarding/errors";
  * One application, read end to end — F-05a §6.2.
  *
  * Three regions: the paper index on the left, the paper itself in the centre, and
- * the company's own words plus the review record on the right. The review verbs
- * land in the same right-hand column in task 9.
+ * on the right the company's own words, the decision, and the record of any
+ * decision already taken.
  *
  * ⚠ **The viewer's reload is a detail refetch, not an image retry.** Every read
  * mints `previewUrl`s valid about five minutes, so a pane left open stops loading
@@ -171,6 +172,19 @@ export default function AgencyRequestDetailPage({
         <div className="flex flex-col gap-5">
           <section className="rounded-xl bg-card p-4 shadow-card ring-1 ring-foreground/10">
             <ApplicationFacts application={data} />
+          </section>
+
+          {/*
+            Above the history on purpose: the decision is what this screen is
+            for, and the record of earlier decisions is context for it.
+
+            `empty:hidden` because `ReviewActions` renders **nothing** for a role
+            holding read without `agency_application:manage` — a MODERATOR, who
+            can open this queue and decide none of it — and an empty card reads
+            as a panel that failed to load.
+          */}
+          <section className="rounded-xl bg-card p-4 shadow-card ring-1 ring-foreground/10 empty:hidden">
+            <ReviewActions application={data} />
           </section>
 
           <section className="flex flex-col gap-3 rounded-xl bg-card p-4 shadow-card ring-1 ring-foreground/10">

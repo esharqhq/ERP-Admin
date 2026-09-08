@@ -2496,6 +2496,7 @@
       "approve": "Genehmigen",
       "approveTitle": "Diesen Antrag genehmigen?",
       "approveHint": "Damit wird die Agentur angelegt und ein Link zum Setzen des Passworts verschickt. Der Zugang öffnet sich erst, wenn Sie das Vertragsstartdatum setzen — der nächste Schritt.",
+      "approveNote": "Eine Notiz für die Agentur (optional)",
       "approveConfirm": "Genehmigen und anlegen"
     },
     "approve": {

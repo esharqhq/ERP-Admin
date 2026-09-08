@@ -21,6 +21,14 @@ export function notificationRoute(
       return `/dashboard/properties/${entityId}`;
     case "SupportTicket":
       return `/dashboard/support`;
+    // Type 61 `AgencyApplicationSubmitted` — bell-only, to every admin. It has
+    // been arriving since 2026-08-23 and landing on a non-clickable row because
+    // there was no screen to send it to.
+    //
+    // ⚠ The three `WorkerAgencyLink` types (58–60) stay unrouted: their
+    // destination is the agency-links screen, which phase 4 builds.
+    case "AgencyApplication":
+      return `/dashboard/agency-requests/${entityId}`;
     // Contract rows have no screen to land on. `/dashboard/contracts` was deleted as
     // unused, and `entityId` here is a *contract* id — no surviving route is keyed on
     // one, so there is nothing to redirect to rather than a list. Per this file's rule
