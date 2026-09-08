@@ -1,8 +1,14 @@
 import { apiClient } from "@/lib/http/client";
+import type { PagedResult } from "@/lib/types/paged.types";
 import type {
   ActiveAgencyDto,
+  AgencyApplicationDetailDto,
+  AgencyApplicationQuery,
+  AgencyApplicationRowDto,
   AgencyDto,
+  ApproveApplicationRequest,
   CreateAgencyRequest,
+  ReviewTextRequest,
   UpdateAgencyRequest,
 } from "@/lib/types/agency.types";
 
@@ -68,5 +74,88 @@ export const agencyService = {
    */
   resendSetPassword: async (id: string): Promise<void> => {
     await apiClient.post(`/api/agencies/${id}/resend-set-password`);
+  },
+
+  /**
+   * The review queue. `agency_application:read` (170005) — held by MODERATOR too.
+   * ⚠ `?status=Pending` is the work queue.
+   */
+  getApplications: async (
+    query: AgencyApplicationQuery,
+  ): Promise<PagedResult<AgencyApplicationRowDto>> => {
+    const { data } = await apiClient.get<PagedResult<AgencyApplicationRowDto>>(
+      "/api/agency-applications",
+      { params: query },
+    );
+    return data;
+  },
+
+  /**
+   * `agency_application:read` (170005). ⚠ This route **does** answer a
+   * `404 { error: "application_not_found", detail }` — unlike the public document
+   * doors, which answer `invalid_or_expired_token` for an unknown id so that a
+   * stranger cannot learn which ids exist. Reaching this one already required a
+   * permission.
+   *
+   * ⚠ Every call mints fresh `previewUrl`s. That is what the viewer's reload is for.
+   */
+  getApplication: async (id: string): Promise<AgencyApplicationDetailDto> => {
+    const { data } = await apiClient.get<AgencyApplicationDetailDto>(
+      `/api/agency-applications/${id}`,
+    );
+    return data;
+  },
+
+  /**
+   * `agency_application:manage` (170006). The note is **required** (≤2000) and
+   * lands in `infoRequestNote`; a missing or blank one is `400 note_required`.
+   *
+   * ⚠ Legal from `InfoRequested` as well as `Pending` — asking twice replaces the
+   * note and re-stamps the reviewer, so the button stays enabled.
+   */
+  requestInfo: async (
+    id: string,
+    body: ReviewTextRequest,
+  ): Promise<AgencyApplicationDetailDto> => {
+    const { data } = await apiClient.post<AgencyApplicationDetailDto>(
+      `/api/agency-applications/${id}/request-info`,
+      body,
+    );
+    return data;
+  },
+
+  /**
+   * `agency_application:manage` (170006). Same field name as request-info,
+   * **required**, but it lands in `decisionReason` — a different column. A blank
+   * one is `400 reason_required`.
+   */
+  rejectApplication: async (
+    id: string,
+    body: ReviewTextRequest,
+  ): Promise<AgencyApplicationDetailDto> => {
+    const { data } = await apiClient.post<AgencyApplicationDetailDto>(
+      `/api/agency-applications/${id}/reject`,
+      body,
+    );
+    return data;
+  },
+
+  /**
+   * `agency_application:manage` (170006). **This creates the account.**
+   *
+   * ⚠ A `200` means the account EXISTS, not that the agency can log in: login
+   * reads `signedOn`/`validUntil` live on every attempt, and a freshly approved
+   * agency normally has neither. `createdAgencyId` on the response names the new
+   * agency, and `PUT /api/agencies/{id}` is the moment access opens.
+   */
+  approveApplication: async (
+    id: string,
+    body: ApproveApplicationRequest,
+  ): Promise<AgencyApplicationDetailDto> => {
+    const { data } = await apiClient.post<AgencyApplicationDetailDto>(
+      `/api/agency-applications/${id}/approve`,
+      body,
+    );
+    return data;
   },
 };

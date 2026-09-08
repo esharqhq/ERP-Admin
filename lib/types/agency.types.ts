@@ -1,3 +1,5 @@
+import type { PagedQuery } from "@/lib/types/paged.types";
+
 /**
  * Staffing agencies, as far as this panel currently reads them.
  *
@@ -201,4 +203,141 @@ export interface UpdateAgencyRequest extends CreateAgencyRequest {
    * open-ended*.
    */
   clearContractDates: boolean;
+}
+
+/**
+ * Where an application sits in its one-way state machine.
+ *
+ * ⚠ Widened, like every other enum in this feature, so the mappers' `default`
+ * branches are real code rather than something `tsc` prunes.
+ */
+export type AgencyApplicationStatus =
+  | "Pending"
+  | "InfoRequested"
+  | "Approved"
+  | "Rejected"
+  | (string & {});
+
+/** Which intake door was used. ⚠ There is no other record of it. */
+export type AgencyApplicationSource = "Public" | "Admin" | (string & {});
+
+/**
+ * ⚠ Only the first two count toward `hasAllRequiredDocs`. C# member names,
+ * case-insensitive on the wire, no underscore forms.
+ */
+export type AgencyApplicationDocumentType =
+  | "RegistrationCertificate"
+  | "Licence"
+  | "Other"
+  | (string & {});
+
+/** One row of `GET /api/agency-applications`. */
+export interface AgencyApplicationRowDto {
+  id: string;
+  legalName: string;
+  registrationNumber: string;
+  countryId: string;
+  country: string;
+  cityId: string;
+  city: string;
+  contactPersonName: string;
+  contactEmail: string;
+  status: AgencyApplicationStatus;
+  createdAt: string;
+  /** `null` on everything still open. */
+  reviewedAt: string | null;
+  docCount: number;
+  /**
+   * ⚠ **A flag an admin reads, never a refusal.** Nothing blocks a submit or an
+   * approve on it — an applicant has no account and no returning session, so a
+   * "finish your application" gate is one they would simply abandon. Draw it as a
+   * warning marker, not an error.
+   */
+  hasAllRequiredDocs: boolean;
+  source: AgencyApplicationSource;
+  /**
+   * Other **rejected** applications carrying this registration number,
+   * case-insensitively. ⚠ **It flags; it does not block.** A rejected company may
+   * apply again, and most rejections are *"your scan is unreadable"* rather than
+   * *"you are not a real company"* — an operator who reads this as a verdict will
+   * reject a legitimate second attempt.
+   */
+  previouslyRejectedCount: number;
+}
+
+export interface AgencyApplicationDocumentDto {
+  id: string;
+  type: AgencyApplicationDocumentType;
+  fileName: string;
+  mimeType: string;
+  /** The **real stored** byte count, measured server-side. */
+  sizeBytes: number;
+  createdAt: string;
+  /**
+   * ⚠ **Minted fresh on every read and valid about five minutes.** Do not cache
+   * it, store it, email it, or expect one from an earlier response to work. A
+   * signed URL is a bearer token with no revocation, which is why the access
+   * decision belongs to the permission-gated detail read rather than to the row.
+   * If a preview 404s or 401s, **re-fetch the detail**.
+   *
+   * `null` on the confirm response — the uploader already has the file.
+   */
+  previewUrl: string | null;
+}
+
+/**
+ * `GET /api/agency-applications/{id}`.
+ *
+ * ⚠ **`docCount` is deliberately absent here** — count `documents` instead.
+ */
+export interface AgencyApplicationDetailDto
+  extends Omit<AgencyApplicationRowDto, "docCount"> {
+  licenceNumber: string | null;
+  contactPhone: string | null;
+  expectedWorkerCount: number | null;
+  /** The applicant's own pitch, up to 4000 characters. */
+  message: string | null;
+  termsVersion: number;
+  termsAcceptedAt: string;
+  /**
+   * ⚠ **A different column from `decisionReason`, and both survive.** If an admin
+   * asked for a clearer scan and then rejected, this response carries *both*
+   * sentences — reject never writes this, request-info never writes that. If both
+   * are populated, both happened, and rendering only the latest destroys half the
+   * record.
+   */
+  infoRequestNote: string | null;
+  decisionReason: string | null;
+  reviewedByAdminId: string | null;
+  /** The agency approve created. `null` until then. */
+  createdAgencyId: string | null;
+  documents: AgencyApplicationDocumentDto[] | null;
+}
+
+/** ⚠ `sortBy` is whitelisted — see `APPLICATION_SORT_COLUMNS`. */
+export interface AgencyApplicationQuery extends PagedQuery {
+  status?: string;
+  countryId?: string;
+  cityId?: string;
+  /** Matches legal name, registration number **or** contact email. */
+  search?: string;
+  /** ⚠ Offset-less values are accepted: `2026-08-01` works. */
+  submittedFrom?: string;
+  submittedTo?: string;
+}
+
+/** request-info and reject share one shape; the field lands in different columns. */
+export interface ReviewTextRequest {
+  text: string;
+}
+
+/**
+ * ⚠ **All three fields are optional and sending none is the normal case.**
+ * `note` is recorded in `decisionReason` — the same column a rejection uses,
+ * because both answer *"why this decision"*.
+ */
+export interface ApproveApplicationRequest {
+  signedOn?: string;
+  validUntil?: string;
+  note?: string;
 }
