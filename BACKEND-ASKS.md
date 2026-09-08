@@ -650,3 +650,193 @@ a never-uploaded one — both are a 404 on `/files/{key}`.
 **FE today:** the viewer resolves the key correctly (`lib/http/files.ts`, added 2026-08-28) and
 reports an honest "missing from storage" when the fetch 404s. It deliberately does not retry:
 per the design's own rule, a missing artifact is a server problem, not a retry prompt.
+
+---
+
+## 28. `task_group:read_any` is granted to both admin roles and wired to no route — *SHIPPED*
+
+> ✅ **Shipped 2026-09-08 (`cb2d1ee`).** `GET /api/tasks/groups/{id}` now accepts either permission —
+> `[RequirePermission]` cannot express OR, so the attribute was replaced by a two-way check in the
+> action. The manual grant is no longer needed and the client fallback has been deleted. Kept below
+> as the record of what was asked and why.
+
+**Status before the fix: unblocked by hand, not in code.** An admin granted `task_group:read` to the
+SUPER_ADMIN role through the panel's own roles screen, and `GET /api/tasks/groups/{id}` now answers
+for that role in that database. Everything below is still true, and the grant is why this is a
+short entry rather than a blocker.
+
+`task_group:read_any` (110031) and `task:read_any` (110034) are seeded as GLOBAL permissions
+(`DatabaseSeeder.cs:1721`, `:1724`), registered (`index/permissions/registry.md:383`, `:386`), and
+granted to **both** admin roles (`DatabaseSeeder.cs:1895-1896`, `:1941-1942`).
+
+**Neither is consumed by any route:**
+
+```
+grep -rn 'RequirePermission("task_group:read_any"' --include=*.cs .   →  0 results
+grep -rn 'RequirePermission("task:read_any"'       --include=*.cs .   →  0 results
+```
+
+The two detail endpoints that would serve them require the PROPERTY-scoped twins instead —
+`GET /api/tasks/groups/{id}` → `task_group:read` (110003, `TasksController.cs:183`) and
+`GET /api/tasks/{taskId}` → `task:read` (110011, `TasksController.cs:301`). Neither is in either
+admin seed block, and an admin's check is a plain name lookup with `propertyId` ignored entirely
+(`PermissionService.cs:32`, `:54-58`), so by default both doors 403 for every admin.
+
+**What it already cost, before anyone diagnosed it.** `taskService.getTaskGroup` did not call the
+single-group route at all — it pulled the **entire unfiltered** `GET /api/tasks/admin/groups` and
+found the group client-side, and that is what powered `/dashboard/tasks/[id]`. Someone hit this
+403 previously and wrote the workaround without recording why.
+
+**Fix:** accept `task_group:read_any` on `GET /api/tasks/groups/{id}` (and `task:read_any` on
+`GET /api/tasks/{taskId}`), or add `admin/`-prefixed twins carrying them. No new DTO, no new
+permission, no new response shape — the permissions already exist and both roles already hold
+them.
+
+**Why it still matters after the manual grant:** the grant is live database state, not the seed. A
+fresh environment, a reseed, or the MODERATOR role all land back on the 403. The FE therefore
+calls the real route and falls back to the whole-platform list on a 403
+(`lib/services/task.service.ts`) — a fallback that exists only because the grant cannot be relied
+on, and that deletes itself the day this is wired.
+
+---
+
+## 29. `workerName` on `WorkerLeaveRequestDto` — *SHIPPED*
+
+> ✅ **Shipped 2026-09-08 (`cb2d1ee`)**, together with 29a. Both appended as the last two positional
+> parameters. `useWorkers` is gone from the leave screen: three requests became two, and the 100-row
+> cap with it.
+
+`WorkerLeaveRequestDto` (`index/dtos/tasks.md:448-459`) carries `workerId` and no name, so
+`/dashboard/leave` fires `GET /api/admin/workers?pageSize=100` purely to turn ids into names for
+its queue rows.
+
+**It is also wrong past 100 workers.** `pageSize` is clamped to `[1,100]` server-side
+(`index/dtos/workers.md:65`), so beyond the first page a row falls back to an id fragment. There
+is no id-set filter on the worker list (`WorkerListQuery` has `search`, not ids), so the request
+cannot be narrowed to the handful of workers actually on screen.
+
+**Fix:** add `workerName` to the DTO. `TaskWorkerDto` already carries exactly this field, so the
+pattern exists; the leave DTO just never got it.
+
+Scope of the change, read off the source rather than assumed:
+
+- **One construction site.** `ToDto` (`WorkerLeaveRequestService.cs:516`) is the only place the DTO
+  is built — `grep -rn "new WorkerLeaveRequestDto("` returns nothing else.
+- ⚠ **It is a positional record** (`WorkerLeaveRequestDtos.cs:18-30`). Append, never insert — the
+  same rule `index/dtos/profile.md` records for `UpdateProfileRequest`.
+- **The three read paths need an `Include`.** `ApproveAsync` already has `Include(r => r.Worker)`
+  (`:323`) and reads `FullName` at `:363`, but `ListAnyAsync` (`:496`), `GetAsync` (`:508`) and
+  `ListForWorkerAsync` (`:482`) query `WorkerLeaveRequests` bare. `ListAnyAsync` is the one the
+  admin screen calls, so it is the one that matters.
+
+One string removes a request from the screen and the 100-row cap with it.
+
+### 29a. `soonestAffectedAt` — SHIPPED
+
+> ✅ **Shipped 2026-09-08 (`cb2d1ee`).** ⚠ **Computed differently per target** — a `Task` target
+> returns the task date **unfiltered**, so an already-started shift carries a **past** timestamp; a
+> `TaskGroup` target is a `MIN` over still-`Pending`, still-future assignments and is `null` when
+> none remain (`WorkerLeaveRequestService.cs:553-585`). The queue sorts on it via
+> `lib/leave/queue-order.ts`, which documents what a null and a past date each mean.
+
+**This was deliberately not asked for on 2026-09-08, and the architecture changed underneath
+that decision.** It was derivable while the panel pulled every task group at once; now that the
+panel reads **one group by id** (ask #28), the queue has no source for it at all — sorting N rows
+would mean N group fetches.
+
+A leave request carries no date, so the queue is ordered by whatever the list returns. A request
+touching a shift in four hours and one touching next month are not equally urgent, and the screen
+cannot tell them apart. The design this replaces makes "affected work, soonest" its primary sort;
+it is the one part that could not be built.
+
+**Fix:** a single `soonestAffectedAt` (UTC, nullable) on `WorkerLeaveRequestDto` — the earliest
+`Task.ScheduledAt` among the assignments the approval would touch. It is a `MIN` over rows the
+service already joins.
+
+**Not asking for**, having checked: the affected dates themselves, or a no-show count. With #28
+wired, the panel reads the one group it needs and derives both exactly
+(`lib/leave/scope.ts`, mirroring `DeactivateGroupWorkerAsync` and
+`RatingService.OnTaskGroupWorkerExitedAsync`). Only the **queue-wide** sort needs a field, because
+only it needs one number for every row without fetching every row's group.
+
+**Blocking?** No — the queue keeps its current order. It is the difference between a triage list
+and a list.
+
+---
+
+## 30. Approving a whole-group leave request always fails — *FIXED*
+
+> ✅ **Fixed 2026-09-08 (`cb2d1ee`).** `DeactivateGroupWorkerAsync` now joins an ambient transaction
+> instead of nesting one, guarded on `_context.Database.CurrentTransaction` — the house pattern this
+> entry pointed at. Verified live in both directions: group approve `400 → 200`, and the owner-kick
+> route still `204`. ⚠ **The second defect below — the controller serving an internal message as a
+> domain error code — was NOT addressed** and is still live on this endpoint.
+
+**Was the only item in this document that hard-blocked a shipped screen.** Reported from the
+admin panel 2026-09-08, reproduced against `Backend@d777d01`.
+
+```
+POST /api/worker-leave-requests/{id}/approve      targetType: "TaskGroup"
+→ 400 { "error": "The connection is already in a transaction and cannot participate in another transaction." }
+```
+
+### The chain
+
+| | |
+|---|---|
+| `WorkerLeaveRequestService.ApproveAsync` | **`:330`** opens a transaction |
+| → `TaskService.ExecuteApprovedGroupLeaveAsync` | `:1246` |
+| → `TaskService.DeactivateGroupWorkerAsync` | `:1266` |
+| → | **`:1281`** opens a **second** transaction and throws |
+
+`IWorkerLeaveRequestService` and `ITaskService` are both `AddScoped`
+(`GermanyERP.Web/Extensions/ServiceExtensions.cs:122`) and `AppDbContext` is scoped (`:43`), so within
+one request the two services hold **the same context and the same connection**. EF Core refuses the
+second `BeginTransactionAsync`.
+
+### Why it went unnoticed
+
+`DeactivateGroupWorkerAsync` has three callers and only one of them is already inside a transaction:
+
+| Caller | Inside a transaction | Works |
+|---|---|---|
+| `WorkerLeaveGroupAsync` — worker leaves a group themselves | no | ✅ |
+| The owner's remove-worker door | no | ✅ |
+| `ExecuteApprovedGroupLeaveAsync` — **admin approves group leave** | **yes** | ❌ |
+
+The two working paths are the ones with traffic. **This has most likely never worked**, from the day
+admin approval was added.
+
+`targetType: "Task"` is unaffected — that branch does its own work inline (`:337-366`) and opens no
+nested transaction.
+
+### Suggested fix
+
+The guard is already house style — `_context.Database.CurrentTransaction is null` appears in four
+places (`WorkerUsernameService.cs:61`/`:121`, `ChatMessageService.cs:364`/`:539`). Either make
+`DeactivateGroupWorkerAsync` join an ambient transaction when one exists, or give
+`ExecuteApprovedGroupLeaveAsync` a transactionless variant and let `ApproveAsync` stay the owner.
+
+### Second defect, same endpoint: an internal message is served as a domain error
+
+`WorkerLeaveRequestsController.cs:99-109` catches **every** `InvalidOperationException`, matches five
+known codes, and falls through to:
+
+```csharp
+return BadRequest(new { error = ex.Message });
+```
+
+So an EF Core failure leaves the API as a `400` carrying English prose in the `error` field — the slot
+every client parses as a machine code. That is why this defect presents as a validation error rather
+than a `500`. The fall-through should rethrow (or return `500`), not label an internal fault as the
+caller's mistake.
+
+### Client state after the failure
+
+Benign. The outer transaction is disposed without committing, so the request stays `Pending`, no
+`TaskWorker` row is deleted and no `NoShow` is written. **Nothing is half-applied** — the operation
+simply cannot be performed.
+
+**FE today:** the code is unrecognised, so the panel shows its generic *"The decision could not be
+saved. Please try again."* — a retry prompt for something that can never succeed. It will be worded
+honestly once this is confirmed, and reverted to the generic copy when the fix ships.

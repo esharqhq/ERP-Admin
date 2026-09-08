@@ -14,6 +14,23 @@ export interface WorkerLeaveRequestDto {
   decidedAt: string | null;
   decisionNote: string | null;
   createdAt: string;
+  /**
+   * The worker's `FullName`, added 2026-09-08 (`cb2d1ee`). Removed this screen's
+   * whole-directory read, and with it a silent 100-row cap.
+   */
+  workerName: string | null;
+  /**
+   * Earliest `Task.ScheduledAt` among the assignments this request currently
+   * affects — the queue's sort key. Added 2026-09-08 (`cb2d1ee`).
+   *
+   * ⚠ **Computed differently per target** (`WorkerLeaveRequestService.cs:553-585`):
+   * a `Task` target returns the task's date **unfiltered**, so an already-started
+   * shift carries a **past** timestamp; a `TaskGroup` target is a `MIN` over
+   * still-`Pending`, still-future assignments and is `null` when none remain.
+   * `null` therefore means "nothing left to protect" — a decided request, or a
+   * group whose assignments are gone — never "not urgent".
+   */
+  soonestAffectedAt: string | null;
 }
 
 /** Approve/reject body — the decision note is optional. */
