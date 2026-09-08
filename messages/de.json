@@ -325,6 +325,7 @@
       "viewerUnsupportedBody": "Für diesen Dateityp gibt es keine Vorschau. Öffnen Sie das Original — die Entscheidung unten wird dadurch nicht blockiert.",
       "viewerBrokenTitle": "Diese Datei konnte nicht geladen werden",
       "viewerBrokenBody": "Das Dokument fehlt im Speicher. Das ist ein Serverproblem und nichts, was sich von hier aus wiederholen ließe.",
+      "reloadPreview": "Vorschau neu laden",
       "fileVerdictTitle": "Entscheidung zu dieser Datei",
       "fileVerdictSilent": "Ohne Wirkung nach außen — sie ändert keinen Status und benachrichtigt niemanden.",
       "approveFile": "Datei genehmigen",
@@ -395,6 +396,7 @@
       "contractLockedHint": "Öffnet sich in dieser Spalte, sobald die Einreichung genehmigt ist."
     },
     "queue": {
+      "pageTruncated": "{loaded} von {total} werden angezeigt. Suche, Filter und Sortierung unten gelten nur für diese {loaded} — über die Tabs oben eingrenzen, um den Rest zu sehen.",
       "ownerSubtitle": "Einreichungen, die auf eine Entscheidung warten · älteste zuerst",
       "ownerSearch": "Name oder E-Mail",
       "workerSubtitle": "Einreichungen, die auf eine Entscheidung warten · älteste zuerst",
@@ -2455,8 +2457,7 @@
         "Licence": "Vermittlungslizenz",
         "Other": "Weiteres Dokument"
       },
-      "previewExpired": "Dieser Vorschau-Link ist abgelaufen. Neu laden, um einen neuen zu erzeugen.",
-      "reload": "Neu laden"
+      "previewExpired": "Dieser Vorschau-Link ist abgelaufen. Neu laden, um einen neuen zu erzeugen."
     },
     "flags": {
       "rejectedBefore": "{count, plural, one {Einmal zuvor abgelehnt} other {# mal zuvor abgelehnt}}",
@@ -2482,7 +2483,6 @@
       "heading": "Prüfverlauf",
       "infoRequested": "Info angefordert",
       "decision": "Entscheidung",
-      "reviewedBy": "von {name}",
       "empty": "Bisher hat niemand gehandelt."
     },
     "verbs": {
@@ -2524,6 +2524,15 @@
       "country": "Land",
       "city": "Stadt",
       "submitted": "Eingegangen"
+    },
+    "detail": {
+      "back": "Zurück zur Warteschlange",
+      "notFoundTitle": "Dieser Antrag existiert nicht mehr",
+      "notFoundBody": "Er wurde möglicherweise entfernt. Gehen Sie zurück zur Warteschlange und laden Sie sie neu.",
+      "forbiddenTitle": "Sie können diesen Antrag nicht öffnen",
+      "forbiddenBody": "Ihre Rolle enthält die Berechtigung nicht, die dieser Bildschirm liest. Bitten Sie einen Super-Admin, sie zu erteilen.",
+      "errorTitle": "Dieser Antrag konnte nicht geladen werden",
+      "errorBody": "Die Anfrage ist fehlgeschlagen. Laden Sie die Seite neu, um es erneut zu versuchen."
     },
     "errors": {
       "alreadyReviewed": "Eine Kollegin oder ein Kollege hat diesen Antrag bereits entschieden. Neu laden, um die Entscheidung zu sehen.",

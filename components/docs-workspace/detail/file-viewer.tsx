@@ -5,6 +5,7 @@ import {
   ExternalLink,
   EyeOff,
   FileText,
+  RefreshCw,
   RotateCw,
   TriangleAlert,
   ZoomIn,
@@ -29,7 +30,41 @@ import { cn } from "@/lib/utils";
  * resolution as commit 28affcf, which fixed wide tables by letting the inset
  * shrink rather than by locking a height.
  */
-export function FileViewer({ doc }: { doc: ReviewDoc | null }) {
+export function FileViewer({
+  doc,
+  typeLabel,
+  brokenBody,
+  onReload,
+}: {
+  doc: ReviewDoc | null;
+  /**
+   * The header's document-type line, when the caller's types are not the KYC set.
+   *
+   * ⚠ Without it the header reads `t("type.<doc.type>")` out of
+   * `docsWorkspace.detail`, which holds the **seven KYC types only**. An agency
+   * application's `RegistrationCertificate` and `Licence` have no key there, so
+   * that caller must pass its own label rather than have two agency types added
+   * to a KYC namespace.
+   */
+  typeLabel?: string;
+  /**
+   * Replaces the broken state's sentence. The default names a file missing from
+   * storage and says not to retry, which is true for a durable storage key and
+   * false for a caller whose URL simply expired.
+   */
+  brokenBody?: string;
+  /**
+   * Offered in the broken state, where the caller can fix it.
+   *
+   * ⚠ The agency-application case is why this exists: those previews are signed
+   * URLs minted per read and valid about five minutes, so a viewer left open
+   * stops loading and the repair is to **re-read the detail**, not to re-request
+   * an image whose signature has expired (`f-05-a-application-review.md`: *"If a
+   * preview 404s or 401s, re-fetch the detail."*). Absent for callers whose
+   * `fileUrl` is a durable storage key, where a reload would change nothing.
+   */
+  onReload?: () => void;
+}) {
   const t = useTranslations("docsWorkspace.detail");
   const locale = useLocale();
 
@@ -50,6 +85,24 @@ export function FileViewer({ doc }: { doc: ReviewDoc | null }) {
     setShownId(doc?.id ?? null);
     setZoom(1);
     setRotation(0);
+    setBroken(false);
+  }
+
+  /**
+   * ⚠ **A second tracker, and it clears `broken` only.**
+   *
+   * A re-signed URL arrives with the **same document id**, so the reset above
+   * never fires for it — which would leave `broken` true after `onReload` had
+   * fetched a working URL, and the admin would click Reload and watch nothing
+   * happen. It cannot be folded into the comparison above either: every detail
+   * read mints fresh URLs, so a review verb's cache write changes `fileUrl` on
+   * every document and would throw away the zoom on the scan being read.
+   *
+   * A no-op for a caller whose `fileUrl` is a durable storage key.
+   */
+  const [shownUrl, setShownUrl] = useState(doc?.fileUrl ?? null);
+  if ((doc?.fileUrl ?? null) !== shownUrl) {
+    setShownUrl(doc?.fileUrl ?? null);
     setBroken(false);
   }
 
@@ -80,7 +133,7 @@ export function FileViewer({ doc }: { doc: ReviewDoc | null }) {
       <header className="flex h-[50px] shrink-0 items-center gap-2.5 border-b border-border/60 px-3.5">
         <div className="flex min-w-0 flex-1 flex-col gap-px">
           <span className="truncate text-[13.5px] font-semibold leading-tight">
-            {t(`type.${doc.type ?? "Other"}` as "type.Passport")}
+            {typeLabel ?? t(`type.${doc.type ?? "Other"}` as "type.Passport")}
           </span>
           <span className="flex min-w-0 items-baseline gap-2">
             <span
@@ -148,7 +201,20 @@ export function FileViewer({ doc }: { doc: ReviewDoc | null }) {
           <Empty
             icon={<TriangleAlert className="size-5" />}
             title={t("viewerBrokenTitle")}
-            body={t("viewerBrokenBody")}
+            body={brokenBody ?? t("viewerBrokenBody")}
+            action={
+              onReload ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onReload}
+                  className="mt-1 gap-1.5"
+                >
+                  <RefreshCw className="size-3.5" />
+                  {t("reloadPreview")}
+                </Button>
+              ) : undefined
+            }
           />
         ) : kind === "unsupported" ? (
           <Empty
@@ -199,10 +265,13 @@ function Empty({
   icon,
   title,
   body,
+  action,
 }: {
   icon: React.ReactNode;
   title: string;
   body: string;
+  /** A repair the caller can offer — today only the broken state's Reload. */
+  action?: React.ReactNode;
 }) {
   return (
     <div className="flex flex-col items-center gap-2 px-6 py-16 text-center">
@@ -211,6 +280,7 @@ function Empty({
       </span>
       <p className="text-sm font-semibold">{title}</p>
       <p className="max-w-sm text-sm text-muted-foreground text-pretty">{body}</p>
+      {action}
     </div>
   );
 }

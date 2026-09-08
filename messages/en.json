@@ -325,6 +325,7 @@
       "viewerUnsupportedBody": "This file type has no inline preview. Open the original — the decision below is not blocked by it.",
       "viewerBrokenTitle": "This file could not be loaded",
       "viewerBrokenBody": "The document is missing from storage. That is a server problem, not something to retry from here.",
+      "reloadPreview": "Reload the preview",
       "fileVerdictTitle": "Verdict on this file",
       "fileVerdictSilent": "Silent — it moves no status and notifies nobody.",
       "approveFile": "Approve file",
@@ -395,6 +396,7 @@
       "contractLockedHint": "Opens in this column once the submission is approved."
     },
     "queue": {
+      "pageTruncated": "Showing {loaded} of {total}. Search, filters and sorting below apply to these {loaded} only — narrow with the tabs above to see the rest.",
       "ownerSubtitle": "Submissions waiting on a decision · oldest first",
       "ownerSearch": "Name or email",
       "workerSubtitle": "Submissions waiting on a decision · oldest first",
@@ -2455,8 +2457,7 @@
         "Licence": "Recruitment licence",
         "Other": "Other document"
       },
-      "previewExpired": "This preview link has expired. Reload to mint a new one.",
-      "reload": "Reload"
+      "previewExpired": "This preview link has expired. Reload to mint a new one."
     },
     "flags": {
       "rejectedBefore": "{count, plural, one {Rejected once before} other {Rejected # times before}}",
@@ -2482,7 +2483,6 @@
       "heading": "Review history",
       "infoRequested": "Info requested",
       "decision": "Decision",
-      "reviewedBy": "by {name}",
       "empty": "Nobody has acted on this yet."
     },
     "verbs": {
@@ -2524,6 +2524,15 @@
       "country": "Country",
       "city": "City",
       "submitted": "Submitted"
+    },
+    "detail": {
+      "back": "Back to the queue",
+      "notFoundTitle": "This application no longer exists",
+      "notFoundBody": "It may have been removed. Go back to the queue and reload it.",
+      "forbiddenTitle": "You cannot open this application",
+      "forbiddenBody": "Your role does not include the permission this screen reads. Ask a super admin to grant it.",
+      "errorTitle": "This application could not be loaded",
+      "errorBody": "The request failed. Reload the page to try again."
     },
     "errors": {
       "alreadyReviewed": "A colleague has already decided this one. Reload to see their decision.",
