@@ -2419,6 +2419,147 @@
       "generic": "That could not be saved. Please try again."
     }
   },
+  "agencyRequests": {
+    "title": "Agency requests",
+    "subtitle": "Partnership applications waiting on a review — approve, reject, or ask for a clearer document.",
+    "list": "Review queue",
+    "searchPlaceholder": "Search company, registration number, contact or email",
+    "tabs": {
+      "Pending": "Waiting",
+      "InfoRequested": "Info requested",
+      "Approved": "Approved",
+      "Rejected": "Rejected",
+      "all": "All"
+    },
+    "columns": {
+      "company": "Company",
+      "status": "Status",
+      "contact": "Contact",
+      "location": "Location",
+      "documents": "Papers",
+      "submitted": "Submitted",
+      "flags": "Flags",
+      "reviewedAt": "Reviewed"
+    },
+    "status": {
+      "Pending": "Waiting on a review",
+      "InfoRequested": "Info requested",
+      "Approved": "Approved",
+      "Rejected": "Rejected"
+    },
+    "source": {
+      "Public": "Applied online",
+      "Admin": "Keyed in here",
+      "hint": "A colleague keyed this in from a call or an email. The terms were accepted on paper, not in the form."
+    },
+    "docs": {
+      "heading": "Papers",
+      "count": "{count, plural, =0 {no papers} one {# paper} other {# papers}}",
+      "allPresent": "Registration and licence are both here",
+      "missing": "Papers missing",
+      "missingOne": "{name} is missing",
+      "warningHint": "Some papers are missing. This blocks nothing — you can still approve, reject, or ask for them.",
+      "none": "No papers were uploaded",
+      "type": {
+        "RegistrationCertificate": "Registration certificate",
+        "Licence": "Recruitment licence",
+        "Other": "Other document"
+      },
+      "previewExpired": "This preview link has expired. Reload to mint a new one.",
+      "reload": "Reload"
+    },
+    "flags": {
+      "rejectedBefore": "Rejected before",
+      "rejectedBeforeHint": "This company has applied and been rejected before. That is context, not a verdict — judge this application on its own papers."
+    },
+    "facts": {
+      "heading": "The application",
+      "legalName": "Legal name",
+      "registrationNumber": "Registration number",
+      "licenceNumber": "Licence number",
+      "location": "Location",
+      "contactPerson": "Contact person",
+      "contactEmail": "Contact email",
+      "contactPhone": "Phone",
+      "expectedWorkers": "Workers expected",
+      "message": "Their message",
+      "terms": "Terms",
+      "termsAccepted": "Accepted {date}",
+      "source": "Came in via",
+      "none": "Not given"
+    },
+    "history": {
+      "heading": "Review history",
+      "infoRequested": "Info requested",
+      "decision": "Decision",
+      "reviewedBy": "by {name}",
+      "empty": "Nobody has acted on this yet."
+    },
+    "verbs": {
+      "requestInfo": "Ask for more",
+      "requestInfoTitle": "Ask this company for more",
+      "requestInfoField": "What do you need from them?",
+      "requestInfoHint": "They are emailed your note and can send the papers again. The application stays open.",
+      "reject": "Reject",
+      "rejectTitle": "Reject this application?",
+      "rejectField": "Reason for the rejection",
+      "approve": "Approve",
+      "approveTitle": "Approve this application?",
+      "approveHint": "This creates the agency and emails a set-password link. Access does not open until you set the contract start date — the next step.",
+      "approveConfirm": "Approve and create"
+    },
+    "approve": {
+      "accountCreatedTitle": "Agency created",
+      "accountCreatedBody": "The account exists and the invitation is on its way. The agency still cannot sign in until the contract dates are filled in.",
+      "openDates": "Set the contract dates",
+      "later": "Do it later"
+    },
+    "duplicate": {
+      "title": "An agency already uses this email",
+      "body": "A live agency is registered on this address, so a second account cannot be created for it. Check whether this is the same company applying twice.",
+      "viewAgency": "Open {name}",
+      "rejectAsDuplicate": "Reject as a duplicate"
+    },
+    "terminal": {
+      "approvedTitle": "Approved",
+      "approvedBody": "This application has been approved and the agency record now carries it forward.",
+      "rejectedTitle": "Rejected",
+      "openAgency": "Open the agency"
+    },
+    "empty": {
+      "queueTitle": "Nothing waiting",
+      "queueBody": "New partnership applications land here, whether a company applies online or a colleague keys one in.",
+      "filteredTitle": "No applications match",
+      "filteredBody": "Clear a filter or widen the date range."
+    },
+    "filters": {
+      "country": "Country",
+      "city": "City",
+      "submitted": "Submitted"
+    },
+    "errors": {
+      "alreadyReviewed": "A colleague has already decided this one. Reload to see their decision.",
+      "noteRequired": "Write what you need from them.",
+      "reasonRequired": "Write the reason for the rejection.",
+      "notFound": "That application no longer exists. Reload the queue.",
+      "emailTaken": "An agency already uses this email address. It may still belong to a worker or an owner elsewhere — only agency logins clash.",
+      "invalidContractWindow": "The end date is before the start date.",
+      "locationMissing": "This application has no country or city on it, so no agency can be built from it. Ask the company for their location, or key the agency in by hand.",
+      "roleMissing": "The server is missing its AGENCY role, so no agency account can be created. This is a deployment fault, not a problem with what you entered.",
+      "termsNotConfigured": "No terms document is configured on the server, so an application cannot be keyed in yet. This is a deployment fault.",
+      "countryNotFound": "That country is no longer available. Pick it again.",
+      "cityNotFound": "That city is no longer available. Pick it again.",
+      "cityCountryMismatch": "That city is not in the selected country. Pick the city again.",
+      "invalidToken": "This upload link is not valid, or it has expired. Start the upload again to get a new one.",
+      "storageKeyMismatch": "That file does not belong to this upload. Start the upload again.",
+      "unsupportedType": "That document type cannot be uploaded here.",
+      "fileNotFound": "The file never reached storage. Upload it again.",
+      "mimeMismatch": "The file is not the kind it claims to be. Upload a PDF or an image.",
+      "tooLarge": "That file is over 10 MB.",
+      "limitReached": "This application already carries 10 documents.",
+      "generic": "That could not be done. Please try again."
+    }
+  },
   "system": {
     "notBuilt": {
       "title": "This section is not built yet",

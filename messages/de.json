@@ -2419,6 +2419,147 @@
       "generic": "Das konnte nicht gespeichert werden. Bitte erneut versuchen."
     }
   },
+  "agencyRequests": {
+    "title": "Agenturanfragen",
+    "subtitle": "Partnerschaftsanträge, die auf eine Prüfung warten — genehmigen, ablehnen oder ein besseres Dokument anfordern.",
+    "list": "Prüf-Warteschlange",
+    "searchPlaceholder": "Firma, Registernummer, Kontakt oder E-Mail suchen",
+    "tabs": {
+      "Pending": "Wartend",
+      "InfoRequested": "Info angefordert",
+      "Approved": "Genehmigt",
+      "Rejected": "Abgelehnt",
+      "all": "Alle"
+    },
+    "columns": {
+      "company": "Firma",
+      "status": "Status",
+      "contact": "Kontakt",
+      "location": "Standort",
+      "documents": "Unterlagen",
+      "submitted": "Eingegangen",
+      "flags": "Hinweise",
+      "reviewedAt": "Geprüft"
+    },
+    "status": {
+      "Pending": "Wartet auf Prüfung",
+      "InfoRequested": "Info angefordert",
+      "Approved": "Genehmigt",
+      "Rejected": "Abgelehnt"
+    },
+    "source": {
+      "Public": "Online beantragt",
+      "Admin": "Hier eingetragen",
+      "hint": "Eine Kollegin oder ein Kollege hat das aus einem Anruf oder einer E-Mail eingetragen. Die Bedingungen wurden auf Papier akzeptiert, nicht im Formular."
+    },
+    "docs": {
+      "heading": "Unterlagen",
+      "count": "{count, plural, =0 {keine Unterlagen} one {# Unterlage} other {# Unterlagen}}",
+      "allPresent": "Registrierung und Lizenz liegen beide vor",
+      "missing": "Unterlagen fehlen",
+      "missingOne": "{name} fehlt",
+      "warningHint": "Einige Unterlagen fehlen. Das blockiert nichts — Sie können weiterhin genehmigen, ablehnen oder sie anfordern.",
+      "none": "Es wurden keine Unterlagen hochgeladen",
+      "type": {
+        "RegistrationCertificate": "Registrierungsnachweis",
+        "Licence": "Vermittlungslizenz",
+        "Other": "Weiteres Dokument"
+      },
+      "previewExpired": "Dieser Vorschau-Link ist abgelaufen. Neu laden, um einen neuen zu erzeugen.",
+      "reload": "Neu laden"
+    },
+    "flags": {
+      "rejectedBefore": "Früher abgelehnt",
+      "rejectedBeforeHint": "Diese Firma hat sich schon einmal beworben und wurde abgelehnt. Das ist Kontext, kein Urteil — beurteilen Sie diesen Antrag anhand seiner eigenen Unterlagen."
+    },
+    "facts": {
+      "heading": "Der Antrag",
+      "legalName": "Firmenname",
+      "registrationNumber": "Registernummer",
+      "licenceNumber": "Lizenznummer",
+      "location": "Standort",
+      "contactPerson": "Ansprechpartner",
+      "contactEmail": "Kontakt-E-Mail",
+      "contactPhone": "Telefon",
+      "expectedWorkers": "Erwartete Mitarbeiter",
+      "message": "Ihre Nachricht",
+      "terms": "Bedingungen",
+      "termsAccepted": "Akzeptiert am {date}",
+      "source": "Eingang über",
+      "none": "Nicht angegeben"
+    },
+    "history": {
+      "heading": "Prüfverlauf",
+      "infoRequested": "Info angefordert",
+      "decision": "Entscheidung",
+      "reviewedBy": "von {name}",
+      "empty": "Bisher hat niemand gehandelt."
+    },
+    "verbs": {
+      "requestInfo": "Mehr anfordern",
+      "requestInfoTitle": "Mehr von dieser Firma anfordern",
+      "requestInfoField": "Was brauchen Sie von ihnen?",
+      "requestInfoHint": "Ihre Notiz wird per E-Mail geschickt, und die Unterlagen können erneut gesendet werden. Der Antrag bleibt offen.",
+      "reject": "Ablehnen",
+      "rejectTitle": "Diesen Antrag ablehnen?",
+      "rejectField": "Grund der Ablehnung",
+      "approve": "Genehmigen",
+      "approveTitle": "Diesen Antrag genehmigen?",
+      "approveHint": "Damit wird die Agentur angelegt und ein Link zum Setzen des Passworts verschickt. Der Zugang öffnet sich erst, wenn Sie das Vertragsstartdatum setzen — der nächste Schritt.",
+      "approveConfirm": "Genehmigen und anlegen"
+    },
+    "approve": {
+      "accountCreatedTitle": "Agentur angelegt",
+      "accountCreatedBody": "Das Konto existiert und die Einladung ist unterwegs. Anmelden kann sich die Agentur erst, wenn die Vertragsdaten eingetragen sind.",
+      "openDates": "Vertragsdaten setzen",
+      "later": "Später erledigen"
+    },
+    "duplicate": {
+      "title": "Eine Agentur nutzt diese E-Mail bereits",
+      "body": "Auf diese Adresse ist eine aktive Agentur registriert, daher kann kein zweites Konto dafür angelegt werden. Prüfen Sie, ob sich dieselbe Firma zweimal bewirbt.",
+      "viewAgency": "{name} öffnen",
+      "rejectAsDuplicate": "Als Duplikat ablehnen"
+    },
+    "terminal": {
+      "approvedTitle": "Genehmigt",
+      "approvedBody": "Dieser Antrag wurde genehmigt; der Agentureintrag führt ihn ab jetzt weiter.",
+      "rejectedTitle": "Abgelehnt",
+      "openAgency": "Agentur öffnen"
+    },
+    "empty": {
+      "queueTitle": "Nichts wartet",
+      "queueBody": "Neue Partnerschaftsanträge landen hier — ob eine Firma sich online bewirbt oder eine Kollegin einen Antrag einträgt.",
+      "filteredTitle": "Keine Anträge gefunden",
+      "filteredBody": "Einen Filter entfernen oder den Zeitraum erweitern."
+    },
+    "filters": {
+      "country": "Land",
+      "city": "Stadt",
+      "submitted": "Eingegangen"
+    },
+    "errors": {
+      "alreadyReviewed": "Eine Kollegin oder ein Kollege hat diesen Antrag bereits entschieden. Neu laden, um die Entscheidung zu sehen.",
+      "noteRequired": "Schreiben Sie, was Sie von ihnen brauchen.",
+      "reasonRequired": "Schreiben Sie den Grund der Ablehnung.",
+      "notFound": "Dieser Antrag existiert nicht mehr. Bitte die Warteschlange neu laden.",
+      "emailTaken": "Eine Agentur nutzt diese E-Mail-Adresse bereits. Sie kann anderswo weiterhin einem Mitarbeiter oder Eigentümer gehören — nur Agentur-Anmeldungen kollidieren.",
+      "invalidContractWindow": "Das Enddatum liegt vor dem Startdatum.",
+      "locationMissing": "Dieser Antrag enthält kein Land und keine Stadt, daher lässt sich daraus keine Agentur anlegen. Fragen Sie die Firma nach ihrem Standort, oder tragen Sie die Agentur von Hand ein.",
+      "roleMissing": "Auf dem Server fehlt die AGENCY-Rolle, daher kann kein Agenturkonto angelegt werden. Das ist ein Deployment-Fehler, nicht ein Problem mit Ihrer Eingabe.",
+      "termsNotConfigured": "Auf dem Server ist kein Bedingungsdokument konfiguriert, daher kann noch kein Antrag eingetragen werden. Das ist ein Deployment-Fehler.",
+      "countryNotFound": "Dieses Land ist nicht mehr verfügbar. Bitte erneut auswählen.",
+      "cityNotFound": "Diese Stadt ist nicht mehr verfügbar. Bitte erneut auswählen.",
+      "cityCountryMismatch": "Diese Stadt liegt nicht im ausgewählten Land. Bitte die Stadt erneut auswählen.",
+      "invalidToken": "Dieser Upload-Link ist ungültig oder abgelaufen. Starten Sie den Upload erneut, um einen neuen zu erhalten.",
+      "storageKeyMismatch": "Diese Datei gehört nicht zu diesem Upload. Bitte den Upload erneut starten.",
+      "unsupportedType": "Dieser Dokumenttyp kann hier nicht hochgeladen werden.",
+      "fileNotFound": "Die Datei hat den Speicher nie erreicht. Bitte erneut hochladen.",
+      "mimeMismatch": "Die Datei ist nicht von der angegebenen Art. Laden Sie ein PDF oder ein Bild hoch.",
+      "tooLarge": "Diese Datei ist größer als 10 MB.",
+      "limitReached": "Dieser Antrag trägt bereits 10 Dokumente.",
+      "generic": "Das konnte nicht ausgeführt werden. Bitte erneut versuchen."
+    }
+  },
   "system": {
     "notBuilt": {
       "title": "Dieser Bereich ist noch nicht gebaut",
