@@ -2,12 +2,18 @@ import { apiClient } from "@/lib/http/client";
 import type { PagedResult } from "@/lib/types/paged.types";
 import type {
   ActiveAgencyDto,
+  AdminIntakeRequest,
+  AdminIntakeResponse,
   AgencyApplicationDetailDto,
+  AgencyApplicationDocumentDto,
   AgencyApplicationQuery,
   AgencyApplicationRowDto,
   AgencyDto,
   ApproveApplicationRequest,
+  ConfirmDocumentRequest,
   CreateAgencyRequest,
+  PresignDocumentRequest,
+  PresignDocumentResponse,
   ReviewTextRequest,
   UpdateAgencyRequest,
 } from "@/lib/types/agency.types";
@@ -154,6 +160,47 @@ export const agencyService = {
   ): Promise<AgencyApplicationDetailDto> => {
     const { data } = await apiClient.post<AgencyApplicationDetailDto>(
       `/api/agency-applications/${id}/approve`,
+      body,
+    );
+    return data;
+  },
+
+  /** `agency_application:manage` (170006). ⚠ Keep the whole response — see the DTO. */
+  createAdminApplication: async (
+    body: AdminIntakeRequest,
+  ): Promise<AdminIntakeResponse> => {
+    const { data } = await apiClient.post<AdminIntakeResponse>(
+      "/api/agency-applications/admin",
+      body,
+    );
+    return data;
+  },
+
+  /**
+   * Step 1 of three. **No login** — authorised by the upload token in the body.
+   *
+   * ⚠ An unknown application id answers `invalid_or_expired_token`, **not** a
+   * `404`: a `404` would confirm which ids exist. Unknown app, wrong token and
+   * expired token are indistinguishable, so one message must serve all three.
+   */
+  presignDocument: async (
+    applicationId: string,
+    body: PresignDocumentRequest,
+  ): Promise<PresignDocumentResponse> => {
+    const { data } = await apiClient.post<PresignDocumentResponse>(
+      `/api/agency-applications/${applicationId}/documents/presign`,
+      body,
+    );
+    return data;
+  },
+
+  /** Step 3 of three. `previewUrl` comes back `null` — the uploader has the file. */
+  confirmDocument: async (
+    applicationId: string,
+    body: ConfirmDocumentRequest,
+  ): Promise<AgencyApplicationDocumentDto> => {
+    const { data } = await apiClient.post<AgencyApplicationDocumentDto>(
+      `/api/agency-applications/${applicationId}/documents`,
       body,
     );
     return data;

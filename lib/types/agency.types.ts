@@ -341,3 +341,86 @@ export interface ApproveApplicationRequest {
   validUntil?: string;
   note?: string;
 }
+
+/**
+ * `POST /api/agency-applications/admin` — `agency_application:manage` (170006).
+ *
+ * The public submit's body **minus** `termsVersion`/`termsAccepted`: the agency
+ * accepted the terms on paper, so the row records the current version, the moment
+ * of typing and the admin's id (§6.3).
+ *
+ * ⚠ **There is no cooldown on this door**, unlike the public one's 10-minute and
+ * 5-per-hour limits, so `429` cannot occur here.
+ *
+ * Required: `legalName` (≤200) · `registrationNumber` (≤100) · `countryId` ·
+ * `cityId` · `contactPersonName` (≤200) · `contactEmail` (≤256, an email).
+ * Optional: `licenceNumber` (≤100) · `contactPhone` (≤50) ·
+ * `expectedWorkerCount` (0–100000) · `message` (≤4000).
+ */
+export interface AdminIntakeRequest {
+  legalName: string;
+  registrationNumber: string;
+  licenceNumber?: string;
+  countryId: string;
+  cityId: string;
+  contactPersonName: string;
+  contactEmail: string;
+  contactPhone?: string;
+  expectedWorkerCount?: number;
+  message?: string;
+}
+
+/**
+ * ⚠ **Keep the whole response.** Both document doors are token-gated, so an
+ * admin-typed application created without using this token could never carry a
+ * company paper and the queue would read `hasAllRequiredDocs: false` forever.
+ *
+ * ⚠ **This is the only moment the plaintext token exists outside the applicant's
+ * inbox** — the row stores a hash, so it can never be re-shown and there is no
+ * resend door. It is reusable until it expires (14 days by default), not one-shot,
+ * and it stops working the moment the application is approved or rejected.
+ *
+ * ⚠ **The application starts at `Pending`.** Approving is a separate call.
+ */
+export interface AdminIntakeResponse {
+  application: AgencyApplicationDetailDto;
+  uploadToken: string;
+  uploadTokenExpiresAt: string;
+}
+
+/** ⚠ The token goes in the **body**. A token in a URL lands in logs and history. */
+export interface PresignDocumentRequest {
+  uploadToken: string;
+  fileName: string;
+  type: AgencyApplicationDocumentType;
+}
+
+/**
+ * ⚠ **No `publicUrl`, deliberately** — every other presign in this API has one.
+ * These files sit behind a signed-read prefix where the public URL answers `404`,
+ * so returning one would hand out a link that looks right and is dead. Read them
+ * only through the detail's `previewUrl`.
+ */
+export interface PresignDocumentResponse {
+  presignedUploadUrl: string;
+  /** ⚠ `"POST"`, not `"PUT"`, despite the field name. Use what this says. */
+  method: string;
+  expiresAt: string;
+  /** ⚠ The **server** chooses this. Send it back on confirm exactly as returned. */
+  storageKey: string;
+}
+
+export interface ConfirmDocumentRequest {
+  uploadToken: string;
+  storageKey: string;
+  type: AgencyApplicationDocumentType;
+  fileName: string;
+  mimeType: string;
+  /**
+   * ⚠ **Accepted and ignored for the cap.** The real stored byte count is
+   * measured server-side and *that* is what the row records and returns. Send the
+   * honest value; you cannot lie past the limit and cannot use it to make the row
+   * say something else.
+   */
+  sizeBytes: number;
+}
