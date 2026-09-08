@@ -2286,16 +2286,6 @@
       "toggleGeneric": "Could not change the category state. Please try again."
     }
   },
-  "agency": {
-    "requests": {
-      "title": "Agency requests",
-      "subtitle": "Partnership applications waiting on a review — approve, reject, or ask for a clearer document."
-    },
-    "list": {
-      "title": "Agencies",
-      "subtitle": "Partner recruitment agencies, their contract window, and whether they can sign in today."
-    }
-  },
   "agencies": {
     "title": "Agencies",
     "subtitle": "Partner recruitment agencies, their contract window, and whether they can sign in today.",
@@ -2469,7 +2459,7 @@
       "reload": "Reload"
     },
     "flags": {
-      "rejectedBefore": "Rejected before",
+      "rejectedBefore": "{count, plural, one {Rejected once before} other {Rejected # times before}}",
       "rejectedBeforeHint": "This company has applied and been rejected before. That is context, not a verdict — judge this application on its own papers."
     },
     "facts": {
@@ -2528,9 +2518,7 @@
     },
     "empty": {
       "queueTitle": "Nothing waiting",
-      "queueBody": "New partnership applications land here, whether a company applies online or a colleague keys one in.",
-      "filteredTitle": "No applications match",
-      "filteredBody": "Clear a filter or widen the date range."
+      "queueBody": "New partnership applications land here, whether a company applies online or a colleague keys one in."
     },
     "filters": {
       "country": "Country",

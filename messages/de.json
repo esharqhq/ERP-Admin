@@ -2286,16 +2286,6 @@
       "toggleGeneric": "Status konnte nicht geändert werden. Bitte erneut versuchen."
     }
   },
-  "agency": {
-    "requests": {
-      "title": "Agenturanfragen",
-      "subtitle": "Partnerschaftsanträge, die auf eine Prüfung warten — genehmigen, ablehnen oder ein besseres Dokument anfordern."
-    },
-    "list": {
-      "title": "Agenturen",
-      "subtitle": "Partner-Personalagenturen, ihr Vertragszeitraum und ob sie sich heute anmelden können."
-    }
-  },
   "agencies": {
     "title": "Agenturen",
     "subtitle": "Partner-Personalagenturen, ihr Vertragszeitraum und ob sie sich heute anmelden können.",
@@ -2469,7 +2459,7 @@
       "reload": "Neu laden"
     },
     "flags": {
-      "rejectedBefore": "Früher abgelehnt",
+      "rejectedBefore": "{count, plural, one {Einmal zuvor abgelehnt} other {# mal zuvor abgelehnt}}",
       "rejectedBeforeHint": "Diese Firma hat sich schon einmal beworben und wurde abgelehnt. Das ist Kontext, kein Urteil — beurteilen Sie diesen Antrag anhand seiner eigenen Unterlagen."
     },
     "facts": {
@@ -2528,9 +2518,7 @@
     },
     "empty": {
       "queueTitle": "Nichts wartet",
-      "queueBody": "Neue Partnerschaftsanträge landen hier — ob eine Firma sich online bewirbt oder eine Kollegin einen Antrag einträgt.",
-      "filteredTitle": "Keine Anträge gefunden",
-      "filteredBody": "Einen Filter entfernen oder den Zeitraum erweitern."
+      "queueBody": "Neue Partnerschaftsanträge landen hier — ob eine Firma sich online bewirbt oder eine Kollegin einen Antrag einträgt."
     },
     "filters": {
       "country": "Land",
