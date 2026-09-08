@@ -2365,6 +2365,7 @@
       "registrationNumber": "Registernummer",
       "licenceNumber": "Lizenznummer",
       "countryId": "Land",
+      "countryPlaceholder": "Land wählen",
       "cityId": "Stadt",
       "cityPlaceholder": "Zuerst ein Land wählen",
       "contactPersonName": "Ansprechpartner",

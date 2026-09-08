@@ -15,14 +15,6 @@ import { DayControl } from "@/components/ui/date-range-field";
 import { useCities, useCountries } from "@/hooks/use-lookups";
 import type { AgencyFormState } from "@/lib/agencies/form";
 
-/**
- * `BoundBox` is sized for its own file's filter band — `h-8`, `text-xs`, a 10px
- * radius. In a form it has to match `components/ui/input.tsx`, which is `h-10`,
- * `rounded-lg` and full width. The mono face stays: dates are mono everywhere in
- * this console, and `YYYY-MM-DD` is what the wire speaks in both languages.
- */
-const DATE_BOX = "h-10 w-full rounded-lg text-sm";
-
 function Field({
   label,
   required,
@@ -109,6 +101,18 @@ export function AgencyFormFields({
   const name = (row: { nameEn: string; nameDe: string }) =>
     locale === "de" ? row.nameDe : row.nameEn;
 
+  /*
+    ⚠ **`items` is not optional here, and omitting it printed raw GUIDs.**
+
+    Base UI's `Select.Value` renders the *selected value* unless the root is
+    told how values map to labels. With no `items`, a picked country showed
+    `01a04829-a39e-7f2e-…` in the closed trigger — the label only existed inside
+    the `SelectItem` children, which the trigger never sees.
+    `property-create-dialog.tsx:172` already passes `items`; this form did not.
+  */
+  const countryItems = countries.map((c) => ({ value: c.id, label: name(c) }));
+  const cityItems = cities.map((c) => ({ value: c.id, label: name(c) }));
+
   return (
     <div className="flex flex-col gap-5">
       <div className="grid gap-4 sm:grid-cols-2">
@@ -146,6 +150,7 @@ export function AgencyFormFields({
 
         <Field label={t("countryId")} required>
           <Select
+            items={countryItems}
             value={value.countryId}
             /*
               ⚠ The city goes with it. See this component's doc comment.
@@ -159,12 +164,14 @@ export function AgencyFormFields({
             {/* ⚠ `w-full`: `SelectTrigger`'s own default is `w-fit`, which with an
                 empty value collapses the control to just its chevron. */}
             <SelectTrigger className="w-full">
-              <SelectValue />
+              {/* Without a placeholder an unset select is a blank box that
+                  reads as a broken input rather than an unanswered question. */}
+              <SelectValue placeholder={t("countryPlaceholder")} />
             </SelectTrigger>
             <SelectContent>
-              {countries.map((c) => (
-                <SelectItem key={c.id} value={c.id}>
-                  {name(c)}
+              {countryItems.map((c) => (
+                <SelectItem key={c.value} value={c.value}>
+                  {c.label}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -173,6 +180,7 @@ export function AgencyFormFields({
 
         <Field label={t("cityId")} required>
           <Select
+            items={cityItems}
             value={value.cityId}
             disabled={!value.countryId}
             onValueChange={(v) => onChange({ cityId: v ?? "" })}
@@ -181,9 +189,9 @@ export function AgencyFormFields({
               <SelectValue placeholder={t("cityPlaceholder")} />
             </SelectTrigger>
             <SelectContent>
-              {cities.map((c) => (
-                <SelectItem key={c.id} value={c.id}>
-                  {name(c)}
+              {cityItems.map((c) => (
+                <SelectItem key={c.value} value={c.value}>
+                  {c.label}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -222,7 +230,7 @@ export function AgencyFormFields({
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label={t("signedOn")}>
             <DayControl
-              className={DATE_BOX}
+              variant="field"
               label={t("signedOn")}
               value={value.signedOn}
               onChange={(day) => onChange({ signedOn: day })}
@@ -230,7 +238,7 @@ export function AgencyFormFields({
           </Field>
           <Field label={t("validUntil")}>
             <DayControl
-              className={DATE_BOX}
+              variant="field"
               label={t("validUntil")}
               value={value.validUntil}
               onChange={(day) => onChange({ validUntil: day })}
