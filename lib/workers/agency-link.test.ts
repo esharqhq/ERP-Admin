@@ -81,3 +81,44 @@ describe("agencyLinkTurn", () => {
     ).toBe("settled");
   });
 });
+
+/**
+ * ⚠ **The structural contract, pinned.**
+ *
+ * The links queue asks this question with an `AgencyLinkRowDto`, which carries
+ * **no `disputeNote`** because the wire sends none on a row. If the parameter is
+ * ever re-narrowed to `WorkerAgencyLinkDto`, the queue stops compiling and
+ * whoever hits it is one keystroke away from writing a second copy of the mirror
+ * rule — the thing this function exists to prevent.
+ *
+ * ⚠ Note what actually guards this: **`tsc`, not the assertion below.** JavaScript
+ * is structural at runtime, so this case would keep passing under a narrowed
+ * signature. It is here so the intent is written down beside the code, and so the
+ * type error lands in a file whose job is to explain it.
+ */
+describe("agencyLinkTurn — the shape it accepts", () => {
+  it("answers for a queue row, which has no disputeNote", () => {
+    const row = {
+      id: "83a1754f",
+      workerId: "w-1",
+      workerFullName: "Worker 3",
+      agencyId: "a-1",
+      agencyLegalName: "Alpha",
+      status: "Proposed" as const,
+      setByUserType: "WORKER" as const,
+      reason: null,
+      resolvedByAdminId: null,
+      resolvedAt: null,
+      resolutionReason: null,
+      createdAt: "2026-08-20T12:52:29.388872Z",
+    };
+    expect(agencyLinkTurn(row)).toBe("admin");
+  });
+
+  /** The bare structural minimum — two fields is all the rule reads. */
+  it("answers for the two fields alone", () => {
+    expect(
+      agencyLinkTurn({ status: "Proposed", setByUserType: "ADMIN" }),
+    ).toBe("worker");
+  });
+});

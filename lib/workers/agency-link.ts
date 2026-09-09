@@ -1,4 +1,4 @@
-import type { WorkerAgencyLinkDto } from "@/lib/types/agency.types";
+import type { AgencyLinkSetBy, AgencyLinkStatus } from "@/lib/types/agency.types";
 
 /**
  * Whose desk a worker↔agency link is sitting on.
@@ -24,9 +24,20 @@ export type AgencyLinkTurn = "admin" | "worker" | "settled";
  * raw `status` regardless, so calling it settled hides nothing. This is the default
  * branch `guidance.md` §6 requires — the widened `AgencyLinkStatus` /
  * `AgencyLinkSetBy` unions exist so `tsc` cannot prune it.
+ *
+ * ⚠ **The parameter is structural, not `WorkerAgencyLinkDto`**, and it has to be:
+ * the two surfaces that ask this question carry different shapes. The worker card
+ * holds a `WorkerAgencyLinkDto`; the links queue holds an `AgencyLinkRowDto`,
+ * which has **no `disputeNote`** because the wire sends none. Naming either DTO
+ * would force the other to build a fake object to ask — and then one of the two
+ * screens would grow its own copy of the mirror rule, which is precisely what
+ * this function exists to prevent.
  */
 export function agencyLinkTurn(
-  link: WorkerAgencyLinkDto | null | undefined,
+  link:
+    | { status: AgencyLinkStatus; setByUserType: AgencyLinkSetBy }
+    | null
+    | undefined,
 ): AgencyLinkTurn {
   if (!link) return "settled";
 
