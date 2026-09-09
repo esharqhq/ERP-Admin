@@ -22,13 +22,17 @@ describe("notificationRoute", () => {
   /**
    * ⚠ The rule this file states about itself: an unknown type must degrade to a
    * non-clickable row, never to a broken route. The wire enum grows without
-   * warning — types 58–60 (`WorkerAgencyLink`) are live today and deliberately
-   * unrouted, since their destination is the links screen phase 4 builds.
+   * warning, so this case has to be held by a name nothing has claimed.
+   *
+   * ⚠ It used to be held by `WorkerAgencyLink`, with a comment saying types
+   * 58–60 were live and deliberately unrouted until the links screen existed.
+   * Phase 4 built that screen, so the example was consumed by the very change it
+   * was documenting — hence a deliberately fictional entity here instead.
    */
   it("leaves an unknown entity type non-clickable", () => {
     expect(
       notificationRoute(
-        "WorkerAgencyLink" as Parameters<typeof notificationRoute>[0],
+        "SomethingNobodyHasBuilt" as Parameters<typeof notificationRoute>[0],
         "b8e6856f",
       ),
     ).toBeNull();
@@ -37,5 +41,57 @@ describe("notificationRoute", () => {
   it("needs both halves before it will route anything", () => {
     expect(notificationRoute("AgencyApplication", null)).toBeNull();
     expect(notificationRoute(null, "b8e6856f")).toBeNull();
+  });
+});
+
+describe("notificationRoute — agency links", () => {
+  /**
+   * ⚠ **`entityId` is the LINK id** (`WorkerAgencyLinkService.cs:182-183`,
+   * `WorkerAgencyLinkWriter.cs:74-75`), and nothing in this app is keyed on one
+   * — there is no `GET /api/admin/agency-links/{id}` and no link detail route.
+   * So the destination is the **queue**, which `notification-bell.md:233`
+   * sanctions in as many words, and the tab is what makes it land usefully.
+   */
+  it("sends a worker's claim to the Proposed tab", () => {
+    expect(
+      notificationRoute("WorkerAgencyLink", "83a1754f", "AgencyLinkProposedByWorker"),
+    ).toBe("/dashboard/agency-links?tab=Proposed");
+  });
+
+  /**
+   * ⚠ **No `?tab=Disputed`, deliberately.** `useTableUrlState.setTab` **deletes**
+   * the param when the value equals `defaultTab` (an empty value removes the
+   * key), and `Disputed` *is* this screen's default. Emitting the param would
+   * mean two different URLs for one view, and the first control an admin touched
+   * would silently rewrite the address to drop it. A bare path is the same
+   * destination and the canonical spelling of it.
+   */
+  it("sends a dispute to the queue's own default tab, with no param", () => {
+    expect(
+      notificationRoute("WorkerAgencyLink", "83a1754f", "AgencyLinkDisputed"),
+    ).toBe("/dashboard/agency-links");
+  });
+
+  /**
+   * ⚠ Type 58 goes to the **worker**, not to an admin. Routing it here would
+   * build a destination for a row this app never receives.
+   */
+  it("does not route the notice that goes to the worker", () => {
+    expect(
+      notificationRoute("WorkerAgencyLink", "83a1754f", "AgencyLinkProposedByAdmin"),
+    ).toBeNull();
+  });
+
+  /** An unrecognised type on this entity still has a sensible home. */
+  it("falls back to the queue for an unknown type on this entity", () => {
+    expect(notificationRoute("WorkerAgencyLink", "83a1754f", "SomethingNew")).toBe(
+      "/dashboard/agency-links",
+    );
+  });
+
+  it("still routes without a type at all", () => {
+    expect(notificationRoute("WorkerAgencyLink", "83a1754f")).toBe(
+      "/dashboard/agency-links",
+    );
   });
 });

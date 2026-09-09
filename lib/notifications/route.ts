@@ -8,6 +8,16 @@ import type { NotificationEntityType } from "@/lib/types/notification.types";
 export function notificationRoute(
   entityType: NotificationEntityType | null,
   entityId: string | null,
+  /**
+   * The notification `type`, needed by exactly one entity.
+   *
+   * ⚠ `WorkerAgencyLink` covers three types with **two different audiences**:
+   * 58 goes to the worker, 59 and 60 to every admin, and the two admin notices
+   * belong on different tabs of one screen. `entityType` alone cannot separate
+   * them, which is why this argument exists — optional, so a caller that does
+   * not pass it keeps working unchanged.
+   */
+  type?: string,
 ): string | null {
   if (!entityType || !entityId) return null;
   switch (entityType) {
@@ -29,6 +39,31 @@ export function notificationRoute(
     // destination is the agency-links screen, which phase 4 builds.
     case "AgencyApplication":
       return `/dashboard/agency-requests/${entityId}`;
+    /*
+      Types 58-60. ⚠ `entityId` is the **link** id and nothing is keyed on one —
+      there is no `GET /api/admin/agency-links/{id}` and no link detail route. So
+      the destination is the queue, which `notification-bell.md:233` names as a
+      sanctioned target, and the tab is what makes it land on the right work. A
+      `?linkId=` the endpoint does not accept would be a filter that silently
+      does nothing, so `entityId` goes deliberately unused here; the queue's
+      `createdAt desc` default puts the row that fired the bell at the top.
+    */
+    case "WorkerAgencyLink":
+      // 58 `AgencyLinkProposedByAdmin` is the WORKER's own notice. An admin
+      // panel has no row for it, so it stays non-clickable.
+      if (type === "AgencyLinkProposedByAdmin") return null;
+      if (type === "AgencyLinkProposedByWorker") {
+        return "/dashboard/agency-links?tab=Proposed";
+      }
+      /*
+        ⚠ `AgencyLinkDisputed` gets **no** `?tab=`: `Disputed` is that screen's
+        default tab and `useTableUrlState` deletes the param when it matches the
+        default — so the bare path is the canonical URL for that view, and
+        emitting one would mean two addresses for the same screen.
+
+        A type this build has not met lands in the same, sensible place.
+      */
+      return "/dashboard/agency-links";
     // Contract rows have no screen to land on. `/dashboard/contracts` was deleted as
     // unused, and `entityId` here is a *contract* id — no surviving route is keyed on
     // one, so there is nothing to redirect to rather than a list. Per this file's rule

@@ -1,4 +1,5 @@
 import {
+  Link2,
   LayoutDashboard,
   Users,
   Building2,
@@ -115,6 +116,10 @@ export const navGroups: NavGroup[] = [
     items: [
       { title: "Requests", labelKey: "nav.agencyRequests", url: "/dashboard/agency-requests", icon: Inbox, permission: "agency_application:read", badge: "waiting" },
       { title: "Agencies", labelKey: "nav.agencies",       url: "/dashboard/agencies",         icon: Briefcase, permission: "agency:read" },
+      // MODERATOR *does* hold `agency_link:read_any`, so this is the one Agency
+      // row that opens live for them — and the screen behind it renders
+      // completely with every write action absent.
+      { title: "Links",    labelKey: "nav.agencyLinks",    url: "/dashboard/agency-links",     icon: Link2, permission: "agency_link:read_any" },
     ],
   },
   {
