@@ -465,6 +465,7 @@
     "agency": "Agentur",
     "agencyRequests": "Anfragen",
     "agencies": "Agenturen",
+    "agencyLinks": "Verknüpfungen",
     "propertyCategories": "Objektkategorien",
     "walkIn": "Laufkundschaft",
     "broadcasts": "Ankündigungen",
@@ -569,7 +570,7 @@
         "Rejected": "Abgelehnt"
       },
       "turn": {
-        "admin": "Wartet auf eine Admin-Entscheidung. Im Bereich Agenturverknüpfungen bearbeiten.",
+        "admin": "Wartet auf eine Admin-Entscheidung.",
         "worker": "Wartet darauf, dass der Mitarbeiter bestätigt oder bestreitet."
       },
       "reason": {
@@ -2591,6 +2592,103 @@
       "mimeMismatch": "Die Datei ist nicht von der angegebenen Art. Laden Sie ein PDF oder ein Bild hoch.",
       "tooLarge": "Diese Datei ist größer als 10 MB.",
       "limitReached": "Dieser Antrag trägt bereits 10 Dokumente.",
+      "generic": "Das konnte nicht ausgeführt werden. Bitte erneut versuchen."
+    }
+  },
+  "agencyLinks": {
+    "title": "Agentur-Verknüpfungen",
+    "subtitle": "Wer über welche Agentur kam — und welche Angaben und Widersprüche auf eine Entscheidung warten.",
+    "list": "Mitarbeiter-Agentur-Verknüpfungen",
+    "searchPlaceholder": "Name, E-Mail oder Agentur suchen",
+    "tabs": {
+      "Disputed": "Widersprochen",
+      "Proposed": "Wartet auf Entscheidung",
+      "Confirmed": "Bestätigt",
+      "Rejected": "Abgelehnt",
+      "all": "Alle"
+    },
+    "columns": {
+      "worker": "Mitarbeiter",
+      "agency": "Agentur",
+      "state": "Status",
+      "why": "Grund",
+      "raised": "Erfasst",
+      "resolved": "Entschieden",
+      "resolutionReason": "Entscheidung",
+      "actions": "Aktionen"
+    },
+    "status": {
+      "Proposed": "Angegeben — unbestätigt",
+      "Confirmed": "Bestätigt",
+      "Disputed": "Widersprochen",
+      "Rejected": "Abgelehnt"
+    },
+    "turn": {
+      "admin": "Wartet auf Sie",
+      "worker": "Wartet auf den Mitarbeiter"
+    },
+    "verbs": {
+      "confirm": "Bestätigen",
+      "confirmTitle": "Diese Verknüpfung bestätigen?",
+      "confirmHint": "Sie stimmen der eigenen Angabe des Mitarbeiters zu, über diese Agentur gekommen zu sein.",
+      "confirmSubmit": "Verknüpfung bestätigen",
+      "overrule": "Mitarbeiter überstimmen",
+      "overruleShort": "Überstimmen",
+      "reject": "Ablehnen",
+      "rejectTitle": "Diese Verknüpfung ablehnen?",
+      "rejectSubmit": "Verknüpfung ablehnen",
+      "attach": "Agentur zuordnen",
+      "openWorker": "Mitarbeiter öffnen"
+    },
+    "reason": {
+      "label": "Grund",
+      "required": "Erforderlich. Er bleibt als Begründung dieser Entscheidung im Datensatz.",
+      "optionalHint": "Optional — Sie stimmen dem Mitarbeiter zu, statt ihn zu überstimmen."
+    },
+    "overrule": {
+      "title": "Den Widerspruch des Mitarbeiters überstimmen?",
+      "body": "Dieser Mitarbeiter hat uns mitgeteilt, nicht über diese Agentur gekommen zu sein. Eine Bestätigung der Verknüpfung setzt diese Aussage über ihn selbst außer Kraft.",
+      "confirmStep": "Dies wird separat im Audit-Log als Überstimmung festgehalten. Der Mitarbeiter wird nicht über das Ergebnis benachrichtigt — nichts teilt ihm mit, dass die Verknüpfung nun gilt.",
+      "submit": "Überstimmen und bestätigen"
+    },
+    "attach": {
+      "title": "Diesem Mitarbeiter eine Agentur zuordnen",
+      "agency": "Agentur",
+      "agencyPlaceholder": "Partneragentur wählen",
+      "reasonLabel": "Warum ordnen Sie das zu?",
+      "reasonHint": "Erforderlich. Der Mitarbeiter liest dies, bevor er bestätigt oder widerspricht — schreiben Sie, woran er es erkennt.",
+      "notifyHint": "Der Mitarbeiter wird per E-Mail informiert und muss dies bestätigen. Bis dahin ist es nirgends ein Kennzeichen — nicht im Profil, nicht an einem Auftrag, nicht in der Eigentümer-App.",
+      "submit": "Zuordnen und benachrichtigen",
+      "noAgencies": "Derzeit ist kein Partnervertrag in Kraft, daher kann keine neue Verknüpfung angelegt werden. Prüfen Sie den Agenturen-Bildschirm."
+    },
+    "rejected": {
+      "body": "Diese Verknüpfung ist abgelehnt und bleibt im Datensatz. Der Mitarbeiter hat nun keine Agentur-Verknüpfung — was keine Aussage darüber ist, dass er unabhängig kam."
+    },
+    "waiting": {
+      "worker": "Dies wartet auf den Mitarbeiter, nicht auf Sie. Eine von einem Admin angelegte Verknüpfung können Sie nicht bestätigen — das nähme ihm die einzige Gelegenheit zu widersprechen."
+    },
+    "empty": {
+      "disputedTitle": "Keine Widersprüche",
+      "disputedBody": "Niemand hat einer Agentur-Verknüpfung widersprochen. Widersprochene Verknüpfungen landen hier — das Einzige, worüber Sie entscheiden müssen.",
+      "proposedTitle": "Nichts wartet auf eine Entscheidung",
+      "proposedBody": "Eigene Agentur-Angaben von Mitarbeitern landen hier zur Bestätigung, zusammen mit den von Admins zugeordneten, die noch unbeantwortet sind.",
+      "genericTitle": "Keine Verknüpfungen",
+      "genericBody": "Verknüpfungen entstehen, wenn ein Mitarbeiter bei der Anmeldung eine Agentur nennt oder ein Admin eine zuordnet."
+    },
+    "filters": {
+      "agency": "Agentur",
+      "agencyHint": "Es werden nur Partner aufgeführt, deren Vertrag aktuell in Kraft ist. Eine Verknüpfung zu einer abgelaufenen oder gelöschten Agentur lässt sich nicht über den Namen filtern — und genau die sind oft die, die abgelehnt werden sollten."
+    },
+    "errors": {
+      "notFound": "Diese Verknüpfung existiert nicht mehr. Bitte die Warteschlange neu laden.",
+      "workerNotFound": "Dieser Mitarbeiter existiert nicht mehr.",
+      "agencyNotFound": "Diese Agentur ist nicht mehr verfügbar. Ihre Verknüpfung kann weiterhin abgelehnt werden.",
+      "agencyNotInForce": "Diese Partnerschaft ist derzeit nicht in Kraft, daher kann keine neue Verknüpfung dazu angelegt werden. Bestehende bleiben unberührt.",
+      "linkExists": "Dieser Mitarbeiter hat bereits eine aktive Agentur-Verknüpfung. Lehnen Sie diese zuerst ab und ordnen Sie dann die neue Agentur zu — ein Agenturwechsel sind zwei Schritte.",
+      "notAwaitingYou": "Dies wartet auf den Mitarbeiter, nicht auf Sie. Es hier zu schließen nähme ihm die einzige Gelegenheit zu widersprechen.",
+      "alreadyResolved": "Diese Verknüpfung wurde bereits entschieden. Neu laden, um das Ergebnis zu sehen.",
+      "reasonRequired": "Schreiben Sie den Grund für diese Entscheidung.",
+      "invalidSortColumn": "Diese Warteschlange kann nicht nach dieser Spalte sortiert werden. Die Sortierung wurde zurückgesetzt.",
       "generic": "Das konnte nicht ausgeführt werden. Bitte erneut versuchen."
     }
   },

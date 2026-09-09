@@ -465,6 +465,7 @@
     "agency": "Agency",
     "agencyRequests": "Requests",
     "agencies": "Agencies",
+    "agencyLinks": "Links",
     "propertyCategories": "Property categories",
     "walkIn": "Walk-in",
     "broadcasts": "Broadcasts",
@@ -569,7 +570,7 @@
         "Rejected": "Rejected"
       },
       "turn": {
-        "admin": "Waiting on an admin decision. Resolve it on the Agency links screen.",
+        "admin": "Waiting on an admin decision.",
         "worker": "Waiting on the worker to confirm or dispute this."
       },
       "reason": {
@@ -2591,6 +2592,103 @@
       "mimeMismatch": "The file is not the kind it claims to be. Upload a PDF or an image.",
       "tooLarge": "That file is over 10 MB.",
       "limitReached": "This application already carries 10 documents.",
+      "generic": "That could not be done. Please try again."
+    }
+  },
+  "agencyLinks": {
+    "title": "Agency links",
+    "subtitle": "Who came through which agency — and the claims and disputes waiting on a decision.",
+    "list": "Worker–agency links",
+    "searchPlaceholder": "Search worker name, email or agency",
+    "tabs": {
+      "Disputed": "Disputed",
+      "Proposed": "Awaiting a decision",
+      "Confirmed": "Confirmed",
+      "Rejected": "Rejected",
+      "all": "All"
+    },
+    "columns": {
+      "worker": "Worker",
+      "agency": "Agency",
+      "state": "State",
+      "why": "Why",
+      "raised": "Raised",
+      "resolved": "Resolved",
+      "resolutionReason": "Resolution",
+      "actions": "Actions"
+    },
+    "status": {
+      "Proposed": "Claimed — unconfirmed",
+      "Confirmed": "Confirmed",
+      "Disputed": "Disputed",
+      "Rejected": "Rejected"
+    },
+    "turn": {
+      "admin": "Waiting on you",
+      "worker": "Waiting on the worker"
+    },
+    "verbs": {
+      "confirm": "Confirm",
+      "confirmTitle": "Confirm this link?",
+      "confirmHint": "You are agreeing with the worker's own claim that they came through this agency.",
+      "confirmSubmit": "Confirm the link",
+      "overrule": "Overrule the worker",
+      "overruleShort": "Overrule",
+      "reject": "Reject",
+      "rejectTitle": "Reject this link?",
+      "rejectSubmit": "Reject the link",
+      "attach": "Attach an agency",
+      "openWorker": "Open the worker"
+    },
+    "reason": {
+      "label": "Reason",
+      "required": "Required. It is kept on the record as the reason for this decision.",
+      "optionalHint": "Optional — you are agreeing with the worker rather than overruling them."
+    },
+    "overrule": {
+      "title": "Overrule the worker's objection?",
+      "body": "This worker told us they did not come through this agency. Confirming the link overrides that statement about themselves.",
+      "confirmStep": "This is recorded separately in the audit log as an overrule. The worker is not notified of the outcome — nothing tells them the link now stands.",
+      "submit": "Overrule and confirm"
+    },
+    "attach": {
+      "title": "Attach an agency to this worker",
+      "agency": "Agency",
+      "agencyPlaceholder": "Choose a partner agency",
+      "reasonLabel": "Why are you attaching this?",
+      "reasonHint": "Required. The worker reads this before they confirm or object, so write what they need to recognise.",
+      "notifyHint": "The worker is emailed and must confirm this. Until they do, it is not a badge anywhere — not on their profile, not on a task, not in the owner app.",
+      "submit": "Attach and notify",
+      "noAgencies": "No partner agency's contract is currently in force, so no new link can be made. Check the Agencies screen."
+    },
+    "rejected": {
+      "body": "This link is rejected and stays on the record. The worker now has no agency link — which is not a statement that they came independently."
+    },
+    "waiting": {
+      "worker": "This is waiting on the worker to confirm or object. You cannot confirm a link an admin created — that would remove their only chance to answer."
+    },
+    "empty": {
+      "disputedTitle": "No disputes",
+      "disputedBody": "Nobody has objected to an agency link. Disputed links land here, where they are the only thing you have to rule on.",
+      "proposedTitle": "Nothing awaiting a decision",
+      "proposedBody": "Workers' own agency claims land here for confirmation, alongside the ones an admin attached and the worker has yet to answer.",
+      "genericTitle": "No links here",
+      "genericBody": "Links are recorded when a worker names an agency at signup, or when an admin attaches one."
+    },
+    "filters": {
+      "agency": "Agency",
+      "agencyHint": "Only partners whose contract is currently in force are listed. A link to a lapsed or deleted agency cannot be filtered for by name — and those are often the ones worth rejecting."
+    },
+    "errors": {
+      "notFound": "That link no longer exists. Reload the queue.",
+      "workerNotFound": "That worker no longer exists.",
+      "agencyNotFound": "That agency is no longer available. Its link can still be rejected.",
+      "agencyNotInForce": "That partnership is not currently in force, so no new link can be made to it. Existing links are unaffected.",
+      "linkExists": "This worker already has a live agency link. Reject that one first, then attach the new agency — changing an agency is two acts.",
+      "notAwaitingYou": "This link is waiting on the worker, not on you. Closing it here would remove their only chance to object.",
+      "alreadyResolved": "This link has already been decided. Reload to see the outcome.",
+      "reasonRequired": "Write the reason for this decision.",
+      "invalidSortColumn": "This queue cannot be sorted by that column. Sorting has been reset.",
       "generic": "That could not be done. Please try again."
     }
   },
