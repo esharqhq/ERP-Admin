@@ -2636,7 +2636,7 @@
       "overruleShort": "Überstimmen",
       "reject": "Ablehnen",
       "rejectTitle": "Diese Verknüpfung ablehnen?",
-      "rejectPortalWarning": "Diese Arbeitskraft ist bei dieser Agentur bestätigt, daher verliert das Portal der Agentur sie – samt Einsätzen und Stunden – bei der nächsten Anfrage. Eine spätere Neuverknüpfung holt die früheren Einsätze nicht in die Ansicht der Agentur zurück, und die Agentur wird nicht benachrichtigt.",
+      "rejectPortalWarning": "Dieser Mitarbeiter ist bei dieser Agentur bestätigt, daher verliert das Portal der Agentur ihn – samt seinen Einsätzen und Stunden – bei der nächsten Anfrage. Eine spätere Neuverknüpfung holt die früheren Einsätze nicht in die Ansicht der Agentur zurück, und die Agentur wird nicht benachrichtigt.",
       "rejectSubmit": "Verknüpfung ablehnen",
       "attach": "Agentur zuordnen",
       "openWorker": "Mitarbeiter öffnen"
@@ -2649,7 +2649,7 @@
     "overrule": {
       "title": "Den Widerspruch des Mitarbeiters überstimmen?",
       "body": "Dieser Mitarbeiter hat uns mitgeteilt, nicht über diese Agentur gekommen zu sein. Eine Bestätigung der Verknüpfung setzt diese Aussage über ihn selbst außer Kraft.",
-      "confirmStep": "Dies wird separat im Audit-Log als Überstimmung festgehalten. Der Mitarbeiter wird nicht über das Ergebnis benachrichtigt — nichts teilt ihm mit, dass die Verknüpfung nun gilt. Damit erhält das Portal der Agentur ab heute auch ihre Einsätze und Stunden.",
+      "confirmStep": "Dies wird separat im Audit-Log als Überstimmung festgehalten. Der Mitarbeiter wird nicht über das Ergebnis benachrichtigt — nichts teilt ihm mit, dass die Verknüpfung nun gilt. Damit erhält das Portal der Agentur ab heute auch die Einsätze und Stunden dieses Mitarbeiters.",
       "submit": "Überstimmen und bestätigen"
     },
     "attach": {
