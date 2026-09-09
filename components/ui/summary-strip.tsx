@@ -38,6 +38,19 @@ const TONE = {
     text: "text-status-cancelled-deep",
     detail: "text-status-cancelled-deep/70",
   },
+  /**
+   * The one tone that is not a defect. Added for Dispatch, whose "Open · Pending
+   * or Active" tile is a healthy population rather than something to fix — drawing
+   * it `neutral` beside two alarms read as a fourth kind of grey.
+   *
+   * Same construction as the two above, on the `status-active` family, so it
+   * inherits that family's dark values.
+   */
+  positive: {
+    shell: "bg-status-active-tint/60 ring-status-active/30",
+    text: "text-status-active",
+    detail: "text-status-active/70",
+  },
   neutral: {
     shell: "bg-muted/50 ring-border",
     text: "text-foreground",
@@ -100,6 +113,7 @@ export function SummaryTile({
   action,
   tone,
   count,
+  showCount,
   on,
   href,
   onClick,
@@ -110,6 +124,15 @@ export function SummaryTile({
   action: string;
   tone: SummaryTone;
   count: number;
+  /**
+   * Render the count itself on the right, in mono, instead of the `action` verb.
+   *
+   * Two readings of the same tile: the workers strip offers a **narrowing** and so
+   * names it ("Show 4"), while Dispatch's tiles sit beside tabs that already do
+   * the narrowing and are read as a **tally** — so the number is the useful thing
+   * on the right. Opt-in, so nothing that reads as a verb quietly becomes a digit.
+   */
+  showCount?: boolean;
   /** The narrowing this tile writes is currently on. */
   on?: boolean;
   href?: string;
@@ -128,10 +151,21 @@ export function SummaryTile({
         <span className={cn("truncate text-xs font-semibold", c.text)}>{title}</span>
         <span className={cn("truncate text-[10px]", c.detail)}>{detail}</span>
       </span>
-      {actionable && (
-        <span className={cn("flex-none text-[11px] font-semibold", c.text)}>
-          {action}
+      {showCount ? (
+        <span
+          className={cn(
+            "flex-none font-mono text-[15px] font-semibold tabular-nums",
+            clear ? "text-muted-foreground" : c.text,
+          )}
+        >
+          {count}
         </span>
+      ) : (
+        actionable && (
+          <span className={cn("flex-none text-[11px] font-semibold", c.text)}>
+            {action}
+          </span>
+        )
       )}
     </>
   );

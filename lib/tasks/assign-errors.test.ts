@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { AxiosError } from "axios";
-import { classifyAssignError } from "@/lib/tasks/assign-errors";
+import {
+  classifyAssignError,
+  classifyUnassignError,
+} from "@/lib/tasks/assign-errors";
 
 /**
  * Shaped like an axios error, which is what the call sites actually catch.
@@ -70,5 +73,45 @@ describe("classifyAssignError", () => {
 
   it("falls back to unknown for a non-API value", () => {
     expect(classifyAssignError(new Error("boom"))).toEqual({ kind: "unknown" });
+  });
+});
+
+describe("classifyUnassignError", () => {
+  it("reports a bare 403 as a permission problem", () => {
+    // task:unassign_worker_any is a separate grant from the assign one, and its
+    // refusal is the same empty-bodied 403.
+    expect(classifyUnassignError(apiError(403, ""))).toEqual({ kind: "permission" });
+  });
+
+  it.each(["task_not_unassignable", "assignment_not_found", "task_not_found"])(
+    "routes %s to the page-local namespace",
+    (code) => {
+      expect(classifyUnassignError(apiError(400, { error: code }))).toEqual({
+        kind: "legacy",
+        code,
+      });
+    },
+  );
+
+  it("does not claim the assign door's codes", () => {
+    // worker_limit_reached cannot come back from unassigning. Wording it here
+    // would put copy behind a dialog that can never show it.
+    expect(
+      classifyUnassignError(apiError(400, { error: "worker_limit_reached" })),
+    ).toEqual({ kind: "unknown" });
+  });
+
+  it("still defers to the shared catalog when it owns the code", () => {
+    expect(
+      classifyUnassignError(apiError(400, { error: "worker_not_found" })),
+    ).toEqual({ kind: "catalog", labelKey: "subjectNotFound" });
+  });
+
+  it("falls back to unknown for a body with no code at all", () => {
+    expect(classifyUnassignError(apiError(500, {}))).toEqual({ kind: "unknown" });
+  });
+
+  it("falls back to unknown for a non-API value", () => {
+    expect(classifyUnassignError(new Error("boom"))).toEqual({ kind: "unknown" });
   });
 });

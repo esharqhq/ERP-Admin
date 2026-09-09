@@ -40,3 +40,44 @@ export function classifyAssignError(error: unknown): AssignErrorKind {
   if (LEGACY_ASSIGN_ERRORS.has(info.code)) return { kind: "legacy", code: info.code };
   return { kind: "unknown" };
 }
+
+/**
+ * The refusals **un**assigning owns copy for. Read off `AdminUnassignWorkerAsync`
+ * (`TaskService.cs:826-869`), whose only exit paths are these three plus the
+ * empty-bodied `403` for a missing `task:unassign_worker_any`.
+ *
+ * `task_not_unassignable` is the one that actually happens: the guard refuses
+ * `Done` / `Cancelled` / **`Review`**, and Review is reachable by simply having
+ * the board open — a worker submits their work while the admin is deciding, and
+ * the × they were about to click is already refused. Until now that failed
+ * silently, which is the whole reason this classifier exists.
+ *
+ * ⚠ Not the same set as assigning, and not a superset of it either. Sharing one
+ * set would put `worker_limit_reached` copy behind a dialog that can never
+ * produce it, and would hide the fact that these two doors fail for different
+ * reasons.
+ */
+export const UNASSIGN_ERRORS = new Set([
+  "task_not_unassignable",
+  "assignment_not_found",
+  "task_not_found",
+]);
+
+/**
+ * Same ladder as `classifyAssignError`, same reasons, different local set —
+ * permission, then the shared onboarding catalog, then this module's codes, then
+ * generic.
+ *
+ * A separate function rather than a parameter on the one above: the two doors
+ * genuinely own different vocabularies, and a shared classifier with a `mode`
+ * argument would let a caller word a refusal its endpoint cannot return.
+ */
+export function classifyUnassignError(error: unknown): AssignErrorKind {
+  if (isPermissionDenied(error)) return { kind: "permission" };
+
+  const info = describeApiError(error);
+  if (!info) return { kind: "unknown" };
+  if (info.labelKey !== "unknown") return { kind: "catalog", labelKey: info.labelKey };
+  if (UNASSIGN_ERRORS.has(info.code)) return { kind: "legacy", code: info.code };
+  return { kind: "unknown" };
+}

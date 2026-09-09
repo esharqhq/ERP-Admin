@@ -41,6 +41,32 @@ export function needsWorkers(task: TaskItemDto): boolean {
 }
 
 /**
+ * Open, **partly** crewed, and still a body short — the reading the v1 board
+ * could not show at all.
+ *
+ * `needsWorkers` only answers *zero*: a task 1-of-4 staffed looked identical to
+ * one fully covered, because nothing on the row compared `activeWorkers` against
+ * `requiredWorkerCount`. This is the comparison, and it is the one behaviour the
+ * v2 design adds rather than redraws.
+ *
+ * ⚠ **Deliberately disjoint from `needsWorkers`.** A task with nobody on it is
+ * Unstaffed, not Short, so the two counts never double-count the same row and
+ * "14 unstaffed · 9 short" adds up to 23 distinct tasks. The design's own numbers
+ * imply this split — a Short that included the unstaffed set could not be smaller
+ * than it — and its `1 / 3` legend row names it: *"partly covered, still needs
+ * bodies."*
+ *
+ * Over-staffing is not short: the server allows `activeWorkers` above
+ * `requiredWorkerCount` (a `PATCH` can lower the limit under the assigned count),
+ * so the comparison is `<`, never `!==`.
+ */
+export function isShortOfCrew(task: TaskItemDto): boolean {
+  if (!isOpen(task)) return false;
+  const filled = activeWorkers(task).length;
+  return filled > 0 && filled < task.requiredWorkerCount;
+}
+
+/**
  * Group-wide staffing, for the `3/4` on an orders-list row.
  *
  * `required` reads `requiredWorkerCount` — the name on `TaskItemDto`. It is

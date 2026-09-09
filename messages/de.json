@@ -2039,19 +2039,49 @@
     "unassign": "Entfernen",
     "viewGroup": "Gruppe anzeigen",
     "needsWorker": "Mitarbeiter benötigt",
-    "assignedCount": "{count} zugewiesen",
+    "staffing": "{filled} von {required}",
     "searchPlaceholder": "Nach Objekt, Datum oder Aufgabe suchen...",
     "empty": "Keine Aufgaben entsprechen diesem Filter",
     "capNotice": "Es werden die {count} neuesten Aufgaben angezeigt",
+    "windowNotice": "Aufgaben mit Termin {from} – {to}",
+    "railTitle": "Tage in Ansicht",
+    "tabsLabel": "Besetzungsfilter",
+    "groupMeta": "{unstaffed} von {total} unbesetzt",
+    "days": {
+      "today": "Heute",
+      "tomorrow": "Morgen",
+      "elapsed": "Bereits begonnen"
+    },
+    "sheet": {
+      "title": "Arbeitskraft zuweisen",
+      "activeOnly": "Nur aktive Arbeitskräfte können angeboten werden.",
+      "staffing": "{filled} von {required}",
+      "search": "Name oder E-Mail suchen…",
+      "sort": {
+        "free": "Freie zuerst",
+        "rating": "Beste Bewertung",
+        "name": "A–Z"
+      },
+      "new": "Neu",
+      "completed": "{count, plural, =0 {noch keine Aufgaben} one {# erledigt} other {# erledigt}}",
+      "tag": {
+        "free": "Frei",
+        "booked": "Im Einsatz"
+      },
+      "assign": "Zuweisen",
+      "assigning": "Wird zugewiesen…",
+      "noCandidates": "Keine aktive Arbeitskraft passt zu dieser Suche.",
+      "notOffered": "Arbeitskräfte mit Status Ausstehend, Abgelaufen, Gesperrt oder Gelöscht werden nicht angeboten — der Server lehnt sie ohnehin ab.",
+      "writesImmediately": "Die Zuweisung wird sofort gespeichert. Es gibt keinen Entwurf.",
+      "close": "Schließen",
+      "loaded": "{count} geladen",
+      "refused": "Abgelehnt"
+    },
     "unassignTitle": "Mitarbeiter entfernen?",
     "unassignConfirm": "{name} von dieser Aufgabe entfernen?",
-    "stats": {
-      "needsWorkers": "Benötigen Mitarbeiter",
-      "open": "Offene Aufgaben",
-      "total": "Angezeigt gesamt"
-    },
     "tabs": {
-      "needsWorkers": "Benötigen Mitarbeiter",
+      "needsWorkers": "Unbesetzt",
+      "short": "Unterbesetzt",
       "open": "Offen",
       "all": "Alle"
     },
@@ -2060,7 +2090,56 @@
       "worker_below_rating_floor": "Dieser Mitarbeiter liegt unter der Mindestbewertung der Aufgabe.",
       "worker_profession_not_eligible": "Der Beruf dieses Mitarbeiters ist für diese Aufgabe nicht zugelassen.",
       "worker_limit_reached": "Diese Aufgabe ist bereits vollständig besetzt.",
-      "worker_has_overlapping_assignment": "Dieser Mitarbeiter hat an diesem Tag bereits eine Zuweisung. Wählen Sie einen anderen Mitarbeiter."
+      "worker_has_overlapping_assignment": "Dieser Mitarbeiter hat an diesem Tag bereits eine Zuweisung. Wählen Sie einen anderen Mitarbeiter.",
+      "task_not_unassignable": "Diese Arbeitskraft kann nicht mehr entfernt werden — die Aufgabe ist weiter (Arbeit eingereicht, erledigt oder storniert). Bitte die Ansicht aktualisieren.",
+      "assignment_not_found": "Diese Arbeitskraft ist dieser Aufgabe nicht mehr zugeordnet. Bitte die Ansicht aktualisieren.",
+      "task_not_found": "Diese Aufgabe existiert nicht mehr. Bitte die Ansicht aktualisieren.",
+      "unassignGeneric": "Die Arbeitskraft konnte nicht entfernt werden."
+    },
+    "imminent": "{count, plural, one {# beginnt in 24 h} other {# beginnen in 24 h}}",
+    "refresh": "Aktualisieren",
+    "soonestFirst": "Nächste zuerst",
+    "startsIn": "{count, plural, =0 {beginnt jetzt} one {in # Std.} other {in # Std.}}",
+    "started": "{count, plural, =0 {begonnen} one {vor # Std.} other {vor # Std.}}",
+    "hours": "{count} Std.",
+    "fullyStaffed": "voll besetzt",
+    "bodiesShort": "{count, plural, one {eine Person fehlt} other {# Personen fehlen}}",
+    "slotsOpen": "{count, plural, one {1 Platz frei} other {# Plätze frei}}",
+    "add": "Hinzufügen",
+    "crew": {
+      "assigned": "zugewiesen",
+      "checkedIn": "eingecheckt",
+      "vacated": "entfernt"
+    },
+    "strip": {
+      "inTheQueue": "In der Warteschlange",
+      "queueCount": "{count, plural, one {# Aufgabe} other {# Aufgaben}}",
+      "needsWorkers": {
+        "title": "Unbesetzt",
+        "detail": "offen, niemand zugewiesen"
+      },
+      "short": {
+        "title": "Nicht voll besetzt",
+        "detail": "mindestens eine Lücke"
+      },
+      "open": {
+        "title": "Offen",
+        "detail": "Ausstehend oder Aktiv"
+      },
+      "startsToday": {
+        "title": "Beginnt heute",
+        "detail": ""
+      }
+    },
+    "latestFirst": "Späteste zuerst",
+    "windowTitle": "Zeitraum",
+    "unassignDialog": {
+      "title": "Arbeitskraft entfernen?",
+      "body": "<strong>{name}</strong> von {task} am {date} entfernen?",
+      "consequenceTitle": "Was das bewirkt",
+      "consequence": "Der Eintrag bleibt an der Aufgabe mit dem Ergebnis <mono>removed</mono>, und die Besetzungsanzeige sinkt entsprechend.",
+      "refillWarning": "⚠ Der Platz wird serverseitig noch nicht frei — ihn erneut zu besetzen wird derzeit abgelehnt. Nur entfernen, wenn niemand nachrücken soll.",
+      "confirm": "Entfernen"
     }
   },
   "audit": {

@@ -2039,19 +2039,49 @@
     "unassign": "Unassign",
     "viewGroup": "View group",
     "needsWorker": "Needs worker",
-    "assignedCount": "{count} assigned",
+    "staffing": "{filled} of {required}",
     "searchPlaceholder": "Search by property, date or task...",
     "empty": "No tasks match this filter",
     "capNotice": "Showing the {count} most recent tasks",
+    "windowNotice": "Showing tasks scheduled {from} – {to}",
+    "railTitle": "Days in view",
+    "tabsLabel": "Staffing filter",
+    "groupMeta": "{unstaffed} unstaffed of {total}",
+    "days": {
+      "today": "Today",
+      "tomorrow": "Tomorrow",
+      "elapsed": "Already started"
+    },
+    "sheet": {
+      "title": "Assign a worker",
+      "activeOnly": "Only Active workers can be offered.",
+      "staffing": "{filled} of {required}",
+      "search": "Search name or email…",
+      "sort": {
+        "free": "Free first",
+        "rating": "Best rated",
+        "name": "A–Z"
+      },
+      "new": "New",
+      "completed": "{count, plural, =0 {no tasks yet} one {# done} other {# done}}",
+      "tag": {
+        "free": "Free",
+        "booked": "On a task"
+      },
+      "assign": "Assign",
+      "assigning": "Assigning…",
+      "noCandidates": "No Active worker matches this search.",
+      "notOffered": "Workers who are Pending, Lapsed, Blocked or Deleted are not offered — the server refuses them anyway.",
+      "writesImmediately": "Assigning writes immediately. There is no draft to save.",
+      "close": "Close",
+      "loaded": "{count} loaded",
+      "refused": "Refused"
+    },
     "unassignTitle": "Remove worker?",
     "unassignConfirm": "Remove {name} from this task?",
-    "stats": {
-      "needsWorkers": "Need workers",
-      "open": "Open tasks",
-      "total": "Total shown"
-    },
     "tabs": {
-      "needsWorkers": "Needs workers",
+      "needsWorkers": "Unstaffed",
+      "short": "Short",
       "open": "Open",
       "all": "All"
     },
@@ -2060,7 +2090,56 @@
       "worker_below_rating_floor": "This worker is below the task's rating floor.",
       "worker_profession_not_eligible": "This worker's profession is not eligible for this task.",
       "worker_limit_reached": "This task is already fully staffed.",
-      "worker_has_overlapping_assignment": "This worker already has an assignment on this date. Choose a different worker."
+      "worker_has_overlapping_assignment": "This worker already has an assignment on this date. Choose a different worker.",
+      "task_not_unassignable": "This worker can no longer be removed — the task has moved on (work submitted, done or cancelled). Refresh the board.",
+      "assignment_not_found": "This worker is no longer on this task. Refresh the board.",
+      "task_not_found": "This task no longer exists. Refresh the board.",
+      "unassignGeneric": "Could not remove this worker."
+    },
+    "imminent": "{count, plural, one {# starts within 24 h} other {# start within 24 h}}",
+    "refresh": "Refresh",
+    "soonestFirst": "Soonest first",
+    "startsIn": "{count, plural, =0 {starting now} one {in # h} other {in # h}}",
+    "started": "{count, plural, =0 {started} one {# h ago} other {# h ago}}",
+    "hours": "{count} h",
+    "fullyStaffed": "fully staffed",
+    "bodiesShort": "{count, plural, one {one body short} other {# bodies short}}",
+    "slotsOpen": "{count, plural, one {1 slot open} other {# slots open}}",
+    "add": "Add",
+    "crew": {
+      "assigned": "assigned",
+      "checkedIn": "checked in",
+      "vacated": "removed"
+    },
+    "strip": {
+      "inTheQueue": "In the queue",
+      "queueCount": "{count, plural, one {# task} other {# tasks}}",
+      "needsWorkers": {
+        "title": "Unstaffed",
+        "detail": "open, nobody on it"
+      },
+      "short": {
+        "title": "Short of a full crew",
+        "detail": "at least one gap"
+      },
+      "open": {
+        "title": "Open",
+        "detail": "Pending or Active"
+      },
+      "startsToday": {
+        "title": "Starts today",
+        "detail": ""
+      }
+    },
+    "latestFirst": "Latest first",
+    "windowTitle": "Window",
+    "unassignDialog": {
+      "title": "Remove worker?",
+      "body": "Remove <strong>{name}</strong> from {task} on {date}?",
+      "consequenceTitle": "What this does",
+      "consequence": "The row stays on the task with outcome <mono>removed</mono>, and the board's meter drops accordingly.",
+      "refillWarning": "⚠ The slot does not free up on the server yet — filling it again is currently refused. Remove only if you do not need to put somebody back.",
+      "confirm": "Unassign"
     }
   },
   "audit": {

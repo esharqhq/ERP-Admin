@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import {
   useMutation,
   useQuery,
@@ -7,6 +8,8 @@ import {
   type QueryClient,
 } from "@tanstack/react-query";
 import { taskService } from "@/lib/services/task.service";
+import { useTodayKey } from "@/hooks/use-today";
+import { dispatchWindow } from "@/lib/tasks/dispatch-window";
 import type {
   SubmitTaskWorkerStarRequest,
   OverrideTaskWorkerOutcomeRequest,
@@ -48,6 +51,45 @@ export function useAdminTasks(ownerUserId?: string) {
     queryKey: ["admin-tasks", ownerUserId ?? null],
     queryFn: () => taskService.getAdminTasks(ownerUserId),
   });
+}
+
+/**
+ * The Dispatch board's queue: a **windowed** admin task list.
+ *
+ * ⚠ Not `useAdminTasks()`, and the difference is correctness rather than volume.
+ * Unwindowed, the route is `OrderByDescending(ScheduledAt).Take(500)`, so the 500
+ * rows it returns are the ones scheduled **furthest into the future** — past 500
+ * future tasks, today's work is absent from the board, silently. Both bounds
+ * together also lift the cap to 5,000. `dispatchWindow` owns the reasoning and
+ * the two constants.
+ *
+ * Shares the `["admin-tasks-range", from, to]` key family with `useWorkerShifts`,
+ * so `invalidateTasks` already reaches it by prefix — an assignment made anywhere
+ * refreshes this board without a new key to remember.
+ *
+ * `useTodayKey()` is `""` until the clock is known (it is `0`/`""` on the server
+ * snapshot by design), so the query stays disabled for that first pass rather
+ * than fetching a window built from a placeholder date.
+ */
+export function useDispatchQueue() {
+  const todayKey = useTodayKey();
+
+  const window = useMemo(() => {
+    if (!todayKey) return null;
+    const [y, m, d] = todayKey.split("-").map(Number);
+    // Local midnight of today — `dispatchWindow` reads only the local Y/M/D, so
+    // this is identical to passing `new Date()` and makes `todayKey` the whole
+    // memo dependency.
+    return dispatchWindow(new Date(y, m - 1, d));
+  }, [todayKey]);
+
+  const query = useQuery({
+    queryKey: ["admin-tasks-range", window?.from ?? null, window?.to ?? null],
+    queryFn: () => taskService.getAdminTasksInRange(window!.from, window!.to),
+    enabled: !!window,
+  });
+
+  return { ...query, window };
 }
 
 /**
