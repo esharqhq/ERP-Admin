@@ -11,6 +11,7 @@ import { useConfirmLink, useRejectLink } from "@/hooks/use-agency-links";
 import { useCurrentPermissions } from "@/hooks/use-current-permissions";
 import { linkActions } from "@/lib/agencies/link-actions";
 import { linkErrorKey } from "@/lib/agencies/link-errors";
+import { portalLossOnReject } from "@/lib/agencies/portal-impact";
 import type { WorkerAgencyLinkDto } from "@/lib/types/agency.types";
 
 /**
@@ -201,6 +202,15 @@ export function AgencyLinkActions({
           open
           onClose={close}
           title={t("verbs.rejectTitle")}
+          /*
+            ⚠ Only on a `Confirmed` link, and `undefined` otherwise — a
+            `Proposed` or `Disputed` link is not in the agency's portal, so the
+            warning would describe a loss that cannot happen. Both reject
+            surfaces read the same predicate; neither checks the status itself.
+          */
+          warning={
+            portalLossOnReject(link) ? t("verbs.rejectPortalWarning") : undefined
+          }
           submitLabel={t("verbs.rejectSubmit")}
           requireReason
           destructive

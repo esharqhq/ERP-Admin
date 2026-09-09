@@ -2636,6 +2636,7 @@
       "overruleShort": "Overrule",
       "reject": "Reject",
       "rejectTitle": "Reject this link?",
+      "rejectPortalWarning": "This worker is confirmed with this agency, so the agency's portal loses them — their shifts and their hours — on its next request. Re-linking later does not bring the earlier work back into the agency's view, and the agency is not notified.",
       "rejectSubmit": "Reject the link",
       "attach": "Attach an agency",
       "openWorker": "Open the worker"
@@ -2648,7 +2649,7 @@
     "overrule": {
       "title": "Overrule the worker's objection?",
       "body": "This worker told us they did not come through this agency. Confirming the link overrides that statement about themselves.",
-      "confirmStep": "This is recorded separately in the audit log as an overrule. The worker is not notified of the outcome — nothing tells them the link now stands.",
+      "confirmStep": "This is recorded separately in the audit log as an overrule. The worker is not notified of the outcome — nothing tells them the link now stands. This also gives the agency's portal their shifts and hours from today onward.",
       "submit": "Overrule and confirm"
     },
     "attach": {

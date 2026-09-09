@@ -44,6 +44,7 @@ export function ResolveDialog({
   onSubmit,
   title,
   body,
+  warning,
   submitLabel,
   requireReason,
   destructive,
@@ -56,6 +57,18 @@ export function ResolveDialog({
   onSubmit: (reason: string) => void;
   title: string;
   body?: string;
+  /**
+   * A consequence the act carries in its own right — drawn in a tinted panel,
+   * not as the dialog's description.
+   *
+   * ⚠ `body` and this are **not** interchangeable. `body` is a
+   * `DialogDescription`: muted, small, immediately above the reason box an
+   * operator is already reaching for. Something that must be *read* before a
+   * one-way act does not belong there — the sibling warning on the agencies
+   * edit dialog (`endsAccessNow`) is a tinted `TriangleAlert` panel, and the
+   * quieter treatment on the more consequential act would be backwards.
+   */
+  warning?: string;
   submitLabel: string;
   requireReason: boolean;
   destructive?: boolean;
@@ -113,6 +126,20 @@ export function ResolveDialog({
             {requireReason ? t("reason.required") : t("reason.optionalHint")}
           </span>
         </label>
+
+        {/* Drawn immediately, unlike `secondStep`: this is a fact about the
+            dialog's subject, not a last check on the operator. */}
+        {warning ? (
+          <div className="flex items-start gap-2 rounded-xl bg-status-cancelled-tint p-3 ring-1 ring-inset ring-status-cancelled/25">
+            <TriangleAlert
+              aria-hidden
+              className="mt-0.5 size-4 shrink-0 text-status-cancelled"
+            />
+            <p className="text-[12.5px] leading-snug text-foreground/90 text-pretty">
+              {warning}
+            </p>
+          </div>
+        ) : null}
 
         {/* The overrule's second step. Revealed rather than pre-drawn: the
             sentence only means anything once the admin has reached for the act. */}
