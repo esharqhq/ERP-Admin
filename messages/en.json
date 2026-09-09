@@ -2688,7 +2688,7 @@
       "notAwaitingYou": "This link is waiting on the worker, not on you. Closing it here would remove their only chance to object.",
       "alreadyResolved": "This link has already been decided. Reload to see the outcome.",
       "reasonRequired": "Write the reason for this decision.",
-      "invalidSortColumn": "This queue cannot be sorted by that column. Sorting has been reset.",
+      "invalidSortColumn": "This queue cannot be sorted by that column.",
       "generic": "That could not be done. Please try again."
     }
   },

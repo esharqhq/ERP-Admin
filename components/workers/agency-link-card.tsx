@@ -154,8 +154,18 @@ export function AgencyLinkCard({
               hint={t("empty.hint")}
               note="200 · agencyLink: null"
             />
+            {/*
+              ⚠ `empty:hidden`, and it is load-bearing. `actions` is a React
+              *element*, so it is always truthy — this ternary cannot see that
+              `AgencyLinkActions` returns `null` for a role without
+              `agency_link:manage_any`. Without it a MODERATOR gets a stray
+              horizontal rule and padding under every worker's card. Same fix as
+              the review-actions section on the agency-request detail.
+            */}
             {actions ? (
-              <div className="mt-4 border-t border-border pt-3">{actions}</div>
+              <div className="mt-4 border-t border-border pt-3 empty:hidden">
+                {actions}
+              </div>
             ) : null}
           </div>
         ) : (
@@ -227,8 +237,11 @@ export function AgencyLinkCard({
               ) : null}
             </dl>
 
+            {/* ⚠ `empty:hidden` — see the note in the branch above. */}
             {actions ? (
-              <div className="border-t border-border pt-3">{actions}</div>
+              <div className="border-t border-border pt-3 empty:hidden">
+                {actions}
+              </div>
             ) : null}
           </div>
         )}

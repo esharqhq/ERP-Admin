@@ -2688,7 +2688,7 @@
       "notAwaitingYou": "Dies wartet auf den Mitarbeiter, nicht auf Sie. Es hier zu schließen nähme ihm die einzige Gelegenheit zu widersprechen.",
       "alreadyResolved": "Diese Verknüpfung wurde bereits entschieden. Neu laden, um das Ergebnis zu sehen.",
       "reasonRequired": "Schreiben Sie den Grund für diese Entscheidung.",
-      "invalidSortColumn": "Diese Warteschlange kann nicht nach dieser Spalte sortiert werden. Die Sortierung wurde zurückgesetzt.",
+      "invalidSortColumn": "Diese Warteschlange kann nicht nach dieser Spalte sortiert werden.",
       "generic": "Das konnte nicht ausgeführt werden. Bitte erneut versuchen."
     }
   },
