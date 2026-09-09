@@ -46,6 +46,9 @@ function worker(over: Partial<WorkerDetailDto> = {}): WorkerDetailDto {
       passportExpiry: null,
       licenseExpiry: null,
     },
+    // F-05c. Not an attention source — a link is provenance, and nothing about it
+    // ever lapses on its own — so the fixture carries the field and no case varies it.
+    agencyLink: null,
     ...over,
   };
 }
