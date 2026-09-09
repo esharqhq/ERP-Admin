@@ -424,3 +424,82 @@ export interface ConfirmDocumentRequest {
    */
   sizeBytes: number;
 }
+
+/**
+ * One row of the Agency links queue — `GET /api/admin/agency-links`.
+ *
+ * ⚠ **It does not carry `disputeNote`.** The worker's objection exists only on
+ * `GET /api/admin/workers/{id}` (`WorkerAgencyLinkDto`), and there is **no
+ * `GET /api/admin/agency-links/{id}`** — so this queue physically cannot show
+ * what an overrule would be ruling against. That is why the overrule is not
+ * offered here: the row's action is *open the worker*, whose card carries it.
+ */
+export interface AgencyLinkRowDto {
+  id: string;
+  workerId: string;
+  workerFullName: string;
+  agencyId: string;
+  agencyLegalName: string;
+  status: AgencyLinkStatus;
+  /**
+   * ⚠ **UPPERCASE on the wire** (`"WORKER"` / `"ADMIN"`) while `status` is
+   * TitleCase. The two conventions genuinely differ; normalising either one is
+   * how the mirror rule gets answered backwards.
+   */
+  setByUserType: AgencyLinkSetBy;
+  /** Why the link was asserted. `null` on a worker's own declaration, which needs none. */
+  reason: string | null;
+  resolvedByAdminId: string | null;
+  /**
+   * ⚠ `null` in three cases, not two: while `Proposed`, while `Disputed`, and on
+   * a link **the worker themselves confirmed** — their agreement is not an admin
+   * resolution and stamps nothing.
+   */
+  resolvedAt: string | null;
+  resolutionReason: string | null;
+  createdAt: string;
+}
+
+/**
+ * ⚠ **`status` is the tab's, not a filter's**, and `"all"` means *no* `status`
+ * param rather than a status of that name.
+ *
+ * ⚠ **`sortBy` is whitelisted to `createdAt` · `resolvedAt` · `status`.** There
+ * is no sort on worker or agency name, so a header offering one would `400`.
+ */
+export interface AgencyLinkQuery extends PagedQuery {
+  status?: string;
+  agencyId?: string;
+  workerId?: string;
+  /** Worker full name or email, **or** agency legal name. */
+  search?: string;
+}
+
+/**
+ * ⚠ **`workerId` is in the body, not the route** — unlike the worker-availability
+ * admin routes. A link is a relationship between two parties with its own id and
+ * its own screen; the brief's *"from the Worker Detail page"* describes where the
+ * button sits, not what the route is.
+ *
+ * ⚠ **`reason` is required**, and a whitespace-only value returns
+ * **problem-details** here rather than `reason_required`, because `[Required]`
+ * trims it away before the service is reached. Validate client-side and this
+ * difference is never met.
+ */
+export interface AttachLinkRequest {
+  workerId: string;
+  agencyId: string;
+  reason: string;
+}
+
+/**
+ * Confirm and reject share one body.
+ *
+ * ⚠ **`reason` is conditionally required on confirm and always required on
+ * reject.** Confirming a `Proposed`/`WORKER` link needs none; confirming a
+ * `Disputed` one **is the overrule** and requires it. The backend decides which
+ * act it is from the current state — the client does not choose.
+ */
+export interface ResolveLinkRequest {
+  reason?: string;
+}
