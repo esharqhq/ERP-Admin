@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { Building2, CircleSlash, MessageSquareWarning } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 
@@ -96,12 +97,18 @@ function Note({
  * beside it: `agencyLink` rides the worker detail response this page already
  * fetches, and there is no separate grant that can turn it into a 403.
  *
- * Write actions (attach · confirm · reject · the overrule) are deliberately
- * absent — they ship with the Agency links screen, where the confirm-vs-overrule
- * split is built once and reused. See `docs/audit/agency-scope-2026-09-08.md` §9.
+ * The write verbs arrive through `actions` rather than being imported here, so
+ * this file still knows nothing about mutations or permissions: it renders a
+ * link, and what may be done to one is the page's business.
+ *
+ * ⚠ **The overrule lives on this card and nowhere else**, and point 2 above is
+ * why: ruling against a worker's objection without reading it is the one thing
+ * the guide forbids outright, and this is the only surface the objection
+ * reaches. The links queue offers *"Open the worker"* and lands here.
  */
 export function AgencyLinkCard({
   link,
+  actions,
 }: {
   /**
    * ⚠ **No `isLoading` prop, deliberately.** This card cannot be in a loading
@@ -112,6 +119,14 @@ export function AgencyLinkCard({
    * before, so it is absent rather than unused.
    */
   link: WorkerAgencyLinkDto | null | undefined;
+  /**
+   * The verbs, injected rather than imported.
+   *
+   * ⚠ **Additive and optional**, so a caller that passes nothing gets exactly
+   * the read-only card phase 1 shipped. Present in **both** branches: the empty
+   * state needs the attach button as much as a live link needs its verbs.
+   */
+  actions?: ReactNode;
 }) {
   const t = useTranslations("workers.agencyLink");
   const locale = useLocale();
@@ -132,12 +147,17 @@ export function AgencyLinkCard({
 
       <CardContent>
         {!link ? (
-          <CardState
-            icon={<CircleSlash className="size-5" />}
-            title={t("empty.title")}
-            hint={t("empty.hint")}
-            note="200 · agencyLink: null"
-          />
+          <div className="flex flex-col">
+            <CardState
+              icon={<CircleSlash className="size-5" />}
+              title={t("empty.title")}
+              hint={t("empty.hint")}
+              note="200 · agencyLink: null"
+            />
+            {actions ? (
+              <div className="mt-4 border-t border-border pt-3">{actions}</div>
+            ) : null}
+          </div>
         ) : (
           <div className="flex flex-col gap-4">
             <div className="flex min-w-0 items-center gap-2">
@@ -206,6 +226,10 @@ export function AgencyLinkCard({
                 </div>
               ) : null}
             </dl>
+
+            {actions ? (
+              <div className="border-t border-border pt-3">{actions}</div>
+            ) : null}
           </div>
         )}
       </CardContent>
