@@ -840,3 +840,168 @@ simply cannot be performed.
 **FE today:** the code is unrecognised, so the panel shows its generic *"The decision could not be
 saved. Please try again."* — a retry prompt for something that can never succeed. It will be worded
 honestly once this is confirmed, and reverted to the generic copy when the fix ships.
+
+
+# Open — raised 2026-09-09 (Dispatch v2)
+
+Raised while rebuilding `/dashboard/dispatch` against the v2 design. All four items were answered from
+the backend repo first, at `main` / `1d87671`; every claim below carries a `file:line`.
+
+**One item hard-blocks the screen (#31) and it is a defect, not a missing endpoint.** The other three are
+improvements — the board ships without them, it just makes the admin discover refusals by clicking.
+
+**Two things we expected to ask for and do not need**, recorded so nobody builds them:
+
+- **A date window on `GET /api/tasks/admin` already exists** and a *fully-closed* one already lifts the
+  500 cap to 5,000 (`TasksController.cs:380-382`, `:391-392`). The panel simply was not sending both
+  bounds. Fixed on our side; no backend work.
+- **A colour or tint field on `Property`.** The design tints each row by property; we derive it
+  client-side. Please do not add a field for a decoration.
+
+---
+
+## 31. Admin-assign counts removed workers against the limit — *a vacated slot never reopens*
+
+**This blocks the Dispatch screen's core loop.** Unassign-then-reassign is the whole reason the screen
+exists, and today it cannot complete.
+
+### The contradiction, inside one file
+
+| Where | Predicate |
+|---|---|
+| `AdminAssignWorkerAsync` capacity guard — `GermanyERP.Services/Tasks/TaskService.cs:744` | `task.Workers.Count >= task.WorkerLimit` — **raw count** |
+| `AdminUnassignWorkerAsync` threshold reset — `TaskService.cs:855` | `task.Workers.Count(w => w.Outcome != TaskWorkerOutcome.Removed)` — **filtered** |
+
+`AdminUnassignWorkerAsync` sets a **soft outcome** rather than deleting the row
+(`TaskService.cs:847-850`, `assignment.Outcome = Removed`), and `TaskWorker` carries **no**
+`HasQueryFilter` — it is absent from the full list in
+`GermanyERP.Infrastructure/Persistence/AppDbContext.cs:186-801`. So the removed row is still counted.
+
+### Reproduction
+
+1. A task with `WorkerLimit = 1` and one assigned worker.
+2. `DELETE /api/tasks/{taskId}/admin-assign/{workerId}` → `204`. The row stays, `Outcome = Removed`.
+3. `POST /api/tasks/{taskId}/admin-assign/{otherWorkerId}` → **`400 worker_limit_reached`**.
+
+The task now has zero active workers, shows as unstaffed everywhere, and cannot be filled.
+
+### Same root cause, second symptom
+
+`HasOverlappingAssignmentAsync` (`TaskService.cs:2137-2159`) also does not filter `Outcome`. A *removed*
+row on task A still blocks an overlapping task B with `worker_has_overlapping_assignment` — so
+unassigning a worker does not free them either.
+
+### Third symptom, latent — please fix in the same patch
+
+Unassign resolves its target with `task.Workers.SingleOrDefault(tw => tw.WorkerId == workerId)`
+(`TaskService.cs:841`). Once a worker holds two rows on one task — removed, then re-added, which is
+exactly what fixing the guard enables — `Single*` **throws**. Fixing the capacity guard without this
+turns a silent refusal into a `500`.
+
+### Scope — one decision, four call sites
+
+| Site | `TaskService.cs` | Traced |
+|---|---|---|
+| `AdminAssignWorkerAsync` capacity guard | `:744` | ✅ raw `.Count` on an unfiltered nav property |
+| `HasOverlappingAssignmentAsync` | `:2137-2159` | ✅ read from the query |
+| Worker self-join capacity guard | `:982` | ⚠ **same predicate, consequence not traced** |
+| Worker self-join capacity guard | `:1095` | ⚠ **same predicate, consequence not traced** |
+
+The two self-join sites sit in the join fan-out, which has its own documented per-date **skip**
+semantics, so the predicate is identical but the consequence may not be. Flagged for the same check,
+not asserted as reproduced.
+
+### Need
+
+One ruling on whether `Outcome` is part of "assigned", applied at every site above. Our reading: a
+`removed` / `cancelled` / `noshow` row should not occupy a seat and should not block an overlap — that
+is what `VACATED_OUTCOMES` in `lib/tasks/staffing.ts` already assumes, and what every client currently
+draws.
+
+**FE today:** the board's meter and the design's own copy both say the slot re-opened. We are not
+wording a refusal for this, because the honest wording would be *"this cannot be done"*. Not in
+`index/gaps/open.md`.
+
+---
+
+## 32. An eligibility pre-check for one `(taskId, workerId)` — *the picker cannot pre-empt a refusal*
+
+**FE today:** the assign sheet lists Active workers and lets the admin pick. The server then refuses on
+one of five business rules, and the admin picks again. Each double-book costs a round trip and a
+refusal, and nothing in `WorkerRowDto` can predict it — `booked` means *on an ACTIVE task*, not *busy
+on this date*, which is correct and is not the answer.
+
+**Why it cannot be derived client-side:** overlap is a **time-range** test, not a date test —
+`tw.Task.ScheduledAt < newWindowEnd && newScheduledAt < (tw.Task.Deadline ?? ScheduledAt + 8h)`
+(`TaskService.cs:2145-2157`). Two same-day non-overlapping tasks are legal, so a "which dates is this
+worker booked" list would over-block. The panel has no per-worker task read either (see #18).
+
+**Need:** a check-only route returning the same codes the assign route throws, so the sheet can grey a
+row out with the reason instead of letting the admin discover it:
+
+```
+GET /api/tasks/{taskId}/admin-assign/{workerId}/eligibility
+→ 200 { eligible: true }
+→ 200 { eligible: false, reason: "worker_has_overlapping_assignment" }
+```
+
+`AdminAssignWorkerAsync` already computes every branch of this (`TaskService.cs:721-756`); the ask is to
+expose it without the write. A batch form taking a worker-id list would let the sheet mark the whole
+page in one request, which is what we would actually call.
+
+**Not blocking** — the refusals are worded and correct. This removes guessing.
+
+---
+
+## 33. `ratingFloor`, `allowNewWorkers` and `eligibleProfessionIds` on `TaskItemDto`
+
+**FE today:** `TaskItemDto` (`GermanyERP.Domain/Models/DTOs/Tasks/TaskDtos.cs:120-135`) carries none of
+them, so a task row cannot show the bar it is judging candidates against.
+
+They all exist one level up on `TaskGroupDto` (`TaskDtos.cs:86-101`) and are readable today via
+`GET /api/tasks/groups/{id}` (`TasksController.cs:184`) or in bulk via `GET /api/tasks/admin/groups`
+(`TasksController.cs:219-221`) — and `TaskItemDto` already carries `GroupId`. **So this is an
+optimisation, not an unlock**: without it we make one extra request per open sheet.
+
+⚠ **`allowNewWorkers` matters as much as `ratingFloor`, and the design missed it.** `RatingEligible` is
+`(group.AllowNewWorkers && worker.RatingSnapshot?.IsNew ?? true) || worker.Rating >= group.RatingFloor`
+(`TaskService.cs:222-224`), so an unrated worker's eligibility is decided by the flag, not the floor. A
+row showing only the floor would mislabel every New worker.
+
+**One mismatch worth naming:** `EligibleProfessionIds` are **ids** while `WorkerRowDto.skills` are
+**names**, so matching them needs the FND-1 professions lookup as a bridge. Profession **codes** on the
+task row (as `TaskGroupSummaryDto.EligibleProfessionCodes` already does, `TaskDtos.cs:114`) would remove
+that join entirely, and would be our preference.
+
+**Not blocking.**
+
+---
+
+## 34. `total` / `hasMore` on `GET /api/tasks/admin` — *truncation is silent*
+
+**FE today:** the route returns a bare `List<TaskItemDto>` capped by
+`.Take(isClosedWindow ? AdminTaskListMaxRows : 500)` (`TaskService.cs:2577`, ceiling `AdminTaskListMaxRows` at `:168`) with no `total`, no `hasMore` and no
+header. Receiving exactly the cap means *"at least this many"*, never *"this many"*, and the client
+cannot tell the two apart.
+
+We now send a closed window, so the live bound is 5,000 and a fortnight of tasks sits far under it —
+which is why this is filed as a correctness/honesty gap rather than an urgent one. The failure mode is
+the bad one though: a busier period than the cap simply **looks less busy**, with nothing on the wire
+saying so.
+
+**Need:** either a `hasMore` boolean or an envelope with `total`, on this route. FND-3's paged shape is
+the obvious precedent (`fnd-3-table-query.md`) and would also serve item #1 of our Tasks v2 report —
+server sort and a real pager — but a single `hasMore` flag closes the dishonesty on its own.
+
+**Not blocking.**
+
+---
+
+## Noted, already yours: `GT_AdminFillHasNoDateOrStatusGuard`
+
+Not a new ask — it is open in your own tracker (`index/gaps/open.md:672-694`). Recording that the
+Dispatch panel is currently the **only** thing preventing a fill on a `Done` / `Cancelled` / elapsed
+task: `OPEN_STATUSES` in `lib/tasks/staffing.ts` hides the Assign button on those rows, and its comment
+names your gap id so the next reader knows the guard is client-side and load-bearing. If that ruling
+lands we will follow whichever way it goes — including keeping elapsed tasks fillable, which we already
+rely on: the board deliberately reaches two days back so a just-elapsed unstaffed shift stays visible.
