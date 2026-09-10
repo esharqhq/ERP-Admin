@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import type { DataColumn } from "@/components/ui/data-table/types";
+import { formatDay } from "@/lib/ui/relative-time";
 import { SkillRequestStatusBadge } from "@/components/skill-requests/status-badge";
 import type { SkillRequestDto } from "@/lib/types/skill-request.types";
 
@@ -53,7 +54,9 @@ export function useSkillRequestColumns(): DataColumn<SkillRequestDto>[] {
       {
         id: "createdAt",
         label: t("createdAt"),
-        cell: (row) => new Date(row.createdAt).toLocaleDateString(locale),
+        // `formatDay` also absorbs a null or unparseable date as "—", which a bare
+        // `toLocaleDateString` would print as "Invalid Date".
+        cell: (row) => formatDay(row.createdAt, locale),
       },
     ],
     [t, locale],
