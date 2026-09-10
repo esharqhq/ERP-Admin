@@ -2208,6 +2208,11 @@
       "revokeTitle": "Revoke this skill",
       "revokeDescription": "The worker sees this reason. They keep any job they are already on, and their rating is unaffected."
     },
+    "workerCard": {
+      "title": "Skill requests",
+      "empty": "This worker has never requested a skill.",
+      "error": "Could not load skill requests."
+    },
     "errors": {
       "noteRequired": "Write a question for the worker before sending.",
       "reasonRequired": "Give a reason — the worker will see it.",

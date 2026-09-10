@@ -2208,6 +2208,11 @@
       "revokeTitle": "Diese Qualifikation entziehen",
       "revokeDescription": "Die Arbeitskraft sieht diesen Grund. Laufende Aufträge bleiben bestehen, die Bewertung ist nicht betroffen."
     },
+    "workerCard": {
+      "title": "Qualifikationsanträge",
+      "empty": "Diese Arbeitskraft hat noch keine Qualifikation beantragt.",
+      "error": "Qualifikationsanträge konnten nicht geladen werden."
+    },
     "errors": {
       "noteRequired": "Formulieren Sie eine Frage an die Arbeitskraft, bevor Sie senden.",
       "reasonRequired": "Geben Sie einen Grund an — die Arbeitskraft sieht ihn.",
