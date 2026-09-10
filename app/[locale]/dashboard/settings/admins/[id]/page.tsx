@@ -1,7 +1,7 @@
 "use client";
 
 import { use, useState } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { ArrowLeft, BadgeCheck, Pencil, ShieldCheck, UserX } from "lucide-react";
 import { useRouter } from "@/i18n/navigation";

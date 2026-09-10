@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 
 /**
  * Full-row navigation overlay for clickable table rows. Drop it as the first
