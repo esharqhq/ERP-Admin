@@ -31,6 +31,7 @@ import { navGroups, type NavBadgeKind, type NavItem } from "@/lib/nav-items"
 import { logoutAction } from "@/app/[locale]/login/actions"
 import { useAuthStore } from "@/store/auth.store"
 import { useCurrentPermissions } from "@/hooks/use-current-permissions"
+import { useRoutePrefetch } from "@/hooks/use-route-prefetch"
 import { ChevronsUpDown, Lock, LogOut, UserCircle } from "lucide-react"
 import { useTranslations, useLocale } from "next-intl"
 
@@ -146,6 +147,7 @@ function NavRailBadge({ kind, count }: { kind: NavBadgeKind; count?: number }) {
 
 export function AppSidebar() {
   const rawPathname = usePathname()
+  const prefetchRoute = useRoutePrefetch()
   const locale = useLocale()
   const pathname = rawPathname.replace(`/${locale}`, "") || "/"
   const adminMe = useAuthStore((s) => s.adminMe)
@@ -207,6 +209,11 @@ export function AppSidebar() {
         <SidebarHeader className="h-[66px] shrink-0 flex-row items-center gap-[11px] border-b border-sidebar-border px-4 py-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
           <Link
             href="/dashboard"
+            // Same reasoning as the nav rows below: this one is mounted on every
+            // page too, and the logo is rarely the thing being clicked.
+            prefetch={false}
+            onMouseEnter={() => prefetchRoute("/dashboard")}
+            onFocus={() => prefetchRoute("/dashboard")}
             className="flex min-w-0 flex-1 items-center gap-[11px] group-data-[collapsible=icon]:flex-none"
           >
             {/* A solid white tile, not a tinted one: the mark is the only place
@@ -309,7 +316,26 @@ export function AppSidebar() {
                             render={
                               <Link
                                 href={locked ? lockedHref(item) : item.url}
+                                /*
+                                  The sidebar is on every page with all 17 rows
+                                  in the viewport, so the App Router's default
+                                  would prefetch the whole console on every
+                                  load. `useRoutePrefetch` puts it back on
+                                  hover, where it predicts something.
+
+                                  A locked row is deliberately excluded: it
+                                  leads to `/forbidden`, and warming that is
+                                  warming the one route the admin is not
+                                  trying to reach.
+                                */
+                                prefetch={false}
                               />
+                            }
+                            onMouseEnter={
+                              locked ? undefined : () => prefetchRoute(item.url)
+                            }
+                            onFocus={
+                              locked ? undefined : () => prefetchRoute(item.url)
                             }
                             isActive={isActive}
                             aria-current={isActive ? "page" : undefined}
