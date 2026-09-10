@@ -1005,3 +1005,49 @@ task: `OPEN_STATUSES` in `lib/tasks/staffing.ts` hides the Assign button on thos
 names your gap id so the next reader knows the guard is client-side and load-bearing. If that ruling
 lands we will follow whichever way it goes — including keeping elapsed tasks fillable, which we already
 rely on: the board deliberately reaches two days back so a just-elapsed unstaffed shift stays visible.
+
+---
+
+## 35. `GET /api/admin/worker-skill-requests` cannot ask for more than one status — *no "All" tab is possible, and one worker's history costs four calls*
+
+**FE today:** we shipped the F-06a admin half — the Skill Requests queue, the decision screen and a
+read-only history card on the worker's detail page. `SkillRequestListQuery.Status` is a single nullable
+`WorkerProfessionRequestStatus` (`GermanyERP.Domain/Models/DTOs/Workers/WorkerProfessionRequestDtos.cs:160`),
+and omitting it filters to exactly `Pending` + `InfoRequested`
+(`WorkerProfessionRequestService.cs:371`). Both behaviours are documented and both are sensible on their
+own; together they mean **no single call can return all five statuses.**
+
+Two consequences we have designed around rather than worked around:
+
+- The queue's tabs are `Open` (no `status`) · `Approved` · `Rejected` · `Revoked`, and there is **no All
+  tab** — one could only send `status=all` (a `400`) or send nothing, which is `Open` under a second
+  name. We are content with this; it is recorded so the absence does not read as an oversight.
+- **A worker's whole request history takes four requests** (`?workerId=` alone, then one per decided
+  status), merged client-side. It is correct — the four sets are disjoint and cover all five statuses
+  exactly once — but it is four round trips for one card, and the client is now relying on that
+  disjointness as a contract.
+
+**Need:** let `status` accept a list (`?status=Approved&status=Rejected`, or a comma-joined value), or
+add an explicit `All`. Either collapses the history card to one call and would let us offer a full
+history view in the queue.
+
+**Not blocking.** The four-call read is correct today and stays correct if this lands.
+
+---
+
+## 36. Docs bug: `profession-fnd1-retrofit.md` §9 contradicts its own §1
+
+Not an API ask — a documentation correction, filed because the stale half is the more alarming one to
+read first.
+
+§9's third bullet still reads *"A skill an admin adds today cannot reach any worker (2026-08-19) …
+there is no route that assigns one, so a second profession is decorative — and worse than decorative if
+an owner filters a task group on it."* §1 of the **same file** corrects exactly that as false, with a ✅
+note: F-06a shipped the acquisition path on 2026-08-25, and creating a second skill is now safe,
+measured end to end.
+
+§1 was corrected in place; §9 was not. A reader who reaches §9 first — it is the "Known gaps" section, a
+natural place to check before building — would conclude the feature they are about to build is pointless.
+
+**We build against §1.** No action needed from us; flagging it so the file stops carrying both answers.
+

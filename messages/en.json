@@ -452,6 +452,7 @@
     "tasks": "Tasks",
     "dispatching": "Dispatching",
     "leave": "Leave Requests",
+    "skillRequests": "Skill Requests",
     "contracts": "Contracts",
     "professions": "Professions",
     "support": "Support",
@@ -2125,6 +2126,105 @@
     },
     "reactivate": {
       "action": "Reactivate"
+    }
+  },
+  "skillRequests": {
+    "title": "Skill Requests",
+    "subtitle": "Workers asking for a skill beyond the one registration gave them. Approve, reject, or ask for more information.",
+    "list": "Requests",
+    "searchPlaceholder": "Search",
+    "tabs": {
+      "open": "Open",
+      "Approved": "Approved",
+      "Rejected": "Rejected",
+      "Revoked": "Revoked"
+    },
+    "status": {
+      "Pending": "Under review",
+      "InfoRequested": "Waiting for the worker",
+      "Approved": "Approved",
+      "Rejected": "Rejected",
+      "Revoked": "Revoked"
+    },
+    "columns": {
+      "worker": "Worker",
+      "skill": "Skill",
+      "claimedYears": "Claimed years",
+      "status": "Status",
+      "createdAt": "Requested"
+    },
+    "filters": {
+      "skill": "Skill",
+      "inactive": "deactivated"
+    },
+    "toolbar": {
+      "count": "{total}"
+    },
+    "empty": {
+      "queueTitle": "No requests waiting",
+      "queueBody": "When a worker asks for a skill, it appears here for a decision."
+    },
+    "detail": {
+      "back": "Back to requests",
+      "forbiddenTitle": "You cannot open this request",
+      "forbiddenBody": "Reading the skill request queue needs a permission your role does not include. Ask a super admin to grant it.",
+      "notFoundTitle": "Request not found",
+      "notFoundBody": "This request no longer exists, or it was never one you could open.",
+      "errorTitle": "Could not load this request",
+      "errorBody": "Something went wrong on the way to the server. Reload to try again."
+    },
+    "claim": {
+      "heading": "The claim",
+      "skill": "Skill requested",
+      "claimedYears": "Years claimed for this skill",
+      "yearsUnknown": "Not given",
+      "requested": "Requested",
+      "workerNote": "Worker's note",
+      "adminQuestion": "Your question to the worker",
+      "rejectionReason": "Rejection reason (shown to the worker)",
+      "workerResponse": "Worker's answer",
+      "revokeReason": "Why this was revoked"
+    },
+    "worker": {
+      "heading": "The worker",
+      "onboarding": "Onboarding",
+      "declaredExperience": "Experience declared at signup",
+      "completedTasks": "Completed tasks",
+      "rating": "Rating",
+      "monthsOnPlatform": "Months on platform",
+      "heldSkills": "Skills held today"
+    },
+    "actions": {
+      "approve": "Approve",
+      "reject": "Reject",
+      "requestInfo": "Ask for more information",
+      "revoke": "Revoke skill"
+    },
+    "dialogs": {
+      "send": "Send",
+      "requestInfoTitle": "Ask the worker a question",
+      "requestInfoDescription": "The worker sees this and can answer, which puts the request back in your queue.",
+      "rejectTitle": "Reject this request",
+      "rejectDescription": "The worker sees this reason and may apply again, so write it as feedback rather than an internal note.",
+      "revokeTitle": "Revoke this skill",
+      "revokeDescription": "The worker sees this reason. They keep any job they are already on, and their rating is unaffected."
+    },
+    "workerCard": {
+      "title": "Skill requests",
+      "empty": "This worker has never requested a skill.",
+      "error": "Could not load skill requests."
+    },
+    "errors": {
+      "noteRequired": "Write a question for the worker before sending.",
+      "reasonRequired": "Give a reason — the worker will see it.",
+      "notFound": "This request no longer exists.",
+      "alreadyHeld": "The worker already holds this skill.",
+      "inUseByLiveWork": "This skill is being used on live work. You can remove it once that work finishes.",
+      "invalidState": "Someone else already handled this request. Refresh to see the current state.",
+      "cannotRevokeGeneral": "The default skill cannot be removed.",
+      "cannotRevokeLastSkill": "This is the worker's only skill — removing it would leave them unable to join any work.",
+      "validation": "Check the form and try again.",
+      "unknown": "Something went wrong. Try again."
     }
   },
   "dispatch": {

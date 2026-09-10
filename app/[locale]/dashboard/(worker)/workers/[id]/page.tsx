@@ -15,6 +15,7 @@ import { ShiftsCard } from "@/components/workers/shifts-card";
 import { RatingSnapshotCard } from "@/components/workers/rating-snapshot-card";
 import { AgencyLinkActions } from "@/components/workers/agency-link-actions";
 import { AgencyLinkCard } from "@/components/workers/agency-link-card";
+import { WorkerSkillRequestsCard } from "@/components/workers/skill-requests-card";
 import { useWorkerDetail, useWorkerRating } from "@/hooks/use-worker-detail";
 import {
   useApproveWorkerDoc,
@@ -258,6 +259,10 @@ export default function WorkerDetailPage({
             link={worker.agencyLink}
             actions={<AgencyLinkActions workerId={id} link={worker.agencyLink} />}
           />
+          {/* The request history, above comms and below provenance. It gates
+              itself on `worker_profession_request:read` and returns null without
+              it, so there is no `canRead` to thread through here. */}
+          <WorkerSkillRequestsCard workerId={worker.id} />
           <ConversationsCard userId={worker.id} />
         </div>
       </div>

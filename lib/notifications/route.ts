@@ -78,6 +78,16 @@ export function notificationRoute(
     // so the row stays non-clickable rather than guessing wrong half the time.
     case "Onboarding":
       return null;
+    /*
+      F-06a types 62 `SkillRequestSubmitted` and 66 `SkillRequestResponded` - the two
+      that reach an admin; 63, 64, 65 and 67 are the worker's own notices and never
+      arrive here. `entityId` is the request id and the detail route is keyed on one,
+      so this lands on the decision screen rather than a list. Unlike
+      `WorkerAgencyLink` no `type` argument is needed: both admin types share one
+      audience and one destination.
+    */
+    case "WorkerProfessionRequest":
+      return `/dashboard/skill-requests/${entityId}`;
     default:
       return null;
   }

@@ -452,6 +452,7 @@
     "tasks": "Aufgaben",
     "dispatching": "Disposition",
     "leave": "Urlaubsanträge",
+    "skillRequests": "Qualifikationsanträge",
     "contracts": "Verträge",
     "professions": "Berufe",
     "support": "Support",
@@ -2125,6 +2126,105 @@
     },
     "reactivate": {
       "action": "Reaktivieren"
+    }
+  },
+  "skillRequests": {
+    "title": "Qualifikationsanträge",
+    "subtitle": "Arbeitskräfte, die eine Qualifikation über die bei der Registrierung zugewiesene hinaus beantragen. Genehmigen, ablehnen oder Informationen anfordern.",
+    "list": "Anträge",
+    "searchPlaceholder": "Suchen",
+    "tabs": {
+      "open": "Offen",
+      "Approved": "Genehmigt",
+      "Rejected": "Abgelehnt",
+      "Revoked": "Entzogen"
+    },
+    "status": {
+      "Pending": "In Prüfung",
+      "InfoRequested": "Wartet auf die Arbeitskraft",
+      "Approved": "Genehmigt",
+      "Rejected": "Abgelehnt",
+      "Revoked": "Entzogen"
+    },
+    "columns": {
+      "worker": "Arbeitskraft",
+      "skill": "Qualifikation",
+      "claimedYears": "Angegebene Jahre",
+      "status": "Status",
+      "createdAt": "Beantragt"
+    },
+    "filters": {
+      "skill": "Qualifikation",
+      "inactive": "deaktiviert"
+    },
+    "toolbar": {
+      "count": "{total}"
+    },
+    "empty": {
+      "queueTitle": "Keine offenen Anträge",
+      "queueBody": "Sobald eine Arbeitskraft eine Qualifikation beantragt, erscheint der Antrag hier."
+    },
+    "detail": {
+      "back": "Zurück zu den Anträgen",
+      "forbiddenTitle": "Sie können diesen Antrag nicht öffnen",
+      "forbiddenBody": "Für die Antragsliste fehlt Ihrer Rolle eine Berechtigung. Bitten Sie einen Super-Admin, sie zu erteilen.",
+      "notFoundTitle": "Antrag nicht gefunden",
+      "notFoundBody": "Dieser Antrag existiert nicht mehr oder war nie für Sie zugänglich.",
+      "errorTitle": "Antrag konnte nicht geladen werden",
+      "errorBody": "Auf dem Weg zum Server ist etwas schiefgelaufen. Laden Sie die Seite neu."
+    },
+    "claim": {
+      "heading": "Der Antrag",
+      "skill": "Beantragte Qualifikation",
+      "claimedYears": "Angegebene Jahre für diese Qualifikation",
+      "yearsUnknown": "Nicht angegeben",
+      "requested": "Beantragt",
+      "workerNote": "Anmerkung der Arbeitskraft",
+      "adminQuestion": "Ihre Frage an die Arbeitskraft",
+      "rejectionReason": "Ablehnungsgrund (für die Arbeitskraft sichtbar)",
+      "workerResponse": "Antwort der Arbeitskraft",
+      "revokeReason": "Grund für den Entzug"
+    },
+    "worker": {
+      "heading": "Die Arbeitskraft",
+      "onboarding": "Onboarding",
+      "declaredExperience": "Bei der Anmeldung angegebene Erfahrung",
+      "completedTasks": "Abgeschlossene Aufträge",
+      "rating": "Bewertung",
+      "monthsOnPlatform": "Monate auf der Plattform",
+      "heldSkills": "Aktuelle Qualifikationen"
+    },
+    "actions": {
+      "approve": "Genehmigen",
+      "reject": "Ablehnen",
+      "requestInfo": "Weitere Informationen anfordern",
+      "revoke": "Qualifikation entziehen"
+    },
+    "dialogs": {
+      "send": "Senden",
+      "requestInfoTitle": "Frage an die Arbeitskraft",
+      "requestInfoDescription": "Die Arbeitskraft sieht dies und kann antworten — der Antrag kommt dann zurück in Ihre Liste.",
+      "rejectTitle": "Diesen Antrag ablehnen",
+      "rejectDescription": "Die Arbeitskraft sieht diesen Grund und kann erneut beantragen — formulieren Sie ihn als Rückmeldung, nicht als interne Notiz.",
+      "revokeTitle": "Diese Qualifikation entziehen",
+      "revokeDescription": "Die Arbeitskraft sieht diesen Grund. Laufende Aufträge bleiben bestehen, die Bewertung ist nicht betroffen."
+    },
+    "workerCard": {
+      "title": "Qualifikationsanträge",
+      "empty": "Diese Arbeitskraft hat noch keine Qualifikation beantragt.",
+      "error": "Qualifikationsanträge konnten nicht geladen werden."
+    },
+    "errors": {
+      "noteRequired": "Formulieren Sie eine Frage an die Arbeitskraft, bevor Sie senden.",
+      "reasonRequired": "Geben Sie einen Grund an — die Arbeitskraft sieht ihn.",
+      "notFound": "Dieser Antrag existiert nicht mehr.",
+      "alreadyHeld": "Die Arbeitskraft besitzt diese Qualifikation bereits.",
+      "inUseByLiveWork": "Diese Qualifikation wird für laufende Arbeit genutzt. Sie können sie entfernen, sobald diese Arbeit abgeschlossen ist.",
+      "invalidState": "Dieser Antrag wurde bereits von jemand anderem bearbeitet. Aktualisieren Sie die Ansicht.",
+      "cannotRevokeGeneral": "Die Standardqualifikation kann nicht entfernt werden.",
+      "cannotRevokeLastSkill": "Dies ist die einzige Qualifikation der Arbeitskraft — ohne sie könnte sie keine Aufträge annehmen.",
+      "validation": "Prüfen Sie das Formular und versuchen Sie es erneut.",
+      "unknown": "Etwas ist schiefgelaufen. Versuchen Sie es erneut."
     }
   },
   "dispatch": {
