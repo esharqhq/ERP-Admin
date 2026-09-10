@@ -1659,51 +1659,146 @@
   },
   "attendance": {
     "title": "Attendance",
-    "subtitle": "Track and monitor worker attendance records",
-    "searchPlaceholder": "Search by worker name...",
-    "dateLabel": "Date",
+    "subtitle": "Everyone assigned to a task scheduled on this day — checked in, still missing, or refused at the geofence.",
     "noAccess": "You don't have permission to view attendance.",
-    "empty": "No assignments scheduled for this date.",
     "export": "Export CSV",
-    "stats": {
-      "assigned": "Assigned",
-      "present": "Present",
-      "absent": "Absent"
+    "searchPlaceholder": "Worker or property",
+    "date": {
+      "label": "Day",
+      "today": "Today",
+      "prev": "Previous day",
+      "next": "Next day",
+      "notToday": "Not today"
     },
-    "summary": {
-      "assigned": "Assigned",
-      "present": "Present",
-      "late": "Late",
-      "absent": "Absent",
-      "rate": "Attendance"
+    "strip": {
+      "count": "{count, plural, =0 {Nothing assigned} one {# row} other {# rows}}",
+      "countLabel": "assigned this day",
+      "arrived": "{arrived} / {total}",
+      "arrivedLabel": "checked in",
+      "in": "{count} checked in",
+      "inCaption": "arrived within the grace window",
+      "late": "{count} late",
+      "lateCaption": "arrived after the scheduled start",
+      "missing": "{count} not checked in",
+      "missingCaption": "awaiting, overdue and no-show",
+      "refused": "{count} refused",
+      "refusedCaption": "the geofence turned a check-in away"
     },
     "tabs": {
       "all": "All",
-      "present": "Present",
+      "in": "Checked in",
       "late": "Late",
-      "absent": "Absent"
+      "missing": "Not checked in",
+      "refused": "Refused"
     },
     "status": {
-      "present": "Present",
+      "in": "Checked in",
       "late": "Late",
-      "absent": "Absent"
+      "await": "Awaiting",
+      "overdue": "Overdue",
+      "noshow": "No show",
+      "removed": "Removed",
+      "cancelled": "Cancelled"
     },
     "columns": {
       "worker": "Worker",
-      "task": "Task",
       "property": "Property",
+      "task": "Task",
       "scheduled": "Scheduled",
-      "present": "Present",
-      "checkIn": "Check-In",
-      "checkOut": "Check-Out",
-      "status": "Status",
-      "outcome": "Outcome",
-      "lat": "Check-in Lat",
-      "lng": "Check-in Lng"
+      "checkIn": "Check-in",
+      "checkOut": "Check-out",
+      "status": "Status"
     },
-    "present": {
-      "yes": "Present",
-      "no": "Absent"
+    "cell": {
+      "noGroupTitle": "no group title",
+      "onTime": "on time",
+      "lateBy": "+{minutes}m",
+      "earlyBy": "{minutes}m",
+      "stillOnSite": "still on site",
+      "sent": "task-wide · sent {time}",
+      "taskWide": "task-wide",
+      "mapTooltip": "Check-in location: {lat}, {lng}",
+      "openMap": "Open the check-in location on a map",
+      "empty": "—"
+    },
+    "refusal": {
+      "count": "{count, plural, one {# refused} other {# refused}}",
+      "distance": "{meters} m",
+      "reason": {
+        "outsideGeofence": "outside geofence",
+        "gpsRequired": "GPS required",
+        "targetMissing": "no geofence target"
+      },
+      "windowNote": "Repeated tries within a quarter of an hour count once.",
+      "unassignedNote": "A refusal by someone who is not assigned to the task has no row here, so this is not every refusal on the platform."
+    },
+    "footer": {
+      "shown": "{shown} of {total} rows",
+      "wholeDay": "The whole day, in one request — there are no further pages."
+    },
+    "states": {
+      "emptyDayTitle": "Nothing was scheduled on {date}",
+      "emptyDayBody": "A day with no assignments looks exactly like this. The day picker stays, so the next one is a tap away.",
+      "emptyDayCta": "Go to today",
+      "noMatchTitle": "Nothing matches this view",
+      "noMatchBody": "The day has {total} rows; this tab and these filters select none of them.",
+      "noMatchCta": "Show all {total}",
+      "errorTitle": "The day did not load",
+      "errorBody": "The day is in the address, so retrying returns to exactly this one. Nothing was changed — this screen only reads.",
+      "errorRetry": "Retry",
+      "forbiddenTitle": "Your role does not include attendance",
+      "forbiddenBody": "One permission gates this whole screen, so there is no partial view to fall back on. Retrying cannot help — the ask is a person.",
+      "forbiddenCode": "403 · system:attendance:read",
+      "forbiddenBack": "Back to the overview"
+    },
+    "detail": {
+      "title": "Attendance row",
+      "close": "Close",
+      "subtitle": "{property} · {task}",
+      "timeline": "Timeline",
+      "fields": "Details",
+      "scheduled": "Scheduled",
+      "scheduledSub": "{task} at {property}",
+      "refusedAt": "Refused — {reason}",
+      "refusedAtSub": "{distance} from the target",
+      "refusedAtSubNoDistance": "No distance was measured — the check-in was refused before one could be.",
+      "refusedMore": "{count, plural, one {# refused try in total} other {# refused tries in total}}",
+      "refusedMoreSub": "Only the most recent one is described.",
+      "checkIn": "Check-in",
+      "checkInSub": "at {lat}, {lng}",
+      "checkInMissing": "Nobody checked in on this row.",
+      "checkOut": "Check-out",
+      "checkOutSub": "Stamped for every worker at once when the owner accepts the task.",
+      "checkOutMissing": "Not yet stamped.",
+      "submitted": "Submitted for review",
+      "noCoordsTitle": "No check-in coordinates",
+      "noCoordsBody": "Coordinates are only recorded when a check-in succeeds. This row's refusal carries its own distance instead — {distance} from the resolved target.",
+      "noCoordsBodyPlain": "Coordinates are only recorded when a check-in succeeds, and this row has none.",
+      "readOnly": "This screen only reads. An attendance row cannot be corrected, excused or re-opened here.",
+      "openWorker": "Open worker",
+      "openProperty": "Open property",
+      "openTask": "Open task group",
+      "field": {
+        "taskStatus": "Task status",
+        "outcome": "Outcome",
+        "scheduledDate": "Scheduled day",
+        "worker": "Worker",
+        "property": "Property",
+        "taskGroup": "Task group",
+        "coordinates": "Check-in coordinates",
+        "submittedAt": "Submitted",
+        "refusedCount": "Refused tries",
+        "lastRefusal": "Last refusal"
+      }
+    },
+    "mobile": {
+      "summary": "{date} · {count, plural, one {# row} other {# rows}}",
+      "in": "{count} in",
+      "late": "{count} late",
+      "missing": "{count} missing",
+      "refused": "{count} refused",
+      "times": "{scheduled} → {checkIn}",
+      "severityNote": "Refused and overdue first."
     }
   },
   "supportInbox": {

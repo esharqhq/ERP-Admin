@@ -1659,51 +1659,146 @@
   },
   "attendance": {
     "title": "Anwesenheit",
-    "subtitle": "Anwesenheit der Mitarbeiter verfolgen",
-    "searchPlaceholder": "Nach Mitarbeiternamen suchen...",
-    "dateLabel": "Datum",
-    "noAccess": "Sie haben keine Berechtigung, Anwesenheitsdaten anzuzeigen.",
-    "empty": "Für dieses Datum sind keine Einsätze geplant.",
+    "subtitle": "Alle, die an diesem Tag einer Aufgabe zugewiesen sind — eingecheckt, noch fehlend oder am Geofence abgewiesen.",
+    "noAccess": "Sie haben keine Berechtigung, die Anwesenheit einzusehen.",
     "export": "CSV exportieren",
-    "stats": {
-      "assigned": "Zugewiesen",
-      "present": "Anwesend",
-      "absent": "Abwesend"
+    "searchPlaceholder": "Mitarbeitende oder Objekt",
+    "date": {
+      "label": "Tag",
+      "today": "Heute",
+      "prev": "Vorheriger Tag",
+      "next": "Nächster Tag",
+      "notToday": "Nicht heute"
     },
-    "summary": {
-      "assigned": "Zugewiesen",
-      "present": "Anwesend",
-      "late": "Verspätet",
-      "absent": "Abwesend",
-      "rate": "Anwesenheit"
+    "strip": {
+      "count": "{count, plural, =0 {Keine Zuweisungen} one {# Zeile} other {# Zeilen}}",
+      "countLabel": "an diesem Tag zugewiesen",
+      "arrived": "{arrived} / {total}",
+      "arrivedLabel": "eingecheckt",
+      "in": "{count} eingecheckt",
+      "inCaption": "innerhalb der Kulanzzeit eingetroffen",
+      "late": "{count} zu spät",
+      "lateCaption": "nach dem geplanten Beginn eingetroffen",
+      "missing": "{count} nicht eingecheckt",
+      "missingCaption": "ausstehend, überfällig und nicht erschienen",
+      "refused": "{count} abgewiesen",
+      "refusedCaption": "der Geofence hat einen Check-in abgewiesen"
     },
     "tabs": {
       "all": "Alle",
-      "present": "Anwesend",
-      "late": "Verspätet",
-      "absent": "Abwesend"
+      "in": "Eingecheckt",
+      "late": "Zu spät",
+      "missing": "Nicht eingecheckt",
+      "refused": "Abgewiesen"
     },
     "status": {
-      "present": "Anwesend",
-      "late": "Verspätet",
-      "absent": "Abwesend"
+      "in": "Eingecheckt",
+      "late": "Zu spät",
+      "await": "Ausstehend",
+      "overdue": "Überfällig",
+      "noshow": "Nicht erschienen",
+      "removed": "Entfernt",
+      "cancelled": "Storniert"
     },
     "columns": {
-      "worker": "Mitarbeiter",
+      "worker": "Mitarbeitende",
+      "property": "Objekt",
       "task": "Aufgabe",
-      "property": "Immobilie",
       "scheduled": "Geplant",
-      "present": "Anwesend",
-      "checkIn": "Einchecken",
-      "checkOut": "Auschecken",
-      "status": "Status",
-      "outcome": "Ergebnis",
-      "lat": "Check-in Breitengrad",
-      "lng": "Check-in Längengrad"
+      "checkIn": "Check-in",
+      "checkOut": "Check-out",
+      "status": "Status"
     },
-    "present": {
-      "yes": "Anwesend",
-      "no": "Abwesend"
+    "cell": {
+      "noGroupTitle": "kein Gruppentitel",
+      "onTime": "pünktlich",
+      "lateBy": "+{minutes} Min.",
+      "earlyBy": "{minutes} Min.",
+      "stillOnSite": "noch vor Ort",
+      "sent": "aufgabenweit · gesendet {time}",
+      "taskWide": "aufgabenweit",
+      "mapTooltip": "Check-in-Standort: {lat}, {lng}",
+      "openMap": "Check-in-Standort auf der Karte öffnen",
+      "empty": "—"
+    },
+    "refusal": {
+      "count": "{count, plural, one {# Mal abgewiesen} other {# Mal abgewiesen}}",
+      "distance": "{meters} m",
+      "reason": {
+        "outsideGeofence": "außerhalb des Geofence",
+        "gpsRequired": "GPS erforderlich",
+        "targetMissing": "kein Geofence-Ziel"
+      },
+      "windowNote": "Mehrere Versuche innerhalb einer Viertelstunde zählen als einer.",
+      "unassignedNote": "Eine Abweisung von jemandem, der der Aufgabe nicht zugewiesen ist, hat hier keine Zeile — dies sind also nicht alle Abweisungen der Plattform."
+    },
+    "footer": {
+      "shown": "{shown} von {total} Zeilen",
+      "wholeDay": "Der ganze Tag in einer Abfrage — es gibt keine weiteren Seiten."
+    },
+    "states": {
+      "emptyDayTitle": "Am {date} war nichts geplant",
+      "emptyDayBody": "Ein Tag ohne Zuweisungen sieht genau so aus. Die Tagesauswahl bleibt, der nächste Tag ist also einen Klick entfernt.",
+      "emptyDayCta": "Zu heute",
+      "noMatchTitle": "Zu dieser Ansicht passt nichts",
+      "noMatchBody": "Der Tag hat {total} Zeilen; dieser Reiter und diese Filter wählen keine davon aus.",
+      "noMatchCta": "Alle {total} anzeigen",
+      "errorTitle": "Der Tag konnte nicht geladen werden",
+      "errorBody": "Der Tag steht in der Adresse — ein neuer Versuch führt genau hierher zurück. Es wurde nichts geändert, dieser Bildschirm liest nur.",
+      "errorRetry": "Erneut versuchen",
+      "forbiddenTitle": "Ihre Rolle umfasst die Anwesenheit nicht",
+      "forbiddenBody": "Eine einzige Berechtigung schaltet diesen Bildschirm frei, es gibt also keine Teilansicht. Ein neuer Versuch hilft nicht — fragen müssen Sie eine Person.",
+      "forbiddenCode": "403 · system:attendance:read",
+      "forbiddenBack": "Zurück zur Übersicht"
+    },
+    "detail": {
+      "title": "Anwesenheitszeile",
+      "close": "Schließen",
+      "subtitle": "{property} · {task}",
+      "timeline": "Verlauf",
+      "fields": "Details",
+      "scheduled": "Geplant",
+      "scheduledSub": "{task} in {property}",
+      "refusedAt": "Abgewiesen — {reason}",
+      "refusedAtSub": "{distance} vom Ziel entfernt",
+      "refusedAtSubNoDistance": "Es wurde keine Entfernung gemessen — der Check-in wurde vorher abgewiesen.",
+      "refusedMore": "{count, plural, one {# abgewiesener Versuch insgesamt} other {# abgewiesene Versuche insgesamt}}",
+      "refusedMoreSub": "Nur der letzte davon ist beschrieben.",
+      "checkIn": "Check-in",
+      "checkInSub": "bei {lat}, {lng}",
+      "checkInMissing": "In dieser Zeile hat niemand eingecheckt.",
+      "checkOut": "Check-out",
+      "checkOutSub": "Wird für alle Mitarbeitenden gleichzeitig gesetzt, sobald der Eigentümer die Aufgabe abnimmt.",
+      "checkOutMissing": "Noch nicht gesetzt.",
+      "submitted": "Zur Prüfung eingereicht",
+      "noCoordsTitle": "Keine Check-in-Koordinaten",
+      "noCoordsBody": "Koordinaten werden nur bei einem erfolgreichen Check-in aufgezeichnet. Die Abweisung dieser Zeile trägt stattdessen ihre eigene Entfernung — {distance} vom ermittelten Ziel.",
+      "noCoordsBodyPlain": "Koordinaten werden nur bei einem erfolgreichen Check-in aufgezeichnet, und diese Zeile hat keine.",
+      "readOnly": "Dieser Bildschirm liest nur. Eine Anwesenheitszeile kann hier nicht korrigiert, entschuldigt oder wieder geöffnet werden.",
+      "openWorker": "Mitarbeitende öffnen",
+      "openProperty": "Objekt öffnen",
+      "openTask": "Aufgabengruppe öffnen",
+      "field": {
+        "taskStatus": "Aufgabenstatus",
+        "outcome": "Ergebnis",
+        "scheduledDate": "Geplanter Tag",
+        "worker": "Mitarbeitende",
+        "property": "Objekt",
+        "taskGroup": "Aufgabengruppe",
+        "coordinates": "Check-in-Koordinaten",
+        "submittedAt": "Eingereicht",
+        "refusedCount": "Abgewiesene Versuche",
+        "lastRefusal": "Letzte Abweisung"
+      }
+    },
+    "mobile": {
+      "summary": "{date} · {count, plural, one {# Zeile} other {# Zeilen}}",
+      "in": "{count} eingecheckt",
+      "late": "{count} zu spät",
+      "missing": "{count} fehlen",
+      "refused": "{count} abgewiesen",
+      "times": "{scheduled} → {checkIn}",
+      "severityNote": "Abgewiesene und überfällige zuerst."
     }
   },
   "supportInbox": {
