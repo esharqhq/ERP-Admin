@@ -153,13 +153,21 @@ export default function SkillRequestsPage() {
         rowHref={(r) => `/dashboard/skill-requests/${r.id}`}
         rowLabel={(r) => r.workerFullName}
         title={t("list")}
-        tabs={tabs}
-        tabsLabel={t("title")}
         fields={fields}
-        toolbar={({ total, filtersTrigger, columnPicker, density }) => (
+        /*
+          ⚠ **`tabs` is deliberately NOT passed.** `toolbar` replaces rows 1-3 of the
+          default toolbar and row 2 *is* the stage-tab strip
+          (`data-table.tsx:458-467`), so a caller passing both gets no tabs at all —
+          the prop is silently dropped. The strip is drawn inside our own toolbar
+          instead, off the same `state`, so it and the query cannot disagree.
+        */
+        toolbar={({ state: s, total, filtersTrigger, columnPicker, density }) => (
           <SkillRequestsToolbar
             heading={t("list")}
             total={total}
+            tabs={tabs}
+            tabsLabel={t("title")}
+            state={s}
             filtersTrigger={filtersTrigger}
             columnPicker={columnPicker}
             density={density}
