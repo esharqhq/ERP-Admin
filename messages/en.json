@@ -2128,6 +2128,41 @@
     }
   },
   "skillRequests": {
+    "title": "Skill Requests",
+    "subtitle": "Workers asking for a skill beyond the one registration gave them. Approve, reject, or ask for more information.",
+    "list": "Requests",
+    "searchPlaceholder": "Search",
+    "tabs": {
+      "open": "Open",
+      "Approved": "Approved",
+      "Rejected": "Rejected",
+      "Revoked": "Revoked"
+    },
+    "status": {
+      "Pending": "Under review",
+      "InfoRequested": "Waiting for the worker",
+      "Approved": "Approved",
+      "Rejected": "Rejected",
+      "Revoked": "Revoked"
+    },
+    "columns": {
+      "worker": "Worker",
+      "skill": "Skill",
+      "claimedYears": "Claimed years",
+      "status": "Status",
+      "createdAt": "Requested"
+    },
+    "filters": {
+      "skill": "Skill",
+      "inactive": "deactivated"
+    },
+    "toolbar": {
+      "count": "{total}"
+    },
+    "empty": {
+      "queueTitle": "No requests waiting",
+      "queueBody": "When a worker asks for a skill, it appears here for a decision."
+    },
     "errors": {
       "noteRequired": "Write a question for the worker before sending.",
       "reasonRequired": "Give a reason — the worker will see it.",

@@ -2128,6 +2128,41 @@
     }
   },
   "skillRequests": {
+    "title": "Qualifikationsanträge",
+    "subtitle": "Arbeitskräfte, die eine Qualifikation über die bei der Registrierung zugewiesene hinaus beantragen. Genehmigen, ablehnen oder Informationen anfordern.",
+    "list": "Anträge",
+    "searchPlaceholder": "Suchen",
+    "tabs": {
+      "open": "Offen",
+      "Approved": "Genehmigt",
+      "Rejected": "Abgelehnt",
+      "Revoked": "Entzogen"
+    },
+    "status": {
+      "Pending": "In Prüfung",
+      "InfoRequested": "Wartet auf die Arbeitskraft",
+      "Approved": "Genehmigt",
+      "Rejected": "Abgelehnt",
+      "Revoked": "Entzogen"
+    },
+    "columns": {
+      "worker": "Arbeitskraft",
+      "skill": "Qualifikation",
+      "claimedYears": "Angegebene Jahre",
+      "status": "Status",
+      "createdAt": "Beantragt"
+    },
+    "filters": {
+      "skill": "Qualifikation",
+      "inactive": "deaktiviert"
+    },
+    "toolbar": {
+      "count": "{total}"
+    },
+    "empty": {
+      "queueTitle": "Keine offenen Anträge",
+      "queueBody": "Sobald eine Arbeitskraft eine Qualifikation beantragt, erscheint der Antrag hier."
+    },
     "errors": {
       "noteRequired": "Formulieren Sie eine Frage an die Arbeitskraft, bevor Sie senden.",
       "reasonRequired": "Geben Sie einen Grund an — die Arbeitskraft sieht ihn.",
