@@ -11,6 +11,13 @@ export type NotificationType =
   | "WorkerContractRejected"
   | "OnboardingExpiryAdminAlert"
   | "TicketOpenedByUser"
+  // F-06a. ⚠ Nothing reads these two literals, and that is correct rather than an
+  // oversight: `notificationRoute` switches on `entityType` alone and both share one
+  // destination. The union exists to document what actually arrives in an admin's
+  // bell, which is what makes the ABSENCE of 63/64/65/67 - the worker's own notices -
+  // meaningful. Do not go looking for a consumer.
+  | "SkillRequestSubmitted"
+  | "SkillRequestResponded"
   // any type the backend adds later: render the row, do not crash
   | (string & {});
 
@@ -23,7 +30,8 @@ export type NotificationEntityType =
   | "SupportTicket"
   | "Onboarding"
   | "AgencyApplication"
-  | "WorkerAgencyLink";
+  | "WorkerAgencyLink"
+  | "WorkerProfessionRequest";
 
 export type NotificationDto = {
   id: string;

@@ -15,6 +15,7 @@ import {
   Inbox,
   Phone,
   Megaphone,
+  Award,
 } from "lucide-react"
 import { type LucideIcon } from "lucide-react"
 
@@ -88,6 +89,7 @@ export const navGroups: NavGroup[] = [
       { title: "Tasks",       labelKey: "nav.tasks",       url: "/dashboard/tasks",            icon: ClipboardList, permission: "task:list_any", badge: "total" },
       { title: "Dispatching", labelKey: "nav.dispatching", url: "/dashboard/dispatch",         icon: Truck,         permission: "task:assign_worker_any", badge: "expiring" },
       { title: "Leave",       labelKey: "nav.leave",       url: "/dashboard/leave",            icon: CalendarOff,   permission: "worker_leave_request:list_any", badge: "queue" },
+      { title: "Skill Requests", labelKey: "nav.skillRequests", url: "/dashboard/skill-requests", icon: Award,      permission: "worker_profession_request:read", badge: "queue" },
       { title: "Attendance",  labelKey: "nav.attendance",  url: "/dashboard/attendance",       icon: CalendarCheck, permission: "system:attendance:read" },
       { title: "Documents",   labelKey: "nav.documents",   url: "/dashboard/worker-documents", icon: FolderOpen,    permission: "worker:list", badge: "queue" },
     ],
@@ -167,6 +169,7 @@ const EXTRA_ROUTE_GATES: { prefix: string; permission?: string; anyOf?: string[]
   { prefix: "/dashboard/settings/admins/presets", permission: "system:permission:read" },
   { prefix: "/dashboard/settings/audit",       permission: "system:audit:read" },
   { prefix: "/dashboard/settings/professions", permission: "profession:create" },
+  { prefix: "/dashboard/skill-requests", permission: "worker_profession_request:read" },
   { prefix: "/dashboard/settings/property-categories", permission: "property_category:update" },
 ]
 

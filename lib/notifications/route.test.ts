@@ -94,4 +94,21 @@ describe("notificationRoute — agency links", () => {
       "/dashboard/agency-links",
     );
   });
+
+  /**
+   * F-06a types 62 `SkillRequestSubmitted` and 66 `SkillRequestResponded` are the
+   * two skill notifications that reach an ADMIN — 63, 64, 65 and 67 go to the
+   * worker. Both carry the request id, which the detail route is keyed on, so
+   * unlike `WorkerAgencyLink` no `type` argument is needed to tell them apart:
+   * one audience, one destination.
+   */
+  it("routes a skill request to its decision screen", () => {
+    expect(notificationRoute("WorkerProfessionRequest", "3f1c9a2e")).toBe(
+      "/dashboard/skill-requests/3f1c9a2e",
+    );
+  });
+
+  it("leaves a skill request with no id unrouted", () => {
+    expect(notificationRoute("WorkerProfessionRequest", null)).toBeNull();
+  });
 });
