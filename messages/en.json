@@ -2127,6 +2127,20 @@
       "action": "Reactivate"
     }
   },
+  "skillRequests": {
+    "errors": {
+      "noteRequired": "Write a question for the worker before sending.",
+      "reasonRequired": "Give a reason — the worker will see it.",
+      "notFound": "This request no longer exists.",
+      "alreadyHeld": "The worker already holds this skill.",
+      "inUseByLiveWork": "This skill is being used on live work. You can remove it once that work finishes.",
+      "invalidState": "Someone else already handled this request. Refresh to see the current state.",
+      "cannotRevokeGeneral": "The default skill cannot be removed.",
+      "cannotRevokeLastSkill": "This is the worker's only skill — removing it would leave them unable to join any work.",
+      "validation": "Check the form and try again.",
+      "unknown": "Something went wrong. Try again."
+    }
+  },
   "dispatch": {
     "title": "Dispatch",
     "subtitle": "Fill under-staffed tasks by assigning available workers",

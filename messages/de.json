@@ -2127,6 +2127,20 @@
       "action": "Reaktivieren"
     }
   },
+  "skillRequests": {
+    "errors": {
+      "noteRequired": "Formulieren Sie eine Frage an die Arbeitskraft, bevor Sie senden.",
+      "reasonRequired": "Geben Sie einen Grund an — die Arbeitskraft sieht ihn.",
+      "notFound": "Dieser Antrag existiert nicht mehr.",
+      "alreadyHeld": "Die Arbeitskraft besitzt diese Qualifikation bereits.",
+      "inUseByLiveWork": "Diese Qualifikation wird für laufende Arbeit genutzt. Sie können sie entfernen, sobald diese Arbeit abgeschlossen ist.",
+      "invalidState": "Dieser Antrag wurde bereits von jemand anderem bearbeitet. Aktualisieren Sie die Ansicht.",
+      "cannotRevokeGeneral": "Die Standardqualifikation kann nicht entfernt werden.",
+      "cannotRevokeLastSkill": "Dies ist die einzige Qualifikation der Arbeitskraft — ohne sie könnte sie keine Aufträge annehmen.",
+      "validation": "Prüfen Sie das Formular und versuchen Sie es erneut.",
+      "unknown": "Etwas ist schiefgelaufen. Versuchen Sie es erneut."
+    }
+  },
   "dispatch": {
     "title": "Disposition",
     "subtitle": "Unterbesetzte Aufgaben durch Zuweisung verfügbarer Mitarbeiter besetzen",
