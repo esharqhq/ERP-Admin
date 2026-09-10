@@ -80,3 +80,32 @@ export function useTodayKey(): string {
     () => "",
   );
 }
+
+/**
+ * Now, to the minute, **and it ticks**.
+ *
+ * `useClock` above refuses to, for a reason it states: a dormancy column that
+ * re-rendered every minute would cost more than the minute it bought. The
+ * attendance day is the case that inverts that trade. Its whole status grammar is
+ * a comparison against now — a row is `Awaiting` until its shift starts and
+ * `Overdue` after — so without a tick the screen freezes at whatever minute it was
+ * opened: a 09:59 arrival stays "not due yet" at 10:30, and the number beside an
+ * overdue row stops counting. React Query's `staleTime: 0` does not help, because
+ * nothing refetches on a timer and the stale value here is *ours*, not the
+ * server's.
+ *
+ * Same `useSyncExternalStore` shape and the same `0` server snapshot as its
+ * siblings, so the SSR pass derives nothing from a clock it does not have. One
+ * interval per mounted subscriber, cleared on unmount; it is only ever the
+ * attendance screen, and only while it is open.
+ */
+export function useLiveClock(): number {
+  return useSyncExternalStore(
+    (onChange) => {
+      const id = setInterval(onChange, MINUTE_MS);
+      return () => clearInterval(id);
+    },
+    () => Math.floor(Date.now() / MINUTE_MS) * MINUTE_MS,
+    () => 0,
+  );
+}

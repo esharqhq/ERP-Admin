@@ -247,7 +247,7 @@ export function DashboardHeader({healthUrl}: { healthUrl?: string }) {
                             ) : (
                                 <>
                                     {notifications.map((n) => {
-                                        const route = notificationRoute(n.entityType, n.entityId);
+                                        const route = notificationRoute(n.entityType, n.entityId, n.type);
                                         return (
                                             <DropdownMenuItem
                                                 key={n.id}

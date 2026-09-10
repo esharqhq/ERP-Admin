@@ -1,4 +1,5 @@
 import {
+  Link2,
   LayoutDashboard,
   Users,
   Building2,
@@ -95,9 +96,30 @@ export const navGroups: NavGroup[] = [
     id: "agency",
     label: "Agency",
     labelKey: "nav.agency",
+    // ⚠ Both screens are UNBUILT — F-05 is sub-project #3 of
+    // `docs/superpowers/plans/2026-08-31-admin-work-queue-roadmap.md`, scoped in
+    // `docs/audit/agency-scope-2026-09-08.md`. Until they exist, both urls serve a
+    // placeholder page rather than a 404: a missing route reads as a bug, and the
+    // rail's own philosophy is that an operator should see that a section exists.
+    //
+    // The gates below are the real ones from `index/permissions/registry.md`, so
+    // they need no revisiting when the pages land — and they already flow into
+    // `resolveRouteGate`, which matches by prefix and so covers the detail routes
+    // (`/dashboard/agencies/{id}`) too.
+    //
+    // ⚠ A gate does NOT hide these rows — `app-sidebar.tsx`'s `canSeeItem` dims
+    // and locks them instead, so a SUPER_ADMIN (who holds both codes) still
+    // follows a live link. That is why the placeholder is the part that actually
+    // closes this, and the gate only covers the roles that lack the grant.
+    // MODERATOR holds `agency_application:read` and NOT `agency:read`
+    // (`DatabaseSeeder.cs:1954,1960`), so for them exactly one of the two locks.
     items: [
-      { title: "Requests", labelKey: "nav.agencyRequests", url: "/dashboard/agency-requests", icon: Inbox, badge: "waiting" },
-      { title: "Agencies", labelKey: "nav.agencies",       url: "/dashboard/agencies",         icon: Briefcase },
+      { title: "Requests", labelKey: "nav.agencyRequests", url: "/dashboard/agency-requests", icon: Inbox, permission: "agency_application:read", badge: "waiting" },
+      { title: "Agencies", labelKey: "nav.agencies",       url: "/dashboard/agencies",         icon: Briefcase, permission: "agency:read" },
+      // MODERATOR *does* hold `agency_link:read_any`, so this is the one Agency
+      // row that opens live for them — and the screen behind it renders
+      // completely with every write action absent.
+      { title: "Links",    labelKey: "nav.agencyLinks",    url: "/dashboard/agency-links",     icon: Link2, permission: "agency_link:read_any" },
     ],
   },
   {

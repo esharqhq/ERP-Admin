@@ -4,6 +4,7 @@ import {
   groupStaffing,
   isGroupActive,
   isOpen,
+  isShortOfCrew,
   needsWorkers,
 } from "@/lib/tasks/staffing";
 import type { TaskGroupDto, TaskItemDto, TaskWorkerDto } from "@/lib/types/task.types";
@@ -114,6 +115,59 @@ describe("needsWorkers", () => {
 
   it("is false for an open task that has an active worker", () => {
     expect(needsWorkers(task({ workers: [worker()] }))).toBe(false);
+  });
+});
+
+describe("isShortOfCrew", () => {
+  it("is true for a partly crewed open task", () => {
+    const t = task({ requiredWorkerCount: 3, workers: [worker()] });
+    expect(isShortOfCrew(t)).toBe(true);
+  });
+
+  it("is false when nobody is on it — that row is Unstaffed, not Short", () => {
+    // The two predicates are disjoint on purpose, so the counts beside the tabs
+    // never describe the same task twice.
+    const t = task({ requiredWorkerCount: 3 });
+    expect(isShortOfCrew(t)).toBe(false);
+    expect(needsWorkers(t)).toBe(true);
+  });
+
+  it("is false when the crew is complete", () => {
+    const t = task({
+      requiredWorkerCount: 2,
+      workers: [worker({ id: "a" }), worker({ id: "b" })],
+    });
+    expect(isShortOfCrew(t)).toBe(false);
+  });
+
+  it("is false when the task is over-staffed, which the server permits", () => {
+    const t = task({
+      requiredWorkerCount: 1,
+      workers: [worker({ id: "a" }), worker({ id: "b" })],
+    });
+    expect(isShortOfCrew(t)).toBe(false);
+  });
+
+  it("counts a vacated row as a gap rather than a body", () => {
+    const t = task({
+      requiredWorkerCount: 2,
+      workers: [worker({ id: "a" }), worker({ id: "b", outcome: "Removed" })],
+    });
+    expect(isShortOfCrew(t)).toBe(true);
+  });
+
+  it("is false for a closed task however short its crew", () => {
+    const t = task({
+      status: "Done",
+      requiredWorkerCount: 4,
+      workers: [worker()],
+    });
+    expect(isShortOfCrew(t)).toBe(false);
+  });
+
+  it("is false when nothing is required", () => {
+    const t = task({ requiredWorkerCount: 0, workers: [worker()] });
+    expect(isShortOfCrew(t)).toBe(false);
   });
 });
 

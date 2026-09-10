@@ -465,6 +465,7 @@
     "agency": "Agency",
     "agencyRequests": "Requests",
     "agencies": "Agencies",
+    "agencyLinks": "Links",
     "propertyCategories": "Property categories",
     "walkIn": "Walk-in",
     "broadcasts": "Broadcasts",
@@ -569,7 +570,7 @@
         "Rejected": "Rejected"
       },
       "turn": {
-        "admin": "Waiting on an admin decision. Resolve it on the Agency links screen.",
+        "admin": "Waiting on an admin decision.",
         "worker": "Waiting on the worker to confirm or dispute this."
       },
       "reason": {
@@ -1658,51 +1659,146 @@
   },
   "attendance": {
     "title": "Attendance",
-    "subtitle": "Track and monitor worker attendance records",
-    "searchPlaceholder": "Search by worker name...",
-    "dateLabel": "Date",
+    "subtitle": "Everyone assigned to a task scheduled on this day — checked in, still missing, or refused at the geofence.",
     "noAccess": "You don't have permission to view attendance.",
-    "empty": "No assignments scheduled for this date.",
     "export": "Export CSV",
-    "stats": {
-      "assigned": "Assigned",
-      "present": "Present",
-      "absent": "Absent"
+    "searchPlaceholder": "Worker or property",
+    "date": {
+      "label": "Day",
+      "today": "Today",
+      "prev": "Previous day",
+      "next": "Next day",
+      "notToday": "Not today"
     },
-    "summary": {
-      "assigned": "Assigned",
-      "present": "Present",
-      "late": "Late",
-      "absent": "Absent",
-      "rate": "Attendance"
+    "strip": {
+      "count": "{count, plural, =0 {Nothing assigned} one {# row} other {# rows}}",
+      "countLabel": "assigned this day",
+      "arrived": "{arrived} / {total}",
+      "arrivedLabel": "checked in",
+      "in": "{count} checked in",
+      "inCaption": "arrived within the grace window",
+      "late": "{count} late",
+      "lateCaption": "arrived after the scheduled start",
+      "missing": "{count} not checked in",
+      "missingCaption": "awaiting, overdue and no-show",
+      "refused": "{count} refused",
+      "refusedCaption": "the geofence turned a check-in away"
     },
     "tabs": {
       "all": "All",
-      "present": "Present",
+      "in": "Checked in",
       "late": "Late",
-      "absent": "Absent"
+      "missing": "Not checked in",
+      "refused": "Refused"
     },
     "status": {
-      "present": "Present",
+      "in": "Checked in",
       "late": "Late",
-      "absent": "Absent"
+      "await": "Awaiting",
+      "overdue": "Overdue",
+      "noshow": "No show",
+      "removed": "Removed",
+      "cancelled": "Cancelled"
     },
     "columns": {
       "worker": "Worker",
-      "task": "Task",
       "property": "Property",
+      "task": "Task",
       "scheduled": "Scheduled",
-      "present": "Present",
-      "checkIn": "Check-In",
-      "checkOut": "Check-Out",
-      "status": "Status",
-      "outcome": "Outcome",
-      "lat": "Check-in Lat",
-      "lng": "Check-in Lng"
+      "checkIn": "Check-in",
+      "checkOut": "Check-out",
+      "status": "Status"
     },
-    "present": {
-      "yes": "Present",
-      "no": "Absent"
+    "cell": {
+      "noGroupTitle": "no group title",
+      "onTime": "on time",
+      "lateBy": "+{minutes}m",
+      "earlyBy": "{minutes}m",
+      "stillOnSite": "still on site",
+      "sent": "task-wide · sent {time}",
+      "taskWide": "task-wide",
+      "mapTooltip": "Check-in location: {lat}, {lng}",
+      "openMap": "Open the check-in location on a map",
+      "empty": "—"
+    },
+    "refusal": {
+      "count": "{count, plural, one {# refused} other {# refused}}",
+      "distance": "{meters} m",
+      "reason": {
+        "outsideGeofence": "outside geofence",
+        "gpsRequired": "GPS required",
+        "targetMissing": "no geofence target"
+      },
+      "windowNote": "Repeated tries within a quarter of an hour count once.",
+      "unassignedNote": "A refusal by someone who is not assigned to the task has no row here, so this is not every refusal on the platform."
+    },
+    "footer": {
+      "shown": "{shown} of {total} rows",
+      "wholeDay": "The whole day, in one request — there are no further pages."
+    },
+    "states": {
+      "emptyDayTitle": "Nothing was scheduled on {date}",
+      "emptyDayBody": "A day with no assignments looks exactly like this. The day picker stays, so the next one is a tap away.",
+      "emptyDayCta": "Go to today",
+      "noMatchTitle": "Nothing matches this view",
+      "noMatchBody": "The day has {total} rows; this tab and these filters select none of them.",
+      "noMatchCta": "Show all {total}",
+      "errorTitle": "The day did not load",
+      "errorBody": "The day is in the address, so retrying returns to exactly this one. Nothing was changed — this screen only reads.",
+      "errorRetry": "Retry",
+      "forbiddenTitle": "Your role does not include attendance",
+      "forbiddenBody": "One permission gates this whole screen, so there is no partial view to fall back on. Retrying cannot help — the ask is a person.",
+      "forbiddenCode": "403 · system:attendance:read",
+      "forbiddenBack": "Back to the overview"
+    },
+    "detail": {
+      "title": "Attendance row",
+      "close": "Close",
+      "subtitle": "{property} · {task}",
+      "timeline": "Timeline",
+      "fields": "Details",
+      "scheduled": "Scheduled",
+      "scheduledSub": "{task} at {property}",
+      "refusedAt": "Refused — {reason}",
+      "refusedAtSub": "{distance} from the target",
+      "refusedAtSubNoDistance": "No distance was measured — the check-in was refused before one could be.",
+      "refusedMore": "{count, plural, one {# refused try in total} other {# refused tries in total}}",
+      "refusedMoreSub": "Only the most recent one is described.",
+      "checkIn": "Check-in",
+      "checkInSub": "at {lat}, {lng}",
+      "checkInMissing": "Nobody checked in on this row.",
+      "checkOut": "Check-out",
+      "checkOutSub": "Stamped for every worker at once when the owner accepts the task.",
+      "checkOutMissing": "Not yet stamped.",
+      "submitted": "Submitted for review",
+      "noCoordsTitle": "No check-in coordinates",
+      "noCoordsBody": "Coordinates are only recorded when a check-in succeeds. This row's refusal carries its own distance instead — {distance} from the resolved target.",
+      "noCoordsBodyPlain": "Coordinates are only recorded when a check-in succeeds, and this row has none.",
+      "readOnly": "This screen only reads. An attendance row cannot be corrected, excused or re-opened here.",
+      "openWorker": "Open worker",
+      "openProperty": "Open property",
+      "openTask": "Open task group",
+      "field": {
+        "taskStatus": "Task status",
+        "outcome": "Outcome",
+        "scheduledDate": "Scheduled day",
+        "worker": "Worker",
+        "property": "Property",
+        "taskGroup": "Task group",
+        "coordinates": "Check-in coordinates",
+        "submittedAt": "Submitted",
+        "refusedCount": "Refused tries",
+        "lastRefusal": "Last refusal"
+      }
+    },
+    "mobile": {
+      "summary": "{date} · {count, plural, one {# row} other {# rows}}",
+      "in": "{count} in",
+      "late": "{count} late",
+      "missing": "{count} missing",
+      "refused": "{count} refused",
+      "times": "{scheduled} → {checkIn}",
+      "severityNote": "Refused and overdue first."
     }
   },
   "supportInbox": {
@@ -2038,19 +2134,49 @@
     "unassign": "Unassign",
     "viewGroup": "View group",
     "needsWorker": "Needs worker",
-    "assignedCount": "{count} assigned",
+    "staffing": "{filled} of {required}",
     "searchPlaceholder": "Search by property, date or task...",
     "empty": "No tasks match this filter",
     "capNotice": "Showing the {count} most recent tasks",
+    "windowNotice": "Showing tasks scheduled {from} – {to}",
+    "railTitle": "Days in view",
+    "tabsLabel": "Staffing filter",
+    "groupMeta": "{unstaffed} unstaffed of {total}",
+    "days": {
+      "today": "Today",
+      "tomorrow": "Tomorrow",
+      "elapsed": "Already started"
+    },
+    "sheet": {
+      "title": "Assign a worker",
+      "activeOnly": "Only Active workers can be offered.",
+      "staffing": "{filled} of {required}",
+      "search": "Search name or email…",
+      "sort": {
+        "free": "Free first",
+        "rating": "Best rated",
+        "name": "A–Z"
+      },
+      "new": "New",
+      "completed": "{count, plural, =0 {no tasks yet} one {# done} other {# done}}",
+      "tag": {
+        "free": "Free",
+        "booked": "On a task"
+      },
+      "assign": "Assign",
+      "assigning": "Assigning…",
+      "noCandidates": "No Active worker matches this search.",
+      "notOffered": "Workers who are Pending, Lapsed, Blocked or Deleted are not offered — the server refuses them anyway.",
+      "writesImmediately": "Assigning writes immediately. There is no draft to save.",
+      "close": "Close",
+      "loaded": "{count} loaded",
+      "refused": "Refused"
+    },
     "unassignTitle": "Remove worker?",
     "unassignConfirm": "Remove {name} from this task?",
-    "stats": {
-      "needsWorkers": "Need workers",
-      "open": "Open tasks",
-      "total": "Total shown"
-    },
     "tabs": {
-      "needsWorkers": "Needs workers",
+      "needsWorkers": "Unstaffed",
+      "short": "Short",
       "open": "Open",
       "all": "All"
     },
@@ -2059,7 +2185,56 @@
       "worker_below_rating_floor": "This worker is below the task's rating floor.",
       "worker_profession_not_eligible": "This worker's profession is not eligible for this task.",
       "worker_limit_reached": "This task is already fully staffed.",
-      "worker_has_overlapping_assignment": "This worker already has an assignment on this date. Choose a different worker."
+      "worker_has_overlapping_assignment": "This worker already has an assignment on this date. Choose a different worker.",
+      "task_not_unassignable": "This worker can no longer be removed — the task has moved on (work submitted, done or cancelled). Refresh the board.",
+      "assignment_not_found": "This worker is no longer on this task. Refresh the board.",
+      "task_not_found": "This task no longer exists. Refresh the board.",
+      "unassignGeneric": "Could not remove this worker."
+    },
+    "imminent": "{count, plural, one {# starts within 24 h} other {# start within 24 h}}",
+    "refresh": "Refresh",
+    "soonestFirst": "Soonest first",
+    "startsIn": "{count, plural, =0 {starting now} one {in # h} other {in # h}}",
+    "started": "{count, plural, =0 {started} one {# h ago} other {# h ago}}",
+    "hours": "{count} h",
+    "fullyStaffed": "fully staffed",
+    "bodiesShort": "{count, plural, one {one body short} other {# bodies short}}",
+    "slotsOpen": "{count, plural, one {1 slot open} other {# slots open}}",
+    "add": "Add",
+    "crew": {
+      "assigned": "assigned",
+      "checkedIn": "checked in",
+      "vacated": "removed"
+    },
+    "strip": {
+      "inTheQueue": "In the queue",
+      "queueCount": "{count, plural, one {# task} other {# tasks}}",
+      "needsWorkers": {
+        "title": "Unstaffed",
+        "detail": "open, nobody on it"
+      },
+      "short": {
+        "title": "Short of a full crew",
+        "detail": "at least one gap"
+      },
+      "open": {
+        "title": "Open",
+        "detail": "Pending or Active"
+      },
+      "startsToday": {
+        "title": "Starts today",
+        "detail": ""
+      }
+    },
+    "latestFirst": "Latest first",
+    "windowTitle": "Window",
+    "unassignDialog": {
+      "title": "Remove worker?",
+      "body": "Remove <strong>{name}</strong> from {task} on {date}?",
+      "consequenceTitle": "What this does",
+      "consequence": "The row stays on the task with outcome <mono>removed</mono>, and the board's meter drops accordingly.",
+      "refillWarning": "⚠ The slot does not free up on the server yet — filling it again is currently refused. Remove only if you do not need to put somebody back.",
+      "confirm": "Unassign"
     }
   },
   "audit": {
@@ -2591,6 +2766,104 @@
       "mimeMismatch": "The file is not the kind it claims to be. Upload a PDF or an image.",
       "tooLarge": "That file is over 10 MB.",
       "limitReached": "This application already carries 10 documents.",
+      "generic": "That could not be done. Please try again."
+    }
+  },
+  "agencyLinks": {
+    "title": "Agency links",
+    "subtitle": "Who came through which agency — and the claims and disputes waiting on a decision.",
+    "list": "Worker–agency links",
+    "searchPlaceholder": "Search worker name, email or agency",
+    "tabs": {
+      "Disputed": "Disputed",
+      "Proposed": "Awaiting a decision",
+      "Confirmed": "Confirmed",
+      "Rejected": "Rejected",
+      "all": "All"
+    },
+    "columns": {
+      "worker": "Worker",
+      "agency": "Agency",
+      "state": "State",
+      "why": "Why",
+      "raised": "Raised",
+      "resolved": "Resolved",
+      "resolutionReason": "Resolution",
+      "actions": "Actions"
+    },
+    "status": {
+      "Proposed": "Claimed — unconfirmed",
+      "Confirmed": "Confirmed",
+      "Disputed": "Disputed",
+      "Rejected": "Rejected"
+    },
+    "turn": {
+      "admin": "Waiting on you",
+      "worker": "Waiting on the worker"
+    },
+    "verbs": {
+      "confirm": "Confirm",
+      "confirmTitle": "Confirm this link?",
+      "confirmHint": "You are agreeing with the worker's own claim that they came through this agency.",
+      "confirmSubmit": "Confirm the link",
+      "overrule": "Overrule the worker",
+      "overruleShort": "Overrule",
+      "reject": "Reject",
+      "rejectTitle": "Reject this link?",
+      "rejectPortalWarning": "This worker is confirmed with this agency, so the agency's portal loses them — their shifts and their hours — on its next request. Re-linking later does not bring the earlier work back into the agency's view, and the agency is not notified.",
+      "rejectSubmit": "Reject the link",
+      "attach": "Attach an agency",
+      "openWorker": "Open the worker"
+    },
+    "reason": {
+      "label": "Reason",
+      "required": "Required. It is kept on the record as the reason for this decision.",
+      "optionalHint": "Optional — you are agreeing with the worker rather than overruling them."
+    },
+    "overrule": {
+      "title": "Overrule the worker's objection?",
+      "body": "This worker told us they did not come through this agency. Confirming the link overrides that statement about themselves.",
+      "confirmStep": "This is recorded separately in the audit log as an overrule. The worker is not notified of the outcome — nothing tells them the link now stands. This also gives the agency's portal their shifts and hours from today onward.",
+      "submit": "Overrule and confirm"
+    },
+    "attach": {
+      "title": "Attach an agency to this worker",
+      "agency": "Agency",
+      "agencyPlaceholder": "Choose a partner agency",
+      "reasonLabel": "Why are you attaching this?",
+      "reasonHint": "Required. The worker reads this before they confirm or object, so write what they need to recognise.",
+      "notifyHint": "The worker is emailed and must confirm this. Until they do, it is not a badge anywhere — not on their profile, not on a task, not in the owner app.",
+      "submit": "Attach and notify",
+      "noAgencies": "No partner agency's contract is currently in force, so no new link can be made. Check the Agencies screen."
+    },
+    "rejected": {
+      "body": "This link is rejected and stays on the record. The worker now has no agency link — which is not a statement that they came independently."
+    },
+    "waiting": {
+      "worker": "This is waiting on the worker to confirm or object. You cannot confirm a link an admin created — that would remove their only chance to answer."
+    },
+    "empty": {
+      "disputedTitle": "No disputes",
+      "disputedBody": "Nobody has objected to an agency link. Disputed links land here, where they are the only thing you have to rule on.",
+      "proposedTitle": "Nothing awaiting a decision",
+      "proposedBody": "Workers' own agency claims land here for confirmation, alongside the ones an admin attached and the worker has yet to answer.",
+      "genericTitle": "No links here",
+      "genericBody": "Links are recorded when a worker names an agency at signup, or when an admin attaches one."
+    },
+    "filters": {
+      "agency": "Agency",
+      "agencyHint": "Only partners whose contract is currently in force are listed. A link to a lapsed or deleted agency cannot be filtered for by name — and those are often the ones worth rejecting."
+    },
+    "errors": {
+      "notFound": "That link no longer exists. Reload the queue.",
+      "workerNotFound": "That worker no longer exists.",
+      "agencyNotFound": "That agency is no longer available. Its link can still be rejected.",
+      "agencyNotInForce": "That partnership is not currently in force, so no new link can be made to it. Existing links are unaffected.",
+      "linkExists": "This worker already has a live agency link. Reject that one first, then attach the new agency — changing an agency is two acts.",
+      "notAwaitingYou": "This link is waiting on the worker, not on you. Closing it here would remove their only chance to object.",
+      "alreadyResolved": "This link has already been decided. Reload to see the outcome.",
+      "reasonRequired": "Write the reason for this decision.",
+      "invalidSortColumn": "This queue cannot be sorted by that column.",
       "generic": "That could not be done. Please try again."
     }
   },

@@ -13,6 +13,8 @@ import { WorkerDocumentsCard } from "@/components/workers/worker-documents-card"
 import { WorkerHeroCard } from "@/components/workers/hero-card";
 import { ShiftsCard } from "@/components/workers/shifts-card";
 import { RatingSnapshotCard } from "@/components/workers/rating-snapshot-card";
+import { AgencyLinkActions } from "@/components/workers/agency-link-actions";
+import { AgencyLinkCard } from "@/components/workers/agency-link-card";
 import { useWorkerDetail, useWorkerRating } from "@/hooks/use-worker-detail";
 import {
   useApproveWorkerDoc,
@@ -175,6 +177,7 @@ export default function WorkerDetailPage({
           <Skeleton className="h-96 rounded-xl xl:col-span-2" />
           <div className="flex flex-col gap-5">
             <Skeleton className="h-56 rounded-xl" />
+            <Skeleton className="h-40 rounded-xl" />
             <Skeleton className="h-36 rounded-xl" />
           </div>
         </div>
@@ -247,6 +250,14 @@ export default function WorkerDetailPage({
               isLoading={canViewRating === null || isLoadingRating}
             />
           ) : null}
+          {/* Provenance, between the work cards and the comms one. Unlike the two
+              above it takes no `canRead` — `agencyLink` rides the worker detail
+              response already fetched here, and no separate grant gates it, so
+              there is no permission state for it to be in. */}
+          <AgencyLinkCard
+            link={worker.agencyLink}
+            actions={<AgencyLinkActions workerId={id} link={worker.agencyLink} />}
+          />
           <ConversationsCard userId={worker.id} />
         </div>
       </div>

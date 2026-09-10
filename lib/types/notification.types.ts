@@ -22,7 +22,8 @@ export type NotificationEntityType =
   | "WorkerContract"
   | "SupportTicket"
   | "Onboarding"
-  | "AgencyApplication";
+  | "AgencyApplication"
+  | "WorkerAgencyLink";
 
 export type NotificationDto = {
   id: string;

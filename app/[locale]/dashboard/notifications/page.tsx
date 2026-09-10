@@ -117,7 +117,7 @@ export default function NotificationsPage() {
           </div>
         ) : (
           notifications.map((n) => {
-            const route = notificationRoute(n.entityType, n.entityId);
+            const route = notificationRoute(n.entityType, n.entityId, n.type);
             return (
               <div
                 key={n.id}

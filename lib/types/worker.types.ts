@@ -5,6 +5,7 @@ import type {
 } from "@/lib/types/onboarding.types";
 import type { PagedQuery } from "@/lib/types/paged.types";
 import type { WorkerIdentityDto } from "@/lib/types/identity.types";
+import type { WorkerAgencyLinkDto } from "@/lib/types/agency.types";
 
 export interface WorkerProfessionDto {
   id: string;
@@ -234,6 +235,22 @@ export interface WorkerDetailDto {
    * app itself has no self-read route for it.
    */
   identity: WorkerIdentityDto;
+  /**
+   * F-05c. The worker↔agency link, `null` when there is no live one.
+   *
+   * ⚠ **`null` does NOT mean "came independently."** It covers three states the
+   * backend cannot tell apart — never asked · asked and said no · had a link that was
+   * rejected and is now back to nothing — and there is deliberately no "I came
+   * independently" answer to record. Never render the absence as a positive statement
+   * about the worker (`f-05-c-worker-agency-link.md` §1).
+   *
+   * ⚠ **Populated for any live link, including unconfirmed ones**, because this admin
+   * is the person who resolves claims and disputes — a confirmed-only view here would
+   * hide exactly the rows they have work to do on (§5.4). That is the opposite of the
+   * flat `agency` / `pendingAgency` pair on `WorkerRowDto`, which splits confirmed
+   * from pending precisely so a table cannot draw both.
+   */
+  agencyLink: WorkerAgencyLinkDto | null;
 }
 
 /**
