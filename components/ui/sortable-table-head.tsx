@@ -33,7 +33,13 @@ export function SortableTableHead({
         type="button"
         onClick={onClick}
         className={cn(
-          "inline-flex items-center gap-1 transition-colors hover:text-foreground",
+          // `uppercase` is repeated here, not inherited. Tailwind's preflight
+          // resets `text-transform: none` on `button`, which silently defeated
+          // the `uppercase` this component already declares on the `th` — so a
+          // sortable header rendered sentence case beside a plain one in caps,
+          // in every table on the console. The DS makes the table header its
+          // uppercase overline; this is that intent, restated where it survives.
+          "inline-flex items-center gap-1 uppercase transition-colors hover:text-foreground",
           active && "text-foreground",
         )}
       >
