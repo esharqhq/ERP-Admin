@@ -116,8 +116,8 @@ export const navGroups: NavGroup[] = [
     // MODERATOR holds `agency_application:read` and NOT `agency:read`
     // (`DatabaseSeeder.cs:1954,1960`), so for them exactly one of the two locks.
     items: [
-      { title: "Requests", labelKey: "nav.agencyRequests", url: "/dashboard/agency-requests", icon: Inbox, permission: "agency_application:read", badge: "waiting" },
       { title: "Agencies", labelKey: "nav.agencies",       url: "/dashboard/agencies",         icon: Briefcase, permission: "agency:read" },
+      { title: "Requests", labelKey: "nav.agencyRequests", url: "/dashboard/agency-requests", icon: Inbox, permission: "agency_application:read", badge: "waiting" },
       // MODERATOR *does* hold `agency_link:read_any`, so this is the one Agency
       // row that opens live for them — and the screen behind it renders
       // completely with every write action absent.
