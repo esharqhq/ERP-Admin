@@ -2097,8 +2097,6 @@
       "code": "Code",
       "codePlaceholder": "e.g. PLUMBER",
       "codeImmutable": "The code cannot be changed after creation.",
-      "name": "Name",
-      "namePlaceholder": "Display name",
       "description": "Description",
       "descriptionPlaceholder": "Optional description…",
       "create": "Create",
@@ -2107,15 +2105,10 @@
       "nameEn": "Name (English)",
       "nameEnPlaceholder": "Window Cleaning"
     },
-    "delete": {
-      "title": "Delete profession?",
-      "confirm": "Permanently delete the “{name}” profession? This cannot be undone."
-    },
     "errors": {
       "generic": "The profession could not be saved. Please try again.",
       "code_exists": "A profession with this code already exists.",
-      "deleteGeneric": "The profession could not be deleted. Please try again.",
-      "profession_in_use": "This profession is assigned to workers or task groups and cannot be deleted.",
+      "deactivateGeneric": "The profession could not be deactivated. Please try again.",
       "profession_protected": "This is the default profession every worker is registered with, so it cannot be deactivated."
     },
     "inactive": "Inactive",

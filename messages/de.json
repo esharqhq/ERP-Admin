@@ -2097,8 +2097,6 @@
       "code": "Code",
       "codePlaceholder": "z. B. PLUMBER",
       "codeImmutable": "Der Code kann nach dem Erstellen nicht geändert werden.",
-      "name": "Name",
-      "namePlaceholder": "Anzeigename",
       "description": "Beschreibung",
       "descriptionPlaceholder": "Optionale Beschreibung…",
       "create": "Erstellen",
@@ -2107,15 +2105,10 @@
       "nameEn": "Name (Englisch)",
       "nameEnPlaceholder": "Window Cleaning"
     },
-    "delete": {
-      "title": "Beruf löschen?",
-      "confirm": "Den Beruf „{name}“ dauerhaft löschen? Dies kann nicht rückgängig gemacht werden."
-    },
     "errors": {
       "generic": "Der Beruf konnte nicht gespeichert werden. Bitte erneut versuchen.",
       "code_exists": "Ein Beruf mit diesem Code existiert bereits.",
-      "deleteGeneric": "Der Beruf konnte nicht gelöscht werden. Bitte erneut versuchen.",
-      "profession_in_use": "Dieser Beruf ist Mitarbeitern oder Aufgabengruppen zugewiesen und kann nicht gelöscht werden.",
+      "deactivateGeneric": "Die Qualifikation konnte nicht deaktiviert werden. Bitte versuchen Sie es erneut.",
       "profession_protected": "Dies ist das Standardgewerk, mit dem jede Person registriert wird — es lässt sich nicht deaktivieren."
     },
     "inactive": "Inaktiv",

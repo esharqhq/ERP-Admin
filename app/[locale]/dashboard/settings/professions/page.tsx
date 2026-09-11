@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { EyeOff, Pencil, Plus, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,7 @@ import {
   useReactivateProfession,
 } from "@/hooks/use-professions";
 import { getApiErrorCode } from "@/lib/http/api-error";
+import { orderProfessions } from "@/lib/professions/order";
 import {
   PROTECTED_PROFESSION_CODE,
   professionLabel,
@@ -59,7 +60,17 @@ export default function ProfessionsPage() {
     only for a caller holding `profession:update`; for anyone else the server
     silently returns the active list, which is the safe direction.
   */
-  const { data: professions = [], isLoading, isError } = useProfessions(true);
+  const { data, isLoading, isError } = useProfessions(true);
+  /*
+    ⚠ **Re-sorted for the reading locale.** The route orders by `nameEn` only
+    (`ProfessionService.cs:42`) and takes no locale, so the German screen would
+    otherwise show German labels in English alphabetical order —
+    `profession-fnd1-retrofit.md` §3.1 asks the client to do this.
+  */
+  const professions = useMemo(
+    () => orderProfessions(data ?? [], locale),
+    [data, locale],
+  );
   const create = useCreateProfession();
   const update = useUpdateProfession();
   const deactivate = useDeactivateProfession();
@@ -84,7 +95,7 @@ export default function ProfessionsPage() {
         const code = getApiErrorCode(deactivate.error);
         return code && DEACTIVATE_ERRORS.has(code)
           ? t(`errors.${code}`)
-          : t("errors.deleteGeneric");
+          : t("errors.deactivateGeneric");
       })()
     : null;
 
@@ -107,6 +118,12 @@ export default function ProfessionsPage() {
           body: {
             nameDe: values.nameDe,
             nameEn: values.nameEn,
+            /*
+              ⚠ The empty string, deliberately — **not** `null`. The server's update
+              guard is `if (dto.Description is not null)`
+              (`ProfessionService.cs:93`), so a `null` is read as "leave unchanged"
+              and clearing the field would silently do nothing. `""` clears it.
+            */
             description: values.description,
           },
         },
