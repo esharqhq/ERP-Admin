@@ -518,7 +518,7 @@
       "phone": "Telefon",
       "registeredAt": "Registrierungsdatum",
       "location": "Standort",
-      "professions": "Gewerke",
+      "professions": "Berufe",
       "workload": "Auslastung",
       "lastSeen": "Zuletzt gesehen",
       "stage": "Stufe",
@@ -907,9 +907,9 @@
       "statusHint": "Die fünf Werte teilen die Tabelle auf. Auch ohne Auswahl bleibt „Gelöscht“ ausgeschlossen.",
       "onboardingStatus": "Stufe",
       "onboardingStatusHint": "„In Prüfung“ ist die Prüfliste — dieselbe Menge wie die Verknüpfung oben und der Reiter.",
-      "professions": "Gewerke",
+      "professions": "Berufe",
       "professionsHint": "Oder-Verknüpfung: zwei ausgewählt liefert Mitarbeitende mit einem davon.",
-      "professionsSearch": "Gewerk suchen",
+      "professionsSearch": "Beruf suchen",
       "ratingMin": "Mindestbewertung",
       "ratingMinHint": "0 bis 5. Außerhalb wird abgelehnt.",
       "includeUnrated": "Unbewertete behalten",
@@ -2083,7 +2083,7 @@
   },
   "professions": {
     "title": "Berufe",
-    "subtitle": "Gewerke verwalten, auf die sich Mitarbeiter spezialisieren können",
+    "subtitle": "Berufe verwalten, auf die sich Mitarbeiter spezialisieren können",
     "new": "Neuer Beruf",
     "empty": "Keine Berufe gefunden",
     "columns": {
@@ -2108,13 +2108,13 @@
     "errors": {
       "generic": "Der Beruf konnte nicht gespeichert werden. Bitte erneut versuchen.",
       "code_exists": "Ein Beruf mit diesem Code existiert bereits.",
-      "deactivateGeneric": "Die Qualifikation konnte nicht deaktiviert werden. Bitte versuchen Sie es erneut.",
-      "profession_protected": "Dies ist das Standardgewerk, mit dem jede Person registriert wird — es lässt sich nicht deaktivieren."
+      "deactivateGeneric": "Der Beruf konnte nicht deaktiviert werden. Bitte versuchen Sie es erneut.",
+      "profession_protected": "Dies ist der Standardberuf, mit dem jede Person registriert wird — er lässt sich nicht deaktivieren."
     },
     "inactive": "Inaktiv",
     "deactivate": {
       "action": "Deaktivieren",
-      "title": "Gewerk deaktivieren",
+      "title": "Beruf deaktivieren",
       "confirm": "{name} verschwindet aus allen Auswahllisten und kann ab sofort niemandem mehr zugewiesen werden. Wer es bereits hält, behält es; eine Reaktivierung stellt alles unverändert wieder her."
     },
     "reactivate": {
