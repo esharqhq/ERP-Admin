@@ -452,7 +452,7 @@
     "tasks": "Aufgaben",
     "dispatching": "Disposition",
     "leave": "Urlaubsanträge",
-    "skillRequests": "Qualifikationsanträge",
+    "skillRequests": "Berufsanträge",
     "contracts": "Verträge",
     "professions": "Berufe",
     "support": "Support",
@@ -518,7 +518,7 @@
       "phone": "Telefon",
       "registeredAt": "Registrierungsdatum",
       "location": "Standort",
-      "professions": "Gewerke",
+      "professions": "Berufe",
       "workload": "Auslastung",
       "lastSeen": "Zuletzt gesehen",
       "stage": "Stufe",
@@ -907,9 +907,9 @@
       "statusHint": "Die fünf Werte teilen die Tabelle auf. Auch ohne Auswahl bleibt „Gelöscht“ ausgeschlossen.",
       "onboardingStatus": "Stufe",
       "onboardingStatusHint": "„In Prüfung“ ist die Prüfliste — dieselbe Menge wie die Verknüpfung oben und der Reiter.",
-      "professions": "Gewerke",
+      "professions": "Berufe",
       "professionsHint": "Oder-Verknüpfung: zwei ausgewählt liefert Mitarbeitende mit einem davon.",
-      "professionsSearch": "Gewerk suchen",
+      "professionsSearch": "Beruf suchen",
       "ratingMin": "Mindestbewertung",
       "ratingMinHint": "0 bis 5. Außerhalb wird abgelehnt.",
       "includeUnrated": "Unbewertete behalten",
@@ -2083,7 +2083,7 @@
   },
   "professions": {
     "title": "Berufe",
-    "subtitle": "Gewerke verwalten, auf die sich Mitarbeiter spezialisieren können",
+    "subtitle": "Berufe verwalten, auf die sich Mitarbeiter spezialisieren können",
     "new": "Neuer Beruf",
     "empty": "Keine Berufe gefunden",
     "columns": {
@@ -2097,8 +2097,6 @@
       "code": "Code",
       "codePlaceholder": "z. B. PLUMBER",
       "codeImmutable": "Der Code kann nach dem Erstellen nicht geändert werden.",
-      "name": "Name",
-      "namePlaceholder": "Anzeigename",
       "description": "Beschreibung",
       "descriptionPlaceholder": "Optionale Beschreibung…",
       "create": "Erstellen",
@@ -2107,21 +2105,16 @@
       "nameEn": "Name (Englisch)",
       "nameEnPlaceholder": "Window Cleaning"
     },
-    "delete": {
-      "title": "Beruf löschen?",
-      "confirm": "Den Beruf „{name}“ dauerhaft löschen? Dies kann nicht rückgängig gemacht werden."
-    },
     "errors": {
       "generic": "Der Beruf konnte nicht gespeichert werden. Bitte erneut versuchen.",
       "code_exists": "Ein Beruf mit diesem Code existiert bereits.",
-      "deleteGeneric": "Der Beruf konnte nicht gelöscht werden. Bitte erneut versuchen.",
-      "profession_in_use": "Dieser Beruf ist Mitarbeitern oder Aufgabengruppen zugewiesen und kann nicht gelöscht werden.",
-      "profession_protected": "Dies ist das Standardgewerk, mit dem jede Person registriert wird — es lässt sich nicht deaktivieren."
+      "deactivateGeneric": "Der Beruf konnte nicht deaktiviert werden. Bitte versuchen Sie es erneut.",
+      "profession_protected": "Dies ist der Standardberuf, mit dem jede Person registriert wird — er lässt sich nicht deaktivieren."
     },
     "inactive": "Inaktiv",
     "deactivate": {
       "action": "Deaktivieren",
-      "title": "Gewerk deaktivieren",
+      "title": "Beruf deaktivieren",
       "confirm": "{name} verschwindet aus allen Auswahllisten und kann ab sofort niemandem mehr zugewiesen werden. Wer es bereits hält, behält es; eine Reaktivierung stellt alles unverändert wieder her."
     },
     "reactivate": {
@@ -2129,8 +2122,8 @@
     }
   },
   "skillRequests": {
-    "title": "Qualifikationsanträge",
-    "subtitle": "Arbeitskräfte, die eine Qualifikation über die bei der Registrierung zugewiesene hinaus beantragen. Genehmigen, ablehnen oder Informationen anfordern.",
+    "title": "Berufsanträge",
+    "subtitle": "Mitarbeiter, die einen Beruf über den bei der Registrierung zugewiesenen hinaus beantragen. Genehmigen, ablehnen oder Informationen anfordern.",
     "list": "Anträge",
     "searchPlaceholder": "Suchen",
     "tabs": {
@@ -2141,20 +2134,20 @@
     },
     "status": {
       "Pending": "In Prüfung",
-      "InfoRequested": "Wartet auf die Arbeitskraft",
+      "InfoRequested": "Wartet auf den Mitarbeiter",
       "Approved": "Genehmigt",
       "Rejected": "Abgelehnt",
       "Revoked": "Entzogen"
     },
     "columns": {
-      "worker": "Arbeitskraft",
-      "skill": "Qualifikation",
+      "worker": "Mitarbeiter",
+      "skill": "Beruf",
       "claimedYears": "Angegebene Jahre",
       "status": "Status",
       "createdAt": "Beantragt"
     },
     "filters": {
-      "skill": "Qualifikation",
+      "skill": "Beruf",
       "inactive": "deaktiviert"
     },
     "toolbar": {
@@ -2162,12 +2155,12 @@
     },
     "empty": {
       "queueTitle": "Keine offenen Anträge",
-      "queueBody": "Sobald eine Arbeitskraft eine Qualifikation beantragt, erscheint der Antrag hier."
+      "queueBody": "Sobald ein Mitarbeiter einen Beruf beantragt, erscheint der Antrag hier."
     },
     "detail": {
       "back": "Zurück zu den Anträgen",
       "forbiddenTitle": "Sie können diesen Antrag nicht öffnen",
-      "forbiddenBody": "Für die Antragsliste fehlt Ihrer Rolle eine Berechtigung. Bitten Sie einen Super-Admin, sie zu erteilen.",
+      "forbiddenBody": "Für die Liste der Berufsanträge fehlt Ihrer Rolle eine Berechtigung. Bitten Sie einen Super-Admin, sie zu erteilen.",
       "notFoundTitle": "Antrag nicht gefunden",
       "notFoundBody": "Dieser Antrag existiert nicht mehr oder war nie für Sie zugänglich.",
       "errorTitle": "Antrag konnte nicht geladen werden",
@@ -2175,54 +2168,54 @@
     },
     "claim": {
       "heading": "Der Antrag",
-      "skill": "Beantragte Qualifikation",
-      "claimedYears": "Angegebene Jahre für diese Qualifikation",
+      "skill": "Beantragter Beruf",
+      "claimedYears": "Angegebene Jahre für diesen Beruf",
       "yearsUnknown": "Nicht angegeben",
       "requested": "Beantragt",
-      "workerNote": "Anmerkung der Arbeitskraft",
-      "adminQuestion": "Ihre Frage an die Arbeitskraft",
-      "rejectionReason": "Ablehnungsgrund (für die Arbeitskraft sichtbar)",
-      "workerResponse": "Antwort der Arbeitskraft",
+      "workerNote": "Anmerkung des Mitarbeiters",
+      "adminQuestion": "Ihre Frage an den Mitarbeiter",
+      "rejectionReason": "Ablehnungsgrund (für den Mitarbeiter sichtbar)",
+      "workerResponse": "Antwort des Mitarbeiters",
       "revokeReason": "Grund für den Entzug"
     },
     "worker": {
-      "heading": "Die Arbeitskraft",
+      "heading": "Der Mitarbeiter",
       "onboarding": "Onboarding",
       "declaredExperience": "Bei der Anmeldung angegebene Erfahrung",
       "completedTasks": "Abgeschlossene Aufträge",
       "rating": "Bewertung",
       "monthsOnPlatform": "Monate auf der Plattform",
-      "heldSkills": "Aktuelle Qualifikationen"
+      "heldSkills": "Aktuelle Berufe"
     },
     "actions": {
       "approve": "Genehmigen",
       "reject": "Ablehnen",
       "requestInfo": "Weitere Informationen anfordern",
-      "revoke": "Qualifikation entziehen"
+      "revoke": "Beruf entziehen"
     },
     "dialogs": {
       "send": "Senden",
-      "requestInfoTitle": "Frage an die Arbeitskraft",
-      "requestInfoDescription": "Die Arbeitskraft sieht dies und kann antworten — der Antrag kommt dann zurück in Ihre Liste.",
+      "requestInfoTitle": "Frage an den Mitarbeiter",
+      "requestInfoDescription": "Der Mitarbeiter sieht dies und kann antworten — der Antrag kommt dann zurück in Ihre Liste.",
       "rejectTitle": "Diesen Antrag ablehnen",
-      "rejectDescription": "Die Arbeitskraft sieht diesen Grund und kann erneut beantragen — formulieren Sie ihn als Rückmeldung, nicht als interne Notiz.",
-      "revokeTitle": "Diese Qualifikation entziehen",
-      "revokeDescription": "Die Arbeitskraft sieht diesen Grund. Laufende Aufträge bleiben bestehen, die Bewertung ist nicht betroffen."
+      "rejectDescription": "Der Mitarbeiter sieht diesen Grund und kann erneut beantragen — formulieren Sie ihn als Rückmeldung, nicht als interne Notiz.",
+      "revokeTitle": "Diesen Beruf entziehen",
+      "revokeDescription": "Der Mitarbeiter sieht diesen Grund. Laufende Aufträge bleiben bestehen, die Bewertung ist nicht betroffen."
     },
     "workerCard": {
-      "title": "Qualifikationsanträge",
-      "empty": "Diese Arbeitskraft hat noch keine Qualifikation beantragt.",
-      "error": "Qualifikationsanträge konnten nicht geladen werden."
+      "title": "Berufsanträge",
+      "empty": "Dieser Mitarbeiter hat noch keinen Beruf beantragt.",
+      "error": "Berufsanträge konnten nicht geladen werden."
     },
     "errors": {
-      "noteRequired": "Formulieren Sie eine Frage an die Arbeitskraft, bevor Sie senden.",
-      "reasonRequired": "Geben Sie einen Grund an — die Arbeitskraft sieht ihn.",
+      "noteRequired": "Formulieren Sie eine Frage an den Mitarbeiter, bevor Sie senden.",
+      "reasonRequired": "Geben Sie einen Grund an — der Mitarbeiter sieht ihn.",
       "notFound": "Dieser Antrag existiert nicht mehr.",
-      "alreadyHeld": "Die Arbeitskraft besitzt diese Qualifikation bereits.",
-      "inUseByLiveWork": "Diese Qualifikation wird für laufende Arbeit genutzt. Sie können sie entfernen, sobald diese Arbeit abgeschlossen ist.",
+      "alreadyHeld": "Der Mitarbeiter besitzt diesen Beruf bereits.",
+      "inUseByLiveWork": "Dieser Beruf wird für laufende Arbeit genutzt. Sie können ihn entfernen, sobald diese Arbeit abgeschlossen ist.",
       "invalidState": "Dieser Antrag wurde bereits von jemand anderem bearbeitet. Aktualisieren Sie die Ansicht.",
-      "cannotRevokeGeneral": "Die Standardqualifikation kann nicht entfernt werden.",
-      "cannotRevokeLastSkill": "Dies ist die einzige Qualifikation der Arbeitskraft — ohne sie könnte sie keine Aufträge annehmen.",
+      "cannotRevokeGeneral": "Der Standardberuf kann nicht entfernt werden.",
+      "cannotRevokeLastSkill": "Dies ist der einzige Beruf des Mitarbeiters — ohne ihn könnte er keine Aufträge annehmen.",
       "validation": "Prüfen Sie das Formular und versuchen Sie es erneut.",
       "unknown": "Etwas ist schiefgelaufen. Versuchen Sie es erneut."
     }
@@ -2653,6 +2646,9 @@
       "successTitle": "Agentur angelegt",
       "successBody": "Ein einmaliger Link zum Setzen des Passworts wurde an den Kontakt gesendet. Er ist 72 Stunden gültig und funktioniert einmal.",
       "successNoContract": "Die Agentur kann sich noch nicht anmelden: es wurde kein Vertragsbeginn gesetzt. Die Agentur bearbeiten, sobald der unterschriebene Vertrag vorliegt."
+    },
+    "workers": {
+      "action": "Ihre Mitarbeiter"
     },
     "edit": {
       "action": "Bearbeiten",

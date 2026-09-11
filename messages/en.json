@@ -452,7 +452,7 @@
     "tasks": "Tasks",
     "dispatching": "Dispatching",
     "leave": "Leave Requests",
-    "skillRequests": "Skill Requests",
+    "skillRequests": "Profession Requests",
     "contracts": "Contracts",
     "professions": "Professions",
     "support": "Support",
@@ -2097,8 +2097,6 @@
       "code": "Code",
       "codePlaceholder": "e.g. PLUMBER",
       "codeImmutable": "The code cannot be changed after creation.",
-      "name": "Name",
-      "namePlaceholder": "Display name",
       "description": "Description",
       "descriptionPlaceholder": "Optional description…",
       "create": "Create",
@@ -2107,15 +2105,10 @@
       "nameEn": "Name (English)",
       "nameEnPlaceholder": "Window Cleaning"
     },
-    "delete": {
-      "title": "Delete profession?",
-      "confirm": "Permanently delete the “{name}” profession? This cannot be undone."
-    },
     "errors": {
       "generic": "The profession could not be saved. Please try again.",
       "code_exists": "A profession with this code already exists.",
-      "deleteGeneric": "The profession could not be deleted. Please try again.",
-      "profession_in_use": "This profession is assigned to workers or task groups and cannot be deleted.",
+      "deactivateGeneric": "The profession could not be deactivated. Please try again.",
       "profession_protected": "This is the default profession every worker is registered with, so it cannot be deactivated."
     },
     "inactive": "Inactive",
@@ -2129,8 +2122,8 @@
     }
   },
   "skillRequests": {
-    "title": "Skill Requests",
-    "subtitle": "Workers asking for a skill beyond the one registration gave them. Approve, reject, or ask for more information.",
+    "title": "Profession Requests",
+    "subtitle": "Workers asking for a profession beyond the one registration gave them. Approve, reject, or ask for more information.",
     "list": "Requests",
     "searchPlaceholder": "Search",
     "tabs": {
@@ -2148,13 +2141,13 @@
     },
     "columns": {
       "worker": "Worker",
-      "skill": "Skill",
+      "skill": "Profession",
       "claimedYears": "Claimed years",
       "status": "Status",
       "createdAt": "Requested"
     },
     "filters": {
-      "skill": "Skill",
+      "skill": "Profession",
       "inactive": "deactivated"
     },
     "toolbar": {
@@ -2162,12 +2155,12 @@
     },
     "empty": {
       "queueTitle": "No requests waiting",
-      "queueBody": "When a worker asks for a skill, it appears here for a decision."
+      "queueBody": "When a worker asks for a profession, it appears here for a decision."
     },
     "detail": {
       "back": "Back to requests",
       "forbiddenTitle": "You cannot open this request",
-      "forbiddenBody": "Reading the skill request queue needs a permission your role does not include. Ask a super admin to grant it.",
+      "forbiddenBody": "Reading the profession request queue needs a permission your role does not include. Ask a super admin to grant it.",
       "notFoundTitle": "Request not found",
       "notFoundBody": "This request no longer exists, or it was never one you could open.",
       "errorTitle": "Could not load this request",
@@ -2175,8 +2168,8 @@
     },
     "claim": {
       "heading": "The claim",
-      "skill": "Skill requested",
-      "claimedYears": "Years claimed for this skill",
+      "skill": "Profession requested",
+      "claimedYears": "Years claimed for this profession",
       "yearsUnknown": "Not given",
       "requested": "Requested",
       "workerNote": "Worker's note",
@@ -2192,13 +2185,13 @@
       "completedTasks": "Completed tasks",
       "rating": "Rating",
       "monthsOnPlatform": "Months on platform",
-      "heldSkills": "Skills held today"
+      "heldSkills": "Professions held today"
     },
     "actions": {
       "approve": "Approve",
       "reject": "Reject",
       "requestInfo": "Ask for more information",
-      "revoke": "Revoke skill"
+      "revoke": "Revoke profession"
     },
     "dialogs": {
       "send": "Send",
@@ -2206,23 +2199,23 @@
       "requestInfoDescription": "The worker sees this and can answer, which puts the request back in your queue.",
       "rejectTitle": "Reject this request",
       "rejectDescription": "The worker sees this reason and may apply again, so write it as feedback rather than an internal note.",
-      "revokeTitle": "Revoke this skill",
+      "revokeTitle": "Revoke this profession",
       "revokeDescription": "The worker sees this reason. They keep any job they are already on, and their rating is unaffected."
     },
     "workerCard": {
-      "title": "Skill requests",
-      "empty": "This worker has never requested a skill.",
-      "error": "Could not load skill requests."
+      "title": "Profession requests",
+      "empty": "This worker has never requested a profession.",
+      "error": "Could not load profession requests."
     },
     "errors": {
       "noteRequired": "Write a question for the worker before sending.",
       "reasonRequired": "Give a reason — the worker will see it.",
       "notFound": "This request no longer exists.",
-      "alreadyHeld": "The worker already holds this skill.",
-      "inUseByLiveWork": "This skill is being used on live work. You can remove it once that work finishes.",
+      "alreadyHeld": "The worker already holds this profession.",
+      "inUseByLiveWork": "This profession is being used on live work. You can remove it once that work finishes.",
       "invalidState": "Someone else already handled this request. Refresh to see the current state.",
-      "cannotRevokeGeneral": "The default skill cannot be removed.",
-      "cannotRevokeLastSkill": "This is the worker's only skill — removing it would leave them unable to join any work.",
+      "cannotRevokeGeneral": "The default profession cannot be removed.",
+      "cannotRevokeLastSkill": "This is the worker's only profession — removing it would leave them unable to join any work.",
       "validation": "Check the form and try again.",
       "unknown": "Something went wrong. Try again."
     }
@@ -2653,6 +2646,9 @@
       "successTitle": "Agency created",
       "successBody": "A one-time set-password link has been emailed to the contact. It is valid for 72 hours and works once.",
       "successNoContract": "The agency still cannot sign in: no contract start date was set. Edit the agency once the signed paper contract is back."
+    },
+    "workers": {
+      "action": "Their workers"
     },
     "edit": {
       "action": "Edit",

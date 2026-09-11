@@ -2,8 +2,12 @@ import { AxiosError } from "axios";
 
 /**
  * Backend errors come back as `{ error: "<code>" }` (e.g. "worker_limit_reached",
- * "boss_has_active_properties", "profession_in_use") on 400/409 responses — see the
+ * "code_exists", "profession_protected") on 400/409 responses — see the
  * controllers' `catch (InvalidOperationException ex) { return BadRequest({ error }) }`.
+ * ⚠ Every example above was checked against the backend when this line was last
+ * touched. The two it replaced — `boss_has_active_properties` and
+ * `profession_in_use` — no longer exist anywhere in the API, and a dead code in a
+ * doc comment reads as a live contract.
  * Pull that machine code out of any thrown value so callers can map it to a localized
  * message. Returns null when the shape is unknown (network error, plain string, etc.).
  */

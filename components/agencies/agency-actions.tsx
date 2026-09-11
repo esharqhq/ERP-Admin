@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { MailPlus, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { MailPlus, MoreHorizontal, Pencil, Trash2, Users } from "lucide-react";
 import { useTranslations } from "next-intl";
 
+import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -23,12 +24,22 @@ import { agencyErrorKey } from "@/lib/agencies/errors";
 import type { AgencyDto, UpdateAgencyRequest } from "@/lib/types/agency.types";
 
 /**
- * Edit · re-send invitation · delete.
+ * Their workers · edit · re-send invitation · delete.
  *
  * ⚠ **Each entry is behind its own `Can`.** Delete is gated on `agency:create`
  * (170001) rather than a delete permission — there is no `agency:delete` code —
  * and a missing grant answers a **bodiless `403`** with nothing to render, so the
  * decision has to be made before the click rather than reported after it.
+ *
+ * ⚠ **"Their workers" is a link, not a detail route.** There is no agency detail
+ * page; the workers table already filters on `?agencyId=`, so the roster is a
+ * filter away and this entry is the only thing that was missing. `agencySource`
+ * is deliberately NOT in the query: `reconcileAgencyFilters` only ever clears an
+ * `Independent` that contradicts a named agency, and a named agency already
+ * implies "via agency" on the wire.
+ *
+ * ⚠ Gated on `worker:list` — the grant that page itself needs — so the entry is
+ * absent rather than a click into a forbidden screen.
  */
 export function AgencyActions({ agency }: { agency: AgencyDto }) {
   const t = useTranslations("agencies");
@@ -68,7 +79,18 @@ export function AgencyActions({ agency }: { agency: AgencyDto }) {
             </Button>
           }
         />
-        <DropdownMenuContent align="end">
+        {/* ⚠ Explicit width. The default is `w-(--anchor-width) min-w-32` and the
+            anchor is a 36px icon button, so every label here wrapped onto two
+            lines at 8rem. */}
+        <DropdownMenuContent align="end" className="w-52">
+          <Can permission="worker:list">
+            <DropdownMenuItem
+              render={<Link href={`/dashboard/workers?agencyId=${agency.id}`} />}
+            >
+              <Users className="size-4" />
+              {t("workers.action")}
+            </DropdownMenuItem>
+          </Can>
           <Can permission="agency:update">
             <DropdownMenuItem onClick={() => setEditOpen(true)}>
               <Pencil className="size-4" />
