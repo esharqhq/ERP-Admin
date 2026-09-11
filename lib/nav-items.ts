@@ -98,23 +98,18 @@ export const navGroups: NavGroup[] = [
     id: "agency",
     label: "Agency",
     labelKey: "nav.agency",
-    // ⚠ Both screens are UNBUILT — F-05 is sub-project #3 of
-    // `docs/superpowers/plans/2026-08-31-admin-work-queue-roadmap.md`, scoped in
-    // `docs/audit/agency-scope-2026-09-08.md`. Until they exist, both urls serve a
-    // placeholder page rather than a 404: a missing route reads as a bug, and the
-    // rail's own philosophy is that an operator should see that a section exists.
+    // Ordered list first, queue second: Agencies is the register an operator
+    // opens to look something up, Requests is where work arrives.
     //
-    // The gates below are the real ones from `index/permissions/registry.md`, so
-    // they need no revisiting when the pages land — and they already flow into
-    // `resolveRouteGate`, which matches by prefix and so covers the detail routes
-    // (`/dashboard/agencies/{id}`) too.
+    // The gates are the real codes from `index/permissions/registry.md`, and they
+    // flow into `resolveRouteGate`, which matches by prefix — so a detail route
+    // (`/dashboard/agency-requests/{id}`) is covered by its list's gate with no
+    // entry of its own.
     //
     // ⚠ A gate does NOT hide these rows — `app-sidebar.tsx`'s `canSeeItem` dims
-    // and locks them instead, so a SUPER_ADMIN (who holds both codes) still
-    // follows a live link. That is why the placeholder is the part that actually
-    // closes this, and the gate only covers the roles that lack the grant.
+    // and locks them instead, sending a click to `/forbidden?permission=…`.
     // MODERATOR holds `agency_application:read` and NOT `agency:read`
-    // (`DatabaseSeeder.cs:1954,1960`), so for them exactly one of the two locks.
+    // (`DatabaseSeeder.cs:1954,1960`), so for them exactly one of these two locks.
     items: [
       { title: "Agencies", labelKey: "nav.agencies",       url: "/dashboard/agencies",         icon: Briefcase, permission: "agency:read" },
       { title: "Requests", labelKey: "nav.agencyRequests", url: "/dashboard/agency-requests", icon: Inbox, permission: "agency_application:read", badge: "waiting" },
