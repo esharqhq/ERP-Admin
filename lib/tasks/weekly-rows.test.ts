@@ -56,6 +56,8 @@ const GROUP: TaskGroupDto = {
       startedAt: null,
       completedAt: null,
       closureReason: null,
+      supervisorWorkerId: null,
+      workSummary: null,
       workers: [worker("Ali"), worker("Bek")],
     },
     {
@@ -71,6 +73,8 @@ const GROUP: TaskGroupDto = {
       startedAt: null,
       completedAt: null,
       closureReason: null,
+      supervisorWorkerId: null,
+      workSummary: null,
       workers: [],
     },
   ],

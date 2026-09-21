@@ -2,7 +2,7 @@
 
 import { use, useState } from "react";
 import { Link } from "@/i18n/navigation";
-import { ArrowLeft, Star, UserPlus, UserMinus, RefreshCw } from "lucide-react";
+import { ArrowLeft, Star, UserPlus, UserMinus, RefreshCw, ShieldCheck, LockKeyhole } from "lucide-react";
 import { useTranslations, useLocale } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,14 @@ import { TaskDaysBadge } from "@/components/tasks/task-days-badge";
 import { toastGroupCancel } from "@/components/tasks/group-cancel-toast";
 import { TaskStatusBadge } from "@/components/tasks/task-status-badge";
 import {
+  SupervisorOverrideDialog,
+  canOverrideSupervisor,
+} from "@/components/tasks/supervisor-override-dialog";
+import {
+  ForceCloseDialog,
+  canForceClose,
+} from "@/components/tasks/force-close-dialog";
+import {
   useTaskGroup,
   useCancelTaskGroup,
   useAssignWorker,
@@ -33,14 +41,33 @@ import {
   useOverrideOutcome,
 } from "@/hooks/use-tasks";
 import { isGroupActive } from "@/lib/tasks/staffing";
+import { canonicalTaskStatus } from "@/lib/tasks/status-vocab";
 import {
   normalizeStatus,
   type TaskItemDto,
   type TaskWorkerDto,
 } from "@/lib/types/task.types";
 
+/**
+ * ⚠ The four known reasons are translated; anything else prints verbatim. The
+ * set is not closed — `ClosedReplacement` is forward-declared for ·5 and more
+ * may follow — and a word we cannot name is more honest shown than guessed at.
+ */
+const CLOSURE_REASONS = new Set([
+  "OwnerAccepted",
+  "AutoAccepted",
+  "ClosedForced",
+  "ClosedReplacement",
+]);
+
+function closureReasonLabel(reason: string, t: (k: string) => string): string {
+  return CLOSURE_REASONS.has(reason) ? t(`reasons.${reason}`) : reason;
+}
+
 interface TaskActions {
   onAssign: (taskId: string) => void;
+  onSupervisor: (task: TaskItemDto) => void;
+  onForceClose: (task: TaskItemDto) => void;
   onRate: (taskId: string, tw: TaskWorkerDto) => void;
   onOutcome: (taskId: string, tw: TaskWorkerDto) => void;
   onUnassign: (taskId: string, tw: TaskWorkerDto) => void;
@@ -49,6 +76,8 @@ interface TaskActions {
 type ModalState =
   | { type: "cancelGroup" }
   | { type: "assign"; taskId: string }
+  | { type: "supervisor"; task: TaskItemDto }
+  | { type: "forceClose"; task: TaskItemDto }
   | { type: "rate"; taskId: string; tw: TaskWorkerDto }
   | { type: "outcome"; taskId: string; tw: TaskWorkerDto }
   | { type: "unassign"; taskId: string; tw: TaskWorkerDto }
@@ -193,9 +222,13 @@ function TaskCard({
   actions: TaskActions;
 }) {
   const t = useTranslations("tasks");
-  const terminal =
-    normalizeStatus(task.status) === "cancelled" ||
-    normalizeStatus(task.status) === "done";
+  const tSup = useTranslations("tasks.supervisor");
+  const tClose = useTranslations("tasks.forceClose");
+  const state = canonicalTaskStatus(task.status);
+  const terminal = state === "cancelled" || state === "done";
+  const supervisor = (task.workers ?? []).find(
+    (w) => w.workerId === task.supervisorWorkerId,
+  );
   return (
     <Card>
       <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2 pb-2">
@@ -227,8 +260,63 @@ function TaskCard({
               </Button>
             </Can>
           )}
+          {/* ⚠ SUPER_ADMIN only. A MODERATOR gets a bodiless 403 — `Can` hides
+              the button rather than letting them meet an error with no code in
+              it. An empty-bodied 403 is the permission filter, never onboarding. */}
+          {canOverrideSupervisor(task) && (
+            <Can permission="task:supervisor_override_any">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                onClick={() => actions.onSupervisor(task)}
+              >
+                <ShieldCheck className="size-3.5" />
+                {tSup("submit")}
+              </Button>
+            </Can>
+          )}
+          {canForceClose(task) && (
+            <Can permission="task:force_close_any">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5 text-destructive"
+                onClick={() => actions.onForceClose(task)}
+              >
+                <LockKeyhole className="size-3.5" />
+                {tClose("action")}
+              </Button>
+            </Can>
+          )}
         </div>
       </CardHeader>
+      {/* The two fields F-07 ·4 added to a day, plus ·3's closure reason. The
+          summary is what an operator reads before judging a dispute. */}
+      <div className="flex flex-col gap-1 px-6 pb-3 text-xs text-muted-foreground">
+        <span>
+          {tSup("current")}:{" "}
+          <span className="text-foreground">
+            {supervisor?.workerName ?? task.supervisorWorkerId ?? tSup("none")}
+          </span>
+        </span>
+        <span>
+          {tSup("summary")}:{" "}
+          <span className="text-foreground">
+            {task.workSummary?.trim() || tSup("noSummary")}
+          </span>
+        </span>
+        {/* ⚠ Rendered only when present. `null` does NOT mean "the owner
+            accepted it" — it means not closed, or closed before 2026-09-21. */}
+        {task.closureReason ? (
+          <span>
+            {tClose("closedAs")}:{" "}
+            <span className="text-foreground">
+              {closureReasonLabel(task.closureReason, tClose)}
+            </span>
+          </span>
+        ) : null}
+      </div>
       <CardContent className="p-0">
         <WorkersTable task={task} locale={locale} actions={actions} />
       </CardContent>
@@ -262,6 +350,8 @@ export default function TaskGroupDetailPage({
     onRate: (taskId, tw) => setModal({ type: "rate", taskId, tw }),
     onOutcome: (taskId, tw) => setModal({ type: "outcome", taskId, tw }),
     onUnassign: (taskId, tw) => setModal({ type: "unassign", taskId, tw }),
+    onSupervisor: (task) => setModal({ type: "supervisor", task }),
+    onForceClose: (task) => setModal({ type: "forceClose", task }),
   };
 
   const backBar = (
@@ -392,6 +482,19 @@ export default function TaskGroupDetailPage({
       )}
 
       {/* ── Action modals (conditionally mounted → fresh state per open) ── */}
+      {modal?.type === "supervisor" && (
+        <SupervisorOverrideDialog
+          open
+          onClose={close}
+          task={modal.task}
+          groupId={id}
+        />
+      )}
+
+      {modal?.type === "forceClose" && (
+        <ForceCloseDialog open onClose={close} task={modal.task} groupId={id} />
+      )}
+
       {modal?.type === "cancelGroup" && (
         <ConfirmDialog
           open

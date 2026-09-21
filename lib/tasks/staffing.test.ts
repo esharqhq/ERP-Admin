@@ -67,6 +67,8 @@ function task(over: Partial<TaskItemDto> = {}): TaskItemDto {
     startedAt: null,
     completedAt: null,
     closureReason: null,
+    supervisorWorkerId: null,
+    workSummary: null,
     workers: [],
     ...over,
   };

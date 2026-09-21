@@ -153,6 +153,39 @@ export function useCancelTaskGroup() {
   });
 }
 
+/**
+ * Put an admin in charge of a day nobody can hand in — `PUT /api/tasks/{id}/supervisor`.
+ *
+ * ⚠⚠ **The automatic hand-over is not a safety net.** One hour after the work day
+ * ends the server gives the role to the best-rated *other* worker **who checked
+ * in** — so on a day where only one person ever arrived, it does nothing at all
+ * and the day stays unsubmitted. Admin intervention is the only route, which is
+ * why this control exists. Do not word it as an optimisation.
+ */
+export function useSetTaskSupervisor(groupId?: string) {
+  const invalidate = useInvalidateTasks();
+  return useMutation({
+    mutationFn: ({ taskId, workerId }: { taskId: string; workerId: string }) =>
+      taskService.setSupervisor(taskId, { workerId }),
+    onSuccess: () => invalidate(groupId),
+  });
+}
+
+/**
+ * Close a day that is stuck open — `POST /api/tasks/{id}/force-close`.
+ *
+ * ⚠⚠ This marks everyone who never checked in as a **no-show**, which counts
+ * against their rating. The admin must see that before they confirm.
+ */
+export function useForceCloseTask(groupId?: string) {
+  const invalidate = useInvalidateTasks();
+  return useMutation({
+    mutationFn: ({ taskId, reason }: { taskId: string; reason: string }) =>
+      taskService.forceCloseTask(taskId, { reason }),
+    onSuccess: () => invalidate(groupId),
+  });
+}
+
 export function useAssignWorker(groupId?: string) {
   const invalidate = useInvalidateTasks();
   return useMutation({

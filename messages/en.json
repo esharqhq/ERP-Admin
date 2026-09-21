@@ -2026,6 +2026,47 @@
         "Done": "Finished",
         "Cancelled": "Cancelled"
       }
+    },
+    "supervisor": {
+      "title": "Put an admin-chosen worker in charge of this day",
+      "why": "Only the supervisor can hand a day in. The role moves on automatically an hour after the work day ends — but only to another worker who checked in, so on a day where one person arrived it moves to nobody and the day stays unsubmitted. This is the only way out.",
+      "worker": "Supervisor",
+      "workerPlaceholder": "Choose from this day's workers",
+      "noRoster": "Nobody is booked on this day, so there is nobody to put in charge.",
+      "submit": "Make supervisor",
+      "current": "Supervisor",
+      "none": "Not yet — the first worker to check in takes the role",
+      "summary": "Work summary",
+      "noSummary": "None — the day has not been handed in, or the supervisor left it blank",
+      "errors": {
+        "worker_not_on_day": "That worker is not booked on this day. Only the day's own workers can be put in charge — an outsider would leave a day nobody can hand in.",
+        "supervisor_change_not_allowed": "This day has already finished. The supervisor of a closed day is the record of who filed it and can no longer be changed.",
+        "task_not_found": "This day no longer exists. Refresh the page.",
+        "generic": "The supervisor could not be changed."
+      }
+    },
+    "forceClose": {
+      "title": "Force this day closed",
+      "what": "Use this when a day cannot be handed in — for example when nobody who checked in is left to submit it. The day is closed immediately and the owner is not asked to accept it.",
+      "noShowWarning": "{count, plural, =0 {Nobody is recorded absent — everybody on this day checked in.} one {1 worker who never checked in will be recorded as a no-show, which counts against their rating.} other {# workers who never checked in will be recorded as no-shows, which counts against their ratings.}}",
+      "creditedNote": "{count, plural, =0 {Nobody checked in to this day.} one {1 worker who checked in is credited with completing the day, even though nobody submitted it.} other {# workers who checked in are credited with completing the day, even though nobody submitted it.}}",
+      "reasonLabel": "Reason",
+      "reasonHint": "Required. The workers and the owner are shown this — it is the only record of why the day ended this way.",
+      "submit": "Force close",
+      "action": "Force close",
+      "closedAs": "Closed",
+      "reasons": {
+        "OwnerAccepted": "Accepted by the owner",
+        "AutoAccepted": "Accepted automatically — not reviewed within 5 hours",
+        "ClosedForced": "Forced closed by an admin",
+        "ClosedReplacement": "Closed and replaced"
+      },
+      "errors": {
+        "task_already_closed": "This day is already finished or cancelled, so there is nothing to close.",
+        "reason_required": "A reason is required.",
+        "task_not_found": "This day no longer exists. Refresh the page.",
+        "generic": "The day could not be closed."
+      }
     }
   },
   "leave": {

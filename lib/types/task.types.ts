@@ -80,6 +80,18 @@ export interface TaskItemDto {
    * Typed open on purpose — the set is not closed.
    */
   closureReason: string | null;
+  /**
+   * Who files and submits this day — F-07 ·4 (2026-09-19). `null` until somebody
+   * checks in: the role goes to the **first worker to arrive**, and a
+   * better-rated worker arriving later never takes it off them.
+   */
+  supervisorWorkerId: string | null;
+  /**
+   * What the supervisor wrote when they handed the day in — F-07 ·4. `null`
+   * until submission, and `null` when they left it blank. It is what an operator
+   * reads before judging a dispute.
+   */
+  workSummary: string | null;
   workers: TaskWorkerDto[];
   media?: TaskMediaDto[] | null;
   conversationId?: string | null;
@@ -262,4 +274,25 @@ export const TASK_WORKER_OUTCOMES: TaskWorkerOutcomeName[] = [
 /** Case-insensitive status normaliser (backend may send any casing). */
 export function normalizeStatus(status: string | null | undefined): string {
   return (status ?? "").trim().toLowerCase();
+}
+
+/** Body of `PUT /api/tasks/{taskId}/supervisor` — `task:supervisor_override_any`. */
+export interface AdminSetSupervisorRequest {
+  workerId: string;
+}
+
+/** Answer of all three supervisor-move routes. */
+export interface TaskSupervisorDto {
+  taskId: string;
+  supervisorWorkerId: string;
+}
+
+/**
+ * Body of `POST /api/tasks/{taskId}/force-close` — `task:force_close_any`.
+ *
+ * ⚠ `reason` is mandatory. It is the only record of why the day ended this way
+ * and it is shown to the workers and the owner in their notification.
+ */
+export interface ForceCloseTaskRequest {
+  reason: string;
 }

@@ -99,6 +99,8 @@ function group(over: Partial<TaskGroupDto> = {}): TaskGroupDto {
         startedAt: null,
         completedAt: null,
         closureReason: null,
+        supervisorWorkerId: null,
+        workSummary: null,
         workers: [
           {
             id: "tw1",
