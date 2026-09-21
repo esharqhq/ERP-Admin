@@ -21,6 +21,8 @@ import { ConfirmDialog } from "@/components/tasks/confirm-dialog";
 import { AssignWorkerDialog } from "@/components/tasks/assign-worker-dialog";
 import { RateWorkerDialog } from "@/components/tasks/rate-worker-dialog";
 import { OutcomeDialog } from "@/components/tasks/outcome-dialog";
+import { TaskDaysBadge } from "@/components/tasks/task-days-badge";
+import { toastGroupCancel } from "@/components/tasks/group-cancel-toast";
 import { TaskStatusBadge } from "@/components/tasks/task-status-badge";
 import {
   useTaskGroup,
@@ -234,6 +236,8 @@ function TaskCard({
   );
 }
 
+
+
 export default function TaskGroupDetailPage({
   params,
 }: {
@@ -306,7 +310,7 @@ export default function TaskGroupDetailPage({
           <h1 className="font-heading text-3xl font-bold tracking-tight leading-tight">
             {group.title ?? "—"}
           </h1>
-          <TaskStatusBadge status={group.status} />
+          <TaskDaysBadge group={group} />
         </div>
         {groupCancellable && (
           <Can permission="task_group:cancel_any">
@@ -398,7 +402,15 @@ export default function TaskGroupDetailPage({
           confirmLabel={t("actions.cancelGroup")}
           destructive
           onConfirm={() =>
-            cancelGroup.mutate(id, { onSuccess: close })
+            cancelGroup.mutate(
+              { id, before: group.days },
+              {
+                onSuccess: (outcome) => {
+                  toastGroupCancel(outcome, t);
+                  close();
+                },
+              },
+            )
           }
         />
       )}

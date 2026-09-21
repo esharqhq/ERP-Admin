@@ -7,7 +7,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TaskStatusBadge } from "@/components/tasks/task-status-badge";
+import { TaskDaysBadge } from "@/components/tasks/task-days-badge";
 import { groupStaffing, isGroupActive } from "@/lib/tasks/staffing";
 import { describeApiError, isPermissionDenied } from "@/lib/onboarding/errors";
 import type { TaskGroupDto } from "@/lib/types/task.types";
@@ -156,7 +156,7 @@ function Rows({
                 <span className="truncate text-sm font-medium">
                   {group.title || t("untitled")}
                 </span>
-                <TaskStatusBadge status={group.status} />
+                <TaskDaysBadge group={group} />
               </div>
               <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-muted-foreground">
                 <span>{t("days", { count: group.tasks.length })}</span>

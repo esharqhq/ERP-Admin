@@ -1992,7 +1992,11 @@
       "outcomeTitle": "Ergebnis überschreiben",
       "unassign": "Entfernen",
       "unassignTitle": "Mitarbeiter entfernen",
-      "unassignConfirm": "{name} aus dieser Aufgabe entfernen?"
+      "unassignConfirm": "{name} aus dieser Aufgabe entfernen?",
+      "resultAll": "Buchung storniert — alle {cancelled} Tage.",
+      "resultSome": "{cancelled} Tage der Buchung wurden storniert. {remaining} beginnen in weniger als 3 Stunden und können nicht mehr storniert werden.",
+      "resultNone": "Es wurde nichts storniert. Alle {remaining} verbleibenden Tage beginnen in weniger als 3 Stunden — die Stornierungsfrist ist abgelaufen.",
+      "resultUnknown": "Die Anfrage wurde angenommen, die Buchung konnte aber nicht neu geladen werden — bitte aktualisieren."
     },
     "statuses": {
       "todo": "Zu erledigen",
@@ -2013,6 +2017,15 @@
       "inReview": "In Prüfung",
       "done": "Abgeschlossen",
       "cancelled": "Storniert"
+    },
+    "dayCounts": {
+      "settledOfTotal": "{settled} / {total} Tage",
+      "bucket": {
+        "Pending": "Nicht begonnen",
+        "Active": "Läuft",
+        "Done": "Abgeschlossen",
+        "Cancelled": "Storniert"
+      }
     }
   },
   "leave": {

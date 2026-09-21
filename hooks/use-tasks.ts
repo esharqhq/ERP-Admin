@@ -10,10 +10,15 @@ import {
 import { taskService } from "@/lib/services/task.service";
 import { useTodayKey } from "@/hooks/use-today";
 import { dispatchWindow } from "@/lib/tasks/dispatch-window";
+import {
+  describeGroupCancel,
+  type GroupCancelOutcome,
+} from "@/lib/tasks/cancel-outcome";
 import type {
   SubmitTaskWorkerStarRequest,
   OverrideTaskWorkerOutcomeRequest,
   CreateTaskGroupRequest,
+  TaskGroupDayCountsDto,
 } from "@/lib/types/task.types";
 
 /**
@@ -119,11 +124,32 @@ function useInvalidateTasks() {
   return (groupId?: string) => invalidateTasks(qc, groupId);
 }
 
+/**
+ * ⚠⚠ The `204` from this route does NOT mean the booking was cancelled.
+ *
+ * `POST /api/tasks/admin/groups/{id}/cancel` cancels the days that qualify and
+ * silently skips the rest, answering `204` either way — and F-07 ·3 (2026-09-21)
+ * widened the per-day window from one hour to three, so "nothing qualified" is
+ * now common. The mutation therefore re-reads the booking and returns what
+ * actually happened; the caller reports from that, never from the success.
+ *
+ * Takes the day counts as they were before the call, because the difference is
+ * the only thing that distinguishes "cancelled two days" from "cancelled none
+ * and two were already cancelled last week".
+ */
 export function useCancelTaskGroup() {
   const invalidate = useInvalidateTasks();
-  return useMutation({
-    mutationFn: (id: string) => taskService.cancelGroup(id),
-    onSuccess: (_d, id) => invalidate(id),
+  return useMutation<
+    GroupCancelOutcome,
+    unknown,
+    { id: string; before: TaskGroupDayCountsDto | null | undefined }
+  >({
+    mutationFn: async ({ id, before }) => {
+      await taskService.cancelGroup(id);
+      const after = await taskService.getTaskGroup(id);
+      return describeGroupCancel(before, after?.days);
+    },
+    onSuccess: (_outcome, { id }) => invalidate(id),
   });
 }
 

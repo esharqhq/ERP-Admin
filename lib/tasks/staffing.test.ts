@@ -2,12 +2,18 @@ import { describe, expect, it } from "vitest";
 import {
   activeWorkers,
   groupStaffing,
+  groupBucket,
   isGroupActive,
   isOpen,
   isShortOfCrew,
   needsWorkers,
 } from "@/lib/tasks/staffing";
-import type { TaskGroupDto, TaskItemDto, TaskWorkerDto } from "@/lib/types/task.types";
+import type {
+  TaskGroupDayCountsDto,
+  TaskGroupDto,
+  TaskItemDto,
+  TaskWorkerDto,
+} from "@/lib/types/task.types";
 
 function worker(over: Partial<TaskWorkerDto> = {}): TaskWorkerDto {
   return {
@@ -36,7 +42,7 @@ function group(over: Partial<TaskGroupDto> = {}): TaskGroupDto {
     defaultStartTime: "09:00:00",
     defaultDeadline: null,
     instructions: null,
-    status: "Pending",
+    days: { total: 1, pending: 1, checkedIn: 0, inReview: 0, done: 0, cancelled: 0, rejected: 0 },
     ratingFloor: 0,
     allowNewWorkers: true,
     eligibleProfessionIds: [],
@@ -60,6 +66,7 @@ function task(over: Partial<TaskItemDto> = {}): TaskItemDto {
     requiredWorkerCount: 1,
     startedAt: null,
     completedAt: null,
+    closureReason: null,
     workers: [],
     ...over,
   };
@@ -171,32 +178,44 @@ describe("isShortOfCrew", () => {
   });
 });
 
-describe("isGroupActive", () => {
-  it("is true for a Pending group", () => {
-    expect(isGroupActive(group({ status: "Pending" }))).toBe(true);
+/**
+ * ⚠ This block replaces the `status`-word one. F-07 ·0 (2026-09-17) deleted
+ * `TaskGroupDto.status` outright, so those cases could not be updated — there is
+ * no word left to pass in. The old block's last case asserted that an unknown
+ * word is NOT active; the counts invert that default deliberately, and the
+ * reason is in the "missing or empty `days`" case below.
+ */
+describe("isGroupActive, off day counts", () => {
+  const days = (p: Partial<TaskGroupDayCountsDto> = {}): TaskGroupDayCountsDto => ({
+    total: 0, pending: 0, checkedIn: 0, inReview: 0,
+    done: 0, cancelled: 0, rejected: 0, ...p,
+  });
+  const withDays = (d: TaskGroupDayCountsDto) => group({ days: d });
+
+  it("keeps a booking whose first day has started", () => {
+    // The measured bug §0·2 names: a booking vanished from the list the moment
+    // its first day began, while its remaining days were still joinable.
+    expect(isGroupActive(withDays(days({ total: 5, checkedIn: 1, done: 4 })))).toBe(true);
   });
 
-  it("is true for an Active group", () => {
-    expect(isGroupActive(group({ status: "Active" }))).toBe(true);
+  it("keeps a booking waiting on the owner to accept", () => {
+    expect(isGroupActive(withDays(days({ total: 2, inReview: 1, done: 1 })))).toBe(true);
   });
 
-  it("is false for a Done group", () => {
-    expect(isGroupActive(group({ status: "Done" }))).toBe(false);
+  it("closes a booking once every day is settled", () => {
+    expect(isGroupActive(withDays(days({ total: 4, done: 3, cancelled: 1 })))).toBe(false);
+    expect(isGroupActive(withDays(days({ total: 3, cancelled: 3 })))).toBe(false);
   });
 
-  it("is false for a Cancelled group", () => {
-    expect(isGroupActive(group({ status: "Cancelled" }))).toBe(false);
+  it("counts `rejected` as settled, against the day ·5 fills it", () => {
+    expect(isGroupActive(withDays(days({ total: 2, done: 1, rejected: 1 })))).toBe(false);
   });
 
-  it("matches status case-insensitively", () => {
-    expect(isGroupActive(group({ status: "pending" }))).toBe(true);
-    expect(isGroupActive(group({ status: "ACTIVE" }))).toBe(true);
-    expect(isGroupActive(group({ status: "done" }))).toBe(false);
-    expect(isGroupActive(group({ status: "CANCELLED" }))).toBe(false);
-  });
-
-  it("is false for an unexpected status string — it must not be treated as active", () => {
-    expect(isGroupActive(group({ status: "SomethingUnknown" }))).toBe(false);
+  it("treats a missing or empty `days` as active", () => {
+    // Cancel offered on a finished booking is a refused request; Cancel hidden
+    // on a live one is a support ticket. Open is the safe default.
+    expect(isGroupActive({} as TaskGroupDto)).toBe(true);
+    expect(isGroupActive(withDays(days({ total: 0 })))).toBe(true);
   });
 });
 
@@ -218,5 +237,42 @@ describe("groupStaffing", () => {
 
   it("returns zeroes for an empty group", () => {
     expect(groupStaffing([])).toEqual({ filled: 0, required: 0 });
+  });
+});
+
+describe("groupBucket", () => {
+  const days = (p: Partial<TaskGroupDayCountsDto> = {}): TaskGroupDayCountsDto => ({
+    total: 0, pending: 0, checkedIn: 0, inReview: 0,
+    done: 0, cancelled: 0, rejected: 0, ...p,
+  });
+  const withDays = (d: TaskGroupDayCountsDto) => group({ days: d });
+
+  it("is Pending while no day has moved", () => {
+    expect(groupBucket(withDays(days({ total: 3, pending: 3 })))).toBe("Pending");
+  });
+
+  it("is Active the moment one day has started", () => {
+    expect(groupBucket(withDays(days({ total: 3, pending: 2, checkedIn: 1 })))).toBe("Active");
+  });
+
+  it("is Active while a day waits on the owner", () => {
+    expect(groupBucket(withDays(days({ total: 2, inReview: 1, done: 1 })))).toBe("Active");
+  });
+
+  it("is Done once every day settled and any of them was worked", () => {
+    expect(groupBucket(withDays(days({ total: 4, done: 4 })))).toBe("Done");
+  });
+
+  it("is Done, not Cancelled, when only some days were cancelled", () => {
+    // Calling this booking cancelled would deny three days of work that happened.
+    expect(groupBucket(withDays(days({ total: 4, done: 3, cancelled: 1 })))).toBe("Done");
+  });
+
+  it("is Cancelled only when every day was cancelled", () => {
+    expect(groupBucket(withDays(days({ total: 3, cancelled: 3 })))).toBe("Cancelled");
+  });
+
+  it("files a booking with no days under Pending", () => {
+    expect(groupBucket(withDays(days({ total: 0 })))).toBe("Pending");
   });
 });

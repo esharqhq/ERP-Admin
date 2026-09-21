@@ -6,6 +6,7 @@ import {
 import type { KycDocDto } from "@/lib/types/kyc.types";
 import type { SubjectCover } from "@/lib/onboarding/subject-row";
 import type {
+  TaskGroupDayCountsDto,
   TaskGroupDto,
   TaskItemDto,
   TaskWorkerDto,
@@ -51,12 +52,17 @@ function task(over: Partial<TaskItemDto> = {}): TaskItemDto {
     requiredWorkerCount: 1,
     startedAt: null,
     completedAt: null,
+    closureReason: null,
     workers: [],
     ...over,
   };
 }
 
-function group(tasks: TaskItemDto[], status = "Pending"): TaskGroupDto {
+/**
+ * ⚠ Takes day COUNTS, not a status word. F-07 ·0 deleted `TaskGroupDto.status`,
+ * so "a cancelled group" is now a booking whose every day is cancelled.
+ */
+function group(tasks: TaskItemDto[], days?: Partial<TaskGroupDayCountsDto>): TaskGroupDto {
   return {
     id: "g",
     propertyId: "p",
@@ -65,7 +71,12 @@ function group(tasks: TaskItemDto[], status = "Pending"): TaskGroupDto {
     defaultStartTime: "17:00:00",
     defaultDeadline: null,
     instructions: null,
-    status,
+    days: {
+      total: tasks.length || 1,
+      pending: tasks.length || 1,
+      checkedIn: 0, inReview: 0, done: 0, cancelled: 0, rejected: 0,
+      ...days,
+    },
     ratingFloor: 0,
     allowNewWorkers: true,
     eligibleProfessionIds: [],
@@ -172,10 +183,23 @@ describe("deriveOwnerAttention", () => {
     expect(derive({ groups: [group([far])] }).sources[0].state).toBe("clear");
   });
 
-  it("ignores tasks in a cancelled group", () => {
+  it("ignores tasks in a booking whose every day is cancelled", () => {
     expect(
-      derive({ groups: [group([task()], "Cancelled")] }).sources[0].state,
+      derive({
+        groups: [group([task()], { total: 1, pending: 0, cancelled: 1 })],
+      }).sources[0].state,
     ).toBe("clear");
+  });
+
+  it("still warns about a booking that has already started", () => {
+    // ⚠ The case the old `["pending", "active"]` filter could not express, and
+    // the regression that silenced this warning entirely: from 2026-09-17 the
+    // filter read `undefined` and skipped EVERY group.
+    expect(
+      derive({
+        groups: [group([task()], { total: 2, pending: 1, checkedIn: 1 })],
+      }).sources[0].state,
+    ).not.toBe("clear");
   });
 
   it("says nothing about staffing before the clock is known", () => {

@@ -1992,7 +1992,11 @@
       "outcomeTitle": "Override Outcome",
       "unassign": "Unassign",
       "unassignTitle": "Unassign Worker",
-      "unassignConfirm": "Remove {name} from this task?"
+      "unassignConfirm": "Remove {name} from this task?",
+      "resultAll": "Booking cancelled — all {cancelled} days.",
+      "resultSome": "{cancelled} of the booking's days were cancelled. {remaining} start within 3 hours and can no longer be cancelled.",
+      "resultNone": "Nothing was cancelled. All {remaining} remaining days start within 3 hours, which is past the cancellation window.",
+      "resultUnknown": "The request was accepted, but the booking could not be re-read — refresh to see which days were cancelled."
     },
     "statuses": {
       "todo": "To Do",
@@ -2013,6 +2017,15 @@
       "inReview": "Under review",
       "done": "Completed",
       "cancelled": "Cancelled"
+    },
+    "dayCounts": {
+      "settledOfTotal": "{settled} / {total} days",
+      "bucket": {
+        "Pending": "Not started",
+        "Active": "In progress",
+        "Done": "Finished",
+        "Cancelled": "Cancelled"
+      }
     }
   },
   "leave": {

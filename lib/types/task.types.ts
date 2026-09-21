@@ -58,13 +58,69 @@ export interface TaskItemDto {
   scheduledDate: string; // "yyyy-MM-dd"
   scheduledAt: string;
   deadline: string | null;
-  status: string; // TaskItemStatusName
+  status: string; // TaskItemStatusName — read it through `canonicalTaskStatus`
   requiredWorkerCount: number;
   startedAt: string | null;
+  /**
+   * ⚠ Since F-07 ·3 (2026-09-21) this is the moment the day was HANDED IN, not
+   * the moment the owner accepted it. Same field, same type, an earlier instant
+   * — accepting used to overwrite it and no longer does. Nothing here computes a
+   * duration from it; if anything ever does, re-read `task-lifecycle.md` §0d.
+   */
   completedAt: string | null;
+  /**
+   * How the day ended — F-07 ·3 (2026-09-21). `"OwnerAccepted"` · `"AutoAccepted"`
+   * (nobody reviewed it within five hours) · `"ClosedForced"` (an admin forced it)
+   * · `"ClosedReplacement"` (⚠ never today — forward-declared for ·5).
+   *
+   * ⚠⚠ `null` does NOT mean "the owner accepted it". It means the day has not
+   * closed, **or** it closed before 2026-09-21. A day cancelled before it ever
+   * ran also reads `null`: a cancel is not a close. Never make it a default arm.
+   *
+   * Typed open on purpose — the set is not closed.
+   */
+  closureReason: string | null;
   workers: TaskWorkerDto[];
   media?: TaskMediaDto[] | null;
   conversationId?: string | null;
+}
+
+/**
+ * The day counts that replaced `TaskGroupDto.status` in F-07 ·0 (2026-09-17).
+ * They say what the single word could not — "4 of 5 days done" — which is why
+ * the word went: it could not describe five days in different states, so every
+ * screen guessed differently.
+ *
+ * ⚠ `rejected` is always `0` today. It is forward-declared so slice ·5 can start
+ * filling it without a second breaking change — do not drop the key, and do not
+ * treat a non-zero value as impossible.
+ */
+export interface TaskGroupDayCountsDto {
+  total: number;
+  pending: number;
+  checkedIn: number;
+  inReview: number;
+  done: number;
+  cancelled: number;
+  rejected: number;
+}
+
+/**
+ * How the booking's finished days ended — added by F-07 ·3 (2026-09-21) beside
+ * `days`.
+ *
+ * ⚠ `closedReplacement` is always `0` today — forward-declared for ·5, same
+ * discipline as `days.rejected`: keep the key.
+ *
+ * ⚠ These do NOT sum to `days.done` on any booking that existed before
+ * 2026-09-21. Those days carry no reason and are counted by none of the four.
+ * That is honest, not a bug — never render the difference as a discrepancy.
+ */
+export interface TaskGroupClosureCountsDto {
+  ownerAccepted: number;
+  autoAccepted: number;
+  closedForced: number;
+  closedReplacement: number;
 }
 
 export interface TaskGroupDto {
@@ -75,7 +131,19 @@ export interface TaskGroupDto {
   defaultStartTime: string; // "HH:mm:ss"
   defaultDeadline: string | null;
   instructions: string | null;
-  status: string; // TaskGroupStatusName
+  /**
+   * No `status`. F-07 ·0 (2026-09-17) deleted it outright — no compatibility
+   * alias, on all seven endpoints that return a booking. Declaring a field the
+   * server has stopped sending is why `tsc` stayed green while Cancel vanished:
+   * the value was `undefined` and every predicate over it took the wrong branch.
+   */
+  days: TaskGroupDayCountsDto;
+  /**
+   * ⚠ Optional, unlike `days`. Absent from any booking that closed before
+   * 2026-09-21, and only ever rendered — where `days` drives a predicate, and a
+   * predicate silently reading `undefined` is the failure this replaces.
+   */
+  closed?: TaskGroupClosureCountsDto;
   ratingFloor: number;
   allowNewWorkers: boolean;
   eligibleProfessionIds: string[];
@@ -164,6 +232,16 @@ export interface OverrideTaskWorkerOutcomeRequest {
 }
 
 /** Filterable task-group statuses for the admin Tasks list (plus "all"). */
+/**
+ * The tasks list's tab set.
+ *
+ * ⚠ These are **client-side buckets**, not server values, and have been since
+ * F-07 ·0 (2026-09-17) deleted `TaskGroupDto.status`. Nothing sends them to the
+ * API; the page files each booking with `groupBucket` (lib/tasks/staffing.ts)
+ * off its day counts. The words are kept because the i18n keys and the operators'
+ * vocabulary both use them — do not send one as a `?status=` value, which is a
+ * different, per-DAY enum that now binds `CheckedIn`/`InReview`.
+ */
 export const TASK_GROUP_STATUS_FILTERS = [
   "all",
   "Pending",

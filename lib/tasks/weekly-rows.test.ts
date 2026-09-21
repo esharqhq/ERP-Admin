@@ -33,7 +33,10 @@ const GROUP: TaskGroupDto = {
   defaultStartTime: "09:00:00",
   defaultDeadline: null,
   instructions: null,
-  status: "Pending",
+  days: {
+    total: 1, pending: 1, checkedIn: 0, inReview: 0,
+    done: 0, cancelled: 0, rejected: 0,
+  },
   ratingFloor: 0,
   allowNewWorkers: true,
   eligibleProfessionIds: [],
@@ -52,6 +55,7 @@ const GROUP: TaskGroupDto = {
       requiredWorkerCount: 2,
       startedAt: null,
       completedAt: null,
+      closureReason: null,
       workers: [worker("Ali"), worker("Bek")],
     },
     {
@@ -66,6 +70,7 @@ const GROUP: TaskGroupDto = {
       requiredWorkerCount: 1,
       startedAt: null,
       completedAt: null,
+      closureReason: null,
       workers: [],
     },
   ],

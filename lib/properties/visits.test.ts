@@ -20,6 +20,7 @@ function task(over: Partial<TaskItemDto> = {}): TaskItemDto {
     requiredWorkerCount: 2,
     startedAt: null,
     completedAt: null,
+    closureReason: null,
     workers: [worker(), worker({ workerId: "w2" })],
     ...over,
   };
@@ -34,7 +35,10 @@ function group(tasks: TaskItemDto[], over: Partial<TaskGroupDto> = {}): TaskGrou
     defaultStartTime: "06:00:00",
     defaultDeadline: null,
     instructions: null,
-    status: "Pending",
+    days: {
+      total: 1, pending: 1, checkedIn: 0, inReview: 0,
+      done: 0, cancelled: 0, rejected: 0,
+    },
     ratingFloor: 0,
     allowNewWorkers: true,
     eligibleProfessionIds: [],

@@ -54,6 +54,7 @@ function task(over: Partial<TaskItemDto> = {}): TaskItemDto {
     requiredWorkerCount: 1,
     startedAt: null,
     completedAt: null,
+    closureReason: null,
     workers: [assigned()],
     ...over,
   };
