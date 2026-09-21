@@ -1,5 +1,6 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { useAuthStore } from "@/store/auth.store";
+import { isSessionMintingEndpoint } from "@/lib/http/auth-endpoint";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 
@@ -52,7 +53,15 @@ apiClient.interceptors.response.use(
       _retry?: boolean;
     };
 
-    if (error.response?.status !== 401 || original._retry) {
+    // A 401 from login is a rejected password, not an expired session: there is
+    // nothing to refresh, and sending it down the branch below ends in a page
+    // reload that throws away the error the form was about to show. Hand it back
+    // to the caller so `useLogin`'s `error` survives and the banner renders.
+    if (
+      error.response?.status !== 401 ||
+      original._retry ||
+      isSessionMintingEndpoint(original?.url)
+    ) {
       return Promise.reject(error);
     }
 
