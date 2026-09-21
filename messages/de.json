@@ -2006,7 +2006,14 @@
       "medium": "Mittel",
       "high": "Hoch"
     },
-    "emptyColumn": "Keine Aufgaben"
+    "emptyColumn": "Keine Aufgaben",
+    "dayStates": {
+      "pending": "Geplant",
+      "checkedIn": "Läuft",
+      "inReview": "In Prüfung",
+      "done": "Abgeschlossen",
+      "cancelled": "Storniert"
+    }
   },
   "leave": {
     "title": "Urlaubsanträge",

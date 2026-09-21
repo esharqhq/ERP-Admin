@@ -33,7 +33,7 @@ function row(over: Partial<AttendanceRowDto> = {}): AttendanceRowDto {
     workerName: "Nilufar Yusupova",
     scheduledDate: "2026-09-10",
     scheduledAt: SCHEDULED,
-    taskStatus: "Active",
+    taskStatus: "CheckedIn",
     present: false,
     checkinAt: null,
     checkinLat: null,
@@ -61,11 +61,11 @@ describe("deriveKind", () => {
     ["in", "checked in exactly on the grace boundary", checkedIn(5), SCHED_MS + 60 * MIN],
     ["late", "checked in one minute past grace", checkedIn(6), SCHED_MS + 60 * MIN],
     ["await", "not due yet", {}, SCHED_MS - 30 * MIN],
-    ["overdue", "absent, past due, task still Active", {}, SCHED_MS + 30 * MIN],
+    ["overdue", "absent, past due, task still CheckedIn", {}, SCHED_MS + 30 * MIN],
     ["overdue", "absent, past due, task still Pending", { taskStatus: "Pending" }, SCHED_MS + 30 * MIN],
     ["noshow", "outcome says so", { outcome: "NoShow" }, SCHED_MS + 30 * MIN],
     ["noshow", "task finished without them", { taskStatus: "Done" }, SCHED_MS + 30 * MIN],
-    ["noshow", "task submitted for review without them", { taskStatus: "Review" }, SCHED_MS + 30 * MIN],
+    ["noshow", "task submitted for review without them", { taskStatus: "InReview" }, SCHED_MS + 30 * MIN],
     ["removed", "taken off the task", { outcome: "Removed" }, SCHED_MS + 30 * MIN],
     ["cancelled", "task cancelled", { taskStatus: "Cancelled" }, SCHED_MS + 30 * MIN],
     ["cancelled", "outcome cancelled", { outcome: "Cancelled" }, SCHED_MS + 30 * MIN],
@@ -76,6 +76,27 @@ describe("deriveKind", () => {
       expect(deriveKind(row(over), now)).toBe(expected);
     });
   }
+
+  it("calls a no-show on a handed-in day a no-show, not overdue", () => {
+    // The server says `InReview` since 2026-09-17. While that word was unknown,
+    // the `status === "review"` arm did not match and the row fell through to the
+    // clock, reading `overdue` — a worker who simply never arrived looked late.
+    expect(
+      deriveKind(
+        row({ taskStatus: "InReview", present: false, checkinAt: null }),
+        SCHED_MS + 30 * MIN,
+      ),
+    ).toBe("noshow");
+  });
+
+  it("does the same for a CheckedIn day that has not ended", () => {
+    expect(
+      deriveKind(
+        row({ taskStatus: "CheckedIn", present: false, checkinAt: null }),
+        SCHED_MS + 30 * MIN,
+      ),
+    ).toBe("overdue");
+  });
 
   // The precedence cases. Each one is a pair of fields that both have a claim on
   // the row, and getting the order wrong is invisible to a typecheck.

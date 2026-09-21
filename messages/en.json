@@ -2006,7 +2006,14 @@
       "medium": "Medium",
       "high": "High"
     },
-    "emptyColumn": "No tasks"
+    "emptyColumn": "No tasks",
+    "dayStates": {
+      "pending": "Scheduled",
+      "checkedIn": "In progress",
+      "inReview": "Under review",
+      "done": "Completed",
+      "cancelled": "Cancelled"
+    }
   },
   "leave": {
     "title": "Leave Requests",
