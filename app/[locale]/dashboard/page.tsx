@@ -75,7 +75,7 @@ export default function DashboardPage() {
   }
 
   const statusTotal =
-    data?.statusBreakdown.reduce((sum, s) => sum + s.count, 0) ?? 0;
+    data?.dayStatusBreakdown?.reduce((sum, s) => sum + s.count, 0) ?? 0;
 
   return (
     <div className="flex flex-col gap-6">
@@ -96,7 +96,7 @@ export default function DashboardPage() {
                 <Skeleton className="h-8 w-16 rounded-md" />
               ) : (
                 <div className="text-3xl font-bold tracking-tight">
-                  {(data?.totals[key] ?? 0).toLocaleString(locale)}
+                  {(data?.totals?.[key] ?? 0).toLocaleString(locale)}
                 </div>
               )}
             </CardContent>
@@ -144,7 +144,7 @@ export default function DashboardPage() {
                 {t("statusBreakdown.empty")}
               </div>
             ) : (
-              <StatusDonut data={data?.statusBreakdown ?? []} />
+              <StatusDonut data={data?.dayStatusBreakdown ?? []} />
             )}
           </CardContent>
         </Card>
@@ -166,13 +166,13 @@ export default function DashboardPage() {
               </div>
             ) : isError ? (
               <ChartError text={tCommon("error")} />
-            ) : (data?.topWorkers.length ?? 0) === 0 ? (
+            ) : (data?.topWorkers?.length ?? 0) === 0 ? (
               <div className="py-8 text-center text-sm text-muted-foreground">
                 {t("topWorkers.empty")}
               </div>
             ) : (
               <ol className="flex flex-col gap-1">
-                {data?.topWorkers.map((w, i) => (
+                {data?.topWorkers?.map((w, i) => (
                   <li
                     key={w.id}
                     className="flex items-center gap-3 rounded-md px-2 py-2 hover:bg-accent/40"
