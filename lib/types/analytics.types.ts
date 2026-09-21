@@ -37,10 +37,27 @@ export interface RevenuePoint {
   amount: number;
 }
 
+/**
+ * ⚠ Every array here is `nullable: true` on the wire, so none of them may be
+ * dereferenced without a guard. Typing them as plain arrays is what let
+ * `data?.statusBreakdown.reduce(...)` compile and then take the whole dashboard
+ * down with a 500 the moment the field vanished.
+ */
 export interface AdminHomeDto {
   totals: AdminHomeTotals;
-  statusBreakdown: StatusBreakdownItem[];
-  topWorkers: TopWorkerItem[];
-  trend: TrendPoint[];
-  revenueSeries: RevenuePoint[];
+  /**
+   * ⚠ Named `statusBreakdown` until the backend renamed it; measured as
+   * `dayStatusBreakdown` on api.uyer.app 2026-09-21. Still one row per status
+   * with the same `{status, count}` shape — the `day` prefix is the window it
+   * counts over, not an extra dimension, so there is no per-day nesting.
+   *
+   * ⚠ The statuses it returns are **task** statuses (`Pending`, `CheckedIn`,
+   * `InReview`, `Done`, `Cancelled`), not the four `TaskGroupStatusName`s the
+   * card's copy still claims. `StatusDonut` colours the two it does not know
+   * from `STATUS_FALLBACK`, so this renders — but the description is now wrong.
+   */
+  dayStatusBreakdown: StatusBreakdownItem[] | null;
+  topWorkers: TopWorkerItem[] | null;
+  trend: TrendPoint[] | null;
+  revenueSeries: RevenuePoint[] | null;
 }
