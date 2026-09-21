@@ -32,13 +32,25 @@ import {
 } from "@/lib/tasks/weekly-rows";
 import type { PropertyDto } from "@/lib/types/property.types";
 
+/**
+ * ⚠ The five day states as `TaskStateKey`s, not as the server's words.
+ *
+ * These were `"Active"` and `"Review"` until F-07 ·0 renamed them on
+ * 2026-09-17; after that, picking either matched no row and the table silently
+ * emptied. `filterRowsByStatus` canonicalises both sides, so the tab value is
+ * now our key rather than a copy of a server word that has already moved once.
+ *
+ * ⚠ Nothing here is sent to the API. `filterRowsByStatus` runs over rows already
+ * fetched — the admin task list's `?status=` is a different, server-bound enum
+ * that answers `400` problem-details for an unknown value.
+ */
 const STATUSES = [
   "all",
-  "Pending",
-  "Active",
-  "Review",
-  "Done",
-  "Cancelled",
+  "pending",
+  "checkedIn",
+  "inReview",
+  "done",
+  "cancelled",
 ] as const;
 
 function fmtTime(iso: string): string {

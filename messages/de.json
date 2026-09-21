@@ -1098,11 +1098,11 @@
       },
       "status": {
         "all": "Alle",
-        "Pending": "Geplant",
-        "Active": "Läuft",
-        "Review": "In Prüfung",
-        "Done": "Abgeschlossen",
-        "Cancelled": "Storniert"
+        "pending": "Geplant",
+        "checkedIn": "Läuft",
+        "inReview": "In Prüfung",
+        "done": "Abgeschlossen",
+        "cancelled": "Storniert"
       },
       "viewLog": "Protokoll"
     },
