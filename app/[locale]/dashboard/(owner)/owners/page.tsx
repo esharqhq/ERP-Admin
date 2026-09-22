@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { Building2, Trash2 } from "lucide-react";
+import { Building2, Inbox, Trash2 } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +10,8 @@ import { DataTable, type DataColumn } from "@/components/ui/data-table";
 import type { FilterField } from "@/components/ui/filter-bar";
 import { useOwners } from "@/hooks/use-owners";
 import { useHasPermission } from "@/hooks/use-current-permissions";
+import { useOwnerSummary } from "@/hooks/use-owners";
+import { OwnersSummaryStrip } from "@/components/owners/owners-summary-strip";
 import { useCities, useCountries } from "@/hooks/use-lookups";
 import { useTableUrlState } from "@/hooks/use-table-url-state";
 import {
@@ -18,7 +20,11 @@ import {
   clearCityOnCountryChange,
 } from "@/lib/owners/owner-filter-query";
 import { isPermissionDenied } from "@/lib/onboarding/errors";
-import { onboardingStatusPresentation } from "@/lib/onboarding/status";
+import {
+  accountStatusPresentation,
+  stageKey,
+} from "@/lib/onboarding/account-status";
+import { stageTone } from "@/lib/workers/worker-status";
 import { initials } from "@/lib/ui/initials";
 import type { OwnerListQuery, OwnerRowDto } from "@/lib/types/owner.types";
 import { useLocale, useTranslations } from "next-intl";
@@ -96,7 +102,12 @@ export default function OwnersPage() {
   const t = useTranslations("owners");
   const tRestore = useTranslations("accounts.restore");
   const canRestoreAccounts = useHasPermission("owner:restore");
-  const tOnboarding = useTranslations("onboarding");
+  // The review-queue shortcut reuses the workers copy: it is the same button
+  // doing the same thing, and two translations of "Review queue" would drift.
+  const tWorkers = useTranslations("workers");
+  // The shared account-badge copy — the same namespace the workers table
+  // reads, so the two tables cannot describe the same state differently.
+  const tAccounts = useTranslations("accounts");
   const locale = useLocale();
 
   const state = useTableUrlState({
@@ -128,6 +139,9 @@ export default function OwnersPage() {
   );
 
   const { data, isLoading, isError, error } = useOwners(query);
+  // ⚠ Gated on the same refusal the table reads. Four probes that all 403 would
+  // draw a strip of confident zeroes above a table that is saying "not allowed".
+  const summary = useOwnerSummary(!isPermissionDenied(error));
 
   /**
    * The country picker owns two params, so it writes both at once. Two
@@ -262,14 +276,54 @@ export default function OwnersPage() {
         id: "onboarding",
         label: t("columns.onboarding"),
         locked: true,
+        // ⚠ The same badge the workers table draws, off the same function. It was
+        // a one-line `variant` badge with hand-written emerald/amber classes
+        // until now, so the identical `Active` account read as two different
+        // things depending on which table you were standing in.
+        className: "min-w-[176px]",
         cell: (o) => {
-          const p = onboardingStatusPresentation(o.onboardingStatus);
+          const p = accountStatusPresentation(o);
           return (
-            <Badge variant={p.variant} className={p.className}>
-              {tOnboarding(
-                `status.${p.labelKey}` as Parameters<typeof tOnboarding>[0],
-              )}
-            </Badge>
+            <div className="flex min-w-0 flex-col items-start gap-1">
+              <Badge
+                tone={
+                  p.tone === "solidCritical"
+                    ? "danger"
+                    : p.tone === "outlineWarning"
+                      ? "warning"
+                      : stageTone(p.labelKey)
+                }
+                className="h-5 rounded-md px-2 text-[11px]"
+              >
+                <span
+                  aria-hidden
+                  className="size-1.5 shrink-0 rounded-full bg-current opacity-70"
+                />
+                {p.kind === "stage"
+                  ? tAccounts(`stage.${p.labelKey}` as "stage.kyc")
+                  : tAccounts(`account.${p.labelKey}` as "account.lapsed")}
+              </Badge>
+              {/*
+                The second line answers "where in the machine", and when the
+                account state has taken the badge it answers "why" and still
+                names the stage — the same contradiction the workers column is
+                built to show.
+              */}
+              <span className="truncate text-[10px] text-muted-foreground">
+                {p.kind === "stage"
+                  ? p.step === null
+                    ? tAccounts("status.branchStep")
+                    : tAccounts("status.step", { step: p.step, steps: p.steps })
+                  : tAccounts("status.overrides", {
+                      reason: tAccounts(
+                        `status.reason.${p.labelKey}` as "status.reason.lapsed",
+                      ),
+                      stage: tAccounts(
+                        `stage.${stageKey(o.onboardingStatus)}` as "stage.kyc",
+                      ),
+                    })}
+              </span>
+            </div>
           );
         },
       },
@@ -326,7 +380,7 @@ export default function OwnersPage() {
         ),
       },
     ],
-    [t, tOnboarding, locale],
+    [t, tAccounts, locale],
   );
 
   const tabs = useMemo(
@@ -347,12 +401,58 @@ export default function OwnersPage() {
       between it and the card.
     */
     <div className="flex grow flex-col gap-5">
-      <div className="flex flex-col gap-1">
-        <h1 className="font-heading text-3xl font-bold leading-tight tracking-tight">
-          {t("title")}
-        </h1>
-        <p className="text-sm text-muted-foreground">{t("directory.subtitle")}</p>
+      {/* The same header shape the workers directory uses: the title and its
+          sentence on the left, the page-level actions on the right. Two
+          directories answering the same questions should not need two layouts. */}
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="flex flex-col gap-1">
+          <h1 className="font-heading text-3xl font-bold leading-tight tracking-tight">
+            {t("title")}
+          </h1>
+          <p className="text-sm text-muted-foreground">{t("directory.subtitle")}</p>
+        </div>
+
+        <div className="flex items-center gap-1.5">
+          {/* The review shortcut is a filter, not a screen — it writes the same
+              tab an admin can reach from the strip, so the queue can never drift
+              from the directory and the URL is shareable either way. */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => state.setTab("review")}
+            className="gap-2 rounded-lg border-status-pending/30 bg-status-pending-tint/60 text-status-pending-deep hover:bg-status-pending-tint"
+          >
+            <Inbox className="size-4" />
+            {tWorkers("reviewQueue")}
+            <span className="font-mono text-xs tabular-nums">
+              {summary.counts.review ?? 0}
+            </span>
+          </Button>
+          {/* ⚠ SUPER_ADMIN only. Hidden without `owner:restore`, because the
+              screen behind it refuses a MODERATOR with an empty-bodied `403` —
+              a link to a page that can only say "no" is worse than no link. */}
+          {canRestoreAccounts && (
+            <Button
+              variant="outline"
+              size="sm"
+              nativeButton={false}
+              className="gap-2 rounded-lg"
+              render={<Link href="/dashboard/owners/deleted" />}
+            >
+              <Trash2 className="size-4" />
+              {tRestore("link")}
+            </Button>
+          )}
+        </div>
       </div>
+
+      <OwnersSummaryStrip
+        total={data?.total ?? 0}
+        counts={summary.counts}
+        isLoading={summary.isLoading}
+        filters={state.filters}
+        onFilters={state.setFilters}
+      />
 
       {/* A refused combination must explain itself: the table below is still
           showing the tab/search result, so without this it reads as "no owners
@@ -379,23 +479,6 @@ export default function OwnersPage() {
         rowHref={(o) => `/dashboard/owners/${o.id}`}
         rowLabel={(o) => o.fullName || o.id}
         title={t("list")}
-        // ⚠ SUPER_ADMIN only. Hidden without `owner:restore`, because the screen
-        // behind it refuses a MODERATOR with an empty-bodied `403` — a link to a
-        // page that can only say "no" is worse than no link.
-        actions={
-          canRestoreAccounts ? (
-            <Button
-              variant="outline"
-              size="sm"
-              nativeButton={false}
-              className="gap-2 rounded-lg"
-              render={<Link href="/dashboard/owners/deleted" />}
-            >
-              <Trash2 className="size-4" />
-              {tRestore("link")}
-            </Button>
-          ) : undefined
-        }
         // No subtitle: the page header above already carries that sentence, and
         // the count pill beside the title is what the row actually adds.
         tabs={tabs}

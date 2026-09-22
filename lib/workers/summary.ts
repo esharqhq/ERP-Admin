@@ -83,7 +83,11 @@ export type WorkerSummaryCounts = Record<string, number>;
  * wider selection stays dark rather than claiming credit for it.
  */
 export function isTileActive(
-  tile: WorkerSummaryTile,
+  // ⚠ Structural, not `WorkerSummaryTile`: the owners strip reuses both helpers
+  // and its tiles carry an `OwnerListQuery` probe. Only `filter` is read here,
+  // and one shared definition is what keeps a lit tile meaning the same thing
+  // above either table.
+  tile: { filter: Record<string, string> },
   values: Record<string, string>,
 ): boolean {
   return Object.entries(tile.filter).every(([k, v]) => (values[k] ?? "") === v);
@@ -97,7 +101,7 @@ export function isTileActive(
  * owns, never just the first.
  */
 export function toggleTileFilter(
-  tile: WorkerSummaryTile,
+  tile: { filter: Record<string, string> },
   values: Record<string, string>,
 ): Record<string, string> {
   const off = isTileActive(tile, values);

@@ -1,7 +1,11 @@
+import { type OnboardingStatus } from "@/lib/types/onboarding.types";
 import {
-  ONBOARDING_STATUSES,
-  type OnboardingStatus,
-} from "@/lib/types/onboarding.types";
+  accountStatusPresentation,
+  stageKey,
+  type AccountStatusPresentation,
+  type AccountStatusRail,
+  type AccountStatusTone,
+} from "@/lib/onboarding/account-status";
 
 /**
  * The workers table's one **Status** column.
@@ -46,120 +50,31 @@ import {
  */
 
 /** How the badge is drawn. Names a role, never a colour — tones are tokens. */
-export type WorkerStatusTone =
-  /** The stage. Quiet, because most rows are one of these and a page of alarm is no alarm. */
-  | "stage"
-  /** An admin sanction, or a soft-delete. Filled, so it cannot be read as a stage. */
-  | "solidCritical"
-  /** Cover ran out. Outlined amber and **never red** — nobody did anything wrong. */
-  | "outlineWarning";
-
-/** The row-level accent this status paints, or `null` for the quiet majority. */
-export type WorkerStatusRail = "critical" | "warning" | null;
-
-export interface WorkerStatusPresentation {
-  /** Which axis won the column. Drives whether the sub-line is a step or a reason. */
-  kind: "stage" | "account";
-  /** Key under `workers.stage.*` (kind `stage`) or `workers.account.*` (kind `account`). */
-  labelKey: string;
-  tone: WorkerStatusTone;
-  rail: WorkerStatusRail;
-  /**
-   * 1-based position in the onboarding machine, for the `step n / 5` sub-line.
-   * `null` whenever the account state took the column, because a step number
-   * under the word `Blocked` would describe the wrong axis.
-   *
-   * ⚠ It is `n / 5` and not `n / 6` on purpose: `Rejected` is a **branch off** the
-   * machine, not a rung of it, so it has no step.
-   */
-  step: number | null;
-  /** Total rungs, so the copy never hard-codes a number the enum can move. */
-  steps: number;
-  /**
-   * The review queue tints its rows — it is the one stage an admin acts on from
-   * this list, and §01 draws those rows on a warm ground.
-   */
-  isReviewQueue: boolean;
-}
-
-/** `Rejected` is a branch, not a rung — the ladder is the other five. */
-const LADDER: readonly OnboardingStatus[] = ONBOARDING_STATUSES.filter(
-  (s) => s !== "Rejected",
-);
+export type WorkerStatusTone = AccountStatusTone;
+export type WorkerStatusRail = AccountStatusRail;
+export type WorkerStatusPresentation = AccountStatusPresentation;
 
 /**
- * The two account states that do **not** take the column over.
+ * The worker-typed entry point to `accountStatusPresentation`.
  *
- * `Active` is obvious. `Pending` is the interesting one: a pending account is
- * exactly a worker mid-onboarding, so their stage is the more informative word and
- * showing `Pending` instead would replace a specific answer with a vague one.
- */
-const PASSIVE = new Set(["Active", "Pending"]);
-
-const ACCOUNT: Record<
-  string,
-  { labelKey: string; tone: WorkerStatusTone; rail: WorkerStatusRail }
-> = {
-  /**
-   * Soft-deleted. Outranks everything, and is absent from the table unless
-   * `?status=Deleted` is set explicitly — so seeing one means somebody asked.
-   */
-  Deleted: { labelKey: "deleted", tone: "solidCritical", rail: "critical" },
-  /** An admin sanction. Outranks `Active`: a blocked worker with live cover reads this. */
-  Blocked: { labelKey: "blocked", tone: "solidCritical", rail: "critical" },
-  /** The contract ran out. Amber, never red. */
-  Lapsed: { labelKey: "lapsed", tone: "outlineWarning", rail: "warning" },
-};
-
-/**
- * One badge for one row.
+ * ⚠ The logic moved to `lib/onboarding/account-status.ts` when the **owners**
+ * table was brought onto the same badge. It was never worker-specific — it only
+ * ever read `status` and `onboardingStatus`, which both tables carry — and two
+ * copies would have been two readings of the same `Active` account.
  *
- * Takes the two fields rather than the whole `WorkerRowDto` so the mobile card,
- * the desktop cell and the tests can all call it without constructing a row.
+ * This wrapper stays because six call sites and a test suite name it, and
+ * because it keeps the `OnboardingStatus` union on the worker side: a worker row
+ * never carries the walk-in owner's `"NotApplicable"`, so there is no reason to
+ * widen the type here.
  */
 export function workerStatusPresentation(row: {
   status: string | null;
   onboardingStatus: OnboardingStatus;
 }): WorkerStatusPresentation {
-  const account = row.status ?? "";
-  const override = account && !PASSIVE.has(account) ? ACCOUNT[account] : undefined;
-
-  if (override) {
-    return {
-      kind: "account",
-      labelKey: override.labelKey,
-      tone: override.tone,
-      rail: override.rail,
-      step: null,
-      steps: LADDER.length,
-      isReviewQueue: false,
-    };
-  }
-
-  const rung = LADDER.indexOf(row.onboardingStatus);
-  return {
-    kind: "stage",
-    labelKey: stageKey(row.onboardingStatus),
-    tone: "stage",
-    rail: null,
-    // `Rejected` is off the ladder, so `indexOf` is -1 and the sub-line says
-    // where it stopped instead of counting a step that does not exist.
-    step: rung === -1 ? null : rung + 1,
-    steps: LADDER.length,
-    isReviewQueue: row.onboardingStatus === "Review",
-  };
+  return accountStatusPresentation(row);
 }
 
-/**
- * `Kyc` → `kyc`. The i18n keys are camelCase, the enum is PascalCase.
- *
- * Exported because three drawings of a worker need it — the desktop cell, the
- * mobile card and the filter's stage picker — and three private copies is how the
- * keys and the enum drift apart.
- */
-export function stageKey(status: OnboardingStatus | string): string {
-  return status.charAt(0).toLowerCase() + status.slice(1);
-}
+export { stageKey };
 
 /**
  * The stage badge's tone.

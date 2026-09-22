@@ -1,8 +1,18 @@
 "use client";
 
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useMutation,
+  useQueries,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { ownerService } from "@/lib/services/owner.service";
 import { kycService } from "@/lib/services/kyc.service";
+import {
+  OWNER_SUMMARY_TILES,
+  type OwnerSummaryCounts,
+} from "@/lib/owners/summary";
 import type {
   AdminUpdateOwnerProfileRequest,
   OwnerListQuery,
@@ -82,6 +92,47 @@ export function useOwner(ownerUserId: string) {
  * 2026-09-07; it returns rows now. Gate `enabled` on `owner:restore` — the
  * screen is SUPER_ADMIN-only and a MODERATOR gets an empty-bodied `403`.
  */
+/**
+ * The four counts above the owners table, as four one-row reads.
+ *
+ * The mirror of `useWorkerSummary`, and four requests for the same reason: there
+ * is no counts endpoint, so each tile probes its own population with
+ * `pageSize: 1` and keeps only `total`.
+ *
+ * The probes do **not** carry the table's filters. That is the point — the strip
+ * says what is true of the directory, not of the current narrowing, and a count
+ * that moved with the filters would answer a question nobody asked.
+ *
+ * **A failed or refused probe reports `0`.** A zero tile draws as cleared and
+ * colourless with no action, which is a better reading than an alarming tile
+ * built on a number that never arrived; the table below is where a `403` on
+ * `owner:list` gets named.
+ */
+export function useOwnerSummary(enabled = true): {
+  counts: OwnerSummaryCounts;
+  isLoading: boolean;
+} {
+  const results = useQueries({
+    queries: OWNER_SUMMARY_TILES.map((tile) => ({
+      // Shares the ["owners-table"] prefix with the list on purpose: an approve,
+      // a reject or a soft-delete invalidates that prefix, and these four counts
+      // describe exactly the populations those verbs move between.
+      queryKey: ["owners-table", "count", tile.id],
+      queryFn: () => ownerService.getOwners({ ...tile.query, page: 1, pageSize: 1 }),
+      enabled,
+      staleTime: 5 * 60 * 1000,
+    })),
+  });
+
+  return {
+    counts: Object.fromEntries(
+      OWNER_SUMMARY_TILES.map((tile, i) => [tile.id, results[i]?.data?.total ?? 0]),
+    ),
+    // Every tile lands together or the strip flickers four times on first paint.
+    isLoading: results.some((r) => r.isLoading),
+  };
+}
+
 export function useDeletedOwners(enabled = true) {
   return useQuery({
     queryKey: ["owners-deleted"],

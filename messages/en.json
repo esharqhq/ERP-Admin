@@ -1201,7 +1201,31 @@
     },
     "tabsLabel": "Owner list view",
     "emptyTitle": "No owners here yet",
-    "emptyBody": "Owners appear once they register. Nothing is waiting on you."
+    "emptyBody": "Owners appear once they register. Nothing is waiting on you.",
+    "summary": {
+      "onThePlatform": "On the platform",
+      "count": "{count, plural, one {# owner} other {# owners}}",
+      "review": {
+        "title": "{count, plural, other {# waiting in review}}",
+        "why": "approve or reject — reason required",
+        "action": "Open"
+      },
+      "awaitingDocs": {
+        "title": "{count, plural, other {# awaiting documents}}",
+        "why": "registered, nothing submitted yet",
+        "action": "List"
+      },
+      "lapsed": {
+        "title": "{count, plural, other {# lapsed contracts}}",
+        "why": "cover ended, account intact",
+        "action": "List"
+      },
+      "neverOrdered": {
+        "title": "{count, plural, other {# never ordered}}",
+        "why": "registered and never once booked",
+        "action": "List"
+      }
+    }
   },
   "walkIn": {
     "title": "Walk-in orders",
@@ -3464,6 +3488,30 @@
         "reasonRequired": "A reason is required.",
         "generic": "The account could not be restored."
       }
+    },
+    "stage": {
+      "kyc": "Awaiting documents",
+      "review": "In review",
+      "rejected": "Rejected",
+      "approved": "Approved",
+      "contract": "Contracting",
+      "active": "Active",
+      "notApplicable": "Not applicable"
+    },
+    "account": {
+      "blocked": "Blocked",
+      "lapsed": "Lapsed",
+      "deleted": "Deleted"
+    },
+    "status": {
+      "step": "step {step} / {steps}",
+      "branchStep": "stopped at review",
+      "reason": {
+        "blocked": "sanctioned by an admin",
+        "lapsed": "cover ran out, account intact",
+        "deleted": "soft-deleted"
+      },
+      "overrides": "{reason} · stage: {stage}"
     }
   }
 }

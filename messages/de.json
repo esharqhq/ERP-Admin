@@ -1201,7 +1201,31 @@
     },
     "tabsLabel": "Ansicht der Eigentümerliste",
     "emptyTitle": "Noch keine Eigentümer",
-    "emptyBody": "Eigentümer erscheinen hier, sobald sie sich registrieren. Es liegt nichts für Sie bereit."
+    "emptyBody": "Eigentümer erscheinen hier, sobald sie sich registrieren. Es liegt nichts für Sie bereit.",
+    "summary": {
+      "onThePlatform": "Auf der Plattform",
+      "count": "{count, plural, one {# Eigentümer} other {# Eigentümer}}",
+      "review": {
+        "title": "{count, plural, other {# in Prüfung}}",
+        "why": "genehmigen oder ablehnen — Begründung erforderlich",
+        "action": "Öffnen"
+      },
+      "awaitingDocs": {
+        "title": "{count, plural, other {# ohne Dokumente}}",
+        "why": "registriert, noch nichts eingereicht",
+        "action": "Liste"
+      },
+      "lapsed": {
+        "title": "{count, plural, other {# abgelaufene Verträge}}",
+        "why": "Deckung beendet, Konto intakt",
+        "action": "Liste"
+      },
+      "neverOrdered": {
+        "title": "{count, plural, other {# ohne Auftrag}}",
+        "why": "registriert und nie gebucht",
+        "action": "Liste"
+      }
+    }
   },
   "walkIn": {
     "title": "Laufkundschaft-Aufträge",
@@ -3464,6 +3488,30 @@
         "reasonRequired": "Eine Begründung ist erforderlich.",
         "generic": "Das Konto konnte nicht wiederhergestellt werden."
       }
+    },
+    "stage": {
+      "kyc": "Dokumente ausstehend",
+      "review": "In Prüfung",
+      "rejected": "Abgelehnt",
+      "approved": "Genehmigt",
+      "contract": "Vertragsphase",
+      "active": "Aktiv",
+      "notApplicable": "Nicht zutreffend"
+    },
+    "account": {
+      "blocked": "Gesperrt",
+      "lapsed": "Abgelaufen",
+      "deleted": "Gelöscht"
+    },
+    "status": {
+      "step": "Schritt {step} / {steps}",
+      "branchStep": "bei der Prüfung gestoppt",
+      "reason": {
+        "blocked": "von einem Admin sanktioniert",
+        "lapsed": "Deckung abgelaufen, Konto intakt",
+        "deleted": "gelöscht"
+      },
+      "overrides": "{reason} · Phase: {stage}"
     }
   }
 }
