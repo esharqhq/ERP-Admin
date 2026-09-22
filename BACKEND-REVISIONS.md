@@ -64,7 +64,7 @@ This pass read every entry from 2026-09-08 downward; it **actioned the five F-07
 | 2026-09-10 upload-signature error shape | fix | Open. |
 | 2026-09-10 non-Latin filenames | fix | Open. |
 | 2026-09-08 KYC queue paging + richer rows | breaking | Paging is done (`lib/services/kyc.service.ts`). The five new `KycProfileSummaryDto` fields are on the wire and unsurfaced — a product decision, not a break. |
-| 2026-09-07 `?status=Deleted`, `deletedAt`/`deletedBy` | fix | **Partly actioned by this pass** — both row DTOs now carry the two fields because the restore screens read them. The export column counts it also moved are untouched; this app calls no export route. |
+| 2026-09-07 `?status=Deleted`, `deletedAt`/`deletedBy` | fix | ✅ **Actioned and confirmed live 2026-09-22** — the deleted-workers screen returned 5 real rows against production, each carrying `deletedAt` and `deletedBy`. That closes the one thing this pass could not verify from source: the route used to answer `total: 0` and now genuinely returns rows. **Partly actioned** — both row DTOs now carry the two fields because the restore screens read them. The export column counts it also moved are untouched; this app calls no export route. |
 | Everything dated 2026-08-12 → 2026-09-07 | mixed | **Untouched.** See the count below. |
 
 ⚠ **This pass covers 2026-09-08 → 2026-09-21 only.** The oldest `Absorbed to` in the table below is
