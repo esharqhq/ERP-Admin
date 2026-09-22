@@ -3432,5 +3432,37 @@
         "resolveNote": "The admin directory resolves the id; if that lookup ever fails the truncated id is shown as-is rather than \"Unknown\"."
       }
     }
+  },
+  "accounts": {
+    "restore": {
+      "link": "Deleted",
+      "workersTitle": "Deleted workers",
+      "ownersTitle": "Deleted owners",
+      "subtitle": "Restoring brings back the same record — same id, task history, contracts, ratings, documents and agency link.",
+      "backToWorkers": "Back to workers",
+      "backToOwners": "Back to owners",
+      "noAccess": "Restoring a deleted account is reserved for super admins.",
+      "empty": "No deleted accounts.",
+      "submit": "Restore",
+      "title": "Restore {name}?",
+      "sameRow": "The same record comes back — same id, task history, contracts, ratings, documents and agency link.",
+      "chatGroupsGone": "Chat groups this person owned do not come back. The deletion handed them to a successor and that cannot be undone.",
+      "notReRegistration": "Re-registering is not a restore: that creates a brand-new record with no history, and it is the only thing the person can do for themselves.",
+      "reasonLabel": "Reason",
+      "reasonHint": "Required. This is the record of why the account was brought back.",
+      "columns": {
+        "deletedAt": "Deleted",
+        "deletedBy": "Deleted by",
+        "actions": "Actions"
+      },
+      "errors": {
+        "emailTaken": "Someone has already registered with this person's email address. A deleted account releases its address, so the restore cannot go ahead until that other account gives it up.",
+        "phoneTaken": "Someone has already registered with this person's phone number. The phone can be taken independently of the email — check the number, not the address.",
+        "notDeleted": "This account is not deleted, so there is nothing to restore.",
+        "notFound": "This account no longer exists.",
+        "reasonRequired": "A reason is required.",
+        "generic": "The account could not be restored."
+      }
+    }
   }
 }

@@ -37,6 +37,13 @@ export type OwnerType = "Regular" | "Default";
  */
 export interface OwnerRowDto {
   id: string;
+  /**
+   * ⚠ Set only on a soft-deleted row, and only reachable through
+   * `?status=Deleted` (re-enabled 2026-09-07 — it used to answer `total: 0`).
+   * `deletedBy` is the admin who did it. Both are what the restore screen shows.
+   */
+  deletedAt?: string | null;
+  deletedBy?: string | null;
   fullName: string;
   email: string;
   phoneNumber: string;

@@ -1,6 +1,11 @@
 "use client";
 
-import { useQueries, useQuery } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueries,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { workerService } from "@/lib/services/worker.service";
 import type { WorkerListQuery } from "@/lib/types/worker.types";
 import {
@@ -19,6 +24,42 @@ export function useWorkers(query: WorkerListQuery = {}, enabled = true) {
     queryKey: ["workers", query],
     queryFn: () => workerService.getWorkers(query),
     enabled,
+  });
+}
+
+/**
+ * The soft-deleted workers, for the restore screen.
+ *
+ * ⚠ `?status=Deleted` was accepted and **always answered `total: 0`** until
+ * 2026-09-07; it returns rows now. `enabled` should be gated on
+ * `worker:restore`, since the screen is SUPER_ADMIN-only and a MODERATOR would
+ * otherwise meet an empty-bodied `403` with nothing to read.
+ */
+export function useDeletedWorkers(enabled = true) {
+  return useQuery({
+    queryKey: ["workers-deleted"],
+    queryFn: () => workerService.getWorkers({ status: "Deleted", pageSize: 100 }),
+    enabled,
+  });
+}
+
+/**
+ * Bring a deleted worker back — `POST /api/admin/workers/{id}/restore`.
+ *
+ * ⚠ The same row returns: same id, task history, contracts, ratings, documents
+ * and agency link. It is **not** what re-registering does, which is a brand-new
+ * row with no history and the only thing a person can do for themselves.
+ */
+export function useRestoreWorker() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason: string }) =>
+      workerService.restoreWorker(id, reason),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["workers-deleted"] });
+      qc.invalidateQueries({ queryKey: ["workers"] });
+      qc.invalidateQueries({ queryKey: ["workers-table"] });
+    },
   });
 }
 

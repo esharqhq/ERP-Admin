@@ -3432,5 +3432,37 @@
         "resolveNote": "Das Admin-Verzeichnis löst die ID auf; schlägt das fehl, wird die gekürzte ID angezeigt statt „Unbekannt“."
       }
     }
+  },
+  "accounts": {
+    "restore": {
+      "link": "Gelöscht",
+      "workersTitle": "Gelöschte Mitarbeitende",
+      "ownersTitle": "Gelöschte Eigentümer",
+      "subtitle": "Beim Wiederherstellen kehrt derselbe Datensatz zurück — gleiche ID, Auftragshistorie, Verträge, Bewertungen, Dokumente und Agenturverknüpfung.",
+      "backToWorkers": "Zurück zu Mitarbeitenden",
+      "backToOwners": "Zurück zu Eigentümern",
+      "noAccess": "Das Wiederherstellen gelöschter Konten ist Super-Admins vorbehalten.",
+      "empty": "Keine gelöschten Konten.",
+      "submit": "Wiederherstellen",
+      "title": "{name} wiederherstellen?",
+      "sameRow": "Derselbe Datensatz kehrt zurück — gleiche ID, Auftragshistorie, Verträge, Bewertungen, Dokumente und Agenturverknüpfung.",
+      "chatGroupsGone": "Chatgruppen dieser Person kehren nicht zurück. Beim Löschen wurden sie unwiderruflich an eine Nachfolge übergeben.",
+      "notReRegistration": "Eine Neuregistrierung ist keine Wiederherstellung: dabei entsteht ein völlig neuer Datensatz ohne Historie — und nur das kann die Person selbst tun.",
+      "reasonLabel": "Begründung",
+      "reasonHint": "Pflichtfeld. Dies ist der Nachweis dafür, warum das Konto zurückgeholt wurde.",
+      "columns": {
+        "deletedAt": "Gelöscht am",
+        "deletedBy": "Gelöscht von",
+        "actions": "Aktionen"
+      },
+      "errors": {
+        "emailTaken": "Die E-Mail-Adresse dieser Person ist bereits neu registriert. Ein gelöschtes Konto gibt seine Adresse frei — die Wiederherstellung ist erst möglich, wenn das andere Konto sie freigibt.",
+        "phoneTaken": "Die Telefonnummer dieser Person ist bereits neu registriert. Die Nummer kann unabhängig von der E-Mail vergeben sein — prüfen Sie die Nummer, nicht die Adresse.",
+        "notDeleted": "Dieses Konto ist nicht gelöscht.",
+        "notFound": "Dieses Konto existiert nicht mehr.",
+        "reasonRequired": "Eine Begründung ist erforderlich.",
+        "generic": "Das Konto konnte nicht wiederhergestellt werden."
+      }
+    }
   }
 }

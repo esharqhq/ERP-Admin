@@ -44,6 +44,26 @@ export const ownerService = {
    *
    * Errors: `400 invalid_sort_column` / `invalid_filter_value`.
    */
+  /**
+   * `owner:restore` (30006) — **SUPER_ADMIN only**; anyone else gets an
+   * empty-bodied `403`. Brings back the **same row**: same id, task history,
+   * contracts, ratings, documents, agency link.
+   *
+   * ⚠ `reason` is mandatory (`400 reason_required`), and the body must be sent —
+   * a bodiless request is refused by model binding before the action runs.
+   *
+   * ⚠⚠ **The restore is CONDITIONAL.** A deleted person's email and phone were
+   * released for re-registration, so somebody may already hold either:
+   * `409 cannot_restore_email_taken` and `409 cannot_restore_phone_taken` are
+   * **separate** codes. Also `409 owner_not_deleted` and `404 owner_not_found`.
+   *
+   * ⚠ **Chat groups a restored owner owned do not come back** — the delete
+   * handed them to a successor irreversibly.
+   */
+  restoreOwner: async (id: string, reason: string): Promise<void> => {
+    await apiClient.post(`/api/owners/${id}/restore`, { reason });
+  },
+
   getOwners: async (query: OwnerListQuery = {}): Promise<PagedResult<OwnerRowDto>> => {
     const { data } = await apiClient.get<PagedResult<OwnerRowDto>>(
       "/api/admin/owners",

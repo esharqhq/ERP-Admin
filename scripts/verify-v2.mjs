@@ -77,11 +77,16 @@ const EXPECTED_FIELDS = {
   // city, and why the column must be rendered including its blanks.
   OwnerRowDto: ["id", "fullName", "email", "phoneNumber", "status", "onboardingStatus",
     "isVerified", "propertyCount", "createdAt", "ownerType",
-    "companyCity", "lastOrderedAt", "taskCount"],
+    "companyCity", "lastOrderedAt", "taskCount",
+    // ⚠ `?status=Deleted` was accepted and always answered `total: 0` until
+    // 2026-09-07. These two are the deleted-owners screen's whole content.
+    "deletedAt", "deletedBy"],
   OwnerRowDtoPagedResult: ["items", "total", "page", "pageSize", "totalPages"],
   WorkerRowDto: ["id", "fullName", "email", "phoneNumber", "licenseExpiry", "status", "onboardingStatus",
     "employeeType", "skills", "rating", "experience", "completedTasks",
-    "hasActiveContract", "onTask", "createdAt"],
+    "hasActiveContract", "onTask", "createdAt",
+    // Same as OwnerRowDto — the deleted-workers screen reads these two.
+    "deletedAt", "deletedBy"],
   WorkerRowDtoPagedResult: ["items", "total", "page", "pageSize", "totalPages"],
   WorkerDetailDto: ["id", "fullName", "onboardingStatus", "onboardingRejectReason",
     "onboardingReviewedAt", "professions", "documents"],
@@ -135,6 +140,8 @@ const EXPECTED_FIELDS = {
   // ⚠ Mandatory. A bodiless request is refused by model binding before the
   // action runs and answers problem-details with no `error` key at all.
   ForceCloseTaskRequest: ["reason"],
+  // One body, both restore doors. ⚠ `reason` is mandatory.
+  RestoreAccountRequest: ["reason"],
   TaskWorkerDto: ["id", "taskId", "workerId", "workerName", "outcome", "starRating",
     "assignedAt", "checkinAt", "submittedAt", "checkoutAt"],
 };
@@ -183,6 +190,11 @@ for (const [route, method] of [
   // F-07 ·4 / ·3 — the two SUPER_ADMIN doors on a day.
   ["/api/tasks/{taskId}/supervisor", "put"],
   ["/api/tasks/{taskId}/force-close", "post"],
+  // The two restore doors — SUPER_ADMIN only, shipped 2026-09-10 as a `fix`
+  // whose guide Revision was deliberately NOT bumped, so the date alone would
+  // never have surfaced them.
+  ["/api/admin/workers/{id}/restore", "post"],
+  ["/api/owners/{id}/restore", "post"],
 ]) {
   if (swagger.paths[route]?.[method]) ok(`route ${method.toUpperCase()} ${route}`);
   else bad(`route ${method.toUpperCase()} ${route} missing`);
