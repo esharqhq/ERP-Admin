@@ -13,4 +13,12 @@ Shu repo uchun ochiq ish ro'yxati: **`../assets/docs/admin-panel-tasks.md`**
 
 Kontraktning o'zi: `../Backend/docs/handoff/` — avval `git pull`.
 Ustunlik: **jonli javob > guide > bu hujjatlar.**
-⚠ Bu repo hali backend catch-up pass o'tkazmagan — `docs/backend-handoff-revisions.md` yo'q, yaratish kerak.
+⚠ **Ledger: `BACKEND-REVISIONS.md` — repo ildizida, `docs/` da EMAS.** Bu repoda `/docs`
+gitignore qilingan (`.gitignore:12`), ya'ni u yerdagi ledger'ni na git ko'radi, na boshqa odam —
+va ikkinchi nusxa jimgina birinchisidan uzoqlashadi.
+
+Oxirgi catch-up pass: **2026-09-21**, backend HEAD `064ce64`. Unda F-07 (·0/·1/·3/·4) va
+ikkita restore eshigi bajarildi. ⚠ Ledger **o'qilgan** va **bajarilgan** ni alohida ustunda
+saqlaydi — ikkalasini aralashtirsangiz, keyingi pass o'z deltasini xato toraytiradi va buzuvchi
+yozuv qayta o'qilmaydi. Protsedura shu repoda emas: `erp-backend-source` skill,
+`references/return-pass.md`.
