@@ -3467,7 +3467,6 @@
       "backToWorkers": "Zurück zu Mitarbeitenden",
       "backToOwners": "Zurück zu Eigentümern",
       "noAccess": "Das Wiederherstellen gelöschter Konten ist Super-Admins vorbehalten.",
-      "empty": "Keine gelöschten Konten.",
       "submit": "Wiederherstellen",
       "title": "{name} wiederherstellen?",
       "sameRow": "Derselbe Datensatz kehrt zurück — gleiche ID, Auftragshistorie, Verträge, Bewertungen, Dokumente und Agenturverknüpfung.",
@@ -3476,6 +3475,7 @@
       "reasonLabel": "Begründung",
       "reasonHint": "Pflichtfeld. Dies ist der Nachweis dafür, warum das Konto zurückgeholt wurde.",
       "columns": {
+        "account": "Konto",
         "deletedAt": "Gelöscht am",
         "deletedBy": "Gelöscht von",
         "actions": "Aktionen"
@@ -3487,7 +3487,9 @@
         "notFound": "Dieses Konto existiert nicht mehr.",
         "reasonRequired": "Eine Begründung ist erforderlich.",
         "generic": "Das Konto konnte nicht wiederhergestellt werden."
-      }
+      },
+      "emptyTitle": "Nichts wurde gelöscht",
+      "emptyBody": "Gelöschte Konten erscheinen hier, damit ein Super-Admin sie zurückholen kann."
     },
     "stage": {
       "kyc": "Dokumente ausstehend",

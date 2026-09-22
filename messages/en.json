@@ -3467,7 +3467,6 @@
       "backToWorkers": "Back to workers",
       "backToOwners": "Back to owners",
       "noAccess": "Restoring a deleted account is reserved for super admins.",
-      "empty": "No deleted accounts.",
       "submit": "Restore",
       "title": "Restore {name}?",
       "sameRow": "The same record comes back — same id, task history, contracts, ratings, documents and agency link.",
@@ -3476,6 +3475,7 @@
       "reasonLabel": "Reason",
       "reasonHint": "Required. This is the record of why the account was brought back.",
       "columns": {
+        "account": "Account",
         "deletedAt": "Deleted",
         "deletedBy": "Deleted by",
         "actions": "Actions"
@@ -3487,7 +3487,9 @@
         "notFound": "This account no longer exists.",
         "reasonRequired": "A reason is required.",
         "generic": "The account could not be restored."
-      }
+      },
+      "emptyTitle": "Nothing has been deleted",
+      "emptyBody": "Deleted accounts appear here so a super admin can bring them back."
     },
     "stage": {
       "kyc": "Awaiting documents",
