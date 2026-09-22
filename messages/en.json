@@ -2158,13 +2158,14 @@
       "code": "Code",
       "codePlaceholder": "e.g. PLUMBER",
       "codeImmutable": "The code cannot be changed after creation.",
+      "codeHint": "Capitals and underscores, no spaces. It cannot be changed later.",
       "description": "Description",
-      "descriptionPlaceholder": "Optional description…",
+      "descriptionPlaceholder": "e.g. Interior and exterior glass, including high-rise",
       "create": "Create",
       "nameDe": "Name (German)",
-      "nameDePlaceholder": "Fensterreinigung",
+      "nameDePlaceholder": "e.g. Fensterreinigung",
       "nameEn": "Name (English)",
-      "nameEnPlaceholder": "Window Cleaning"
+      "nameEnPlaceholder": "e.g. Window Cleaning"
     },
     "errors": {
       "generic": "The profession could not be saved. Please try again.",

@@ -2158,13 +2158,14 @@
       "code": "Code",
       "codePlaceholder": "z. B. PLUMBER",
       "codeImmutable": "Der Code kann nach dem Erstellen nicht geändert werden.",
+      "codeHint": "Großbuchstaben und Unterstriche, keine Leerzeichen. Später nicht mehr änderbar.",
       "description": "Beschreibung",
-      "descriptionPlaceholder": "Optionale Beschreibung…",
+      "descriptionPlaceholder": "z. B. Innen- und Außenglas, auch an Hochhäusern",
       "create": "Erstellen",
       "nameDe": "Name (Deutsch)",
-      "nameDePlaceholder": "Fensterreinigung",
+      "nameDePlaceholder": "z. B. Fensterreinigung",
       "nameEn": "Name (Englisch)",
-      "nameEnPlaceholder": "Window Cleaning"
+      "nameEnPlaceholder": "z. B. Window Cleaning"
     },
     "errors": {
       "generic": "Der Beruf konnte nicht gespeichert werden. Bitte erneut versuchen.",
