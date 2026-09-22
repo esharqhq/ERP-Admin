@@ -30,6 +30,47 @@ Precedence: **live response > guide > `README.md`/`guidance.md`**. Never read th
 question a guide answers — if a guided surface forces you into `index/`, the guide has a bug, so
 [open an issue](https://github.com/esharqhq/Germany-ERP/issues) rather than working around it.
 
+## Catch-up pass — 2026-09-21
+
+| | |
+|---|---|
+| **Pass run** | 2026-09-21, after pulling `../Backend` |
+| **CHANGELOG reviewed through** | **2026-09-21** — read in full from 2026-09-08 down |
+| **Actioned through** | **2026-09-21**, but **only the F-07 entries**. See the table below. |
+| **Backend HEAD at that pass** | `064ce64` |
+| **Plan executed** | `docs/superpowers/plans/2026-09-21-admin-f07-integration.md` (Tasks 1–7) |
+
+⚠ **`CHANGELOG reviewed through` and `Actioned through` are not the same claim, and collapsing
+them is what makes the *next* pass narrow its own delta until a breaking entry is never re-read.**
+This pass read every entry from 2026-09-08 downward; it **actioned the five F-07 ones only**.
+
+### Actioned — 2026-09-21
+
+| Entry | Kind | What was done |
+|---|---|---|
+| 2026-09-21 F-07 ·3 | breaking | `closed` counts + `closureReason` modelled; force-close door built; the `204`-lies cancel reading; `completedAt` checked (one render site, no arithmetic — safe) |
+| 2026-09-20 ·4 follow-ups | breaking | The bodiless-request problem-details trap is handled on every new door. The `rating` and `complete` halves are owner/worker surfaces — nothing here calls them. |
+| 2026-09-19 F-07 ·4 | breaking | Supervisor override built; `supervisorWorkerId` / `workSummary` modelled and rendered |
+| 2026-09-18 F-07 ·1 | breaking | `InReview` attendance read fixed — a live bug: a worker who never arrived on a handed-in day read `overdue` instead of `noshow` |
+| 2026-09-17 F-07 ·0 | breaking | The two renamed day states, and `TaskGroupDto.status` → `days` |
+| 2026-09-10 restore doors | fix | Both restore screens built |
+
+### Read but NOT actioned — 2026-09-21
+
+| Entry | Kind | State |
+|---|---|---|
+| 2026-09-11 direct-upload `Content-Type` | fix | Worker/owner upload surface. Not checked against this panel's uploads. |
+| 2026-09-11 chat `PUT` → `POST` | fix | `worker-chat-core.md` — not a guide this panel consumes. |
+| 2026-09-10 upload-signature error shape | fix | Open. |
+| 2026-09-10 non-Latin filenames | fix | Open. |
+| 2026-09-08 KYC queue paging + richer rows | breaking | Paging is done (`lib/services/kyc.service.ts`). The five new `KycProfileSummaryDto` fields are on the wire and unsurfaced — a product decision, not a break. |
+| 2026-09-07 `?status=Deleted`, `deletedAt`/`deletedBy` | fix | **Partly actioned by this pass** — both row DTOs now carry the two fields because the restore screens read them. The export column counts it also moved are untouched; this app calls no export route. |
+| Everything dated 2026-08-12 → 2026-09-07 | mixed | **Untouched.** See the count below. |
+
+⚠ **This pass covers 2026-09-08 → 2026-09-21 only.** The oldest `Absorbed to` in the table below is
+still **2026-07-01**, and the 27-entry backlog measured on 2026-09-08 is not closed by it — the F-07
+rows moved, nothing else did. Do not read a moved row as a finished backlog.
+
 ## Guides this panel consumes
 
 Reviewed 2026-08-12. Two separate dates, and confusing them defeats the point of the file:
@@ -41,6 +82,8 @@ Reviewed 2026-08-12. Two separate dates, and confusing them defeats the point of
 
 | Guide | Revision | Absorbed to | State | Notes |
 |---|---|---|---|---|
+| `task-lifecycle.md` | 2026-09-21 | 2026-09-21 | ⚠ partly | **New guide, and one living document for all thirteen F-07 slices** — do not expect one file per slice. Absorbed: **§0** (·0 — the two renamed day states and the deleted `TaskGroupDto.status`), **§0b** (·1 — the `InReview` attendance read), **§0c** (·4 — supervisor override, `supervisorWorkerId`, `workSummary`) and **§0d** (·3 — force-close, `closed` counts, `closureReason`, the three-hour cancel window). ⚠ **Not absorbed: §2 `canJoin`, §3 the day browse list, §4 join, §5 drop** — those are worker-app surfaces this panel has no screen for. ⚠ Its delta is read through CHANGELOG entries and **never** through the file's own diff: a diff of a living 46 KB guide cannot tell a typo fix from a route that now requires a body. |
+| `deleted-account-email-release.md` | 2026-09-08 | 2026-09-21 | ✅ yes | ⚠ **The Revision is older than the absorption date on purpose, and that is the trap this row exists to record.** The restore doors (`worker:restore` 80047, `owner:restore` 30006) shipped 2026-09-10 as `Kind: fix` and the guide's Revision was **deliberately not bumped**, because nothing an end-user client can see moved. Watching Revisions alone would never have surfaced them. Both are now built (the two deleted-accounts screens). §6's two withdrawn agency instructions were checked and neither was ever encoded here — `lib/agencies/application-errors.ts` already links `existingAgencyId` unconditionally, which is what §6 now says to do. |
 | `f-06-c-checkin-proof.md` | 2026-08-26 | 2026-09-08 | ✅ yes | All three admin halves verified today. §4 the walk-in order's own `lat`/`long` (fixed 2026-09-08 — see the section below); §5 property coordinates, already sent and already gated on `location !== null` by `property-create-dialog.tsx:117,129` and `property-edit-dialog.tsx:91,102`; §6 the four refusal fields, modelled in `lib/types/attendance.types.ts:30-55` and rendered as the workers matrix' `refused` chip (`lib/workers/matrix.ts:40-65`). ⚠ Nothing here can read a filed order's coordinates back — §4.2, upstream gap, not ours. |
 | `f-02-4-owner-table-filters.md` | 2026-08-12 | 2026-08-12 | ⚠ partly | **All six filter params and all three columns are in** (`companyCityId`, `lastOrderedFrom`/`To`, `neverOrdered`, `taskCountMin`/`Max`; `companyCity`, `lastOrderedAt`, `taskCount`), gated in `verify-v2.mjs`. The **three sort keys and three export columns are not**, and cannot be "absorbed" — see the note below the table. |
 | `fnd-3-table-query.md` | 2026-08-12 | 2026-08-12 | ⚠ partly | The owners/workers tables use it. Same split: filters in, sorting and export absent app-wide. `invalid_filter_value` went from 3 triggers to 6 — all six are refused client-side by `buildOwnerFilterQuery` before the request. |
