@@ -18,12 +18,12 @@ import { Search, Eye, LayoutList, CalendarDays } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useAdminTaskGroups } from "@/hooks/use-tasks";
 import {
-  normalizeStatus,
   TASK_GROUP_STATUS_FILTERS,
   type TaskGroupStatusFilter,
   type TaskGroupDto,
 } from "@/lib/types/task.types";
-import { TaskStatusBadge } from "@/components/tasks/task-status-badge";
+import { groupBucket } from "@/lib/tasks/staffing";
+import { TaskDaysBadge } from "@/components/tasks/task-days-badge";
 import { TasksCalendar } from "@/components/tasks/tasks-calendar";
 
 function dateRange(group: TaskGroupDto): string {
@@ -54,9 +54,10 @@ export default function TasksPage() {
   const { data: groups = [], isLoading, isError } = useAdminTaskGroups();
 
   const filtered = groups.filter((g) => {
-    if (tab !== "all" && normalizeStatus(g.status) !== normalizeStatus(tab)) {
-      return false;
-    }
+    // ⚠ Was `normalizeStatus(g.status)`. F-07 ·0 deleted the booking's status
+    // word, so this compared `undefined` and every tab but "all" showed nothing.
+    // `groupBucket` reconstructs the same four buckets from the day counts.
+    if (tab !== "all" && groupBucket(g) !== tab) return false;
     if (!search) return true;
     return (g.title ?? "").toLowerCase().includes(search.toLowerCase());
   });
@@ -186,7 +187,7 @@ export default function TasksPage() {
                           {group.title ?? "—"}
                         </TableCell>
                         <TableCell>
-                          <TaskStatusBadge status={group.status} />
+                          <TaskDaysBadge group={group} />
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
                           {dateRange(group)}

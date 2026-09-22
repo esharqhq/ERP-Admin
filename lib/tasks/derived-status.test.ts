@@ -35,6 +35,9 @@ function task(over: Partial<TaskItemDto> = {}): TaskItemDto {
     requiredWorkerCount: 1,
     startedAt: null,
     completedAt: null,
+    closureReason: null,
+    supervisorWorkerId: null,
+    workSummary: null,
     workers: [],
     ...over,
   };
@@ -49,17 +52,42 @@ describe("deriveTaskStatus", () => {
     expect(deriveTaskStatus(task({ status: "Done" }), NOW)).toBe("Done");
   });
 
-  it("rule 3 — Review status", () => {
+  it("rule 3 — InReview status", () => {
+    expect(deriveTaskStatus(task({ status: "InReview" }), NOW)).toBe("Review");
+  });
+
+  it("rule 3 — still reads the `Review` a stale cache can carry", () => {
     expect(deriveTaskStatus(task({ status: "Review" }), NOW)).toBe("Review");
   });
 
   it("rule 4 — deadline passed and not Done → Overdue", () => {
     const t = task({
-      status: "Active",
+      status: "CheckedIn",
       deadline: "2026-09-01T00:00:00Z",
       workers: [worker()],
     });
     expect(deriveTaskStatus(t, NOW)).toBe("Overdue");
+  });
+
+  it("an InReview day past its deadline is Review, not Overdue", () => {
+    // Against the raw words this read `Overdue`: `task.status === "Review"` did
+    // not match `"InReview"`, so rule 3 was skipped and rule 4 caught it.
+    const t = task({
+      status: "InReview",
+      deadline: "2026-09-01T00:00:00Z",
+      workers: [worker()],
+    });
+    expect(deriveTaskStatus(t, NOW)).toBe("Review");
+  });
+
+  it("a CheckedIn day that is staffed and not today is Running, not Open", () => {
+    // Against the raw words this fell all the way through to `Open`.
+    const t = task({
+      status: "CheckedIn",
+      scheduledAt: "2026-09-05T09:00:00Z",
+      workers: [worker()],
+    });
+    expect(deriveTaskStatus(t, NOW)).toBe("Running");
   });
 
   it("rule 5 — no active workers, starts today → Unstaffed", () => {
@@ -71,9 +99,9 @@ describe("deriveTaskStatus", () => {
     expect(deriveTaskStatus(t, NOW)).toBe("Unstaffed");
   });
 
-  it("rule 6 — Active status, staffed, not today → Running", () => {
+  it("rule 6 — CheckedIn status, staffed, not today → Running", () => {
     const t = task({
-      status: "Active",
+      status: "CheckedIn",
       scheduledAt: "2026-09-05T09:00:00Z",
       workers: [worker()],
     });

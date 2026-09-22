@@ -33,7 +33,10 @@ const GROUP: TaskGroupDto = {
   defaultStartTime: "09:00:00",
   defaultDeadline: null,
   instructions: null,
-  status: "Pending",
+  days: {
+    total: 1, pending: 1, checkedIn: 0, inReview: 0,
+    done: 0, cancelled: 0, rejected: 0,
+  },
   ratingFloor: 0,
   allowNewWorkers: true,
   eligibleProfessionIds: [],
@@ -52,6 +55,9 @@ const GROUP: TaskGroupDto = {
       requiredWorkerCount: 2,
       startedAt: null,
       completedAt: null,
+      closureReason: null,
+      supervisorWorkerId: null,
+      workSummary: null,
       workers: [worker("Ali"), worker("Bek")],
     },
     {
@@ -66,6 +72,9 @@ const GROUP: TaskGroupDto = {
       requiredWorkerCount: 1,
       startedAt: null,
       completedAt: null,
+      closureReason: null,
+      supervisorWorkerId: null,
+      workSummary: null,
       workers: [],
     },
   ],
@@ -165,6 +174,40 @@ describe("filterRowsByStatus", () => {
   it("matches case-insensitively, because the server casing is not guaranteed", () => {
     expect(filterRowsByStatus(rows, "done").map((r) => r.taskId)).toEqual(["t2"]);
     expect(filterRowsByStatus(rows, "DONE").map((r) => r.taskId)).toEqual(["t2"]);
+  });
+
+  it("matches a day the server calls `CheckedIn` from the `checkedIn` tab", () => {
+    // ⚠ This is the whole of F-07 ·0 on this screen. The tab used to offer
+    // "Active", which since 2026-09-17 matches no row the server sends — the
+    // filter silently emptied the table instead of failing.
+    const started = flattenTaskRows(
+      [{ ...GROUP, tasks: [{ ...GROUP.tasks[0], status: "CheckedIn" }] }],
+      {},
+    );
+    expect(filterRowsByStatus(started, "checkedIn").map((r) => r.taskId)).toEqual(["t1"]);
+    // The old tab word still resolves — the alias is the point of the vocab
+    // module, and a bookmarked or cached tab value must not empty the table.
+    expect(filterRowsByStatus(started, "active").map((r) => r.taskId)).toEqual(["t1"]);
+  });
+
+  it("matches an `InReview` day from the `inReview` tab", () => {
+    const handedIn = flattenTaskRows(
+      [{ ...GROUP, tasks: [{ ...GROUP.tasks[0], status: "InReview" }] }],
+      {},
+    );
+    expect(filterRowsByStatus(handedIn, "inReview").map((r) => r.taskId)).toEqual(["t1"]);
+  });
+
+  it("still matches a row a stale cache spelled the old way", () => {
+    const stale = flattenTaskRows(
+      [{ ...GROUP, tasks: [{ ...GROUP.tasks[0], status: "Review" }] }],
+      {},
+    );
+    expect(filterRowsByStatus(stale, "inReview").map((r) => r.taskId)).toEqual(["t1"]);
+  });
+
+  it("returns nothing for a word neither side knows, rather than everything", () => {
+    expect(filterRowsByStatus(rows, "Disputed")).toHaveLength(0);
   });
 });
 

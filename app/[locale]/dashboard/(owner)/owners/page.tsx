@@ -1,12 +1,15 @@
 "use client";
 
 import { useMemo } from "react";
-import { Building2 } from "lucide-react";
+import { Building2, Trash2 } from "lucide-react";
+import { Link } from "@/i18n/navigation";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { DataTable, type DataColumn } from "@/components/ui/data-table";
 import type { FilterField } from "@/components/ui/filter-bar";
 import { useOwners } from "@/hooks/use-owners";
+import { useHasPermission } from "@/hooks/use-current-permissions";
 import { useCities, useCountries } from "@/hooks/use-lookups";
 import { useTableUrlState } from "@/hooks/use-table-url-state";
 import {
@@ -91,6 +94,8 @@ function formatDay(iso: string, locale: string): string {
  */
 export default function OwnersPage() {
   const t = useTranslations("owners");
+  const tRestore = useTranslations("accounts.restore");
+  const canRestoreAccounts = useHasPermission("owner:restore");
   const tOnboarding = useTranslations("onboarding");
   const locale = useLocale();
 
@@ -374,6 +379,23 @@ export default function OwnersPage() {
         rowHref={(o) => `/dashboard/owners/${o.id}`}
         rowLabel={(o) => o.fullName || o.id}
         title={t("list")}
+        // ⚠ SUPER_ADMIN only. Hidden without `owner:restore`, because the screen
+        // behind it refuses a MODERATOR with an empty-bodied `403` — a link to a
+        // page that can only say "no" is worse than no link.
+        actions={
+          canRestoreAccounts ? (
+            <Button
+              variant="outline"
+              size="sm"
+              nativeButton={false}
+              className="gap-2 rounded-lg"
+              render={<Link href="/dashboard/owners/deleted" />}
+            >
+              <Trash2 className="size-4" />
+              {tRestore("link")}
+            </Button>
+          ) : undefined
+        }
         // No subtitle: the page header above already carries that sentence, and
         // the count pill beside the title is what the row actually adds.
         tabs={tabs}

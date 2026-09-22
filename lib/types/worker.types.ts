@@ -38,6 +38,13 @@ export interface WorkerDocumentDto {
 /** One row of `GET /api/admin/workers` (`PagedResult<WorkerRowDto>`). */
 export interface WorkerRowDto {
   id: string;
+  /**
+   * ⚠ Set only on a soft-deleted row, and only reachable through
+   * `?status=Deleted` (re-enabled 2026-09-07 — it used to answer `total: 0`).
+   * `deletedBy` is the admin who did it. Both are what the restore screen shows.
+   */
+  deletedAt?: string | null;
+  deletedBy?: string | null;
   fullName: string | null;
   email: string | null;
   phoneNumber: string | null;
@@ -283,4 +290,14 @@ export interface RejectWorkerRequest {
 
 export interface RejectWorkerDocRequest {
   reason?: string;
+}
+
+/**
+ * Body of `POST /api/admin/workers/{id}/restore` and
+ * `POST /api/owners/{id}/restore` — one shape, both doors.
+ *
+ * ⚠ `reason` is mandatory (`400 reason_required`).
+ */
+export interface RestoreAccountRequest {
+  reason: string;
 }

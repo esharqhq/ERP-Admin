@@ -1,6 +1,6 @@
 import { daysUntil, type AttentionSource } from "@/lib/detail/attention";
 import { WARN_DAYS } from "@/lib/onboarding/subject-row";
-import { activeWorkers, isOpen } from "@/lib/tasks/staffing";
+import { activeWorkers, isGroupActive, isOpen } from "@/lib/tasks/staffing";
 import { normalizeStatus } from "@/lib/types/task.types";
 import type { SubjectCover } from "@/lib/onboarding/subject-row";
 import type { KycDocDto } from "@/lib/types/kyc.types";
@@ -114,8 +114,10 @@ function unstaffed(
   const open: TaskItemDto[] = [];
 
   for (const group of groups) {
-    if (!["pending", "active"].includes(normalizeStatus(group.status)))
-      continue;
+    // ⚠ One definition, not two. This read `group.status`, which F-07 ·0
+    // deleted on 2026-09-17 — so from that day it skipped EVERY group and the
+    // unstaffed-work warning never fired at all.
+    if (!isGroupActive(group)) continue;
     for (const task of group.tasks ?? []) {
       if (task.scheduledDate < todayKey || task.scheduledDate > horizon)
         continue;

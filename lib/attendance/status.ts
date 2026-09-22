@@ -1,4 +1,5 @@
 import type { AttendanceRowDto } from "@/lib/types/attendance.types";
+import { canonicalTaskStatus } from "@/lib/tasks/status-vocab";
 import { normalizeStatus } from "@/lib/types/task.types";
 
 /**
@@ -79,19 +80,23 @@ const ms = (iso: string | null): number | null => {
  * 3. `NoShow`, or a task already `Done`/`Review`, turns an absence into a fact.
  * 4. Only then does the clock decide `await` from `overdue`.
  *
- * Both enum sets are compared through `normalizeStatus`, so a wire value that
- * arrives in another case still lands in the right state instead of falling
- * through to `overdue` and painting a row red.
+ * ⚠ The two enums are read by **different** helpers, on purpose. `taskStatus` is
+ * the day state and goes through `canonicalTaskStatus`, which knows that F-07 ·0
+ * renamed `Active` → `CheckedIn` and `Review` → `InReview` on 2026-09-17. While
+ * this file compared the raw lowercased word, an `InReview` day did not match the
+ * `review` arm and fell through to the clock: a worker who never arrived on a
+ * handed-in day read `overdue` instead of `noshow`. `outcome` is a separate enum
+ * with its own words (`Removed`, `NoShow`, `Completed`) and keeps `normalizeStatus`.
  */
 export function deriveKind(
   row: AttendanceRowDto,
   nowMs: number,
   graceMinutes: number = LATE_GRACE_MINUTES,
 ): AttendanceKind {
-  const status = normalizeStatus(row.taskStatus);
+  const state = canonicalTaskStatus(row.taskStatus);
   const outcome = normalizeStatus(row.outcome);
 
-  if (status === "cancelled" || outcome === "cancelled") return "cancelled";
+  if (state === "cancelled" || outcome === "cancelled") return "cancelled";
   if (outcome === "removed") return "removed";
 
   const scheduled = ms(row.scheduledAt);
@@ -104,7 +109,7 @@ export function deriveKind(
   }
 
   if (outcome === "noshow") return "noshow";
-  if (status === "done" || status === "review") return "noshow";
+  if (state === "done" || state === "inReview") return "noshow";
 
   if (scheduled == null || nowMs <= 0) return "await";
   return nowMs < scheduled ? "await" : "overdue";

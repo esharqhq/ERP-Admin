@@ -84,9 +84,7 @@ export function groupStaffing(tasks: TaskItemDto[]): { filled: number; required:
 }
 
 /**
- * A group is "active" while it is PENDING or ACTIVE. `TaskGroupStatus` has
- * exactly four members — PENDING / ACTIVE / DONE / CANCELLED — so this and its
- * negation are exhaustive.
+ * A booking is "active" while at least one of its days is still unsettled.
  *
  * Shared for the same reason `OPEN_STATUSES` is: the Walk-In orders list (its
  * Active/History split), the Walk-In order sheet (whether Cancel can even be
@@ -95,8 +93,59 @@ export function groupStaffing(tasks: TaskItemDto[]): { filled: number; required:
  * rejects `CANCELLED` with `task_group_already_cancelled` and `DONE` with
  * `task_group_already_done`. A second, drifted copy of this check in any one
  * of those screens would offer Cancel on a group the backend will refuse.
+ *
+ * ⚠ It used to read `group.status`, which F-07 ·0 (2026-09-17) deleted. With the
+ * field gone the read was `undefined`, this returned `false` for every booking,
+ * and Cancel disappeared from all three screens while every booking filed as
+ * History. The counts replaced the word.
+ *
+ * ⚠⚠ **This definition is ours, not the backend's.** The guide rules only that
+ * the counts replace the word; where the line falls is our call. `inReview`
+ * counts as UNSETTLED on purpose — that day is waiting on somebody, and it is
+ * the row an admin most needs to see. `rejected` counts as settled, against the
+ * day ·5 starts filling it.
+ *
+ * ⚠ A missing or empty `days` reads active. Cancel offered on a finished booking
+ * is a refused request; Cancel hidden on a live one is a support ticket. Open is
+ * the safe default, and it is the opposite of what the old unknown-word arm did.
  */
 export function isGroupActive(group: TaskGroupDto): boolean {
-  const s = normalizeStatus(group.status);
-  return s === "pending" || s === "active";
+  const d = group.days;
+  if (!d || d.total <= 0) return true;
+  return d.done + d.cancelled + d.rejected < d.total;
+}
+
+/**
+ * How many of a booking's days have stopped moving. The counterpart to
+ * `isGroupActive`, kept beside it so the two cannot drift.
+ */
+export function settledDays(group: TaskGroupDto): number {
+  const d = group.days;
+  if (!d) return 0;
+  return d.done + d.cancelled + d.rejected;
+}
+
+/** The four buckets the tasks list's tabs offer. */
+export type GroupBucket = "Pending" | "Active" | "Done" | "Cancelled";
+
+/**
+ * Which tab a booking files under, derived from its day counts.
+ *
+ * ⚠ This is a reconstruction, not a contract. Until F-07 ·0 the server sent a
+ * `TaskGroupStatus` word and these tabs compared against it; the word is gone and
+ * the backend offers no replacement for a *booking*-level state, so the buckets
+ * are ours. Keep them here rather than in the page — the same question is asked
+ * by the tab filter and by the Active/History split, and two copies would drift.
+ *
+ * `Cancelled` means EVERY settled day was cancelled — a booking with three done
+ * days and one cancelled is `Done`, not `Cancelled`, because calling it cancelled
+ * would deny work that happened.
+ */
+export function groupBucket(group: TaskGroupDto): GroupBucket {
+  const d = group.days;
+  if (!d || d.total <= 0) return "Pending";
+  if (isGroupActive(group)) {
+    return d.pending === d.total ? "Pending" : "Active";
+  }
+  return d.cancelled === d.total ? "Cancelled" : "Done";
 }

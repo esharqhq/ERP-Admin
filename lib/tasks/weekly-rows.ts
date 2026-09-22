@@ -1,3 +1,4 @@
+import { canonicalTaskStatus } from "@/lib/tasks/status-vocab";
 import { normalizeStatus } from "@/lib/types/task.types";
 import type { TaskGroupDto, TaskWorkerDto } from "@/lib/types/task.types";
 
@@ -91,14 +92,26 @@ export function rowsInWeek(rows: WeeklyTaskRow[], dateKeys: string[]): WeeklyTas
   return rows.filter((r) => week.has(r.scheduledDate));
 }
 
-/** `"all"`, or a task status name matched case-insensitively. */
+/**
+ * `"all"`, or one of the five day states.
+ *
+ * ⚠ Both sides go through `canonicalTaskStatus`, not a lowercased compare. The
+ * card's tabs used to offer `"Active"` and `"Review"`, which F-07 ·0 renamed on
+ * 2026-09-17 — after that, picking either matched no row the server sends and
+ * the table silently emptied rather than failing. Canonicalising both sides also
+ * keeps a row a stale cache spelled the old way in its right tab.
+ *
+ * ⚠ A word neither side knows filters everything out. That is deliberate: ·5
+ * adds a disputed state, and showing every row under a tab whose name nothing
+ * matches would misreport the table as unfiltered.
+ */
 export function filterRowsByStatus(
   rows: WeeklyTaskRow[],
   status: string,
 ): WeeklyTaskRow[] {
   if (status === "all") return rows;
-  const want = normalizeStatus(status);
-  return rows.filter((r) => normalizeStatus(r.status) === want);
+  const want = canonicalTaskStatus(status);
+  return rows.filter((r) => canonicalTaskStatus(r.status) === want);
 }
 
 /**

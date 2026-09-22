@@ -77,7 +77,10 @@ function group(over: Partial<TaskGroupDto> = {}): TaskGroupDto {
     defaultStartTime: "08:00:00",
     defaultDeadline: "15:30:00",
     instructions: null,
-    status: "Active",
+    days: {
+      total: 1, pending: 0, checkedIn: 1, inReview: 0,
+      done: 0, cancelled: 0, rejected: 0,
+    },
     ratingFloor: 0,
     allowNewWorkers: true,
     eligibleProfessionIds: [],
@@ -95,6 +98,9 @@ function group(over: Partial<TaskGroupDto> = {}): TaskGroupDto {
         requiredWorkerCount: 1,
         startedAt: null,
         completedAt: null,
+        closureReason: null,
+        supervisorWorkerId: null,
+        workSummary: null,
         workers: [
           {
             id: "tw1",

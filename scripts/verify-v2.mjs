@@ -4,7 +4,11 @@ import { dirname, join } from "node:path";
 
 // Contract check: our TS unions must match the live API's enums, and the DTOs we
 // depend on must still carry the fields we read. Run with: npm run verify:api
-const BASE = process.env.ERP_API ?? "https://germany-erp.esharq.com";
+// ⚠ `germany-erp.esharq.com` no longer resolves to this API — it answers with a
+// certificate for `admin.uyer.app`, so every run died on ERR_TLS_CERT_ALTNAME_
+// INVALID before a single check ran. `api.uyer.app` is the host the backend's
+// own catch-up procedure reads swagger from. Override with ERP_API.
+const BASE = process.env.ERP_API ?? "https://api.uyer.app";
 
 let failures = 0;
 const ok = (m) => console.log(`PASS  ${m}`);
@@ -73,11 +77,16 @@ const EXPECTED_FIELDS = {
   // city, and why the column must be rendered including its blanks.
   OwnerRowDto: ["id", "fullName", "email", "phoneNumber", "status", "onboardingStatus",
     "isVerified", "propertyCount", "createdAt", "ownerType",
-    "companyCity", "lastOrderedAt", "taskCount"],
+    "companyCity", "lastOrderedAt", "taskCount",
+    // ⚠ `?status=Deleted` was accepted and always answered `total: 0` until
+    // 2026-09-07. These two are the deleted-owners screen's whole content.
+    "deletedAt", "deletedBy"],
   OwnerRowDtoPagedResult: ["items", "total", "page", "pageSize", "totalPages"],
   WorkerRowDto: ["id", "fullName", "email", "phoneNumber", "licenseExpiry", "status", "onboardingStatus",
     "employeeType", "skills", "rating", "experience", "completedTasks",
-    "hasActiveContract", "onTask", "createdAt"],
+    "hasActiveContract", "onTask", "createdAt",
+    // Same as OwnerRowDto — the deleted-workers screen reads these two.
+    "deletedAt", "deletedBy"],
   WorkerRowDtoPagedResult: ["items", "total", "page", "pageSize", "totalPages"],
   WorkerDetailDto: ["id", "fullName", "onboardingStatus", "onboardingRejectReason",
     "onboardingReviewedAt", "professions", "documents"],
@@ -110,11 +119,29 @@ const EXPECTED_FIELDS = {
   CreateTaskGroupRequest: ["propertyId", "title", "defaultStartTime", "defaultDeadline",
     "defaultWorkerLimit", "dates", "instructions", "internalNote", "ratingFloor",
     "eligibleProfessionIds", "allowNewWorkers"],
+  // ⚠ `status` is NOT here. F-07 ·0 (2026-09-17) deleted it from TaskGroupDto;
+  // this line asserted it for four days and was one of the few things that did
+  // go red — see the `days`/`closed` counts below, which replaced it.
   TaskGroupDto: ["id", "propertyId", "ownerId", "title", "defaultStartTime", "defaultDeadline",
-    "instructions", "status", "ratingFloor", "allowNewWorkers", "eligibleProfessionIds",
+    "instructions", "days", "closed", "ratingFloor", "allowNewWorkers", "eligibleProfessionIds",
     "dates", "tasks", "createdAt"],
+  TaskGroupDayCountsDto: ["total", "pending", "checkedIn", "inReview", "done", "cancelled",
+    "rejected"],
+  // ⚠ `closedReplacement` is always 0 today — forward-declared for ·5. Gated so
+  // that if it is ever dropped rather than filled, this fails instead of the UI.
+  TaskGroupClosureCountsDto: ["ownerAccepted", "autoAccepted", "closedForced",
+    "closedReplacement"],
   TaskItemDto: ["id", "groupId", "propertyId", "propertyName", "scheduledDate", "scheduledAt",
-    "deadline", "status", "requiredWorkerCount", "startedAt", "completedAt", "workers"],
+    "deadline", "status", "requiredWorkerCount", "startedAt", "completedAt", "workers",
+    // F-07 ·4 (supervisor, summary) and ·3 (how the day closed).
+    "supervisorWorkerId", "workSummary", "closureReason"],
+  AdminSetSupervisorRequest: ["workerId"],
+  TaskSupervisorDto: ["taskId", "supervisorWorkerId"],
+  // ⚠ Mandatory. A bodiless request is refused by model binding before the
+  // action runs and answers problem-details with no `error` key at all.
+  ForceCloseTaskRequest: ["reason"],
+  // One body, both restore doors. ⚠ `reason` is mandatory.
+  RestoreAccountRequest: ["reason"],
   TaskWorkerDto: ["id", "taskId", "workerId", "workerName", "outcome", "starRating",
     "assignedAt", "checkinAt", "submittedAt", "checkoutAt"],
 };
@@ -133,6 +160,10 @@ for (const [name, dead] of Object.entries({
   // of these reappear, this app's rewritten property surface is reading the
   // wrong contract again.
   PropertyDto: "type",
+  // ⚠ F-07 ·0 deleted it outright, with no compatibility alias. If it comes back
+  // under this name, `isGroupActive` and `groupBucket` are reading the wrong
+  // contract again — which is exactly how Cancel vanished from three screens.
+  TaskGroupDto: "status",
 })) {
   const live = S[name]?.properties ?? {};
   if (dead in live) bad(`${name}.${dead} still exists — v1 field came back`);
@@ -156,6 +187,14 @@ for (const [route, method] of [
   ["/api/tasks/admin/groups/{id}/cancel", "post"],
   ["/api/tasks/{taskId}/admin-assign/{workerId}", "post"],
   ["/api/tasks/{taskId}/admin-assign/{workerId}", "delete"],
+  // F-07 ·4 / ·3 — the two SUPER_ADMIN doors on a day.
+  ["/api/tasks/{taskId}/supervisor", "put"],
+  ["/api/tasks/{taskId}/force-close", "post"],
+  // The two restore doors — SUPER_ADMIN only, shipped 2026-09-10 as a `fix`
+  // whose guide Revision was deliberately NOT bumped, so the date alone would
+  // never have surfaced them.
+  ["/api/admin/workers/{id}/restore", "post"],
+  ["/api/owners/{id}/restore", "post"],
 ]) {
   if (swagger.paths[route]?.[method]) ok(`route ${method.toUpperCase()} ${route}`);
   else bad(`route ${method.toUpperCase()} ${route} missing`);

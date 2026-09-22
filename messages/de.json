@@ -1098,11 +1098,11 @@
       },
       "status": {
         "all": "Alle",
-        "Pending": "Geplant",
-        "Active": "Läuft",
-        "Review": "In Prüfung",
-        "Done": "Abgeschlossen",
-        "Cancelled": "Storniert"
+        "pending": "Geplant",
+        "checkedIn": "Läuft",
+        "inReview": "In Prüfung",
+        "done": "Abgeschlossen",
+        "cancelled": "Storniert"
       },
       "viewLog": "Protokoll"
     },
@@ -1992,7 +1992,11 @@
       "outcomeTitle": "Ergebnis überschreiben",
       "unassign": "Entfernen",
       "unassignTitle": "Mitarbeiter entfernen",
-      "unassignConfirm": "{name} aus dieser Aufgabe entfernen?"
+      "unassignConfirm": "{name} aus dieser Aufgabe entfernen?",
+      "resultAll": "Buchung storniert — alle {cancelled} Tage.",
+      "resultSome": "{cancelled} Tage der Buchung wurden storniert. {remaining} beginnen in weniger als 3 Stunden und können nicht mehr storniert werden.",
+      "resultNone": "Es wurde nichts storniert. Alle {remaining} verbleibenden Tage beginnen in weniger als 3 Stunden — die Stornierungsfrist ist abgelaufen.",
+      "resultUnknown": "Die Anfrage wurde angenommen, die Buchung konnte aber nicht neu geladen werden — bitte aktualisieren."
     },
     "statuses": {
       "todo": "Zu erledigen",
@@ -2006,7 +2010,64 @@
       "medium": "Mittel",
       "high": "Hoch"
     },
-    "emptyColumn": "Keine Aufgaben"
+    "emptyColumn": "Keine Aufgaben",
+    "dayStates": {
+      "pending": "Geplant",
+      "checkedIn": "Läuft",
+      "inReview": "In Prüfung",
+      "done": "Abgeschlossen",
+      "cancelled": "Storniert"
+    },
+    "dayCounts": {
+      "settledOfTotal": "{settled} / {total} Tage",
+      "bucket": {
+        "Pending": "Nicht begonnen",
+        "Active": "Läuft",
+        "Done": "Abgeschlossen",
+        "Cancelled": "Storniert"
+      }
+    },
+    "supervisor": {
+      "title": "Verantwortliche Person für diesen Tag festlegen",
+      "why": "Nur die verantwortliche Person kann den Tag einreichen. Die Rolle wechselt eine Stunde nach Arbeitsende automatisch — aber nur zu einer anderen eingecheckten Person. War nur eine Person vor Ort, wechselt sie zu niemandem und der Tag bleibt offen. Dies ist der einzige Ausweg.",
+      "worker": "Verantwortliche Person",
+      "workerPlaceholder": "Aus den Mitarbeitenden dieses Tages wählen",
+      "noRoster": "Für diesen Tag ist niemand gebucht.",
+      "submit": "Festlegen",
+      "current": "Verantwortlich",
+      "none": "Noch nicht — die erste eingecheckte Person übernimmt die Rolle",
+      "summary": "Arbeitsbericht",
+      "noSummary": "Keiner — der Tag wurde nicht eingereicht oder das Feld blieb leer",
+      "errors": {
+        "worker_not_on_day": "Diese Person ist für diesen Tag nicht gebucht. Nur Mitarbeitende dieses Tages können verantwortlich sein — sonst kann den Tag niemand einreichen.",
+        "supervisor_change_not_allowed": "Dieser Tag ist bereits abgeschlossen. Die verantwortliche Person eines abgeschlossenen Tages kann nicht mehr geändert werden.",
+        "task_not_found": "Dieser Tag existiert nicht mehr. Bitte Seite aktualisieren.",
+        "generic": "Die verantwortliche Person konnte nicht geändert werden."
+      }
+    },
+    "forceClose": {
+      "title": "Tag zwangsweise abschließen",
+      "what": "Zu verwenden, wenn ein Tag nicht eingereicht werden kann — etwa wenn niemand Eingecheckter mehr da ist, um ihn einzureichen. Der Tag wird sofort abgeschlossen und der Eigentümer wird nicht um Bestätigung gebeten.",
+      "noShowWarning": "{count, plural, =0 {Niemand wird als abwesend erfasst — alle waren eingecheckt.} one {1 Person, die nie eingecheckt hat, wird als Nichterscheinen erfasst. Das zählt gegen ihre Bewertung.} other {# Personen, die nie eingecheckt haben, werden als Nichterscheinen erfasst. Das zählt gegen ihre Bewertungen.}}",
+      "creditedNote": "{count, plural, =0 {Niemand hat an diesem Tag eingecheckt.} one {1 eingecheckter Person wird der Tag als geleistet angerechnet, obwohl ihn niemand eingereicht hat.} other {# eingecheckten Personen wird der Tag als geleistet angerechnet, obwohl ihn niemand eingereicht hat.}}",
+      "reasonLabel": "Begründung",
+      "reasonHint": "Pflichtfeld. Mitarbeitende und Eigentümer sehen diesen Text — er ist der einzige Nachweis dafür, warum der Tag so endete.",
+      "submit": "Zwangsweise abschließen",
+      "action": "Zwangsweise abschließen",
+      "closedAs": "Abgeschlossen",
+      "reasons": {
+        "OwnerAccepted": "Vom Eigentümer angenommen",
+        "AutoAccepted": "Automatisch angenommen — nicht innerhalb von 5 Stunden geprüft",
+        "ClosedForced": "Von einem Admin zwangsweise abgeschlossen",
+        "ClosedReplacement": "Abgeschlossen und ersetzt"
+      },
+      "errors": {
+        "task_already_closed": "Dieser Tag ist bereits abgeschlossen oder storniert.",
+        "reason_required": "Eine Begründung ist erforderlich.",
+        "task_not_found": "Dieser Tag existiert nicht mehr. Bitte Seite aktualisieren.",
+        "generic": "Der Tag konnte nicht abgeschlossen werden."
+      }
+    }
   },
   "leave": {
     "title": "Urlaubsanträge",
@@ -3369,6 +3430,38 @@
         "createdByAdminId": "createdByAdminId",
         "created": "Erstellt",
         "resolveNote": "Das Admin-Verzeichnis löst die ID auf; schlägt das fehl, wird die gekürzte ID angezeigt statt „Unbekannt“."
+      }
+    }
+  },
+  "accounts": {
+    "restore": {
+      "link": "Gelöscht",
+      "workersTitle": "Gelöschte Mitarbeitende",
+      "ownersTitle": "Gelöschte Eigentümer",
+      "subtitle": "Beim Wiederherstellen kehrt derselbe Datensatz zurück — gleiche ID, Auftragshistorie, Verträge, Bewertungen, Dokumente und Agenturverknüpfung.",
+      "backToWorkers": "Zurück zu Mitarbeitenden",
+      "backToOwners": "Zurück zu Eigentümern",
+      "noAccess": "Das Wiederherstellen gelöschter Konten ist Super-Admins vorbehalten.",
+      "empty": "Keine gelöschten Konten.",
+      "submit": "Wiederherstellen",
+      "title": "{name} wiederherstellen?",
+      "sameRow": "Derselbe Datensatz kehrt zurück — gleiche ID, Auftragshistorie, Verträge, Bewertungen, Dokumente und Agenturverknüpfung.",
+      "chatGroupsGone": "Chatgruppen dieser Person kehren nicht zurück. Beim Löschen wurden sie unwiderruflich an eine Nachfolge übergeben.",
+      "notReRegistration": "Eine Neuregistrierung ist keine Wiederherstellung: dabei entsteht ein völlig neuer Datensatz ohne Historie — und nur das kann die Person selbst tun.",
+      "reasonLabel": "Begründung",
+      "reasonHint": "Pflichtfeld. Dies ist der Nachweis dafür, warum das Konto zurückgeholt wurde.",
+      "columns": {
+        "deletedAt": "Gelöscht am",
+        "deletedBy": "Gelöscht von",
+        "actions": "Aktionen"
+      },
+      "errors": {
+        "emailTaken": "Die E-Mail-Adresse dieser Person ist bereits neu registriert. Ein gelöschtes Konto gibt seine Adresse frei — die Wiederherstellung ist erst möglich, wenn das andere Konto sie freigibt.",
+        "phoneTaken": "Die Telefonnummer dieser Person ist bereits neu registriert. Die Nummer kann unabhängig von der E-Mail vergeben sein — prüfen Sie die Nummer, nicht die Adresse.",
+        "notDeleted": "Dieses Konto ist nicht gelöscht.",
+        "notFound": "Dieses Konto existiert nicht mehr.",
+        "reasonRequired": "Eine Begründung ist erforderlich.",
+        "generic": "Das Konto konnte nicht wiederhergestellt werden."
       }
     }
   }

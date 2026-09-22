@@ -14,6 +14,9 @@ import {
 import { Can } from "@/components/auth/can";
 import { AssignWorkerDialog } from "@/components/tasks/assign-worker-dialog";
 import { ConfirmDialog } from "@/components/tasks/confirm-dialog";
+import { TaskDaysBadge } from "@/components/tasks/task-days-badge";
+import { toastGroupCancel } from "@/components/tasks/group-cancel-toast";
+// Still used below for an individual DAY, which does have a status word.
 import { TaskStatusBadge } from "@/components/tasks/task-status-badge";
 import {
   useAssignWorker,
@@ -57,6 +60,9 @@ export function WalkInOrderSheet({
 }) {
   const t = useTranslations("walkIn.detail");
   const tOrders = useTranslations("walkIn.orders");
+  // The cancel-result wording lives under `tasks.actions` — the same copy the
+  // task detail page uses, because it is the same button on the same route.
+  const tTasks = useTranslations("tasks");
   const tAssign = useTranslations("workers.assignErrors");
   const tOnboarding = useTranslations("onboarding");
   const locale = useLocale();
@@ -106,7 +112,7 @@ export function WalkInOrderSheet({
             <SheetHeader>
               <SheetTitle className="flex items-center gap-2 pr-6">
                 <span className="truncate">{group.title || tOrders("untitled")}</span>
-                <TaskStatusBadge status={group.status} />
+                <TaskDaysBadge group={group} />
               </SheetTitle>
               <SheetDescription>
                 {new Date(group.createdAt).toLocaleDateString(locale, {
@@ -230,7 +236,15 @@ export function WalkInOrderSheet({
                 open
                 onClose={() => !cancelGroup.isPending && setModal(null)}
                 onConfirm={() =>
-                  cancelGroup.mutate(group.id, { onSuccess: () => setModal(null) })
+                  cancelGroup.mutate(
+                    { id: group.id, before: group.days },
+                    {
+                      onSuccess: (outcome) => {
+                        toastGroupCancel(outcome, tTasks);
+                        setModal(null);
+                      },
+                    },
+                  )
                 }
                 isPending={cancelGroup.isPending}
                 title={t("cancelTitle")}

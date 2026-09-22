@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Download, Inbox } from "lucide-react";
+import { Download, Inbox, Trash2 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import {
   Briefcase,
@@ -11,7 +11,9 @@ import {
   SlidersHorizontal,
   UserRound,
 } from "lucide-react";
+import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
+import { useHasPermission } from "@/hooks/use-current-permissions";
 import { DataTable, serverSortParams } from "@/components/ui/data-table";
 import {
   FilterBar,
@@ -111,6 +113,8 @@ function lookupLabel(c: { nameDe: string; nameEn: string }, locale: string): str
  */
 export default function WorkersPage() {
   const t = useTranslations("workers");
+  const tRestore = useTranslations("accounts.restore");
+  const canRestoreAccounts = useHasPermission("worker:restore");
   const tStage = useTranslations("workers.stage");
   const tAccount = useTranslations("workers.account");
   const tCommon = useTranslations("common");
@@ -550,6 +554,21 @@ export default function WorkersPage() {
               {summary.counts.review ?? 0}
             </span>
           </Button>
+{/* ⚠ SUPER_ADMIN only. Hidden without `worker:restore`, because the
+              screen behind it refuses a MODERATOR with an empty-bodied `403` —
+              a link to a page that can only say "no" is worse than no link. */}
+          {canRestoreAccounts && (
+            <Button
+              variant="outline"
+              size="sm"
+              nativeButton={false}
+              className="gap-2 rounded-lg"
+              render={<Link href="/dashboard/workers/deleted" />}
+            >
+              <Trash2 className="size-4" />
+              {tRestore("link")}
+            </Button>
+          )}
           {/* Export is the one genuine page-level write, and it always equals the
               filtered set — there is no "export everything" mode server-side. */}
           <Button variant="outline" size="sm" disabled className="gap-2 rounded-lg">

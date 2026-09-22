@@ -7,6 +7,9 @@ import type {
   SubmitTaskWorkerStarRequest,
   OverrideTaskWorkerOutcomeRequest,
   CreateTaskGroupRequest,
+  AdminSetSupervisorRequest,
+  TaskSupervisorDto,
+  ForceCloseTaskRequest,
 } from "@/lib/types/task.types";
 
 export const taskService = {
@@ -110,6 +113,53 @@ export const taskService = {
   /** task_group:cancel_any — cancel any group regardless of ownership. */
   cancelGroup: async (id: string): Promise<void> => {
     await apiClient.post(`/api/tasks/admin/groups/${id}/cancel`);
+  },
+
+  /**
+   * `task:supervisor_override_any` — **SUPER_ADMIN only**; a MODERATOR gets an
+   * empty-bodied `403`, which is the permission filter and never an onboarding
+   * problem. Puts an admin in charge of a day nobody can hand in.
+   *
+   * ⚠ **Send the body.** A request with no body at all is refused by model
+   * binding *before* the action runs and answers ASP.NET problem-details with no
+   * `error` key — a handler reading `.error` would show the user nothing.
+   *
+   * Refusals: `400 worker_not_on_day` (the target must already be booked on that
+   * day — an override onto an outsider produces a day nobody can hand in),
+   * `400 supervisor_change_not_allowed` (F-07 ·3: the day is already DONE or
+   * CANCELLED), `400 task_not_found`.
+   */
+  setSupervisor: async (
+    taskId: string,
+    body: AdminSetSupervisorRequest,
+  ): Promise<TaskSupervisorDto> => {
+    const { data } = await apiClient.put<TaskSupervisorDto>(
+      `/api/tasks/${taskId}/supervisor`,
+      body,
+    );
+    return data;
+  },
+
+  /**
+   * `task:force_close_any` (110049) — **SUPER_ADMIN only**, empty-bodied `403`
+   * otherwise. Closes a day that is stuck open.
+   *
+   * ⚠ `reason` is mandatory and is shown to the workers and the owner. Works
+   * from `PENDING` / `CHECKED_IN` / `IN_REVIEW`; a day already `DONE` or
+   * `CANCELLED` answers `400 task_already_closed`.
+   *
+   * ⚠⚠ Force-closing marks everyone who never checked in as a **no-show**, which
+   * counts against their rating. That belongs in the confirmation, not here.
+   */
+  forceCloseTask: async (
+    taskId: string,
+    body: ForceCloseTaskRequest,
+  ): Promise<TaskItemDto> => {
+    const { data } = await apiClient.post<TaskItemDto>(
+      `/api/tasks/${taskId}/force-close`,
+      body,
+    );
+    return data;
   },
 
   /** task:assign_worker_any — one-off fill of a single under-staffed task. */

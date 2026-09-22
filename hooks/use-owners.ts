@@ -75,6 +75,39 @@ export function useOwner(ownerUserId: string) {
   });
 }
 
+/**
+ * The soft-deleted owners, for the restore screen.
+ *
+ * ⚠ `?status=Deleted` was accepted and **always answered `total: 0`** until
+ * 2026-09-07; it returns rows now. Gate `enabled` on `owner:restore` — the
+ * screen is SUPER_ADMIN-only and a MODERATOR gets an empty-bodied `403`.
+ */
+export function useDeletedOwners(enabled = true) {
+  return useQuery({
+    queryKey: ["owners-deleted"],
+    queryFn: () => ownerService.getOwners({ status: "Deleted", pageSize: 100 }),
+    enabled,
+  });
+}
+
+/**
+ * Bring a deleted owner back — `POST /api/owners/{id}/restore`.
+ *
+ * ⚠ The same row returns, with its history. Re-registering is not a restore.
+ */
+export function useRestoreOwner() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason: string }) =>
+      ownerService.restoreOwner(id, reason),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["owners-deleted"] });
+      qc.invalidateQueries({ queryKey: ["owners-table"] });
+      qc.invalidateQueries({ queryKey: ["owner-directory"] });
+    },
+  });
+}
+
 export function useSoftDeleteOwner() {
   const qc = useQueryClient();
   return useMutation({

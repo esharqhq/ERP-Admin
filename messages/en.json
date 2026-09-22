@@ -1098,11 +1098,11 @@
       },
       "status": {
         "all": "All",
-        "Pending": "Scheduled",
-        "Active": "In progress",
-        "Review": "Under review",
-        "Done": "Completed",
-        "Cancelled": "Cancelled"
+        "pending": "Scheduled",
+        "checkedIn": "In progress",
+        "inReview": "Under review",
+        "done": "Completed",
+        "cancelled": "Cancelled"
       },
       "viewLog": "Log"
     },
@@ -1992,7 +1992,11 @@
       "outcomeTitle": "Override Outcome",
       "unassign": "Unassign",
       "unassignTitle": "Unassign Worker",
-      "unassignConfirm": "Remove {name} from this task?"
+      "unassignConfirm": "Remove {name} from this task?",
+      "resultAll": "Booking cancelled — all {cancelled} days.",
+      "resultSome": "{cancelled} of the booking's days were cancelled. {remaining} start within 3 hours and can no longer be cancelled.",
+      "resultNone": "Nothing was cancelled. All {remaining} remaining days start within 3 hours, which is past the cancellation window.",
+      "resultUnknown": "The request was accepted, but the booking could not be re-read — refresh to see which days were cancelled."
     },
     "statuses": {
       "todo": "To Do",
@@ -2006,7 +2010,64 @@
       "medium": "Medium",
       "high": "High"
     },
-    "emptyColumn": "No tasks"
+    "emptyColumn": "No tasks",
+    "dayStates": {
+      "pending": "Scheduled",
+      "checkedIn": "In progress",
+      "inReview": "Under review",
+      "done": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "dayCounts": {
+      "settledOfTotal": "{settled} / {total} days",
+      "bucket": {
+        "Pending": "Not started",
+        "Active": "In progress",
+        "Done": "Finished",
+        "Cancelled": "Cancelled"
+      }
+    },
+    "supervisor": {
+      "title": "Put an admin-chosen worker in charge of this day",
+      "why": "Only the supervisor can hand a day in. The role moves on automatically an hour after the work day ends — but only to another worker who checked in, so on a day where one person arrived it moves to nobody and the day stays unsubmitted. This is the only way out.",
+      "worker": "Supervisor",
+      "workerPlaceholder": "Choose from this day's workers",
+      "noRoster": "Nobody is booked on this day, so there is nobody to put in charge.",
+      "submit": "Make supervisor",
+      "current": "Supervisor",
+      "none": "Not yet — the first worker to check in takes the role",
+      "summary": "Work summary",
+      "noSummary": "None — the day has not been handed in, or the supervisor left it blank",
+      "errors": {
+        "worker_not_on_day": "That worker is not booked on this day. Only the day's own workers can be put in charge — an outsider would leave a day nobody can hand in.",
+        "supervisor_change_not_allowed": "This day has already finished. The supervisor of a closed day is the record of who filed it and can no longer be changed.",
+        "task_not_found": "This day no longer exists. Refresh the page.",
+        "generic": "The supervisor could not be changed."
+      }
+    },
+    "forceClose": {
+      "title": "Force this day closed",
+      "what": "Use this when a day cannot be handed in — for example when nobody who checked in is left to submit it. The day is closed immediately and the owner is not asked to accept it.",
+      "noShowWarning": "{count, plural, =0 {Nobody is recorded absent — everybody on this day checked in.} one {1 worker who never checked in will be recorded as a no-show, which counts against their rating.} other {# workers who never checked in will be recorded as no-shows, which counts against their ratings.}}",
+      "creditedNote": "{count, plural, =0 {Nobody checked in to this day.} one {1 worker who checked in is credited with completing the day, even though nobody submitted it.} other {# workers who checked in are credited with completing the day, even though nobody submitted it.}}",
+      "reasonLabel": "Reason",
+      "reasonHint": "Required. The workers and the owner are shown this — it is the only record of why the day ended this way.",
+      "submit": "Force close",
+      "action": "Force close",
+      "closedAs": "Closed",
+      "reasons": {
+        "OwnerAccepted": "Accepted by the owner",
+        "AutoAccepted": "Accepted automatically — not reviewed within 5 hours",
+        "ClosedForced": "Forced closed by an admin",
+        "ClosedReplacement": "Closed and replaced"
+      },
+      "errors": {
+        "task_already_closed": "This day is already finished or cancelled, so there is nothing to close.",
+        "reason_required": "A reason is required.",
+        "task_not_found": "This day no longer exists. Refresh the page.",
+        "generic": "The day could not be closed."
+      }
+    }
   },
   "leave": {
     "title": "Leave Requests",
@@ -3369,6 +3430,38 @@
         "createdByAdminId": "createdByAdminId",
         "created": "Created",
         "resolveNote": "The admin directory resolves the id; if that lookup ever fails the truncated id is shown as-is rather than \"Unknown\"."
+      }
+    }
+  },
+  "accounts": {
+    "restore": {
+      "link": "Deleted",
+      "workersTitle": "Deleted workers",
+      "ownersTitle": "Deleted owners",
+      "subtitle": "Restoring brings back the same record — same id, task history, contracts, ratings, documents and agency link.",
+      "backToWorkers": "Back to workers",
+      "backToOwners": "Back to owners",
+      "noAccess": "Restoring a deleted account is reserved for super admins.",
+      "empty": "No deleted accounts.",
+      "submit": "Restore",
+      "title": "Restore {name}?",
+      "sameRow": "The same record comes back — same id, task history, contracts, ratings, documents and agency link.",
+      "chatGroupsGone": "Chat groups this person owned do not come back. The deletion handed them to a successor and that cannot be undone.",
+      "notReRegistration": "Re-registering is not a restore: that creates a brand-new record with no history, and it is the only thing the person can do for themselves.",
+      "reasonLabel": "Reason",
+      "reasonHint": "Required. This is the record of why the account was brought back.",
+      "columns": {
+        "deletedAt": "Deleted",
+        "deletedBy": "Deleted by",
+        "actions": "Actions"
+      },
+      "errors": {
+        "emailTaken": "Someone has already registered with this person's email address. A deleted account releases its address, so the restore cannot go ahead until that other account gives it up.",
+        "phoneTaken": "Someone has already registered with this person's phone number. The phone can be taken independently of the email — check the number, not the address.",
+        "notDeleted": "This account is not deleted, so there is nothing to restore.",
+        "notFound": "This account no longer exists.",
+        "reasonRequired": "A reason is required.",
+        "generic": "The account could not be restored."
       }
     }
   }
