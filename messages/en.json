@@ -74,7 +74,8 @@
     "pickDate": "Pick a date",
     "rangeFrom": "From",
     "rangeTo": "To",
-    "pending": "Pending"
+    "pending": "Pending",
+    "close": "Close"
   },
   "status": {
     "pending": "Pending",
@@ -2349,7 +2350,9 @@
       "writesImmediately": "Assigning writes immediately. There is no draft to save.",
       "close": "Close",
       "loaded": "{count} loaded",
-      "refused": "Refused"
+      "refused": "Refused",
+      "fullyStaffed": "Fully staffed",
+      "bodiesShort": "{count, plural, one {# still needed} other {# still needed}}"
     },
     "unassignTitle": "Remove worker?",
     "unassignConfirm": "Remove {name} from this task?",

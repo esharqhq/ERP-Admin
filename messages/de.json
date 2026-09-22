@@ -74,7 +74,8 @@
     "pickDate": "Datum wählen",
     "rangeFrom": "Von",
     "rangeTo": "Bis",
-    "pending": "Ausstehend"
+    "pending": "Ausstehend",
+    "close": "Schließen"
   },
   "status": {
     "pending": "Ausstehend",
@@ -2349,7 +2350,9 @@
       "writesImmediately": "Die Zuweisung wird sofort gespeichert. Es gibt keinen Entwurf.",
       "close": "Schließen",
       "loaded": "{count} geladen",
-      "refused": "Abgelehnt"
+      "refused": "Abgelehnt",
+      "fullyStaffed": "Vollständig besetzt",
+      "bodiesShort": "{count, plural, one {noch # benötigt} other {noch # benötigt}}"
     },
     "unassignTitle": "Mitarbeiter entfernen?",
     "unassignConfirm": "{name} von dieser Aufgabe entfernen?",
