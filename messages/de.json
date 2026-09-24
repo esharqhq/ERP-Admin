@@ -1109,7 +1109,8 @@
         "checkedIn": "Läuft",
         "inReview": "In Prüfung",
         "done": "Abgeschlossen",
-        "cancelled": "Storniert"
+        "cancelled": "Storniert",
+        "rejected": "In Klärung"
       },
       "viewLog": "Protokoll"
     },
@@ -2158,6 +2159,9 @@
       "ticket": "Support-Ticket",
       "waiting": "Wartet seit {hours} Std.",
       "notFound": "Dieser Tag wurde nicht gefunden.",
+      "forbidden": "Ihre Rolle darf diesen Tag nicht sehen.",
+      "loadError": "Dieser Tag konnte nicht geladen werden.",
+      "retry": "Erneut versuchen",
       "noComplaint": "Zu diesem Tag gibt es keine offene Beschwerde."
     },
     "owner": {
@@ -2167,17 +2171,24 @@
     },
     "team": {
       "title": "Team",
-      "supervisor": "Vorarbeiter",
-      "noSupervisor": "Keiner",
+      "supervisor": "Verantwortliche Person",
+      "noSupervisor": "Keine",
       "summary": "Arbeitsbericht",
-      "noSummary": "Der Vorarbeiter hat nichts geschrieben.",
+      "noSummary": "Die verantwortliche Person hat nichts geschrieben.",
       "evidence": "Fotos des Teams",
       "noEvidence": "Das Team hat keine Fotos hochgeladen.",
       "evidenceForbidden": "Ihre Rolle darf die Fotos des Teams nicht sehen.",
       "evidenceError": "Die Fotos des Teams konnten nicht geladen werden. Bitte die Seite neu laden.",
       "checkin": "Ein",
       "checkout": "Aus",
-      "noWorkers": "An diesem Tag war niemand eingeteilt."
+      "noWorkers": "An diesem Tag war niemand eingeteilt.",
+      "outcome": {
+        "pending": "Ausstehend",
+        "completed": "Abgeschlossen",
+        "noShow": "Nicht erschienen",
+        "removed": "Entfernt",
+        "cancelled": "Storniert"
+      }
     },
     "decision": {
       "title": "Entscheidung",

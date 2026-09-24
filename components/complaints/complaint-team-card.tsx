@@ -4,11 +4,39 @@ import { useLocale, useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PhotoGrid } from "@/components/complaints/photo-grid";
+import { VACATED_OUTCOMES } from "@/lib/tasks/staffing";
+import { normalizeStatus } from "@/lib/types/task.types";
 import type { TaskItemDto, TaskMediaListItem } from "@/lib/types/task.types";
+import { cn } from "@/lib/utils";
 
 function fmtTime(iso: string | null, locale: string): string {
   if (!iso) return "–";
   return new Intl.DateTimeFormat(locale, { timeStyle: "short" }).format(new Date(iso));
+}
+
+/**
+ * `TaskWorkerOutcomeName` (lowercased) → the `complaints.team.outcome.*` key.
+ * `noshow` is the one spelling mismatch — the enum has no separating word, the
+ * i18n key does, for readability.
+ */
+const OUTCOME_LABEL_KEY: Record<string, string> = {
+  pending: "pending",
+  completed: "completed",
+  noshow: "noShow",
+  removed: "removed",
+  cancelled: "cancelled",
+};
+
+/**
+ * The outcome word, translated where the outcome is one of the five the wire
+ * promises — and the raw wire value, untranslated, for anything else. Outcomes
+ * are typed as a closed enum (`TaskWorkerOutcomeName`) but this reads them as a
+ * bare `string`, so a sixth value the server adds later prints rather than
+ * throws or silently disappearing.
+ */
+function outcomeLabel(outcome: string, t: (key: string) => string): string {
+  const key = OUTCOME_LABEL_KEY[normalizeStatus(outcome)];
+  return key ? t(`outcome.${key}`) : outcome || "—";
 }
 
 /**
@@ -55,16 +83,34 @@ export function ComplaintTeamCard({
           <p className="text-muted-foreground">{t("noWorkers")}</p>
         ) : (
           <ul className="flex flex-col divide-y divide-border">
-            {workers.map((w) => (
-              <li key={w.id} className="flex items-center justify-between gap-3 py-1.5">
-                <span className="min-w-0 truncate">
-                  {w.workerName ?? <span className="font-mono">{w.workerId}</span>}
-                </span>
-                <span className="shrink-0 font-mono text-xs text-muted-foreground tabular-nums">
-                  {t("checkin")} {fmtTime(w.checkinAt, locale)} · {t("checkout")} {fmtTime(w.checkoutAt, locale)}
-                </span>
-              </li>
-            ))}
+            {workers.map((w) => {
+              // A vacated row (Removed/Cancelled/NoShow — `VACATED_OUTCOMES`)
+              // is not "on the team" — the decision screen must not read it as
+              // part of the crew that was there. A no-show is muted along with
+              // the other two: they were never actually on site either. Muted,
+              // not struck through: the row is still evidence.
+              const vacated = VACATED_OUTCOMES.has(normalizeStatus(w.outcome));
+              return (
+                <li key={w.id} className="flex items-center justify-between gap-3 py-1.5">
+                  <span
+                    className={cn(
+                      "flex min-w-0 items-center gap-1.5 truncate",
+                      vacated && "text-muted-foreground",
+                    )}
+                  >
+                    <span className="truncate">
+                      {w.workerName ?? <span className="font-mono">{w.workerId}</span>}
+                    </span>
+                    <span className="shrink-0 text-xs text-muted-foreground">
+                      {outcomeLabel(w.outcome, t)}
+                    </span>
+                  </span>
+                  <span className="shrink-0 font-mono text-xs text-muted-foreground tabular-nums">
+                    {t("checkin")} {fmtTime(w.checkinAt, locale)} · {t("checkout")} {fmtTime(w.checkoutAt, locale)}
+                  </span>
+                </li>
+              );
+            })}
           </ul>
         )}
 

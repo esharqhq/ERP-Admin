@@ -1109,7 +1109,8 @@
         "checkedIn": "In progress",
         "inReview": "Under review",
         "done": "Completed",
-        "cancelled": "Cancelled"
+        "cancelled": "Cancelled",
+        "rejected": "In dispute"
       },
       "viewLog": "Log"
     },
@@ -2158,6 +2159,9 @@
       "ticket": "Support ticket",
       "waiting": "Waiting {hours} h",
       "notFound": "This day could not be found.",
+      "forbidden": "Your role cannot read this day.",
+      "loadError": "This day could not be loaded.",
+      "retry": "Try again",
       "noComplaint": "This day has no open complaint."
     },
     "owner": {
@@ -2177,7 +2181,14 @@
       "evidenceError": "The team's photos could not be loaded. Reload the page.",
       "checkin": "In",
       "checkout": "Out",
-      "noWorkers": "Nobody was on this day."
+      "noWorkers": "Nobody was on this day.",
+      "outcome": {
+        "pending": "Pending",
+        "completed": "Completed",
+        "noShow": "No-show",
+        "removed": "Removed",
+        "cancelled": "Cancelled"
+      }
     },
     "decision": {
       "title": "Decision",
