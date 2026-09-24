@@ -476,7 +476,8 @@
     "propertyCategories": "Objektkategorien",
     "walkIn": "Laufkundschaft",
     "broadcasts": "Ankündigungen",
-    "system": "System"
+    "system": "System",
+    "complaints": "Beschwerden"
   },
   "auth": {
     "logout": "Abmelden",
@@ -2054,7 +2055,8 @@
       "resultAll": "Buchung storniert — alle {cancelled} Tage.",
       "resultSome": "{cancelled} Tage der Buchung wurden storniert. {remaining} beginnen in weniger als 3 Stunden und können nicht mehr storniert werden.",
       "resultNone": "Es wurde nichts storniert. Alle {remaining} verbleibenden Tage beginnen in weniger als 3 Stunden — die Stornierungsfrist ist abgelaufen.",
-      "resultUnknown": "Die Anfrage wurde angenommen, die Buchung konnte aber nicht neu geladen werden — bitte aktualisieren."
+      "resultUnknown": "Die Anfrage wurde angenommen, die Buchung konnte aber nicht neu geladen werden — bitte aktualisieren.",
+      "viewComplaint": "Beschwerde ansehen"
     },
     "statuses": {
       "todo": "Zu erledigen",
@@ -2127,6 +2129,88 @@
         "generic": "Der Tag konnte nicht abgeschlossen werden.",
         "decide_the_complaint_first": "Zu diesem Tag gibt es eine offene Beschwerde. Bitte stattdessen über die Beschwerde entscheiden — das schließt den Tag."
       }
+    }
+  },
+  "complaints": {
+    "title": "Beschwerden",
+    "subtitle": "Tage, die ein Eigentümer abgelehnt hat. Sie bleiben gestoppt, bis ein Admin entscheidet.",
+    "openCount": "{count, plural, =0 {Keine offenen Beschwerden} one {# offen} other {# offen}}",
+    "columns": {
+      "day": "Tag",
+      "property": "Immobilie",
+      "waiting": "Wartet",
+      "state": "Status"
+    },
+    "handedIn": "Abgegeben {time}",
+    "hours": "{hours} Std.",
+    "state": {
+      "open": "In Klärung",
+      "escalated": "Eskaliert"
+    },
+    "empty": {
+      "title": "Keine offenen Beschwerden",
+      "body": "Wenn ein Eigentümer einen Tag ablehnt, wartet er hier auf eine Entscheidung."
+    },
+    "detail": {
+      "back": "Beschwerden",
+      "booking": "Buchung öffnen",
+      "ticket": "Support-Ticket",
+      "waiting": "Wartet seit {hours} Std.",
+      "notFound": "Dieser Tag wurde nicht gefunden.",
+      "noComplaint": "Zu diesem Tag gibt es keine offene Beschwerde."
+    },
+    "owner": {
+      "title": "Beschwerde des Eigentümers",
+      "raisedAt": "Eingegangen {time}",
+      "noPhotos": "Keine Fotos angehängt."
+    },
+    "team": {
+      "title": "Team",
+      "supervisor": "Vorarbeiter",
+      "noSupervisor": "Keiner",
+      "summary": "Arbeitsbericht",
+      "noSummary": "Der Vorarbeiter hat nichts geschrieben.",
+      "evidence": "Fotos des Teams",
+      "noEvidence": "Das Team hat keine Fotos hochgeladen.",
+      "evidenceForbidden": "Ihre Rolle darf die Fotos des Teams nicht sehen.",
+      "checkin": "Ein",
+      "checkout": "Aus",
+      "noWorkers": "An diesem Tag war niemand eingeteilt."
+    },
+    "decision": {
+      "title": "Entscheidung",
+      "lead": "Beide Entscheidungen schließen den Tag. Kein Mitarbeiter verliert seine Anrechnung.",
+      "forWorkers": "Für die Mitarbeiter",
+      "forOwner": "Für den Eigentümer",
+      "noPermission": "Für die Entscheidung über Beschwerden fehlt Ihrer Rolle die nötige Berechtigung.",
+      "decidedOwner": "Entschieden für den Eigentümer",
+      "decidedWorker": "Entschieden für die Mitarbeiter",
+      "decidedOther": "Entschieden",
+      "decidedAt": "am {time}",
+      "note": "Hinweis"
+    },
+    "dialog": {
+      "titleOwner": "Für den Eigentümer entscheiden?",
+      "titleWorker": "Für die Mitarbeiter entscheiden?",
+      "ownerPoint1": "Der Tag wird geschlossen, die Beschwerde gilt als berechtigt.",
+      "ownerPoint2": "Der Eigentümer erhält einen kostenlosen Ersatztag und wählt das Datum selbst.",
+      "ownerPoint3": "Dieser Tag wird normal besetzt und bleibt womöglich leer — sagen Sie kein Team zu.",
+      "workerPoint1": "Der Tag wird geschlossen, die Beschwerde gilt als unberechtigt.",
+      "workerPoint2": "Der Eigentümer erfährt, dass die Beschwerde nicht anerkannt wurde.",
+      "credit": "In beiden Fällen verliert kein Mitarbeiter seine Anrechnung.",
+      "note": "Hinweis · optional",
+      "noteHint": "Eigentümer und Mitarbeiter sehen diesen Hinweis.",
+      "final": "Das kann nicht rückgängig gemacht werden.",
+      "confirm": "Entscheidung bestätigen",
+      "success": "Beschwerde entschieden."
+    },
+    "errors": {
+      "alreadyDecided": "Ein anderer Admin hat bereits entschieden. Die Seite wurde aktualisiert.",
+      "closedElsewhere": "Dieser Tag wurde auf anderem Weg geschlossen. Die Seite wurde aktualisiert.",
+      "notFound": "Diese Beschwerde existiert nicht mehr.",
+      "forbidden": "Ihre Rolle darf nicht über Beschwerden entscheiden.",
+      "invalid": "Die Entscheidung wurde nicht angenommen. Bitte den Hinweis prüfen und erneut versuchen.",
+      "generic": "Die Entscheidung konnte nicht gespeichert werden. Bitte erneut versuchen."
     }
   },
   "leave": {
