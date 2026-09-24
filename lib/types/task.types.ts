@@ -71,7 +71,7 @@ export interface TaskItemDto {
   /**
    * How the day ended — F-07 ·3 (2026-09-21). `"OwnerAccepted"` · `"AutoAccepted"`
    * (nobody reviewed it within five hours) · `"ClosedForced"` (an admin forced it)
-   * · `"ClosedReplacement"` (⚠ never today — forward-declared for ·5).
+   * · `"ClosedReplacement"` (an admin upheld the owner's complaint — live since ·5, 2026-09-21).
    *
    * ⚠⚠ `null` does NOT mean "the owner accepted it". It means the day has not
    * closed, **or** it closed before 2026-09-21. A day cancelled before it ever
@@ -95,6 +95,13 @@ export interface TaskItemDto {
   workers: TaskWorkerDto[];
   media?: TaskMediaDto[] | null;
   conversationId?: string | null;
+  /**
+   * F-07 ·5. ⚠ Filled by `GET /api/tasks/{taskId}` ONLY. Every list, `PATCH`,
+   * admin-assign and the tasks nested in a booking serve `null` even on a
+   * disputed day — `null` means "none, or a door that does not load it". Read
+   * "disputed" from `status === "Rejected"`.
+   */
+  complaint?: TaskComplaintDto | null;
 }
 
 /**
@@ -121,8 +128,7 @@ export interface TaskGroupDayCountsDto {
  * How the booking's finished days ended — added by F-07 ·3 (2026-09-21) beside
  * `days`.
  *
- * ⚠ `closedReplacement` is always `0` today — forward-declared for ·5, same
- * discipline as `days.rejected`: keep the key.
+ * `closedReplacement` counts days an admin closed by upholding a complaint (F-07 ·5, live since 2026-09-21).
  *
  * ⚠ These do NOT sum to `days.done` on any booking that existed before
  * 2026-09-21. Those days carry no reason and are counted by none of the four.
@@ -354,4 +360,71 @@ export interface TaskSupervisorDto {
  */
 export interface ForceCloseTaskRequest {
   reason: string;
+}
+
+// ── F-07 ·5 — complaints ─────────────────────────────────────────────────────
+// ⚠ The guide names these doors but never gives the shapes; read from
+// `Backend/GermanyERP.Domain/Models/DTOs/Tasks/TaskDtos.cs:263-293` and filed
+// as a doc bug in BACKEND-ASKS.md.
+
+/** `Open` while the day sits in `Rejected`. Typed open: the set is not promised closed. */
+export type TaskComplaintDecision = "Open" | "SidedWithOwner" | "SidedWithWorker";
+
+export interface TaskComplaintPhotoDto {
+  id: string;
+  /** Absolute, unsigned. */
+  url: string;
+  originalFileName: string;
+  fileSize: number;
+  mimeType: string;
+  uploadedAt: string;
+}
+
+export interface TaskComplaintDto {
+  id: string;
+  taskId: string;
+  raisedByOwnerUserId: string;
+  reason: string;
+  raisedAt: string;
+  decision: TaskComplaintDecision | (string & {});
+  decidedByAdminId: string | null;
+  decidedAt: string | null;
+  decisionNote: string | null;
+  /** `null` on a walk-in day: nobody can log in as the walk-in owner, so no ticket opens. */
+  supportTicketId: string | null;
+  photos: TaskComplaintPhotoDto[];
+}
+
+/**
+ * One row of `GET /api/tasks/{taskId}/media` — ⚠ NOT `TaskMediaDto`. The route
+ * hand-builds its answer and names the photo URL **`storageKey`** (kept by the
+ * backend on purpose; `index/dtos/tasks.md:35`). It is an absolute URL.
+ */
+export interface TaskMediaListItem {
+  id: string;
+  taskId: string;
+  uploaderId: string;
+  /** `"Before"` | `"After"` | `"Video"`. */
+  type: string;
+  storageKey: string;
+  originalFileName: string;
+  mimeType: string;
+  fileSize: number;
+  uploadedAt: string;
+  /** Which workers the supervisor said this photo covers. `[]` = nobody. */
+  workerIds: string[] | null;
+}
+
+/** `POST /api/tasks/complaints/{complaintId}/decide`. `Open` is refused at the door. */
+export interface DecideComplaintRequest {
+  decision: "SidedWithOwner" | "SidedWithWorker";
+  /** ≤ 2000. Shown to the owner and the workers in notification 80. */
+  note?: string;
+}
+
+/** The answer of every day transition, the decide door included. */
+export interface TaskStatusDto {
+  taskId: string;
+  status: string;
+  timestamp: string | null;
 }

@@ -476,7 +476,8 @@
     "propertyCategories": "Property categories",
     "walkIn": "Walk-in",
     "broadcasts": "Broadcasts",
-    "system": "System"
+    "system": "System",
+    "complaints": "Complaints"
   },
   "auth": {
     "logout": "Logout",
@@ -1108,7 +1109,8 @@
         "checkedIn": "In progress",
         "inReview": "Under review",
         "done": "Completed",
-        "cancelled": "Cancelled"
+        "cancelled": "Cancelled",
+        "rejected": "In dispute"
       },
       "viewLog": "Log"
     },
@@ -2054,7 +2056,8 @@
       "resultAll": "Booking cancelled — all {cancelled} days.",
       "resultSome": "{cancelled} of the booking's days were cancelled. {remaining} start within 3 hours and can no longer be cancelled.",
       "resultNone": "Nothing was cancelled. All {remaining} remaining days start within 3 hours, which is past the cancellation window.",
-      "resultUnknown": "The request was accepted, but the booking could not be re-read — refresh to see which days were cancelled."
+      "resultUnknown": "The request was accepted, but the booking could not be re-read — refresh to see which days were cancelled.",
+      "viewComplaint": "View complaint"
     },
     "statuses": {
       "todo": "To Do",
@@ -2074,7 +2077,8 @@
       "checkedIn": "In progress",
       "inReview": "Under review",
       "done": "Completed",
-      "cancelled": "Cancelled"
+      "cancelled": "Cancelled",
+      "rejected": "In dispute"
     },
     "dayCounts": {
       "settledOfTotal": "{settled} / {total} days",
@@ -2123,8 +2127,103 @@
         "task_already_closed": "This day is already finished or cancelled, so there is nothing to close.",
         "reason_required": "A reason is required.",
         "task_not_found": "This day no longer exists. Refresh the page.",
-        "generic": "The day could not be closed."
+        "generic": "The day could not be closed.",
+        "decide_the_complaint_first": "This day has an open complaint. Decide the complaint instead — that closes the day."
       }
+    }
+  },
+  "complaints": {
+    "title": "Complaints",
+    "subtitle": "Days an owner rejected. They stay stopped until an admin decides.",
+    "openCount": "{count, plural, =0 {No open complaints} one {# open} other {# open}}",
+    "columns": {
+      "day": "Day",
+      "property": "Property",
+      "waiting": "Waiting",
+      "state": "State"
+    },
+    "searchPlaceholder": "Search by property",
+    "handedIn": "Handed in {time}",
+    "hours": "{hours} h",
+    "state": {
+      "open": "In dispute",
+      "escalated": "Escalated"
+    },
+    "empty": {
+      "title": "No open complaints",
+      "body": "When an owner rejects a day, it waits here for a decision."
+    },
+    "detail": {
+      "back": "Complaints",
+      "booking": "Open the booking",
+      "ticket": "Support ticket",
+      "waiting": "Waiting {hours} h",
+      "notFound": "This day could not be found.",
+      "forbidden": "Your role cannot read this day.",
+      "loadError": "This day could not be loaded.",
+      "retry": "Try again",
+      "noComplaint": "This day has no open complaint."
+    },
+    "owner": {
+      "title": "Owner's complaint",
+      "raisedAt": "Raised {time}",
+      "noPhotos": "No photos attached."
+    },
+    "team": {
+      "title": "Team",
+      "supervisor": "Supervisor",
+      "noSupervisor": "None",
+      "summary": "Work summary",
+      "noSummary": "The supervisor wrote nothing.",
+      "evidence": "Team's photos",
+      "noEvidence": "The team uploaded no photos.",
+      "evidenceForbidden": "Your role cannot read the team's photos.",
+      "evidenceError": "The team's photos could not be loaded. Reload the page.",
+      "checkin": "In",
+      "checkout": "Out",
+      "noWorkers": "Nobody was on this day.",
+      "outcome": {
+        "pending": "Pending",
+        "completed": "Completed",
+        "noShow": "No-show",
+        "removed": "Removed",
+        "cancelled": "Cancelled"
+      }
+    },
+    "decision": {
+      "title": "Decision",
+      "lead": "Both decisions close the day. No worker loses credit.",
+      "forWorkers": "For the workers",
+      "forOwner": "For the owner",
+      "noPermission": "Deciding a complaint needs the decide-complaint permission, which your role does not hold.",
+      "decidedOwner": "Decided for the owner",
+      "decidedWorker": "Decided for the workers",
+      "decidedOther": "Decided",
+      "decidedAt": "on {time}",
+      "note": "Note"
+    },
+    "dialog": {
+      "titleOwner": "Decide for the owner?",
+      "titleWorker": "Decide for the workers?",
+      "ownerPoint1": "The day closes with the complaint upheld.",
+      "ownerPoint2": "The owner is owed one free replacement day and picks its date.",
+      "ownerPoint3": "That day is staffed the normal way and may not fill — do not promise a crew.",
+      "workerPoint1": "The day closes with the complaint not upheld.",
+      "workerPoint2": "The owner is told the complaint was not upheld.",
+      "credit": "No worker loses credit either way.",
+      "note": "Note · optional",
+      "noteHint": "The owner and the workers see this note.",
+      "final": "This cannot be undone.",
+      "confirm": "Confirm decision",
+      "success": "Complaint decided."
+    },
+    "errors": {
+      "alreadyDecided": "Another admin already decided this complaint. The page has been refreshed.",
+      "closedElsewhere": "This day was closed another way. The page has been refreshed.",
+      "notFound": "This complaint no longer exists.",
+      "forbidden": "Your role cannot decide complaints.",
+      "invalid": "The decision was not accepted. Check the note and try again.",
+      "generic": "The decision could not be saved. Please try again."
     }
   },
   "leave": {

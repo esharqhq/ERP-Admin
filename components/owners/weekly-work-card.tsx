@@ -33,12 +33,16 @@ import {
 import type { PropertyDto } from "@/lib/types/property.types";
 
 /**
- * ⚠ The five day states as `TaskStateKey`s, not as the server's words.
+ * ⚠ The six day states as `TaskStateKey`s, not as the server's words.
  *
  * These were `"Active"` and `"Review"` until F-07 ·0 renamed them on
  * 2026-09-17; after that, picking either matched no row and the table silently
  * emptied. `filterRowsByStatus` canonicalises both sides, so the tab value is
  * now our key rather than a copy of a server word that has already moved once.
+ *
+ * `rejected` is F-07 ·5's disputed day, listed here for the same reason the
+ * other five are: `filterRowsByStatus` already canonicalises it, so the tab
+ * only needed to exist to start filtering correctly.
  *
  * ⚠ Nothing here is sent to the API. `filterRowsByStatus` runs over rows already
  * fetched — the admin task list's `?status=` is a different, server-bound enum
@@ -51,6 +55,7 @@ const STATUSES = [
   "inReview",
   "done",
   "cancelled",
+  "rejected",
 ] as const;
 
 function fmtTime(iso: string): string {

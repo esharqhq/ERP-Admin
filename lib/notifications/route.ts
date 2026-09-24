@@ -88,6 +88,14 @@ export function notificationRoute(
     */
     case "WorkerProfessionRequest":
       return `/dashboard/skill-requests/${entityId}`;
+    // F-07. `entityId` is the day id on every Task row. The complaint kinds go
+    // to the complaint page (bell 79 carries no `taskGroupId`, so the booking
+    // page is out of reach); every other kind goes through the resolver, which
+    // reads the day and replaces itself with its booking.
+    case "Task":
+      return type === "TaskComplaintRaised" || type === "TaskComplaintEscalated"
+        ? `/dashboard/complaints/${entityId}`
+        : `/dashboard/tasks/day/${entityId}`;
     default:
       return null;
   }

@@ -16,6 +16,7 @@ import {
   Phone,
   Megaphone,
   Award,
+  MessageSquareWarning,
 } from "lucide-react"
 import { type LucideIcon } from "lucide-react"
 
@@ -88,6 +89,9 @@ export const navGroups: NavGroup[] = [
       { title: "Workers",     labelKey: "nav.workers",     url: "/dashboard/workers",          icon: Users,         permission: "worker:list", badge: "total" },
       { title: "Tasks",       labelKey: "nav.tasks",       url: "/dashboard/tasks",            icon: ClipboardList, permission: "task:list_any", badge: "total" },
       { title: "Dispatching", labelKey: "nav.dispatching", url: "/dashboard/dispatch",         icon: Truck,         permission: "task:assign_worker_any", badge: "expiring" },
+      // F-07 ·5 — disputed days wait here for an admin's ruling. `queue` badge
+      // renders nothing until `navBadgeCounts` is fed by the aggregate endpoint.
+      { title: "Complaints",  labelKey: "nav.complaints",  url: "/dashboard/complaints",      icon: MessageSquareWarning, permission: "task:list_any", badge: "queue" },
       { title: "Leave",       labelKey: "nav.leave",       url: "/dashboard/leave",            icon: CalendarOff,   permission: "worker_leave_request:list_any", badge: "queue" },
       { title: "Skill Requests", labelKey: "nav.skillRequests", url: "/dashboard/skill-requests", icon: Award,      permission: "worker_profession_request:read", badge: "queue" },
       { title: "Attendance",  labelKey: "nav.attendance",  url: "/dashboard/attendance",       icon: CalendarCheck, permission: "system:attendance:read" },

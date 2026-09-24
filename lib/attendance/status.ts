@@ -109,7 +109,8 @@ export function deriveKind(
   }
 
   if (outcome === "noshow") return "noshow";
-  if (state === "done" || state === "inReview") return "noshow";
+  // `rejected` (F-07 ·5) is a handed-in day too: absence is settled, not pending.
+  if (state === "done" || state === "inReview" || state === "rejected") return "noshow";
 
   if (scheduled == null || nowMs <= 0) return "await";
   return nowMs < scheduled ? "await" : "overdue";

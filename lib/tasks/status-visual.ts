@@ -14,6 +14,8 @@ export const TASK_STATUS_VISUAL: Record<DerivedTaskStatus, StatusVisual> = {
   Scheduled: { bg: "transparent", fg: "#1C6B4C", dot: "#7FB79B", ring: null, rail: null },
   Running: { bg: "#E1EFE8", fg: "#0F3D2E", dot: "#1C6B4C", ring: null, rail: null },
   Review: { bg: "#FEF6E7", fg: "#9A5E00", dot: "#E08A00", ring: null, rail: null },
+  // F-07 ·5. The review family: handed in and waiting on a person, not on staff.
+  Disputed: { bg: "#FEF6E7", fg: "#9A5E00", dot: "#E08A00", ring: null, rail: null },
   Done: { bg: "transparent", fg: "#8D9AA3", dot: "#C3D6CB", ring: null, rail: null },
   Unstaffed: { bg: "#FDECEC", fg: "#B22B2B", dot: "#DC3B3B", ring: null, rail: "#DC3B3B" },
   Overdue: {

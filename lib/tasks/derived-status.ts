@@ -7,6 +7,7 @@ export type DerivedTaskStatus =
   | "Scheduled"
   | "Running"
   | "Review"
+  | "Disputed"
   | "Done"
   | "Unstaffed"
   | "Overdue"
@@ -44,6 +45,9 @@ export function deriveTaskStatus(
   if (state === "cancelled") return "Cancelled";
   if (state === "done") return "Done";
   if (state === "inReview") return "Review";
+  // F-07 ·5: a disputed day is handed in and stopped until an admin rules.
+  // Before the deadline check, or a disputed day past its deadline reads Overdue.
+  if (state === "rejected") return "Disputed";
   // No `state !== "done"` guard: the `done` arm above already returned, so with
   // the state read through `canonicalTaskStatus` the compiler proves it dead.
   // (The raw-string version needed it because `"Done"` and `"done"` were two

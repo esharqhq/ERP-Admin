@@ -156,3 +156,19 @@ describe("deriveTaskStatus", () => {
     expect(deriveTaskStatus(t, NOW)).toBe("Review");
   });
 });
+
+describe("a disputed day (F-07 ·5)", () => {
+  it("reads Disputed, not Overdue, once its deadline has passed", () => {
+    // Without its own arm a Rejected day fell to the deadline check.
+    expect(
+      deriveTaskStatus(
+        task({ status: "Rejected", deadline: "2026-09-01T17:00:00Z" }),
+        NOW,
+      ),
+    ).toBe("Disputed");
+  });
+
+  it("reads Disputed with no deadline", () => {
+    expect(deriveTaskStatus(task({ status: "Rejected" }), NOW)).toBe("Disputed");
+  });
+});

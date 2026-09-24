@@ -111,4 +111,24 @@ describe("notificationRoute — agency links", () => {
   it("leaves a skill request with no id unrouted", () => {
     expect(notificationRoute("WorkerProfessionRequest", null)).toBeNull();
   });
+
+  /**
+   * F-07 ·5. Bell 79 carries `taskId` + `complaintId` and NO `taskGroupId`, so it
+   * cannot reach the booking page directly — the complaint page is keyed on the
+   * task id, which is `entityId` on every Task row.
+   */
+  it("routes a raised or escalated complaint to the complaint page", () => {
+    expect(notificationRoute("Task", "t-9", "TaskComplaintRaised")).toBe("/dashboard/complaints/t-9");
+    expect(notificationRoute("Task", "t-9", "TaskComplaintEscalated")).toBe("/dashboard/complaints/t-9");
+  });
+
+  /**
+   * Every other Task kind (overdue, stuck, the ·8 staffing rungs…) lands on the
+   * resolver, which reads the day and replaces itself with the booking page.
+   * Until 2026-09-24 all of them were non-clickable.
+   */
+  it("routes any other Task row through the day resolver", () => {
+    expect(notificationRoute("Task", "t-9", "TaskStaffingCritical")).toBe("/dashboard/tasks/day/t-9");
+    expect(notificationRoute("Task", "t-9")).toBe("/dashboard/tasks/day/t-9");
+  });
 });

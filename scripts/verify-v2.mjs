@@ -129,6 +129,12 @@ const EXPECTED_FIELDS = {
   CreateSingleTaskRequest: ["propertyId", "title", "date", "defaultStartTime", "defaultDeadline",
     "defaultWorkerLimit", "instructions", "ownerProvidesTools", "addOnNote", "cityId",
     "lat", "long"],
+  // F-07 ·5 — the complaint read and the decide body. The guide documents
+  // neither shape, so this line is the only thing that would notice a rename.
+  TaskComplaintDto: ["id", "taskId", "reason", "raisedAt", "decision", "decidedAt",
+    "decisionNote", "supportTicketId", "photos"],
+  TaskComplaintPhotoDto: ["id", "url", "originalFileName", "mimeType"],
+  DecideComplaintRequest: ["decision", "note"],
   // ⚠ `status` is NOT here. F-07 ·0 (2026-09-17) deleted it from TaskGroupDto;
   // this line asserted it for four days and was one of the few things that did
   // go red — see the `days`/`closed` counts below, which replaced it.
@@ -144,7 +150,10 @@ const EXPECTED_FIELDS = {
   TaskItemDto: ["id", "groupId", "propertyId", "propertyName", "scheduledDate", "scheduledAt",
     "deadline", "status", "requiredWorkerCount", "startedAt", "completedAt", "workers",
     // F-07 ·4 (supervisor, summary) and ·3 (how the day closed).
-    "supervisorWorkerId", "workSummary", "closureReason"],
+    "supervisorWorkerId", "workSummary", "closureReason",
+    // F-07 ·5 — filled by `GET /api/tasks/{taskId}` only; every list, PATCH,
+    // admin-assign and the tasks nested in a booking serve `null`.
+    "complaint"],
   AdminSetSupervisorRequest: ["workerId"],
   TaskSupervisorDto: ["taskId", "supervisorWorkerId"],
   // ⚠ Mandatory. A bodiless request is refused by model binding before the
@@ -197,6 +206,9 @@ for (const [route, method] of [
   ["/api/tasks/admin/groups/{id}/cancel", "post"],
   // F-07 ·12 — the single-task door both order forms route one date to.
   ["/api/tasks/admin/single", "post"],
+  // F-07 ·5 — the decide door and the team's evidence the complaint page reads.
+  ["/api/tasks/complaints/{complaintId}/decide", "post"],
+  ["/api/tasks/{taskId}/media", "get"],
   ["/api/tasks/{taskId}/admin-assign/{workerId}", "post"],
   ["/api/tasks/{taskId}/admin-assign/{workerId}", "delete"],
   // F-07 ·4 / ·3 — the two SUPER_ADMIN doors on a day.

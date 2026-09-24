@@ -1051,3 +1051,22 @@ natural place to check before building — would conclude the feature they are a
 
 **We build against §1.** No action needed from us; flagging it so the file stops carrying both answers.
 
+---
+
+## Open — 2026-09-24 · four contract gaps found while building F-07 ·5 in the admin panel
+
+None of them blocks us (all were read from source); all of them will bite the next client.
+
+1. **`task-lifecycle.md` §0e never gives `TaskComplaintDto` or `TaskComplaintPhotoDto`.** The doors are
+   named and the CHANGELOG (2026-09-22) lists field names, but the photo shape (`url`, `originalFileName`,
+   `fileSize`, `mimeType`, `uploadedAt`) and `supportTicketId: null` on walk-in days are only in
+   `GermanyERP.Domain/Models/DTOs/Tasks/TaskDtos.cs:263-293`.
+2. **F-07 ·2 has no CHANGELOG entry and no guide section.** `checkinDoor`
+   (`WorkerTapped | WorkerScannedDisplay | OwnerScannedWorker | null`) is on the wire on `AttendanceRowDto`
+   and `TaskWorkerDto` since 2026-09-22 (`5fd640fd`); on `OwnerScannedWorker` the check-in coordinates are
+   the scanner's phone. `task-lifecycle.md:71` says "no section yet".
+3. **`GET /api/tasks/{taskId}/media` names the photo URL `storageKey`** while `TaskMediaDto` everywhere else calls it `url` (`index/dtos/tasks.md:35` says this was kept on purpose). Not asking to rename — asking that `task-lifecycle.md` §0e say so where it sends admins to the team's evidence.
+4. **`task-lifecycle.md:745-748` still says a finished day's supervisor cannot be changed only once
+   `DONE`/`CANCELLED`.** The server also refuses `REJECTED` (`TaskService.cs:3846-3857`,
+   `400 supervisor_change_not_allowed`) since the ·5 merge. Ask that the guide say so.
+
