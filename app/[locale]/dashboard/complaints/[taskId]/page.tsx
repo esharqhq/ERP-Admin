@@ -1,10 +1,12 @@
 "use client";
 
 import { use } from "react";
+import { AxiosError } from "axios";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/navigation";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ComplaintDecisionCard } from "@/components/complaints/complaint-decision-card";
 import { ComplaintEvidenceCard } from "@/components/complaints/complaint-evidence-card";
@@ -56,7 +58,29 @@ export default function ComplaintPage({ params }: { params: Promise<{ taskId: st
     );
   }
 
-  if (task.isError || !task.data) {
+  if (task.isError) {
+    // `GET /api/tasks/{id}` answers an unknown id with a bodiless `NotFound()`
+    // (`TasksController.cs:584-585`) — no `error` code rides along, so the
+    // HTTP status is the only signal for "this day does not exist".
+    const httpStatus = task.error instanceof AxiosError ? task.error.response?.status : undefined;
+    const forbidden = isPermissionDenied(task.error);
+    const notFound = !forbidden && httpStatus === 404;
+    return (
+      <div className="flex flex-col gap-4">
+        {back}
+        <p className="text-sm text-muted-foreground">
+          {forbidden ? t("forbidden") : notFound ? t("notFound") : t("loadError")}
+        </p>
+        {!forbidden && !notFound ? (
+          <Button variant="outline" size="sm" className="w-fit" onClick={() => task.refetch()}>
+            {t("retry")}
+          </Button>
+        ) : null}
+      </div>
+    );
+  }
+
+  if (!task.data) {
     return (
       <div className="flex flex-col gap-4">
         {back}
