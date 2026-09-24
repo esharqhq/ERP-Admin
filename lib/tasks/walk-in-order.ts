@@ -1,7 +1,12 @@
-import { buildOrder, type OrderDraft, type OrderErrorKey, type OrderResult } from "@/lib/tasks/order";
-import type { CreateTaskGroupRequest } from "@/lib/types/task.types";
+import {
+  buildOrder,
+  type OrderDraft,
+  type OrderErrorKey,
+  type OrderRequest,
+  type OrderResult,
+} from "@/lib/tasks/order";
 
-/** The shared draft plus the two things only the walk-in surface collects. */
+/** The shared draft plus the things only the walk-in surface collects. */
 export interface WalkInOrderDraft extends OrderDraft {
   /**
    * Who the order came from. Composed into `title` rather than sent separately:
@@ -10,6 +15,18 @@ export interface WalkInOrderDraft extends OrderDraft {
    * what the orders list renders, which is the whole point of collecting this.
    */
   customer: string;
+  /**
+   * Only there to scope the city list — cities are always fetched per country
+   * (`GET /api/countries/{id}/cities`, there is no flat list). Never sent: the
+   * create routes take a city and nothing else.
+   */
+  countryId: string;
+  /**
+   * The order's own city (F-07 ·9b, 2026-09-23). `""` = not picked. The walk-in
+   * property deliberately has no city, so the order must carry one — it is what
+   * the worker app's same-city gate reads (`task-lifecycle.md` §0h).
+   */
+  cityId: string;
   /**
    * Where the work happens — the order's own address, which becomes the geofence
    * target for every task it generates (F-06c).
@@ -27,19 +44,22 @@ export interface WalkInOrderDraft extends OrderDraft {
 /**
  * Keys under the `walkIn.errors` i18n namespace.
  *
- * `locationRequired` is walk-in-only: the shared builder has no location field
- * because the owner dialog files against an ordinary property, where sending one
- * is refused with `400 group_location_not_allowed`.
+ * `cityRequired` and `locationRequired` are walk-in-only: the shared builder has
+ * neither field because the owner dialog files against an ordinary property,
+ * where sending them is refused (`group_city_not_allowed`,
+ * `group_location_not_allowed`).
  */
-export type WalkInOrderErrorKey = OrderErrorKey | "locationRequired";
+export type WalkInOrderErrorKey = OrderErrorKey | "cityRequired" | "locationRequired";
 
 export type WalkInOrderResult =
-  | { ok: true; body: CreateTaskGroupRequest }
+  | { ok: true; request: OrderRequest }
   | { ok: false; error: WalkInOrderErrorKey };
 
 /**
- * A walk-in order is the shared order with a caller's name folded into the title
- * and the order's own coordinates attached.
+ * A walk-in order is the shared order with a caller's name folded into the
+ * title, and the order's own city and coordinates attached — on whichever route
+ * the shared builder picked, since both admin create doors take the walk-in
+ * property with the same requirements.
  *
  * The blank-job check happens **here, before composing** — with a customer
  * present, an empty job would compose to `" — Frau Weber"`, which is a non-empty
@@ -47,19 +67,20 @@ export type WalkInOrderResult =
  * without this step: there the account *is* the customer, so the title is the
  * job alone (`buildOrder`).
  *
- * **The location refusal is this function's job, not the form's.** `POST
- * /api/tasks/admin/groups` has required `lat`/`long` against the walk-in property
- * since 2026-08-26 (F-06c) and answers `400 walkin_location_required` without
- * them — a refusal with no field to attach it to. Refusing here keeps the guard
- * in the one place the suite can prove, rather than in a disabled submit button.
+ * **The city and location refusals are this function's job, not the form's.**
+ * Without them the route answers `400 walkin_city_required` /
+ * `walkin_location_required` — refusals with no field to attach them to.
+ * Refusing here keeps the guard in the one place the suite can prove, rather
+ * than in a disabled submit button.
  *
- * Checked **last**, after every shared refusal, so the admin fixes the typed
- * fields before being sent to the map: the picker sits at the bottom of the form
- * and is the most expensive thing to redo.
+ * Both are checked **last**, after every shared refusal, and the map last of
+ * all: the picker sits at the bottom of the form and is the most expensive thing
+ * to redo.
  */
 export function buildWalkInOrder(
   draft: WalkInOrderDraft,
   propertyId: string,
+  now: Date = new Date(),
 ): WalkInOrderResult {
   const job = draft.title.trim();
   if (!job) return { ok: false, error: "titleRequired" };
@@ -68,20 +89,27 @@ export function buildWalkInOrder(
   const result: OrderResult = buildOrder(
     { ...draft, title: customer ? `${job} — ${customer}` : job },
     propertyId,
+    now,
   );
   if (!result.ok) return result;
 
+  if (!draft.cityId) return { ok: false, error: "cityRequired" };
   if (!draft.location) return { ok: false, error: "locationRequired" };
 
   // Range is not re-checked: the map picker cannot produce a point outside
   // -90..90 / -180..180, and inventing a refusal for a value no input can hold
   // would be dead code. Out of range is a problem-details 400 the form renders.
+  const walkIn = {
+    cityId: draft.cityId,
+    lat: draft.location.lat,
+    long: draft.location.long,
+  };
+  const { request } = result;
   return {
     ok: true,
-    body: {
-      ...result.body,
-      lat: draft.location.lat,
-      long: draft.location.long,
-    },
+    request:
+      request.kind === "single"
+        ? { kind: "single", body: { ...request.body, ...walkIn } }
+        : { kind: "booking", body: { ...request.body, ...walkIn } },
   };
 }

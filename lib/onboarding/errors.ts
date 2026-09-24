@@ -146,6 +146,18 @@ const CATALOG: Record<string, Omit<ApiErrorInfo, "code">> = {
   // page, which is the only surface that collects the point.
   walkin_location_required: { labelKey: "walkinLocationRequired", reaction: "toast" },
   group_location_not_allowed: { labelKey: "groupLocationNotAllowed", reaction: "toast" },
+  // ── filing an order: the city (F-07 ·9b) and the dates (·12, ·10) ─────────
+  // The city pair mirrors the location pair above: required on the walk-in
+  // property, refused on any other — and `buildOrder` never sends one, so the
+  // owner dialog meets `group_city_not_allowed` only through a new surface.
+  // `city_not_found` is catalogued above (F-03·1); `city_inactive` is new.
+  walkin_city_required: { labelKey: "walkinCityRequired", reaction: "toast" },
+  group_city_not_allowed: { labelKey: "groupCityNotAllowed", reaction: "toast" },
+  city_inactive: { labelKey: "cityInactive", reaction: "toast" },
+  // Both refused by `buildOrder` before the request; reachable in the race
+  // where the dialog stays open past a start time.
+  task_date_in_past: { labelKey: "taskDateInPast", reaction: "toast" },
+  deadline_not_after_start: { labelKey: "deadlineNotAfterStart", reaction: "toast" },
 
   property_category_not_found: { labelKey: "propertyCategoryNotFound", reaction: "toast" },
   property_category_inactive: { labelKey: "propertyCategoryInactive", reaction: "toast" },

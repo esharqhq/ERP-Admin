@@ -7,6 +7,7 @@ import type {
   SubmitTaskWorkerStarRequest,
   OverrideTaskWorkerOutcomeRequest,
   CreateTaskGroupRequest,
+  CreateSingleTaskRequest,
   AdminSetSupervisorRequest,
   TaskSupervisorDto,
   ForceCloseTaskRequest,
@@ -48,6 +49,28 @@ export const taskService = {
   ): Promise<TaskGroupDto> => {
     const { data } = await apiClient.post<TaskGroupDto>(
       "/api/tasks/admin/groups",
+      body,
+      idempotent(idempotencyKey),
+    );
+    return data;
+  },
+
+  /**
+   * `POST /api/tasks/admin/single` — one day of work, its own kind (F-07 ·12,
+   * `task-lifecycle.md` §0f). Same permission as `createAdminGroup`
+   * (`task_group:create_any`, SUPER_ADMIN only), same idempotency rule, and the
+   * same `201 TaskGroupDto` — with `kind: "SingleTask"` and one entry in `tasks`.
+   *
+   * Since 2026-09-23 the booking route refuses one date
+   * (`booking_needs_two_or_more_dates`), so a one-day order **must** come here.
+   * `buildOrder` makes that choice; callers never pick the route themselves.
+   */
+  createAdminSingle: async (
+    body: CreateSingleTaskRequest,
+    idempotencyKey: string,
+  ): Promise<TaskGroupDto> => {
+    const { data } = await apiClient.post<TaskGroupDto>(
+      "/api/tasks/admin/single",
       body,
       idempotent(idempotencyKey),
     );

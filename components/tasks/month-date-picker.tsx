@@ -25,8 +25,10 @@ import { cn } from "@/lib/utils";
  * derives a date range from `value[0]` / `value.at(-1)` depends on that order
  * being the real first and last day, not the click order.
  *
- * Past days are disabled. Nothing server-side refuses them; work that has been
- * and gone cannot be usefully staffed, so the refusal is ours.
+ * Past days are disabled. Since F-07 ·12 (2026-09-23) the server refuses them
+ * too — `task_date_in_past` on every create door — and it judges the start
+ * *time*, not only the day, so a start earlier today is refused as well. That
+ * half is `buildOrder`'s check; this grid can only rule out whole days.
  *
  * No outer border: this renders inside a form card, and a bordered box inside a
  * bordered card reads as clutter. The grid's own surface separates it instead.

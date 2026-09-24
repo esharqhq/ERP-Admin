@@ -116,9 +116,19 @@ const EXPECTED_FIELDS = {
   // sheet render every TaskGroupDto/TaskItemDto field below. Nothing else in this
   // script covered the tasks surface, which is how a change here would otherwise
   // break the page with every gate green.
+  // F-07 ·7 made `instructions` + `ownerProvidesTools` required and added
+  // `addOnNote`; ·9b added the walk-in `cityId`. Both order forms send all of
+  // them, and a missing one refuses every create — the third way these forms
+  // have shipped unable to file an order.
   CreateTaskGroupRequest: ["propertyId", "title", "defaultStartTime", "defaultDeadline",
     "defaultWorkerLimit", "dates", "instructions", "internalNote", "ratingFloor",
-    "eligibleProfessionIds", "allowNewWorkers"],
+    "eligibleProfessionIds", "allowNewWorkers", "ownerProvidesTools", "addOnNote",
+    "cityId", "lat", "long"],
+  // F-07 ·12 — a one-date order goes here; `date`, singular, where the booking
+  // has `dates`.
+  CreateSingleTaskRequest: ["propertyId", "title", "date", "defaultStartTime", "defaultDeadline",
+    "defaultWorkerLimit", "instructions", "ownerProvidesTools", "addOnNote", "cityId",
+    "lat", "long"],
   // ⚠ `status` is NOT here. F-07 ·0 (2026-09-17) deleted it from TaskGroupDto;
   // this line asserted it for four days and was one of the few things that did
   // go red — see the `days`/`closed` counts below, which replaced it.
@@ -185,6 +195,8 @@ for (const [route, method] of [
   ["/api/system/settings/{key}", "get"],
   ["/api/tasks/admin/groups", "get"], ["/api/tasks/admin/groups", "post"],
   ["/api/tasks/admin/groups/{id}/cancel", "post"],
+  // F-07 ·12 — the single-task door both order forms route one date to.
+  ["/api/tasks/admin/single", "post"],
   ["/api/tasks/{taskId}/admin-assign/{workerId}", "post"],
   ["/api/tasks/{taskId}/admin-assign/{workerId}", "delete"],
   // F-07 ·4 / ·3 — the two SUPER_ADMIN doors on a day.

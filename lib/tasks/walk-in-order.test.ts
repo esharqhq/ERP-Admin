@@ -5,26 +5,46 @@ import {
 } from "@/lib/tasks/walk-in-order";
 
 const PROPERTY = "87c9fa97-bc61-4629-9372-84a573dfc8d0";
+const BERLIN = "5b1f2c3d-0000-4000-8000-000000000001";
+/** Pinned so every fixture date below is in the future, whatever day the suite runs. */
+const NOW = new Date("2026-08-15T10:00:00Z");
 
 function draft(over: Partial<WalkInOrderDraft> = {}): WalkInOrderDraft {
   return {
     title: "Apartment clean",
     customer: "Frau Weber",
-    dates: ["2026-08-18"],
+    dates: ["2026-08-18", "2026-08-19"],
     startTime: "09:00",
     hasDeadline: false,
     deadline: "",
     workerLimit: "1",
-    instructions: "",
+    instructions: "Hauptstr. 5. Ring twice.",
+    ownerProvidesTools: false,
+    addOnNote: "",
+    countryId: "de",
+    cityId: BERLIN,
     location: { lat: 53.550341, long: 9.992196 },
     ...over,
   };
 }
 
-function ok(over: Partial<WalkInOrderDraft> = {}) {
-  const result = buildWalkInOrder(draft(over), PROPERTY);
+function build(over: Partial<WalkInOrderDraft> = {}) {
+  return buildWalkInOrder(draft(over), PROPERTY, NOW);
+}
+
+function request(over: Partial<WalkInOrderDraft> = {}) {
+  const result = build(over);
   if (!result.ok) throw new Error(`expected ok, got ${result.error}`);
-  return result.body;
+  return result.request;
+}
+
+function ok(over: Partial<WalkInOrderDraft> = {}) {
+  return request(over).body;
+}
+
+function refused(over: Partial<WalkInOrderDraft>) {
+  const result = build(over);
+  return result.ok ? "ok" : result.error;
 }
 
 describe("title composition", () => {
@@ -43,27 +63,29 @@ describe("title composition", () => {
   });
 
   it("refuses a blank job name even when a customer is present", () => {
-    const result = buildWalkInOrder(draft({ title: "   " }), PROPERTY);
-    expect(result).toEqual({ ok: false, error: "titleRequired" });
+    expect(refused({ title: "   " })).toBe("titleRequired");
   });
 });
 
-describe("dates", () => {
-  it("passes several dates straight through", () => {
-    expect(ok({ dates: ["2026-08-18", "2026-08-19", "2026-08-20"] }).dates).toEqual([
-      "2026-08-18",
-      "2026-08-19",
-      "2026-08-20",
-    ]);
+describe("dates and the route", () => {
+  it("files several dates as a booking", () => {
+    const req = request({ dates: ["2026-08-18", "2026-08-19", "2026-08-20"] });
+    expect(req.kind).toBe("booking");
+    if (req.kind !== "booking") return;
+    expect(req.body.dates).toEqual(["2026-08-18", "2026-08-19", "2026-08-20"]);
   });
 
-  it("still accepts a single date", () => {
-    expect(ok({ dates: ["2026-08-18"] }).dates).toEqual(["2026-08-18"]);
+  it("files a single date as a single task — the walk-in route included", () => {
+    // `POST /api/tasks/admin/single` takes the walk-in property too, with the
+    // same `lat`/`long` and `cityId` requirements (task-lifecycle.md §0f·3).
+    const req = request({ dates: ["2026-08-18"] });
+    expect(req.kind).toBe("single");
+    if (req.kind !== "single") return;
+    expect(req.body.date).toBe("2026-08-18");
   });
 
   it("refuses an empty selection", () => {
-    const result = buildWalkInOrder(draft({ dates: [] }), PROPERTY);
-    expect(result).toEqual({ ok: false, error: "datesRequired" });
+    expect(refused({ dates: [] })).toBe("datesRequired");
   });
 });
 
@@ -77,8 +99,11 @@ describe("times", () => {
   });
 
   it("refuses a missing start time", () => {
-    const result = buildWalkInOrder(draft({ startTime: "" }), PROPERTY);
-    expect(result).toEqual({ ok: false, error: "startTimeRequired" });
+    expect(refused({ startTime: "" })).toBe("startTimeRequired");
+  });
+
+  it("refuses a start that has already passed", () => {
+    expect(refused({ dates: ["2026-08-15"], startTime: "09:00" })).toBe("startInPast");
   });
 });
 
@@ -88,27 +113,21 @@ describe("deadline", () => {
   });
 
   it("sends a padded deadline when the toggle is on", () => {
-    const body = ok({ hasDeadline: true, deadline: "18:00" });
-    expect(body.defaultDeadline).toBe("18:00:00");
+    expect(ok({ hasDeadline: true, deadline: "18:00" }).defaultDeadline).toBe("18:00:00");
   });
 
   it("refuses the toggle being on with no time set", () => {
-    const result = buildWalkInOrder(
-      draft({ hasDeadline: true, deadline: "" }),
-      PROPERTY,
-    );
-    expect(result).toEqual({ ok: false, error: "deadlineRequired" });
+    expect(refused({ hasDeadline: true, deadline: "" })).toBe("deadlineRequired");
   });
 
   it("ignores a stale deadline value once the toggle is off", () => {
     expect("defaultDeadline" in ok({ hasDeadline: false, deadline: "18:00" })).toBe(false);
   });
 
-  it("allows a deadline earlier than the start time", () => {
-    // Deliberate: the server's behaviour here is unverified and may well mean
-    // "next day". Inventing a refusal the API does not have would be worse.
-    const body = ok({ hasDeadline: true, deadline: "07:00", startTime: "09:00" });
-    expect(body.defaultDeadline).toBe("07:00:00");
+  it("refuses a deadline earlier than the start — night jobs do not work", () => {
+    expect(refused({ hasDeadline: true, deadline: "07:00", startTime: "09:00" })).toBe(
+      "deadlineNotAfterStart",
+    );
   });
 });
 
@@ -118,38 +137,29 @@ describe("worker limit", () => {
   });
 
   it.each(["", "0", "-1", "1.5", "abc"])("refuses %s", (workerLimit) => {
-    const result = buildWalkInOrder(draft({ workerLimit }), PROPERTY);
-    expect(result).toEqual({ ok: false, error: "workerLimitInvalid" });
+    expect(refused({ workerLimit })).toBe("workerLimitInvalid");
   });
 });
 
-describe("instructions", () => {
-  it("omits the key when blank", () => {
-    expect("instructions" in ok({ instructions: "   " })).toBe(false);
+describe("description, tools answer and add-on note (F-07 ·7)", () => {
+  it("refuses a blank description", () => {
+    expect(refused({ instructions: "   " })).toBe("instructionsRequired");
   });
 
-  it("trims and includes it when present", () => {
+  it("trims and includes the description", () => {
     expect(ok({ instructions: "  Ring twice.  " }).instructions).toBe("Ring twice.");
   });
-});
 
-describe("refusal order", () => {
-  it("reports the title before the dates", () => {
-    const result = buildWalkInOrder(draft({ title: "", dates: [] }), PROPERTY);
-    expect(result).toEqual({ ok: false, error: "titleRequired" });
+  it("refuses an unanswered tools question", () => {
+    expect(refused({ ownerProvidesTools: null })).toBe("toolsRequired");
   });
 
-  it("reports the dates before the start time", () => {
-    const result = buildWalkInOrder(draft({ dates: [], startTime: "" }), PROPERTY);
-    expect(result).toEqual({ ok: false, error: "datesRequired" });
+  it("sends the tools answer", () => {
+    expect(ok({ ownerProvidesTools: true }).ownerProvidesTools).toBe(true);
   });
 
-  it("reports the deadline before the worker limit", () => {
-    const result = buildWalkInOrder(
-      draft({ hasDeadline: true, deadline: "", workerLimit: "0" }),
-      PROPERTY,
-    );
-    expect(result).toEqual({ ok: false, error: "deadlineRequired" });
+  it("sends a trimmed add-on note", () => {
+    expect(ok({ addOnNote: "  post-construction  " }).addOnNote).toBe("post-construction");
   });
 });
 
@@ -163,11 +173,40 @@ describe("no company or note fields reach the wire", () => {
   it("never sends internalNote — it cannot be read back", () => {
     expect("internalNote" in ok()).toBe(false);
   });
+
+  it("never sends countryId — the route takes a city only", () => {
+    expect("countryId" in ok()).toBe(false);
+  });
+});
+
+describe("city — required since F-07 ·9b (2026-09-23)", () => {
+  it("sends the city on a booking", () => {
+    expect(ok().cityId).toBe(BERLIN);
+  });
+
+  it("sends the city on a single task", () => {
+    expect(ok({ dates: ["2026-08-18"] }).cityId).toBe(BERLIN);
+  });
+
+  it("refuses an order with no city picked", () => {
+    // Without this the route answers `400 walkin_city_required`.
+    expect(refused({ cityId: "" })).toBe("cityRequired");
+  });
+
+  it("refuses a country picked without its city", () => {
+    expect(refused({ countryId: "de", cityId: "" })).toBe("cityRequired");
+  });
 });
 
 describe("location — required since F-06c (2026-08-26)", () => {
   it("sends both coordinates on the wire", () => {
     const body = ok({ location: { lat: 53.550341, long: 9.992196 } });
+    expect(body.lat).toBe(53.550341);
+    expect(body.long).toBe(9.992196);
+  });
+
+  it("sends them on a single task too", () => {
+    const body = ok({ dates: ["2026-08-18"] });
     expect(body.lat).toBe(53.550341);
     expect(body.long).toBe(9.992196);
   });
@@ -183,8 +222,7 @@ describe("location — required since F-06c (2026-08-26)", () => {
   it("refuses an order with no point picked", () => {
     // Without this the route answers `400 walkin_location_required` and the
     // form could not file an order at all — which is what shipped.
-    const result = buildWalkInOrder(draft({ location: null }), PROPERTY);
-    expect(result).toEqual({ ok: false, error: "locationRequired" });
+    expect(refused({ location: null })).toBe("locationRequired");
   });
 
   it("passes a negative and a zero coordinate through unchanged", () => {
@@ -201,17 +239,36 @@ describe("location — required since F-06c (2026-08-26)", () => {
   });
 });
 
-describe("refusal order — location is checked last", () => {
-  it("reports a typed field before sending the admin back to the map", () => {
-    const result = buildWalkInOrder(
-      draft({ workerLimit: "0", location: null }),
-      PROPERTY,
+describe("refusal order", () => {
+  it("reports the title before the dates", () => {
+    expect(refused({ title: "", dates: [] })).toBe("titleRequired");
+  });
+
+  it("reports the dates before the start time", () => {
+    expect(refused({ dates: [], startTime: "" })).toBe("datesRequired");
+  });
+
+  it("reports the deadline before the worker limit", () => {
+    expect(refused({ hasDeadline: true, deadline: "", workerLimit: "0" })).toBe(
+      "deadlineRequired",
     );
-    expect(result).toEqual({ ok: false, error: "workerLimitInvalid" });
+  });
+
+  it("reports every shared field before the city", () => {
+    expect(refused({ ownerProvidesTools: null, cityId: "" })).toBe("toolsRequired");
+  });
+
+  it("reports the city before the map — the map is checked last", () => {
+    // The picker sits at the bottom of the form and is the most expensive
+    // thing to redo, so the admin fixes every typed field first.
+    expect(refused({ cityId: "", location: null })).toBe("cityRequired");
+  });
+
+  it("reports a typed field before sending the admin back to the map", () => {
+    expect(refused({ workerLimit: "0", location: null })).toBe("workerLimitInvalid");
   });
 
   it("still reports the title first", () => {
-    const result = buildWalkInOrder(draft({ title: "", location: null }), PROPERTY);
-    expect(result).toEqual({ ok: false, error: "titleRequired" });
+    expect(refused({ title: "", location: null })).toBe("titleRequired");
   });
 });

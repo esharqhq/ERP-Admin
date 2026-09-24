@@ -177,7 +177,12 @@
       "ownerHasOpenTasks": "This owner has work in flight — wait for their open tasks to finish.",
       "ownerIsSystem": "This is the permanent walk-in account — it cannot be edited, deleted, messaged or given a contract.",
       "walkinLocationRequired": "This is the Walk-in / Manual Orders account, and its orders need the address the work happens at. File it from the Walk-in orders page, which collects the map point.",
-      "groupLocationNotAllowed": "Only walk-in orders carry their own address. This property's orders are checked in against the property's own location."
+      "groupLocationNotAllowed": "Only walk-in orders carry their own address. This property's orders are checked in against the property's own location.",
+      "taskDateInPast": "That start time has already passed. Pick a later time or date.",
+      "deadlineNotAfterStart": "The deadline must be after the start time.",
+      "walkinCityRequired": "A walk-in order needs a city. File it from the Walk-in page.",
+      "groupCityNotAllowed": "Only a walk-in order carries its own city — this property's city is used instead.",
+      "cityInactive": "That city has been deactivated. Choose another."
     }
   },
   "docsWorkspace": {
@@ -1176,18 +1181,19 @@
     "order": {
       "action": "Create order",
       "title": "New order for {name}",
-      "description": "An admin placing work the owner asked for by phone. One task group, one task per date.",
+      "description": "An admin placing work the owner asked for by phone. One date files a single task; two or more file a booking.",
       "property": "Property",
       "propertyHint": "Only this owner's properties. The request carries no owner id — the property implies it.",
       "job": "What has to be done",
       "jobPlaceholder": "Weekly stairwell clean",
       "dates": "Dates",
-      "datesHint": "Explicit dates, never a range — one task per date.",
+      "datesHint": "Explicit dates, never a range. One date is a single task; two or more are a booking.",
       "startTime": "Start time",
       "workers": "Workers per task",
       "deadlineToggle": "Set a deadline",
       "deadline": "Deadline",
-      "instructions": "Instructions for the worker · optional",
+      "deadlineHint": "Must be after the start time. Night jobs that run past midnight are not supported yet.",
+      "instructions": "Description",
       "instructionsPlaceholder": "Key from the caretaker, ground floor left",
       "defaults": "Any profession · Rating floor: any · New workers allowed",
       "summary": "{count, plural, =0 {No dates picked yet} one {1 date · 1 task · {workers, plural, one {1 worker} other {# workers}} each} other {# dates · # tasks · {workers, plural, one {1 worker} other {# workers}} each}}",
@@ -1197,7 +1203,12 @@
         "datesRequired": "Pick at least one date.",
         "startTimeRequired": "Set a start time.",
         "deadlineRequired": "Set a deadline, or switch it off.",
-        "workerLimitInvalid": "At least one worker is needed."
+        "workerLimitInvalid": "At least one worker is needed.",
+        "startInPast": "That start time has already passed. Pick a later time or date.",
+        "deadlineNotAfterStart": "The deadline must be after the start time. Night jobs that run past midnight are not supported yet.",
+        "instructionsRequired": "Describe the job — workers read this before they accept it.",
+        "toolsRequired": "Say who provides the cleaning tools.",
+        "addOnNoteTooLong": "The add-on note can be at most 2,000 characters."
       }
     },
     "tabsLabel": "Owner list view",
@@ -1242,18 +1253,24 @@
       "customerPlaceholder": "Frau Weber · +49 30 1234567",
       "customerHint": "Goes into the order name, so you can tell the orders apart later.",
       "dates": "Dates",
-      "datesHint": "Pick every day this order covers — one job is created per day.",
+      "datesHint": "Pick every day this order covers. One day files a single task; two or more file a booking with one job per day.",
       "startTime": "Start time",
       "deadlineToggle": "Set a deadline",
       "deadline": "Deadline",
+      "deadlineHint": "Must be after the start time. Night jobs that run past midnight are not supported yet.",
       "workers": "Workers needed",
-      "instructions": "Instructions for the worker",
+      "instructions": "Description",
       "instructionsPlaceholder": "Real address: Hauptstr. 5, 10827 Berlin. Ring twice. Keys with the neighbour.",
       "instructionsHint": "Include the real address in words too — the map point below is what the app checks workers in against, but the worker still has to find the door.",
       "submit": "File the order",
       "location": "Where the work happens",
       "locationHint": "Click the map to place the order's address",
-      "locationFinal": "Check the pin before filing: the address cannot be seen or changed afterwards. A wrong one has to be cancelled and re-filed, and every check-in at the job is refused until then."
+      "locationFinal": "Check the pin before filing: the address cannot be seen or changed afterwards. A wrong one has to be cancelled and re-filed, and every check-in at the job is refused until then.",
+      "country": "Country",
+      "countryPlaceholder": "Choose a country",
+      "city": "City",
+      "cityPlaceholder": "Choose a city",
+      "cityHint": "The order's own city. Only workers registered in this city see and can take the job."
     },
     "errors": {
       "titleRequired": "Give the job a name.",
@@ -1263,7 +1280,14 @@
       "workerLimitInvalid": "At least one worker is needed.",
       "propertyGone": "The walk-in property is no longer there. Reload the page.",
       "generic": "The order could not be filed. Please try again.",
-      "locationRequired": "Point at the map to set where the work happens. A walk-in order cannot be filed without it."
+      "locationRequired": "Point at the map to set where the work happens. A walk-in order cannot be filed without it.",
+      "startInPast": "That start time has already passed. Pick a later time or date.",
+      "deadlineNotAfterStart": "The deadline must be after the start time. Night jobs that run past midnight are not supported yet.",
+      "instructionsRequired": "Describe the job — workers read this before they accept it.",
+      "toolsRequired": "Say who provides the cleaning tools.",
+      "addOnNoteTooLong": "The add-on note can be at most 2,000 characters.",
+      "cityRequired": "Choose the city the work is in. A walk-in order cannot be filed without it.",
+      "cityGone": "That city is no longer available. Choose it again from the list."
     },
     "tabs": {
       "create": "File an order",
@@ -1291,7 +1315,7 @@
       "unassign": "Remove",
       "cancel": "Cancel order",
       "cancelTitle": "Cancel this order?",
-      "cancelDescription": "Only jobs that are still pending and more than an hour away get cancelled. Jobs already under way or awaiting review stay. If nothing qualifies, the order is left exactly as it is.",
+      "cancelDescription": "Only jobs that are still pending and more than three hours away get cancelled. Jobs already under way or awaiting review stay. If nothing qualifies, the order is left exactly as it is.",
       "cancelConfirm": "Cancel the order",
       "cancelFailed": "The order could not be cancelled.",
       "unassignTitle": "Remove this worker?",
@@ -1299,6 +1323,15 @@
       "unassignConfirm": "Remove",
       "unassignFailed": "The worker could not be removed."
     }
+  },
+  "orderFields": {
+    "tools": "Cleaning tools",
+    "toolsOwner": "Owner provides",
+    "toolsCompany": "We bring them",
+    "toolsHint": "Required. Workers see this before they accept the job.",
+    "addOn": "Add-on note · optional",
+    "addOnPlaceholder": "Post-construction cleanup, after a flood…",
+    "addOnHint": "Shown to workers before they accept. A note only — nothing is priced or checked from it."
   },
   "properties": {
     "title": "Properties",

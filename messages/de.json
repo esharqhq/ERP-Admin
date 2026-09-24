@@ -177,7 +177,12 @@
       "ownerHasOpenTasks": "Dieser Eigentümer hat laufende Arbeit — warten Sie, bis die offenen Aufgaben abgeschlossen sind.",
       "ownerIsSystem": "Dies ist das dauerhafte Laufkundschafts-Konto — es kann nicht bearbeitet, gelöscht, angeschrieben oder mit einem Vertrag versehen werden.",
       "walkinLocationRequired": "Dies ist das Konto „Laufkundschaft / Manuelle Aufträge“, und seine Aufträge brauchen die Adresse des Einsatzortes. Erfassen Sie ihn über die Seite „Laufkundschaft-Aufträge“, die den Kartenpunkt abfragt.",
-      "groupLocationNotAllowed": "Nur Laufkundschaft-Aufträge tragen ihre eigene Adresse. Aufträge zu diesem Objekt werden am Standort des Objekts geprüft."
+      "groupLocationNotAllowed": "Nur Laufkundschaft-Aufträge tragen ihre eigene Adresse. Aufträge zu diesem Objekt werden am Standort des Objekts geprüft.",
+      "taskDateInPast": "Diese Startzeit liegt bereits in der Vergangenheit. Bitte eine spätere Zeit oder einen späteren Termin wählen.",
+      "deadlineNotAfterStart": "Die Frist muss nach der Startzeit liegen.",
+      "walkinCityRequired": "Ein Laufkundschaft-Auftrag braucht eine Stadt. Bitte über die Walk-in-Seite erfassen.",
+      "groupCityNotAllowed": "Nur ein Laufkundschaft-Auftrag hat eine eigene Stadt — hier gilt die Stadt der Immobilie.",
+      "cityInactive": "Diese Stadt wurde deaktiviert. Bitte eine andere wählen."
     }
   },
   "docsWorkspace": {
@@ -1176,18 +1181,19 @@
     "order": {
       "action": "Auftrag erstellen",
       "title": "Neuer Auftrag für {name}",
-      "description": "Ein Admin erfasst Arbeit, die der Eigentümer telefonisch angefragt hat. Eine Auftragsgruppe, eine Aufgabe pro Termin.",
+      "description": "Ein Admin erfasst Arbeit, die der Eigentümer telefonisch angefragt hat. Ein Termin ergibt eine Einzelaufgabe, zwei oder mehr eine Buchung.",
       "property": "Immobilie",
       "propertyHint": "Nur die Immobilien dieses Eigentümers. Die Anfrage trägt keine Eigentümer-ID — die Immobilie impliziert sie.",
       "job": "Was zu tun ist",
       "jobPlaceholder": "Treppenhaus wöchentlich",
       "dates": "Termine",
-      "datesHint": "Ausdrückliche Termine, niemals ein Zeitraum — eine Aufgabe pro Termin.",
+      "datesHint": "Ausdrückliche Termine, niemals ein Zeitraum. Ein Termin ist eine Einzelaufgabe, zwei oder mehr sind eine Buchung.",
       "startTime": "Startzeit",
       "workers": "Mitarbeiter pro Aufgabe",
       "deadlineToggle": "Frist setzen",
       "deadline": "Frist",
-      "instructions": "Hinweise für den Mitarbeiter · optional",
+      "deadlineHint": "Muss nach der Startzeit liegen. Nachtarbeit über Mitternacht wird noch nicht unterstützt.",
+      "instructions": "Beschreibung",
       "instructionsPlaceholder": "Schlüssel beim Hausmeister, Erdgeschoss links",
       "defaults": "Beliebiger Beruf · Bewertung: beliebig · Neue Mitarbeiter erlaubt",
       "summary": "{count, plural, =0 {Noch keine Termine gewählt} one {1 Termin · 1 Aufgabe · je {workers, plural, one {1 Mitarbeiter} other {# Mitarbeiter}}} other {# Termine · # Aufgaben · je {workers, plural, one {1 Mitarbeiter} other {# Mitarbeiter}}}}",
@@ -1197,7 +1203,12 @@
         "datesRequired": "Bitte mindestens einen Termin auswählen.",
         "startTimeRequired": "Bitte eine Startzeit setzen.",
         "deadlineRequired": "Bitte eine Frist setzen oder die Option ausschalten.",
-        "workerLimitInvalid": "Mindestens ein Mitarbeiter ist erforderlich."
+        "workerLimitInvalid": "Mindestens ein Mitarbeiter ist erforderlich.",
+        "startInPast": "Diese Startzeit liegt bereits in der Vergangenheit. Bitte eine spätere Zeit oder einen späteren Termin wählen.",
+        "deadlineNotAfterStart": "Die Frist muss nach der Startzeit liegen. Nachtarbeit über Mitternacht wird noch nicht unterstützt.",
+        "instructionsRequired": "Bitte die Arbeit beschreiben — Mitarbeiter lesen das, bevor sie annehmen.",
+        "toolsRequired": "Bitte angeben, wer das Reinigungsmaterial stellt.",
+        "addOnNoteTooLong": "Der Zusatzhinweis darf höchstens 2.000 Zeichen lang sein."
       }
     },
     "tabsLabel": "Ansicht der Eigentümerliste",
@@ -1242,18 +1253,24 @@
       "customerPlaceholder": "Frau Weber · +49 30 1234567",
       "customerHint": "Wird Teil des Auftragsnamens, damit die Aufträge später unterscheidbar sind.",
       "dates": "Termine",
-      "datesHint": "Alle Tage auswählen, die der Auftrag umfasst — pro Tag wird ein Job erstellt.",
+      "datesHint": "Alle Tage auswählen, die der Auftrag umfasst. Ein Tag ergibt eine Einzelaufgabe, zwei oder mehr eine Buchung mit einem Job pro Tag.",
       "startTime": "Startzeit",
       "deadlineToggle": "Frist setzen",
       "deadline": "Frist",
+      "deadlineHint": "Muss nach der Startzeit liegen. Nachtarbeit über Mitternacht wird noch nicht unterstützt.",
       "workers": "Benötigte Mitarbeiter",
-      "instructions": "Anweisungen für den Mitarbeiter",
+      "instructions": "Beschreibung",
       "instructionsPlaceholder": "Echte Adresse: Hauptstr. 5, 10827 Berlin. Zweimal klingeln. Schlüssel beim Nachbarn.",
       "instructionsHint": "Die echte Adresse auch ausschreiben — der Kartenpunkt unten ist die Grundlage für die Anwesenheitsprüfung, die Tür muss der Mitarbeiter aber trotzdem finden.",
       "submit": "Auftrag anlegen",
       "location": "Einsatzort",
       "locationHint": "Klicken Sie auf die Karte, um die Adresse des Auftrags zu setzen",
-      "locationFinal": "Prüfen Sie die Markierung vor dem Erfassen: die Adresse ist danach nicht sichtbar und nicht änderbar. Eine falsche muss storniert und neu erfasst werden, und bis dahin wird jede Anwesenheitsmeldung am Auftrag abgelehnt."
+      "locationFinal": "Prüfen Sie die Markierung vor dem Erfassen: die Adresse ist danach nicht sichtbar und nicht änderbar. Eine falsche muss storniert und neu erfasst werden, und bis dahin wird jede Anwesenheitsmeldung am Auftrag abgelehnt.",
+      "country": "Land",
+      "countryPlaceholder": "Land wählen",
+      "city": "Stadt",
+      "cityPlaceholder": "Stadt wählen",
+      "cityHint": "Die eigene Stadt des Auftrags. Nur Mitarbeiter aus dieser Stadt sehen den Auftrag und können ihn annehmen."
     },
     "errors": {
       "titleRequired": "Bitte einen Auftragsnamen angeben.",
@@ -1263,7 +1280,14 @@
       "workerLimitInvalid": "Mindestens ein Mitarbeiter ist erforderlich.",
       "propertyGone": "Die Walk-in-Immobilie existiert nicht mehr. Bitte die Seite neu laden.",
       "generic": "Der Auftrag konnte nicht angelegt werden. Bitte erneut versuchen.",
-      "locationRequired": "Setzen Sie eine Markierung auf der Karte, um den Einsatzort festzulegen. Ohne ihn kann kein Laufkundschaft-Auftrag erfasst werden."
+      "locationRequired": "Setzen Sie eine Markierung auf der Karte, um den Einsatzort festzulegen. Ohne ihn kann kein Laufkundschaft-Auftrag erfasst werden.",
+      "startInPast": "Diese Startzeit liegt bereits in der Vergangenheit. Bitte eine spätere Zeit oder einen späteren Termin wählen.",
+      "deadlineNotAfterStart": "Die Frist muss nach der Startzeit liegen. Nachtarbeit über Mitternacht wird noch nicht unterstützt.",
+      "instructionsRequired": "Bitte die Arbeit beschreiben — Mitarbeiter lesen das, bevor sie annehmen.",
+      "toolsRequired": "Bitte angeben, wer das Reinigungsmaterial stellt.",
+      "addOnNoteTooLong": "Der Zusatzhinweis darf höchstens 2.000 Zeichen lang sein.",
+      "cityRequired": "Bitte die Stadt des Einsatzorts wählen. Ohne sie kann kein Laufkundschaft-Auftrag erfasst werden.",
+      "cityGone": "Diese Stadt ist nicht mehr verfügbar. Bitte erneut aus der Liste wählen."
     },
     "tabs": {
       "create": "Auftrag anlegen",
@@ -1291,7 +1315,7 @@
       "unassign": "Entfernen",
       "cancel": "Auftrag abbrechen",
       "cancelTitle": "Diesen Auftrag abbrechen?",
-      "cancelDescription": "Es werden nur Jobs abgebrochen, die noch ausstehen und mehr als eine Stunde entfernt sind. Bereits laufende oder in Prüfung befindliche Jobs bleiben bestehen. Trifft nichts davon zu, bleibt der Auftrag unverändert.",
+      "cancelDescription": "Es werden nur Jobs abgebrochen, die noch ausstehen und mehr als drei Stunden entfernt sind. Bereits laufende oder in Prüfung befindliche Jobs bleiben bestehen. Trifft nichts davon zu, bleibt der Auftrag unverändert.",
       "cancelConfirm": "Auftrag abbrechen",
       "cancelFailed": "Der Auftrag konnte nicht abgebrochen werden.",
       "unassignTitle": "Diesen Mitarbeiter entfernen?",
@@ -1299,6 +1323,15 @@
       "unassignConfirm": "Entfernen",
       "unassignFailed": "Der Mitarbeiter konnte nicht entfernt werden."
     }
+  },
+  "orderFields": {
+    "tools": "Reinigungsmaterial",
+    "toolsOwner": "Stellt der Eigentümer",
+    "toolsCompany": "Bringen wir mit",
+    "toolsHint": "Pflichtangabe. Mitarbeiter sehen das, bevor sie den Auftrag annehmen.",
+    "addOn": "Zusatzhinweis · optional",
+    "addOnPlaceholder": "Bauendreinigung, nach Wasserschaden…",
+    "addOnHint": "Wird Mitarbeitern vor der Annahme angezeigt. Nur ein Hinweis — daraus wird nichts berechnet oder geprüft."
   },
   "properties": {
     "title": "Objekte",

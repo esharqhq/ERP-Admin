@@ -162,31 +162,64 @@ export interface TaskGroupDto {
   dates: TaskGroupDateDto[];
   tasks: TaskItemDto[];
   createdAt: string;
+  /**
+   * F-07 ·12 (2026-09-23). Every row created before that date reads `"Booking"`,
+   * including one-date bookings — nothing was re-labelled. Typed as `string` on
+   * top of the two known words: a third kind must not fall through a switch.
+   */
+  kind?: TaskGroupKind | (string & {});
+  /**
+   * F-07 ·7 (2026-09-23). `null` = a booking created before the question
+   * existed — render "not specified", never "no".
+   */
+  ownerProvidesTools?: boolean | null;
+  /** F-07 ·7. A note nothing in the system acts on. */
+  addOnNote?: string | null;
+  /** F-07 ·9b (2026-09-23). Set only on a walk-in order; `null` on every ordinary booking. */
+  cityId?: string | null;
 }
 
+export type TaskGroupKind = "Booking" | "SingleTask";
+
 /**
- * Body of `POST /api/tasks/admin/groups` (`task_group:create_any`, 110038) — and
- * of the owner-side `POST /api/tasks/groups`. There is deliberately no admin
- * shape and no `ownerUserId`: a `propertyId` already implies its owner.
+ * Every field the two admin create doors share (`task-lifecycle.md` §0f·3): the
+ * booking door takes `dates`, the single-task door takes one `date`, and nothing
+ * else differs. There is deliberately no admin shape and no `ownerUserId`: a
+ * `propertyId` already implies its owner.
  *
- * The five optional fields are unused by the walk-in form; they are typed so the
- * next consumer does not have to re-derive the contract.
+ * The optional fields the forms do not collect (`internalNote`, `ratingFloor`,
+ * `eligibleProfessionIds`, `allowNewWorkers`) are typed so the next consumer does
+ * not have to re-derive the contract.
  *
- * `lat`/`long` are optional **on this type** because whether they are required is
- * keyed on the property, not on the caller — see the two fields below. The
- * enforcement therefore lives in the builders: `buildWalkInOrder` refuses without
- * them, `buildOrder` never sends them.
+ * `lat`/`long`/`cityId` are optional **on this type** because whether they are
+ * required is keyed on the property, not on the caller — see the fields below.
+ * The enforcement therefore lives in the builders: `buildWalkInOrder` refuses
+ * without them, `buildOrder` never sends them.
  */
-export interface CreateTaskGroupRequest {
+export interface CreateTaskBaseRequest {
   propertyId: string;
   title: string;
   /** `"HH:mm:ss"` — a bare `"HH:mm"` is not accepted. */
   defaultStartTime: string;
   defaultWorkerLimit: number;
-  /** Explicit dates, `"YYYY-MM-DD"`, **not** a range. One task per date. */
-  dates: string[];
+  /**
+   * `HH:mm:ss`. Must be AFTER the start: equal is `400 deadline_not_after_start`
+   * (F-07 ·10). An earlier one is accepted and is a broken night job.
+   */
   defaultDeadline?: string | null;
-  instructions?: string | null;
+  /**
+   * ⚠ **Required since F-07 ·7 (2026-09-23)** — `[Required]`, so missing, `""` or
+   * whitespace is a problem-details 400 and nothing is created.
+   */
+  instructions: string;
+  /**
+   * ⚠ **Required since F-07 ·7** — `true` = the owner provides the cleaning
+   * tools, `false` = the company brings them. No default: the server's `bool?`
+   * exists so an omitted answer is refused rather than recorded as `false`.
+   */
+  ownerProvidesTools: boolean;
+  /** F-07 ·7. Optional, ≤ 2,000 characters counted before trimming. A note only. */
+  addOnNote?: string | null;
   /** Not shown to workers. */
   internalNote?: string | null;
   /** `0.0`–`5.0`; omitted leaves it wide open. */
@@ -221,6 +254,32 @@ export interface CreateTaskGroupRequest {
    * check-in doors use `lng`, the group and property doors use `long`. That
    * inconsistency is the existing contract and was deliberately not tidied. */
   long?: number;
+  /**
+   * F-07 ·9b (2026-09-23). A walk-in order's own city — **required on the walk-in
+   * property** (`400 walkin_city_required`) and **refused on any other**
+   * (`400 group_city_not_allowed`). A separate requirement from `lat`/`long`:
+   * neither substitutes for the other.
+   */
+  cityId?: string;
+}
+
+/**
+ * `POST /api/tasks/admin/groups` — a booking. **Two or more distinct dates**
+ * since F-07 ·12 (2026-09-23): one is `400 booking_needs_two_or_more_dates`.
+ */
+export interface CreateTaskGroupRequest extends CreateTaskBaseRequest {
+  /** Explicit dates, `"YYYY-MM-DD"`, **not** a range. One task per date. */
+  dates: string[];
+}
+
+/**
+ * `POST /api/tasks/admin/single` — one day of work, its own kind (F-07 ·12,
+ * `task-lifecycle.md` §0f·3). SUPER_ADMIN only (`task_group:create_any`); answers
+ * `201 TaskGroupDto` with `kind: "SingleTask"`.
+ */
+export interface CreateSingleTaskRequest extends CreateTaskBaseRequest {
+  /** `"YYYY-MM-DD"`. Its start must be in the future (`task_date_in_past`). */
+  date: string;
 }
 
 /** Response of rate / outcome-override (mirror WorkerRatingDto). */

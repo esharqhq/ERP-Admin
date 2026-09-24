@@ -9,8 +9,11 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { MonthDatePicker } from "@/components/tasks/month-date-picker";
+import { OrderExtrasFields } from "@/components/tasks/order-extras-fields";
 import { LocationPicker } from "@/components/properties/location-picker";
+import { WalkInCityField } from "@/components/walk-in/walk-in-city-field";
 import { useCreateTaskGroup } from "@/hooks/use-tasks";
 import { useHasPermission } from "@/hooks/use-current-permissions";
 import { getApiErrorCode, getValidationMessage } from "@/lib/http/api-error";
@@ -31,7 +34,28 @@ const EMPTY: WalkInOrderDraft = {
   deadline: "",
   workerLimit: "1",
   instructions: "",
+  ownerProvidesTools: null,
+  addOnNote: "",
+  countryId: "",
+  cityId: "",
   location: null,
+};
+
+/**
+ * Server refusals worded under `walkIn.errors`. Most are refused by
+ * `buildWalkInOrder` before the request and are listed for the race where they
+ * are not — a page left open past a start time, or a city deactivated after the
+ * list loaded. Keyed on the `error` string, never the status: several of these
+ * share a 400.
+ */
+const SERVER_ERRORS: Record<string, string> = {
+  property_not_found: "propertyGone",
+  walkin_location_required: "locationRequired",
+  walkin_city_required: "cityRequired",
+  city_not_found: "cityGone",
+  city_inactive: "cityGone",
+  task_date_in_past: "startInPast",
+  deadline_not_after_start: "deadlineNotAfterStart",
 };
 
 /**
@@ -81,7 +105,7 @@ export function WalkInOrderForm({
     }
     key.current ??= newIdempotencyKey();
     create.mutate(
-      { body: result.body, idempotencyKey: key.current },
+      { request: result.request, idempotencyKey: key.current },
       {
         onSuccess: (group) => {
           // Only now is the intent finished, so only now may the key change.
@@ -97,10 +121,11 @@ export function WalkInOrderForm({
   /**
    * Three envelopes, in order of specificity.
    *
-   * `walkin_location_required` should be unreachable — `buildWalkInOrder` refuses
-   * before the request — but it is worded rather than folded into the generic
-   * failure, because it is the one refusal that says *which* field is at fault and
-   * this form shipped for three weeks unable to file an order at all without it.
+   * The worded codes (`SERVER_ERRORS`) should mostly be unreachable —
+   * `buildWalkInOrder` refuses before the request — but each says *which* field
+   * is at fault, and this form has twice shipped unable to file an order at all
+   * because a new required field went unsent (the location in F-06c, then the
+   * description, tools answer and city in F-07 ·7 and ·9b).
    *
    * An out-of-range coordinate is a `400` in **problem-details** shape
    * (`f-06-c-checkin-proof.md` §5.2), which carries no `error` field at all — so
@@ -110,8 +135,8 @@ export function WalkInOrderForm({
   const serverError = create.isError
     ? (() => {
         const code = getApiErrorCode(create.error);
-        if (code === "property_not_found") return t("errors.propertyGone");
-        if (code === "walkin_location_required") return t("errors.locationRequired");
+        const messageKey = code ? SERVER_ERRORS[code] : undefined;
+        if (messageKey) return t(`errors.${messageKey}` as Parameters<typeof t>[0]);
         return getValidationMessage(create.error) ?? t("errors.generic");
       })()
     : null;
@@ -211,22 +236,46 @@ export function WalkInOrderForm({
                 disabled={disabled}
                 className="sm:max-w-[200px]"
               />
+              <p className="text-xs text-muted-foreground">{t("form.deadlineHint")}</p>
             </div>
           ) : null}
         </div>
 
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="wi-instructions">{t("form.instructions")}</Label>
-          <textarea
+          <Textarea
             id="wi-instructions"
             value={draft.instructions}
             onChange={(e) => set("instructions")(e.target.value)}
             placeholder={t("form.instructionsPlaceholder")}
             disabled={disabled}
-            className="min-h-[80px] w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+            aria-invalid={localError === "instructionsRequired" || undefined}
           />
           <p className="text-xs text-muted-foreground">{t("form.instructionsHint")}</p>
         </div>
+
+        <OrderExtrasFields
+          idPrefix="wi"
+          ownerProvidesTools={draft.ownerProvidesTools}
+          onOwnerProvidesToolsChange={(v) => set("ownerProvidesTools")(v)}
+          addOnNote={draft.addOnNote}
+          onAddOnNoteChange={(v) => set("addOnNote")(v)}
+          disabled={disabled}
+          toolsInvalid={localError === "toolsRequired"}
+        />
+
+        {/*
+          The order's own city, just above its map point: the walk-in property
+          has no city by ruling, so every order must carry one — it is what the
+          worker app's same-city gate reads (F-07 ·9b). Required, and checked
+          before the map for the same reason the map is checked last.
+        */}
+        <WalkInCityField
+          countryId={draft.countryId}
+          cityId={draft.cityId}
+          onChange={(next) => setDraft((d) => ({ ...d, ...next }))}
+          disabled={disabled}
+        />
 
         {/*
           Directly under the instructions, where the street was just typed — the

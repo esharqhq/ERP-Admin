@@ -14,10 +14,10 @@ import {
   describeGroupCancel,
   type GroupCancelOutcome,
 } from "@/lib/tasks/cancel-outcome";
+import type { OrderRequest } from "@/lib/tasks/order";
 import type {
   SubmitTaskWorkerStarRequest,
   OverrideTaskWorkerOutcomeRequest,
-  CreateTaskGroupRequest,
   TaskGroupDayCountsDto,
 } from "@/lib/types/task.types";
 
@@ -243,13 +243,18 @@ export function useOverrideOutcome(groupId?: string) {
 export function useCreateTaskGroup() {
   const invalidate = useInvalidateTasks();
   return useMutation({
+    // The route follows the request's `kind`, which `buildOrder` set from the
+    // number of distinct dates — one date is a single task (F-07 ·12).
     mutationFn: ({
-      body,
+      request,
       idempotencyKey,
     }: {
-      body: CreateTaskGroupRequest;
+      request: OrderRequest;
       idempotencyKey: string;
-    }) => taskService.createAdminGroup(body, idempotencyKey),
+    }) =>
+      request.kind === "single"
+        ? taskService.createAdminSingle(request.body, idempotencyKey)
+        : taskService.createAdminGroup(request.body, idempotencyKey),
     onSuccess: (group) => invalidate(group.id),
   });
 }

@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -23,6 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { MonthDatePicker } from "@/components/tasks/month-date-picker";
+import { OrderExtrasFields } from "@/components/tasks/order-extras-fields";
 import { useCreateTaskGroup } from "@/hooks/use-tasks";
 import { newIdempotencyKey } from "@/lib/http/idempotency";
 import { describeApiError, isPermissionDenied } from "@/lib/onboarding/errors";
@@ -39,6 +41,8 @@ const EMPTY: OrderDraft = {
   deadline: "",
   workerLimit: "1",
   instructions: "",
+  ownerProvidesTools: null,
+  addOnNote: "",
 };
 
 /**
@@ -46,8 +50,9 @@ const EMPTY: OrderDraft = {
  *
  * The walk-in page files the same request against its one fixed property; here
  * the property is chosen, and it is the *only* thing that carries the owner:
- * `POST /api/tasks/admin/groups` takes a `propertyId` and no owner id, so the
- * select is seeded from this owner's list and nothing else can be picked.
+ * `POST /api/tasks/admin/groups` (and, for one date, `/admin/single` — F-07 ·12)
+ * takes a `propertyId` and no owner id, so the select is seeded from this
+ * owner's list and nothing else can be picked.
  *
  * That choice is also why this dialog, unlike the walk-in form, has to render
  * the contract-derived refusals. Against the walk-in account they are all
@@ -113,7 +118,7 @@ export function OwnerOrderDialog({
     }
     key.current ??= newIdempotencyKey();
     create.mutate(
-      { body: result.body, idempotencyKey: key.current },
+      { request: result.request, idempotencyKey: key.current },
       {
         onSuccess: (group) => {
           // Only now is the intent finished, so only now may the key change.
@@ -250,21 +255,32 @@ export function OwnerOrderDialog({
                   disabled={disabled}
                   className="sm:max-w-[200px]"
                 />
+                <p className="text-xs text-muted-foreground">{t("deadlineHint")}</p>
               </div>
             ) : null}
           </div>
 
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="oo-instructions">{t("instructions")}</Label>
-            <textarea
+            <Textarea
               id="oo-instructions"
               value={draft.instructions}
               onChange={(e) => set("instructions")(e.target.value)}
               placeholder={t("instructionsPlaceholder")}
               disabled={disabled}
-              className="min-h-[80px] w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+              aria-invalid={localError === "instructionsRequired" || undefined}
             />
           </div>
+
+          <OrderExtrasFields
+            idPrefix="oo"
+            ownerProvidesTools={draft.ownerProvidesTools}
+            onOwnerProvidesToolsChange={(v) => set("ownerProvidesTools")(v)}
+            addOnNote={draft.addOnNote}
+            onAddOnNoteChange={(v) => set("addOnNote")(v)}
+            disabled={disabled}
+            toolsInvalid={localError === "toolsRequired"}
+          />
 
           {/* What this order deliberately does not constrain. The body sends no
               profession filter, no rating floor and no new-worker bar, so every
