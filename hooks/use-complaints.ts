@@ -44,10 +44,15 @@ export function useComplaintQueueRows(tasks: TaskItemDto[]): ComplaintQueueRow[]
   const raised = reads.map((r) =>
     r.isPending ? undefined : r.isError ? null : (r.data?.complaint?.raisedAt ?? null),
   );
-  const signature = raised.join("|");
+  // Tokenised per state (not the raw values) — `undefined` and `null` must not
+  // collapse to the same joined string, or a row that moves from pending to
+  // error/no-complaint would look unchanged and never leave its skeleton.
+  const signature = reads
+    .map((r) => (r.isPending ? "P" : r.isError ? "E" : "V:" + (r.data?.complaint?.raisedAt ?? "")))
+    .join("|");
   return useMemo(
     () => tasks.map((task, i) => ({ task, raisedAt: raised[i] })),
-    // `raised` is rebuilt every render; its joined value is the real dependency.
+    // `raised` is rebuilt every render; its joined signature is the real dependency.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [tasks, signature],
   );
