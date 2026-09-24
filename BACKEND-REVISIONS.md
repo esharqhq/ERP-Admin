@@ -30,6 +30,43 @@ Precedence: **live response > guide > `README.md`/`guidance.md`**. Never read th
 question a guide answers — if a guided surface forces you into `index/`, the guide has a bug, so
 [open an issue](https://github.com/esharqhq/Germany-ERP/issues) rather than working around it.
 
+## Catch-up pass — 2026-09-24
+
+| | |
+|---|---|
+| **Pass run** | 2026-09-24, after pulling `../Backend` (`064ce64 → 38dd53d6`, 127 commits) |
+| **CHANGELOG reviewed through** | **2026-09-24** — every entry above 2026-09-21 ·3 read in full |
+| **Actioned through** | **2026-09-21**, plus **the create-form halves only** of four 09-23/09-24 entries (table below, 2026-09-24 — uncommitted at time of writing). Every other entry of this pass is read, not built. |
+| **Backend HEAD at that pass** | `38dd53d6` |
+| **Deployed?** | **Yes, all of it.** Live swagger 2026-09-24 has `/api/tasks/single`, `/admin/single`, `/admin/groups/{id}/clone`, `/complaints/{id}/decide`, `?staffing=`, `TaskStatus` `Rejected`, and `ownerProvidesTools`/`cityId` on `CreateTaskGroupRequest`. ⚠ Swagger's `required` is empty for the whole schema — the required-ness below is from source, not swagger. |
+
+### Actioned — 2026-09-24 (the two admin create forms)
+
+⚠ **Matches the guide and the live swagger request DTOs; NOT yet filed against production.** Until one real order has gone through each route, do not record these as confirmed live.
+
+| Entry | Half actioned | Where |
+|---|---|---|
+| F-07 ·7 | `instructions` required, `ownerProvidesTools` required with no default, optional `addOnNote` ≤ 2,000 — both forms | `lib/tasks/order.ts:143,146`; UI `components/tasks/order-extras-fields.tsx` (shared by both forms) |
+| F-07 ·12 | one distinct date → `POST /api/tasks/admin/single` with `date`; two or more → `/admin/groups`; `task_date_in_past` refused client-side (UTC, as the server reads it) | `lib/tasks/order.ts:123,172`; `lib/services/task.service.ts:68` (`createAdminSingle`); `hooks/use-tasks.ts` (`useCreateTaskGroup` routes on `request.kind`) |
+| F-07 ·9b | walk-in `cityId` (country + city selects, active rows only) | `lib/tasks/walk-in-order.ts:96`; `components/walk-in/walk-in-city-field.tsx` |
+| F-07 ·10 | deadline ≤ start refused (the server refuses only equal; earlier is a night job that does not work — §0i·1) | `lib/tasks/order.ts:132` |
+| — | `verify-v2.mjs` gates `POST /api/tasks/admin/single`, `CreateSingleTaskRequest`, and the four new `CreateTaskGroupRequest` fields | `scripts/verify-v2.mjs` |
+
+### Read but NOT actioned — 2026-09-24
+
+⚠ The four create-form rows below are **partly** actioned (see the table above); what stays open in each is named in the row.
+
+| Entry | Kind | What it breaks here |
+|---|---|---|
+| 2026-09-24 F-07 ·10 clone + deadline | breaking | `deadline_not_after_start` on every create when deadline == start. `buildOrder`'s doc comment (*"an earlier deadline … may mean next day"*) is now false — night jobs are accepted and do not work; refuse deadline ≤ start client-side. New `POST /api/tasks/admin/groups/{id}/clone` — the **only** way to repeat a walk-in order (send `cityId` for one filed before 09-23). **Open: clone.** The deadline half is actioned. |
+| 2026-09-23 F-07 ·9b same-city gate | breaking | 🔴 **LIVE: every walk-in order is refused** `400 walkin_city_required` — `buildWalkInOrder` sends no `cityId`. `group_city_not_allowed` if sent for an ordinary property (so `buildOrder` must keep omitting it). Additive: `PropertyDto.country`/`city`, `TaskGroupDto.cityId`, audit 113 `overrodeLocation`. Admin assign is not gated. **Open: property city fields on the property forms, `overrodeLocation` on the audit page.** The walk-in `cityId` is actioned. |
+| 2026-09-23 F-07 ·7 description + tools | breaking | 🔴 **LIVE: every admin create is refused** (owner-detail dialog and walk-in). `Instructions` and `OwnerProvidesTools` are `[Required]` (`Backend/GermanyERP.Domain/Models/DTOs/Tasks/TaskDtos.cs:33,45`); `buildOrder` omits blank `instructions` (`lib/tasks/order.ts:99`) and never sends `ownerProvidesTools`. New optional `addOnNote`. The `PUT /api/tasks/groups/{id}` half does not apply — this panel calls no group PUT. **Open: reading `ownerProvidesTools`/`addOnNote` back on the order sheet** (typed on `TaskGroupDto`, not rendered). The create half is actioned. |
+| 2026-09-23 F-07 ·12 single task | breaking | 🔴 **LIVE: a one-date order is refused** `booking_needs_two_or_more_dates` — `buildOrder` only checks `dates.length === 0` (`order.ts:72`). One date must go to `POST /api/tasks/admin/single` with `date`. Also `task_date_in_past`. New `kind` on `TaskGroupDto`/`TaskItemDto`. **Open: rendering `kind`** (typed on `TaskGroupDto` only, not on `TaskItemDto`, not shown). Routing and `task_date_in_past` are actioned. |
+| 2026-09-22 F-07 ·8 staffing ladder | breaking | Kind 19 retired → 82/83. **No break here**: the bell routes by `entityType`, never by kind number. `lib/tasks/dispatch-row.ts:8` comment still names the retired 3-hour alert (comment only — no 3 h constant in code). New `?staffing=Warning\|Critical` on `GET /api/tasks/admin` — unbuilt. |
+| 2026-09-22 F-07 ·5 post-merge | breaking | Admin can now call `GET /api/tasks/{taskId}` (carries `complaint`) — the only route to a complaint id besides bell 79 metadata. `decide_the_complaint_first` (**400**) on force-close: not mapped in `forceCloseErrorText`; unreachable today only **by accident** — `canForceClose` hides the control because `status-vocab` does not know `Rejected`. |
+| 2026-09-21 F-07 ·5 complaints | breaking | 🔴 **Disputes are stranded.** An owner's rejection now stops the day in `Rejected` until an **admin** decides (`POST /api/tasks/complaints/{id}/decide`), and this panel has no decide door, no `rejected` in `lib/tasks/status-vocab.ts`, and bell 79–83 carry `entityType: "Task"`, which `lib/notifications/route.ts` does not route (returns `null`). 48 h escalation (81, SUPER_ADMIN) fires but nothing can close it. When `rejected` is added, keep `canForceClose` an allowlist and map `decide_the_complaint_first`. No hand-summed `days.*` totals found — `days.rejected` moving off 0 is safe. |
+| 2026-09-16 ×2 (availability, one-day join) | breaking | `affects:` names `admin-panel`; neither appears in any earlier table. Not re-checked this pass. |
+
 ## Catch-up pass — 2026-09-21
 
 | | |
@@ -82,23 +119,23 @@ Reviewed 2026-08-12. Two separate dates, and confusing them defeats the point of
 
 | Guide | Revision | Absorbed to | State | Notes |
 |---|---|---|---|---|
-| `task-lifecycle.md` | 2026-09-21 | 2026-09-21 | ⚠ partly | **New guide, and one living document for all thirteen F-07 slices** — do not expect one file per slice. Absorbed: **§0** (·0 — the two renamed day states and the deleted `TaskGroupDto.status`), **§0b** (·1 — the `InReview` attendance read), **§0c** (·4 — supervisor override, `supervisorWorkerId`, `workSummary`) and **§0d** (·3 — force-close, `closed` counts, `closureReason`, the three-hour cancel window). ⚠ **Not absorbed: §2 `canJoin`, §3 the day browse list, §4 join, §5 drop** — those are worker-app surfaces this panel has no screen for. ⚠ Its delta is read through CHANGELOG entries and **never** through the file's own diff: a diff of a living 46 KB guide cannot tell a typo fix from a route that now requires a body. |
+| `task-lifecycle.md` | 2026-09-24 | 2026-09-21 | ⚠ partly | **New guide, and one living document for all thirteen F-07 slices** — do not expect one file per slice. Absorbed: **§0** (·0 — the two renamed day states and the deleted `TaskGroupDto.status`), **§0b** (·1 — the `InReview` attendance read), **§0c** (·4 — supervisor override, `supervisorWorkerId`, `workSummary`) and **§0d** (·3 — force-close, `closed` counts, `closureReason`, the three-hour cancel window). ⚠ **Not absorbed: §2 `canJoin`, §3 the day browse list, §4 join, §5 drop** — those are worker-app surfaces this panel has no screen for. ⚠ Its delta is read through CHANGELOG entries and **never** through the file's own diff: a diff of a living 46 KB guide cannot tell a typo fix from a route that now requires a body. |
 | `deleted-account-email-release.md` | 2026-09-08 | 2026-09-21 | ✅ yes | ⚠ **The Revision is older than the absorption date on purpose, and that is the trap this row exists to record.** The restore doors (`worker:restore` 80047, `owner:restore` 30006) shipped 2026-09-10 as `Kind: fix` and the guide's Revision was **deliberately not bumped**, because nothing an end-user client can see moved. Watching Revisions alone would never have surfaced them. Both are now built (the two deleted-accounts screens). §6's two withdrawn agency instructions were checked and neither was ever encoded here — `lib/agencies/application-errors.ts` already links `existingAgencyId` unconditionally, which is what §6 now says to do. |
-| `f-06-c-checkin-proof.md` | 2026-08-26 | 2026-09-08 | ✅ yes | All three admin halves verified today. §4 the walk-in order's own `lat`/`long` (fixed 2026-09-08 — see the section below); §5 property coordinates, already sent and already gated on `location !== null` by `property-create-dialog.tsx:117,129` and `property-edit-dialog.tsx:91,102`; §6 the four refusal fields, modelled in `lib/types/attendance.types.ts:30-55` and rendered as the workers matrix' `refused` chip (`lib/workers/matrix.ts:40-65`). ⚠ Nothing here can read a filed order's coordinates back — §4.2, upstream gap, not ours. |
+| `f-06-c-checkin-proof.md` | 2026-09-23 | 2026-09-08 | ✅ yes | All three admin halves verified today. §4 the walk-in order's own `lat`/`long` (fixed 2026-09-08 — see the section below); §5 property coordinates, already sent and already gated on `location !== null` by `property-create-dialog.tsx:117,129` and `property-edit-dialog.tsx:91,102`; §6 the four refusal fields, modelled in `lib/types/attendance.types.ts:30-55` and rendered as the workers matrix' `refused` chip (`lib/workers/matrix.ts:40-65`). ⚠ Nothing here can read a filed order's coordinates back — §4.2, upstream gap, not ours. |
 | `f-02-4-owner-table-filters.md` | 2026-08-12 | 2026-08-12 | ⚠ partly | **All six filter params and all three columns are in** (`companyCityId`, `lastOrderedFrom`/`To`, `neverOrdered`, `taskCountMin`/`Max`; `companyCity`, `lastOrderedAt`, `taskCount`), gated in `verify-v2.mjs`. The **three sort keys and three export columns are not**, and cannot be "absorbed" — see the note below the table. |
 | `fnd-3-table-query.md` | 2026-08-12 | 2026-08-12 | ⚠ partly | The owners/workers tables use it. Same split: filters in, sorting and export absent app-wide. `invalid_filter_value` went from 3 triggers to 6 — all six are refused client-side by `buildOwnerFilterQuery` before the request. |
-| `f-02b-6-default-owner-walk-in-orders.md` | 2026-08-12 | 2026-08-12 | ✅ yes | The walk-in page (PR #21). Its Revision moved to 08-12 via F-02 #4's Owners-table changes, not via anything in the order-filing flow. |
+| `f-02b-6-default-owner-walk-in-orders.md` | 2026-09-24 | 2026-08-12 | ✅ yes | The walk-in page (PR #21). Its Revision moved to 08-12 via F-02 #4's Owners-table changes, not via anything in the order-filing flow. |
 | `contract-lifecycle.md` | 2026-08-11 | 2026-08-11 | ⚠ partly | §7.7 `ownerLegalName`/`workerLegalName` modelled and carried on `RegistryRow` as `partyLegalName`. **Nothing renders it yet** — the registry itself is unbuilt, so whoever builds it must show both names and render nothing when the legal one is null. |
-| `onboarding-and-active-gate.md` | 2026-08-11 | 2026-08-11 | ⚠ partly | §10.3 `prefill.legalName` modelled. Our authoring flow has no contracting-party name field — the admin uploads a PDF — so there is currently nowhere to use it. |
+| `onboarding-and-active-gate.md` | 2026-09-24 | 2026-08-11 | ⚠ partly | §10.3 `prefill.legalName` modelled. Our authoring flow has no contracting-party name field — the admin uploads a PDF — so there is currently nowhere to use it. |
 | `f-02a-1-admin-task-list-filters.md` | 2026-08-10 | 2026-08-10 | ⚠ partly | The conditional row cap is understood and documented at the call site. **None of the four filters** (`propertyId`, `scheduledFrom`, `scheduledTo`, repeatable `status`) are built, so the dispatch page still sends no window and 500 is the live bound. |
 | `f-02b-7-admin-owner-edit.md` | 2026-08-10 | 2026-08-10 | ✅ yes | Verified: `owner_has_open_tasks` handled, dead `boss_has_active_properties` documented as removed. |
 | `f-03-1-structured-document-data.md` | 2026-08-10 | 2026-08-10 | ✅ yes | v2 phases. Gated by `verify-v2.mjs`. |
-| `f-02c-property-rework.md` | 2026-08-07 | 2026-08-07 | ✅ yes | Verified: `category` FK object, no `docsStatus`, property entries in `verify-v2.mjs`. |
-| `fnd-1-configurable-lookups.md` | 2026-08-07 | 2026-08-07 | ✅ yes | v2 phase 4. |
-| `notification-bell.md` | 2026-08-05 | 2026-08-05 | ✅ yes | v2 phase 4. |
+| `f-02c-property-rework.md` | 2026-09-23 | 2026-08-07 | ✅ yes | Verified: `category` FK object, no `docsStatus`, property entries in `verify-v2.mjs`. |
+| `fnd-1-configurable-lookups.md` | 2026-09-23 | 2026-08-07 | ✅ yes | v2 phase 4. |
+| `notification-bell.md` | 2026-09-22 | 2026-08-05 | ✅ yes | v2 phase 4. |
 | `fnd-2-admin-initiated-ticket.md` | 2026-08-03 | 2026-08-03 | ✅ yes | Gated by `verify-v2.mjs` (`AdminOpenTicketRequest`). |
 | `support-ticket-followup-fix.md` | 2026-07-01 | 2026-07-01 | ✅ assumed | Not re-verified today. |
-| `task-cancel-lifecycle-guards.md` | 2026-07-01 | 2026-07-01 | ✅ assumed | Not re-verified today. |
+| `task-cancel-lifecycle-guards.md` | 2026-09-22 | 2026-07-01 | ✅ assumed | Not re-verified today. |
 | `worker-doc-approved-delete-guard.md` | 2026-07-01 | 2026-07-01 | ✅ assumed | Not re-verified today. |
 
 Guides whose `Consumers:` do not include `admin-panel` are deliberately absent: the four
