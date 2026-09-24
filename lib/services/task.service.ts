@@ -11,6 +11,9 @@ import type {
   AdminSetSupervisorRequest,
   TaskSupervisorDto,
   ForceCloseTaskRequest,
+  TaskMediaListItem,
+  DecideComplaintRequest,
+  TaskStatusDto,
 } from "@/lib/types/task.types";
 
 export const taskService = {
@@ -129,6 +132,39 @@ export const taskService = {
 
   getTask: async (taskId: string): Promise<TaskItemDto> => {
     const { data } = await apiClient.get<TaskItemDto>(`/api/tasks/${taskId}`);
+    return data;
+  },
+
+  /**
+   * The complaint queue — every day in `Rejected` (F-07 ·5). `task:list_any`.
+   * ⚠ `complaint` is `null` on each row by contract; read it per day with `getTask`.
+   * The unwindowed list is capped at 500 rows; open complaints are far fewer.
+   */
+  getRejectedTasks: async (): Promise<TaskItemDto[]> => {
+    const { data } = await apiClient.get<TaskItemDto[]>("/api/tasks/admin", {
+      params: { status: "Rejected" },
+    });
+    return data;
+  },
+
+  /** The team's evidence — `task:media:read_any`. ⚠ URL is in `storageKey`. */
+  getTaskMedia: async (taskId: string): Promise<TaskMediaListItem[]> => {
+    const { data } = await apiClient.get<TaskMediaListItem[]>(`/api/tasks/${taskId}/media`);
+    return data;
+  },
+
+  /**
+   * Rule on a complaint — `task_complaint:decide_any` (SUPER_ADMIN and MODERATOR).
+   * Irreversible; both answers close the day. Keyed by the COMPLAINT id.
+   */
+  decideComplaint: async (
+    complaintId: string,
+    body: DecideComplaintRequest,
+  ): Promise<TaskStatusDto> => {
+    const { data } = await apiClient.post<TaskStatusDto>(
+      `/api/tasks/complaints/${complaintId}/decide`,
+      body,
+    );
     return data;
   },
 
