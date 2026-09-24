@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { DataTable } from "@/components/ui/data-table/data-table";
-import { useComplaintColumns } from "@/components/complaints/complaint-columns";
+import { ComplaintRowCard, useComplaintColumns } from "@/components/complaints/complaint-columns";
 import { useComplaintQueue, useComplaintQueueRows } from "@/hooks/use-complaints";
 import { useCurrentPermissions } from "@/hooks/use-current-permissions";
 import { useTableUrlState } from "@/hooks/use-table-url-state";
@@ -23,7 +23,13 @@ import { looseIncludes } from "@/lib/ui/table-rows";
 export default function ComplaintsPage() {
   const t = useTranslations("complaints");
   const state = useTableUrlState();
-  const [now] = useState(() => new Date());
+  // Ticks every minute so a complaint crossing 48h flips to Escalated while the
+  // queue is left open, rather than freezing "now" at the page's first paint.
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(id);
+  }, []);
 
   const { permissions } = useCurrentPermissions();
   const canRead = permissions === null ? null : permissions.has("task:list_any");
@@ -63,6 +69,10 @@ export default function ComplaintsPage() {
         rowKey={(r) => r.task.id}
         rowHref={(r) => `/dashboard/complaints/${r.task.id}`}
         rowLabel={(r) => r.task.propertyName ?? r.task.id}
+        // §3.1: below 768px the table becomes a stack of cards and never
+        // scrolls sideways. `rowHref` above still makes the whole card a link
+        // — the shell overlays it the same way it does for the table row.
+        mobileCard={(r) => <ComplaintRowCard row={r} now={now} />}
         searchPlaceholder={t("searchPlaceholder")}
         empty={{ title: t("empty.title"), body: t("empty.body") }}
       />
