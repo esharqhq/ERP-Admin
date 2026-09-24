@@ -2173,6 +2173,7 @@
       "evidence": "Fotos des Teams",
       "noEvidence": "Das Team hat keine Fotos hochgeladen.",
       "evidenceForbidden": "Ihre Rolle darf die Fotos des Teams nicht sehen.",
+      "evidenceError": "Die Fotos des Teams konnten nicht geladen werden. Bitte die Seite neu laden.",
       "checkin": "Ein",
       "checkout": "Aus",
       "noWorkers": "An diesem Tag war niemand eingeteilt."

@@ -2173,6 +2173,7 @@
       "evidence": "Team's photos",
       "noEvidence": "The team uploaded no photos.",
       "evidenceForbidden": "Your role cannot read the team's photos.",
+      "evidenceError": "The team's photos could not be loaded. Reload the page.",
       "checkin": "In",
       "checkout": "Out",
       "noWorkers": "Nobody was on this day."

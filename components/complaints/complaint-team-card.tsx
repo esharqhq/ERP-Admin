@@ -21,11 +21,13 @@ export function ComplaintTeamCard({
   media,
   mediaForbidden,
   mediaLoading,
+  mediaError,
 }: {
   task: TaskItemDto;
   media: TaskMediaListItem[] | undefined;
   mediaForbidden: boolean;
   mediaLoading: boolean;
+  mediaError: boolean;
 }) {
   const t = useTranslations("complaints.team");
   const locale = useLocale();
@@ -40,7 +42,13 @@ export function ComplaintTeamCard({
       <CardContent className="flex flex-col gap-4 text-sm">
         <div>
           <span className="text-muted-foreground">{t("supervisor")}: </span>
-          {supervisor?.workerName ?? t("noSupervisor")}
+          {supervisor?.workerName ?? (
+            task.supervisorWorkerId ? (
+              <span className="font-mono">{task.supervisorWorkerId}</span>
+            ) : (
+              t("noSupervisor")
+            )
+          )}
         </div>
 
         {workers.length === 0 ? (
@@ -49,7 +57,9 @@ export function ComplaintTeamCard({
           <ul className="flex flex-col divide-y divide-border">
             {workers.map((w) => (
               <li key={w.id} className="flex items-center justify-between gap-3 py-1.5">
-                <span className="min-w-0 truncate">{w.workerName ?? w.workerId}</span>
+                <span className="min-w-0 truncate">
+                  {w.workerName ?? <span className="font-mono">{w.workerId}</span>}
+                </span>
                 <span className="shrink-0 font-mono text-xs text-muted-foreground tabular-nums">
                   {t("checkin")} {fmtTime(w.checkinAt, locale)} · {t("checkout")} {fmtTime(w.checkoutAt, locale)}
                 </span>
@@ -59,16 +69,18 @@ export function ComplaintTeamCard({
         )}
 
         <div className="flex flex-col gap-1">
-          <span className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">{t("summary")}</span>
+          <span className="overline-label text-muted-foreground">{t("summary")}</span>
           <p className="whitespace-pre-wrap">{task.workSummary || t("noSummary")}</p>
         </div>
 
         <div className="flex flex-col gap-2">
-          <span className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">{t("evidence")}</span>
+          <span className="overline-label text-muted-foreground">{t("evidence")}</span>
           {mediaForbidden ? (
             <p className="text-muted-foreground">{t("evidenceForbidden")}</p>
           ) : mediaLoading ? (
             <Skeleton className="h-24 w-full" />
+          ) : mediaError ? (
+            <p className="text-muted-foreground">{t("evidenceError")}</p>
           ) : (
             <PhotoGrid
               emptyText={t("noEvidence")}

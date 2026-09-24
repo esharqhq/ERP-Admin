@@ -17,7 +17,9 @@ export function ComplaintEvidenceCard({ complaint }: { complaint: TaskComplaintD
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-base">{t("title")}</CardTitle>
-        <p className="text-xs text-muted-foreground">{t("raisedAt", { time: fmt(complaint.raisedAt, locale) })}</p>
+        <p className="font-mono text-xs text-muted-foreground tabular-nums">
+          {t("raisedAt", { time: fmt(complaint.raisedAt, locale) })}
+        </p>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <p className="whitespace-pre-wrap text-sm">{complaint.reason}</p>
