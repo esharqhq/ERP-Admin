@@ -1051,3 +1051,19 @@ natural place to check before building — would conclude the feature they are a
 
 **We build against §1.** No action needed from us; flagging it so the file stops carrying both answers.
 
+---
+
+## Open — 2026-09-24 · two contract gaps found while building F-07 ·5 in the admin panel
+
+Neither blocks us (both were read from source); both will bite the next client.
+
+1. **`task-lifecycle.md` §0e never gives `TaskComplaintDto` or `TaskComplaintPhotoDto`.** The doors are
+   named and the CHANGELOG (2026-09-22) lists field names, but the photo shape (`url`, `originalFileName`,
+   `fileSize`, `mimeType`, `uploadedAt`) and `supportTicketId: null` on walk-in days are only in
+   `GermanyERP.Domain/Models/DTOs/Tasks/TaskDtos.cs:263-293`.
+2. **F-07 ·2 has no CHANGELOG entry and no guide section.** `checkinDoor`
+   (`WorkerTapped | WorkerScannedDisplay | OwnerScannedWorker | null`) is on the wire on `AttendanceRowDto`
+   and `TaskWorkerDto` since 2026-09-22 (`5fd640fd`); on `OwnerScannedWorker` the check-in coordinates are
+   the scanner's phone. `task-lifecycle.md:71` says "no section yet".
+3. **`GET /api/tasks/{taskId}/media` names the photo URL `storageKey`** while `TaskMediaDto` everywhere else calls it `url` (`index/dtos/tasks.md:35` says this was kept on purpose). Not asking to rename — asking that `task-lifecycle.md` §0e say so where it sends admins to the team's evidence.
+
