@@ -18,6 +18,16 @@ export type NotificationType =
   // meaningful. Do not go looking for a consumer.
   | "SkillRequestSubmitted"
   | "SkillRequestResponded"
+  // F-07 — `entityType: "Task"` rows an admin receives (entityId = the day id).
+  // Only the two complaint kinds are read (`notificationRoute`); the rest are
+  // listed so their presence in the bell is documented. 80 `TaskComplaintDecided`
+  // is deliberately absent: it goes to the owner and the workers, not admins.
+  | "TaskComplaintRaised"
+  | "TaskComplaintEscalated"
+  | "TaskStaffingWarning"
+  | "TaskStaffingCritical"
+  | "TaskOverdue"
+  | "TaskStuckEscalated"
   // any type the backend adds later: render the row, do not crash
   | (string & {});
 
@@ -31,7 +41,8 @@ export type NotificationEntityType =
   | "Onboarding"
   | "AgencyApplication"
   | "WorkerAgencyLink"
-  | "WorkerProfessionRequest";
+  | "WorkerProfessionRequest"
+  | "Task";
 
 export type NotificationDto = {
   id: string;
