@@ -167,8 +167,14 @@ function supervisorErrorText(
  * is the record of who filed it — so the control is hidden rather than left to
  * fail. The refusal is still handled above, because a day can settle between
  * render and click.
+ *
+ * ⚠ A disputed day refuses it too, since the ·5 merge (`TaskService.cs:3846-3857`,
+ * `400 supervisor_change_not_allowed`) — the spec's §5 row saying "server only
+ * refuses DONE/CANCELLED" repeated stale guide text (`task-lifecycle.md:745-748`,
+ * itself not yet corrected — see BACKEND-ASKS.md). `REJECTED` is a settled day
+ * for this purpose too, not an open one.
  */
 export function canOverrideSupervisor(task: TaskItemDto): boolean {
   const state = canonicalTaskStatus(task.status);
-  return state !== "done" && state !== "cancelled";
+  return state !== "done" && state !== "cancelled" && state !== "rejected";
 }
