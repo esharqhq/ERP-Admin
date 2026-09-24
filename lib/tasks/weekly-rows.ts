@@ -93,7 +93,7 @@ export function rowsInWeek(rows: WeeklyTaskRow[], dateKeys: string[]): WeeklyTas
 }
 
 /**
- * `"all"`, or one of the five day states.
+ * `"all"`, or one of the six day states.
  *
  * ⚠ Both sides go through `canonicalTaskStatus`, not a lowercased compare. The
  * card's tabs used to offer `"Active"` and `"Review"`, which F-07 ·0 renamed on

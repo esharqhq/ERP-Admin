@@ -90,7 +90,7 @@ export function ComplaintRowCard({ row, now }: { row: ComplaintQueueRow; now: Da
           <span className="truncate text-sm font-semibold leading-tight">
             {row.task.propertyName ?? "–"}
           </span>
-          <span className="truncate font-mono text-[11px] text-muted-foreground tabular-nums">
+          <span className="truncate font-mono text-xs text-muted-foreground tabular-nums">
             {fmt(row.task.scheduledAt, locale)}
           </span>
           <HandedInLine completedAt={row.task.completedAt} locale={locale} />

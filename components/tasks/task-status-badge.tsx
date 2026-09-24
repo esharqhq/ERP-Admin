@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { canonicalTaskStatus, type TaskStateKey } from "@/lib/tasks/status-vocab";
 
 /**
- * The five day states as a chip.
+ * The six day states as a chip.
  *
  * ⚠ Reads the state through `canonicalTaskStatus`, not through a lowercased
  * string compare. F-07 ·0 (2026-09-17) renamed `Active` → `CheckedIn` and

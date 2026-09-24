@@ -150,7 +150,10 @@ const EXPECTED_FIELDS = {
   TaskItemDto: ["id", "groupId", "propertyId", "propertyName", "scheduledDate", "scheduledAt",
     "deadline", "status", "requiredWorkerCount", "startedAt", "completedAt", "workers",
     // F-07 ·4 (supervisor, summary) and ·3 (how the day closed).
-    "supervisorWorkerId", "workSummary", "closureReason"],
+    "supervisorWorkerId", "workSummary", "closureReason",
+    // F-07 ·5 — filled by `GET /api/tasks/{taskId}` only; every list, PATCH,
+    // admin-assign and the tasks nested in a booking serve `null`.
+    "complaint"],
   AdminSetSupervisorRequest: ["workerId"],
   TaskSupervisorDto: ["taskId", "supervisorWorkerId"],
   // ⚠ Mandatory. A bodiless request is refused by model binding before the
