@@ -266,6 +266,7 @@ function TaskCard({
             <Button
               variant="outline"
               size="sm"
+              nativeButton={false}
               className="gap-1.5"
               render={<Link href={`/dashboard/complaints/${task.id}`} />}
             >
