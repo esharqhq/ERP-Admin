@@ -2141,6 +2141,7 @@
       "waiting": "Wartet",
       "state": "Status"
     },
+    "searchPlaceholder": "Nach Immobilie suchen",
     "handedIn": "Abgegeben {time}",
     "hours": "{hours} Std.",
     "state": {

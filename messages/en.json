@@ -2141,6 +2141,7 @@
       "waiting": "Waiting",
       "state": "State"
     },
+    "searchPlaceholder": "Search by property",
     "handedIn": "Handed in {time}",
     "hours": "{hours} h",
     "state": {
