@@ -2,7 +2,7 @@
 
 import { use, useState } from "react";
 import { Link } from "@/i18n/navigation";
-import { ArrowLeft, Star, UserPlus, UserMinus, RefreshCw, ShieldCheck, LockKeyhole } from "lucide-react";
+import { ArrowLeft, Star, UserPlus, UserMinus, RefreshCw, ShieldCheck, LockKeyhole, MessageSquareWarning } from "lucide-react";
 import { useTranslations, useLocale } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -226,6 +226,8 @@ function TaskCard({
   const tClose = useTranslations("tasks.forceClose");
   const state = canonicalTaskStatus(task.status);
   const terminal = state === "cancelled" || state === "done";
+  // F-07 ·5: waiting on a ruling, not on staff — so no Assign, and a way to the ruling.
+  const disputed = state === "rejected";
   const supervisor = (task.workers ?? []).find(
     (w) => w.workerId === task.supervisorWorkerId,
   );
@@ -247,7 +249,7 @@ function TaskCard({
               {fmtDateTime(task.completedAt, locale)}
             </span>
           </div>
-          {!terminal && (
+          {!terminal && !disputed && (
             <Can permission="task:assign_worker_any">
               <Button
                 variant="outline"
@@ -259,6 +261,17 @@ function TaskCard({
                 {t("actions.assign")}
               </Button>
             </Can>
+          )}
+          {disputed && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              render={<Link href={`/dashboard/complaints/${task.id}`} />}
+            >
+              <MessageSquareWarning className="size-3.5" />
+              {t("actions.viewComplaint")}
+            </Button>
           )}
           {/* ⚠ SUPER_ADMIN only. A MODERATOR gets a bodiless 403 — `Can` hides
               the button rather than letting them meet an error with no code in
