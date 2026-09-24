@@ -23,15 +23,16 @@ const TONES: Record<TaskStateKey, "success" | "warning" | "info" | "neutral" | "
   inReview: "info",
   done: "neutral",
   cancelled: "danger",
+  rejected: "warning",
 };
 
 export function TaskStatusBadge({ status }: { status: string | null | undefined }) {
   const t = useTranslations("tasks.dayStates");
   const state = canonicalTaskStatus(status);
 
-  // ⚠ Keep this arm. The day states are not a closed set — ·5 adds a disputed
-  // one — and printing the unrecognised word verbatim is honest, where guessing
-  // one of the five would state something false.
+  // ⚠ Keep this arm. The day states are not a closed set, and printing the
+  // unrecognised word verbatim is honest where guessing one would state
+  // something false.
   if (!state) return <Badge variant="outline">{status || "—"}</Badge>;
 
   return <Badge tone={TONES[state]}>{t(state)}</Badge>;

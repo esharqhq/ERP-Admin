@@ -25,8 +25,13 @@ describe("canonicalTaskStatus", () => {
     expect(canonicalTaskStatus("INREVIEW")).toBe("inReview");
   });
 
+  it("reads the disputed state F-07 ·5 added on 2026-09-21", () => {
+    expect(canonicalTaskStatus("Rejected")).toBe("rejected");
+    expect(canonicalTaskStatus(" rejected ")).toBe("rejected");
+  });
+
   it("answers null for a word it does not know", () => {
-    // ·5 adds a disputed state. `null` is a real answer, not a failure.
+    // The set is still not closed — `null` is a real answer, not a failure.
     expect(canonicalTaskStatus("Disputed")).toBeNull();
     expect(canonicalTaskStatus("")).toBeNull();
     expect(canonicalTaskStatus(null)).toBeNull();

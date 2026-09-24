@@ -145,6 +145,10 @@ function forceCloseErrorText(err: unknown, t: (key: string) => string): string {
   if (code === "task_already_closed") return t("errors.task_already_closed");
   if (code === "reason_required") return t("errors.reason_required");
   if (code === "task_not_found") return t("errors.task_not_found");
+  // F-07 ·5 (2026-09-22): a disputed day must be decided, not forced shut —
+  // forcing it stranded the complaint for ever. ⚠ A 400, not a 409. Reachable
+  // only in a race: `canForceClose` never offers the control on a Rejected day.
+  if (code === "decide_the_complaint_first") return t("errors.decide_the_complaint_first");
   // ⚠ No `error` key on a model-binding refusal — fall back to the validation
   // bag before the generic message, or the admin is told nothing at all.
   return getValidationMessage(err) ?? t("errors.generic");
@@ -155,6 +159,8 @@ function forceCloseErrorText(err: unknown, t: (key: string) => string): string {
  * A day already `DONE` or `CANCELLED` answers `400 task_already_closed`, so the
  * control is hidden for those two — the refusal is still handled, because a day
  * can settle between render and click.
+ * `rejected` is deliberately absent — the server refuses it with
+ * `decide_the_complaint_first`.
  */
 export function canForceClose(task: TaskItemDto): boolean {
   const state = canonicalTaskStatus(task.status);

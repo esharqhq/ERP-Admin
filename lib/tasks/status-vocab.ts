@@ -1,5 +1,5 @@
 /**
- * The five day states, as this panel names them.
+ * The six day states, as this panel names them.
  *
  * ⚠ Deliberately NOT built on `normalizeStatus` (`lib/types/task.types.ts:185`).
  * That helper is a generic `trim().toLowerCase()` used at 51 call sites across
@@ -12,7 +12,8 @@ export type TaskStateKey =
   | "checkedIn"
   | "inReview"
   | "done"
-  | "cancelled";
+  | "cancelled"
+  | "rejected";
 
 /**
  * ⚠ Both spellings of the two renamed states are here on purpose. F-07 ·0
@@ -31,12 +32,13 @@ const WORDS: Record<string, TaskStateKey> = {
   done: "done",
   cancelled: "cancelled",
   canceled: "cancelled",
+  rejected: "rejected",
 };
 
 /**
  * ⚠ `null` is a real answer, not a failure. The day states are not a closed set:
- * this is the second time they have moved, and slice ·5 adds a disputed state.
- * Callers render an unknown word rather than guessing which of the five it meant.
+ * they have moved three times (·0 renamed two, ·5 added `Rejected` on
+ * 2026-09-21). Callers render an unknown word rather than guessing.
  */
 export function canonicalTaskStatus(
   raw: string | null | undefined,

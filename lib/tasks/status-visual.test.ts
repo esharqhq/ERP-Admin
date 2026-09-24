@@ -7,6 +7,7 @@ const ALL_STATUSES: DerivedTaskStatus[] = [
   "Scheduled",
   "Running",
   "Review",
+  "Disputed",
   "Done",
   "Unstaffed",
   "Overdue",
@@ -43,5 +44,10 @@ describe("TASK_STATUS_VISUAL", () => {
 
   it("keeps Cancelled's background transparent — history stays quiet", () => {
     expect(TASK_STATUS_VISUAL.Cancelled.bg).toBe("transparent");
+  });
+
+  it("gives Disputed the review palette family — handed in, waiting on a person", () => {
+    expect(TASK_STATUS_VISUAL.Disputed.dot).toBe(TASK_STATUS_VISUAL.Review.dot);
+    expect(taskStatusRail("Disputed")).toBeNull();
   });
 });

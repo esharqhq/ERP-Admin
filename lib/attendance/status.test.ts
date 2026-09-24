@@ -144,8 +144,9 @@ describe("deriveKind", () => {
   it("treats an unknown status as no signal rather than a red row", () => {
     // An unrecognised value must not short-circuit into a kind of its own; the
     // clock still decides, exactly as it does for a plain Active task.
-    expect(deriveKind(row({ taskStatus: "Rejected" }), SCHED_MS - 30 * MIN)).toBe("await");
-    expect(deriveKind(row({ taskStatus: "Rejected" }), SCHED_MS + 30 * MIN)).toBe("overdue");
+    // (`Rejected` no longer qualifies — F-07 ·5 taught the vocabulary that word.)
+    expect(deriveKind(row({ taskStatus: "Escalated" }), SCHED_MS - 30 * MIN)).toBe("await");
+    expect(deriveKind(row({ taskStatus: "Escalated" }), SCHED_MS + 30 * MIN)).toBe("overdue");
   });
 
   it("reads an undecided absence as await while the clock is unknown", () => {
@@ -282,6 +283,23 @@ describe("matchesTab", () => {
 
   it("keeps every row on the all tab", () => {
     expect(matchesTab(one({ taskStatus: "Cancelled" }), "all")).toBe(true);
+  });
+});
+
+describe("a disputed day (F-07 ·5)", () => {
+  it("reads an absent worker as noshow — the day was handed in", () => {
+    expect(
+      deriveKind(row({ taskStatus: "Rejected", present: false }), SCHED_MS + 600 * MIN),
+    ).toBe("noshow");
+  });
+
+  it("still reads a present worker as in", () => {
+    expect(
+      deriveKind(
+        row({ taskStatus: "Rejected", present: true, checkinAt: SCHEDULED }),
+        SCHED_MS + 600 * MIN,
+      ),
+    ).toBe("in");
   });
 });
 

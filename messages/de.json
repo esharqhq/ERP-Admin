@@ -2074,7 +2074,8 @@
       "checkedIn": "Läuft",
       "inReview": "In Prüfung",
       "done": "Abgeschlossen",
-      "cancelled": "Storniert"
+      "cancelled": "Storniert",
+      "rejected": "In Klärung"
     },
     "dayCounts": {
       "settledOfTotal": "{settled} / {total} Tage",
@@ -2123,7 +2124,8 @@
         "task_already_closed": "Dieser Tag ist bereits abgeschlossen oder storniert.",
         "reason_required": "Eine Begründung ist erforderlich.",
         "task_not_found": "Dieser Tag existiert nicht mehr. Bitte Seite aktualisieren.",
-        "generic": "Der Tag konnte nicht abgeschlossen werden."
+        "generic": "Der Tag konnte nicht abgeschlossen werden.",
+        "decide_the_complaint_first": "Zu diesem Tag gibt es eine offene Beschwerde. Bitte stattdessen über die Beschwerde entscheiden — das schließt den Tag."
       }
     }
   },

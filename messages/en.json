@@ -2074,7 +2074,8 @@
       "checkedIn": "In progress",
       "inReview": "Under review",
       "done": "Completed",
-      "cancelled": "Cancelled"
+      "cancelled": "Cancelled",
+      "rejected": "In dispute"
     },
     "dayCounts": {
       "settledOfTotal": "{settled} / {total} days",
@@ -2123,7 +2124,8 @@
         "task_already_closed": "This day is already finished or cancelled, so there is nothing to close.",
         "reason_required": "A reason is required.",
         "task_not_found": "This day no longer exists. Refresh the page.",
-        "generic": "The day could not be closed."
+        "generic": "The day could not be closed.",
+        "decide_the_complaint_first": "This day has an open complaint. Decide the complaint instead — that closes the day."
       }
     }
   },
