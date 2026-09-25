@@ -9,7 +9,7 @@ import type { PagedQuery } from "@/lib/types/paged.types";
  * its own richer DTOs. This file exists so the workers table's `?agencyId=`
  * filter has something to populate itself from without waiting for that.
  *
- * Guide: `../Backend/docs/handoff/f-05-c-worker-agency-link.md` §4.2.
+ * Guide: `f-05-c-worker-agency-link.md` §4.2.
  */
 
 /**
@@ -43,7 +43,7 @@ export interface ActiveAgencyDto {
  * make `agencyLinkTurn`'s default branch unreachable code that `tsc` prunes, which
  * is exactly the branch that has to exist.
  *
- * Guide: `../Backend/docs/handoff/f-05-c-worker-agency-link.md` §3.
+ * Guide: `f-05-c-worker-agency-link.md` §3.
  */
 export type AgencyLinkStatus =
   | "Proposed"
@@ -112,7 +112,7 @@ export interface WorkerAgencyLinkDto {
  * ⚠ Widened with `(string & {})` so `standingTone`'s `default` branch is real code
  * rather than something `tsc` prunes.
  *
- * Guide: `../Backend/docs/handoff/f-05-a-application-review.md` §8.3.
+ * Guide: `f-05-a-application-review.md` §8.3.
  */
 export type AgencyStanding =
   | "AwaitingContract"

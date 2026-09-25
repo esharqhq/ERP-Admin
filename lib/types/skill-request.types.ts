@@ -1,5 +1,5 @@
 // ── Worker skill (profession) requests ─────────────────────────────────────
-// Guide: ../../../Backend/docs/handoff/f-06-a-skills-request.md (rev 2026-09-04)
+// Guide: f-06-a-skills-request.md (rev 2026-09-04)
 //
 // The worker claims a skill, an admin verifies it, and a third thing records what
 // is true right now. Three objects, and keeping them apart is the whole model: the

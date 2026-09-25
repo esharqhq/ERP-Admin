@@ -102,7 +102,7 @@ export function canRenew(phase: ContractPhase): boolean {
  * function returned `InForce || Scheduled`, on the reasoning that "terminate ends
  * cover, so it needs cover to end" and an unsigned draft is recalled instead. The
  * backend disagrees, deliberately:
- * `Backend/index/controllers/contracts.md:37` —
+ * `index/controllers/contracts.md:37` —
  *
  *   > "Force-deactivate → `status = Terminated` (**not** `Expired`, the period had
  *   > not elapsed) + `isActive = false`; always writes

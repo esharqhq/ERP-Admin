@@ -23,7 +23,7 @@ export function useBroadcastList(params: {
 }
 
 /**
- * `Backend/docs/handoff/f-01-a-broadcast-core.md`: "Poll route 3 until
+ * `f-01-a-broadcast-core.md`: "Poll route 3 until
  * `status` becomes `Sent`" — a 15 s interval while the record is still
  * `Sending`, which self-disables the moment the cached data flips (the
  * function form reads `query.state.data`, not a value captured at mount), and

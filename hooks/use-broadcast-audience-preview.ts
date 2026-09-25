@@ -30,7 +30,7 @@ function useDebouncedValue<T>(value: T, delayMs: number): T {
  * `GET`-free preview (`POST /api/broadcasts/audience/preview`) of how many
  * people a chosen audience reaches. Two rejections this hook must never
  * trigger by construction, both documented in
- * Backend/docs/handoff/f-01-a-broadcast-core.md §8:
+ * f-01-a-broadcast-core.md §8:
  *
  * - `broadcast_selection_not_allowed` — sending a `selection` alongside
  *   `Workers`/`Owners`/`Both`. So only `Custom` ever includes one.

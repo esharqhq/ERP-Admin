@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 // pair; compose-form.tsx renders two of these side by side.
 //
 // Hard caps match the backend's actual [MaxLength] validation
-// (Backend/index/dtos/notifications.md — titleDe/titleEn 200, bodyDe/bodyEn
+// (index/dtos/notifications.md — titleDe/titleEn 200, bodyDe/bodyEn
 // 4000), enforced via the native `maxLength` attribute so a length violation
 // can never reach the server as an unmappable problem-details 400. The
 // design's own "no char limits documented" note (B21) is about OneSignal
