@@ -111,7 +111,8 @@
       "businessLicense": "Business licence",
       "companyRegistration": "Company registration",
       "taxCertificate": "Tax certificate",
-      "other": "Other"
+      "other": "Other",
+      "representativeAuthorization": "Authorization letter"
     },
     "companyType": {
       "llc": "LLC",

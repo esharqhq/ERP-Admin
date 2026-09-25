@@ -27,6 +27,8 @@ export const COMPANY_TYPES = [
   "CompanyRegistration",
   "BusinessLicense",
   "TaxCertificate",
+  // 2026-09-01: a company document (deleted with the company), but it satisfies no requirement.
+  "RepresentativeAuthorization",
 ] as const;
 
 export type DocGroup = "identity" | "company" | "other";

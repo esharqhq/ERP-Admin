@@ -111,7 +111,8 @@
       "businessLicense": "Gewerbeschein",
       "companyRegistration": "Handelsregisterauszug",
       "taxCertificate": "Steuerbescheinigung",
-      "other": "Sonstiges"
+      "other": "Sonstiges",
+      "representativeAuthorization": "Vollmacht"
     },
     "companyType": {
       "llc": "LLC",

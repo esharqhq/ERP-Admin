@@ -177,3 +177,13 @@ describe("viewerKind", () => {
     expect(viewerKind(null, null)).toBe("unsupported");
   });
 });
+
+describe("the representative's authorization letter (2026-09-01)", () => {
+  it("is grouped with the company documents", () => {
+    expect(groupOf("RepresentativeAuthorization")).toBe("company");
+  });
+
+  it("satisfies no requirement — a bundle of only the letter is still incomplete", () => {
+    expect(requiredSet([doc({ type: "RepresentativeAuthorization" })], true).complete).toBe(false);
+  });
+});
