@@ -160,18 +160,16 @@ export default function OwnersPage() {
       {
         key: "countryId",
         label: t("filters.country"),
-        // It genuinely filters nothing — saying so stops it reading as broken.
+        // f-02-4 §2.1: both filter the owner's own location and reach every owner.
         hint: t("filters.countryHint"),
         options: (countries.data ?? [])
           .filter((c) => c.isActive)
           .map((c) => ({ value: c.id, label: lookupLabel(c, locale) })),
       },
       {
-        key: "companyCityId",
-        label: t("filters.companyCity"),
-        // §2.1: a city lives only on a company record, so this filter can reach
-        // neither private individuals nor companies with a blank city.
-        hint: t("filters.companyCityHint"),
+        key: "cityId",
+        label: t("filters.city"),
+        hint: t("filters.cityHint"),
         // Empty until a country is chosen, and a select with no options renders
         // nothing — which is exactly the wanted behaviour, with no extra flag.
         options: (cities.data ?? [])

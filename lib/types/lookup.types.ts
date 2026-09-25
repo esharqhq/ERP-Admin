@@ -1,15 +1,13 @@
 /**
  * FND-1 configurable lookups.
  *
- * `Property` still does **not** reference Country/City — it carries a free-text
- * `address` and no city/country FK (verified in
- * `GermanyERP.Domain/Models/Properties/PropertyEntities.cs`), so a city picker on
- * a property would wire up a relationship the API does not have. That reasoning
- * is unchanged and still the rule for properties.
- *
- * It does not extend to **owners**, whose *company* record does carry a city —
- * which is what F-02 #4's `companyCityId` filter selects on. Country and City are
- * therefore modelled below, for that filter and nothing else.
+ * Country and City are referenced by:
+ * - **owners** — the owner's own `countryId`/`cityId` (owner-location-model,
+ *   2026-08-13), which the Owners table filters on. It replaced F-02 #4's
+ *   company-city filter; the company now carries a plain `registrationAddress`.
+ * - **properties** — optional `countryId`/`cityId` since F-07 ·9b (2026-09-23,
+ *   `f-02c-property-rework.md` §4.1a). Not built in this panel yet (ledger WP12).
+ * - **workers** — service location (F-04a).
  */
 
 /**

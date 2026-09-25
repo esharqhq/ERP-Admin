@@ -996,9 +996,9 @@
     },
     "filters": {
       "country": "Land",
-      "countryHint": "Begrenzt die Städteliste; filtert allein nichts.",
-      "companyCity": "Firmenstadt",
-      "companyCityHint": "Nur Eigentümer mit hinterlegter Firmenadresse.",
+      "countryHint": "Der eigene Standort des Eigentümers, nicht der seiner Firma. Begrenzt auch die Städteliste.",
+      "city": "Stadt",
+      "cityHint": "Zuerst ein Land wählen. Eigentümer ohne Standort werden ausgeschlossen.",
       "registered": "Registriert",
       "lastOrdered": "Letzte Bestellung",
       "neverOrdered": "Bestellungen",

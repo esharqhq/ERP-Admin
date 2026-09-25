@@ -996,9 +996,9 @@
     },
     "filters": {
       "country": "Country",
-      "countryHint": "Scopes the city list; filters nothing on its own.",
-      "companyCity": "Company city",
-      "companyCityHint": "Only owners with a company address on file.",
+      "countryHint": "The owner's own location, not their company's. Also scopes the city list.",
+      "city": "City",
+      "cityHint": "Pick a country first. An owner who has not set a location is excluded.",
       "registered": "Registered",
       "lastOrdered": "Last order",
       "neverOrdered": "Ordering",

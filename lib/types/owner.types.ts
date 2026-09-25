@@ -114,15 +114,15 @@ export interface OwnerListQuery extends PagedQuery {
   propertyCountMin?: number;
   propertyCountMax?: number;
   /**
-   * F-02 #4. A city **id** from `GET /api/countries/{countryId}/cities`, not a
-   * name — which is why the param is `companyCityId` and the returned column is
-   * `companyCity`.
+   * owner-location-model (2026-08-13). The owner **operates** in this country /
+   * city — the owner's own account, not their company, so it reaches every owner.
+   * AND-combined. Ids from `GET /api/countries` and `/api/countries/{id}/cities`.
    *
-   * ⚠ An unrecognised id returns an **empty page, not an error**: the backend
-   * assumes the value came from that dropdown. A stale id therefore looks like "no
-   * matches" rather than a fault, so clear this whenever the country changes.
+   * ⚠ An unrecognised id returns an **empty page, not an error**, so clear
+   * `cityId` whenever the country changes.
    */
-  companyCityId?: string;
+  countryId?: string;
+  cityId?: string;
   lastOrderedFrom?: string;
   lastOrderedTo?: string;
   /**
