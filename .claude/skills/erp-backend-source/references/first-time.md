@@ -5,8 +5,8 @@ row, or when you are starting on a surface for the first time.
 
 ## 1. `guidance.md`, once per session that builds against it
 
-Pull first (`references/return-pass.md` step 0). Then read these sections of
-`"$GERMANY_ERP/docs/handoff/guidance.md"`:
+Fetch first (`references/return-pass.md` step 0). Then read these sections of
+`git -C "$GERMANY_ERP" show origin/main:docs/handoff/guidance.md`:
 
 - **§4 Admin panel**: our route. Each row names its guide(s) and what the guide is "worth knowing".
 - **§5 Boundaries**: enforced by real `403`s and `404`s.

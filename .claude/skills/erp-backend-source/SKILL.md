@@ -6,16 +6,31 @@ description: Use when work in ERP-Admin touches the Germany ERP backend contract
 # erp-backend-source — working against the Germany ERP backend
 
 **`MY_APP` = `admin-panel`.** Backend checkout: **`$env:GERMANY_ERP`**
-(`D:\Victus\Projects\Backend\Germany ERP`, on `main`). The path has a space, so always quote it:
+(`D:\Victus\Projects\Backend\Germany ERP`). The path has a space, so always quote it:
 `git -C "$GERMANY_ERP" …` in Bash, `git -C "$env:GERMANY_ERP" …` in PowerShell. `../Backend` does
 not exist. Old comments and plans that cite it mean this checkout.
+
+**Read only what is pushed to `origin/main`. Never touch that checkout.** Other agents work in it, and
+its working tree can be on any branch with half-shipped changes. `fetch` is the only command that
+changes anything there, and it only updates `origin/*`.
+
+```bash
+git -C "$GERMANY_ERP" fetch -q origin
+git -C "$GERMANY_ERP" show origin/main:docs/handoff/guidance.md          # read a file
+git -C "$GERMANY_ERP" grep -n "<pattern>" origin/main -- docs/handoff index   # search
+git -C "$GERMANY_ERP" log --oneline <sha>..origin/main -- docs/handoff        # what moved
+```
+
+Never run `checkout`, `switch`, `pull`, `merge`, `stash`, `reset` or any write in that checkout. Don't
+open its files directly either: the working tree is not the contract. Something that exists only on a
+local branch has not shipped, so don't build against it.
 
 ## Where things live — one copy each
 
 | What | Where |
 |---|---|
-| The contract | `"$GERMANY_ERP/docs/handoff/"` — `README.md` catalog, `guidance.md` route, `CHANGELOG.md` delta, one `<slug>.md` per feature |
-| Backend truth, **only where no guide exists** | `"$GERMANY_ERP/index/{controllers,dtos,flows,schemas}/<domain>.md"` |
+| The contract | `origin/main:docs/handoff/` — `README.md` catalog, `guidance.md` route, `CHANGELOG.md` delta, one `<slug>.md` per feature |
+| Backend truth, **only where no guide exists** | `origin/main:index/{controllers,dtos,flows,schemas}/<domain>.md` |
 | Our watermarks, guide table, pass log | `BACKEND-REVISIONS.md` (repo root) — **§1 is the only place** a pass date or HEAD is written |
 | Our backend task list | `BACKEND-REVISIONS.md` → §3 *Open work* |
 | What we asked the backend for | `BACKEND-ASKS.md` |
@@ -23,7 +38,7 @@ not exist. Old comments and plans that cite it mean this checkout.
 ## Pick the procedure
 
 - The guide's row in ledger §2 has `Absorbed to = —`, or it has no row: **`references/first-time.md`**.
-- "The backend moved" / "catch up" / a new session after a pull: **`references/return-pass.md`**.
+- "The backend moved" / "catch up" / a new session after a fetch: **`references/return-pass.md`**.
 - Building or changing one screen:
   1. Grep all of `guidance.md` for the screen's name. Admin rows are not always in §4: the
      *Agency links* row sits in §2.
