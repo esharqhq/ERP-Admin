@@ -142,6 +142,11 @@ const EXPECTED_FIELDS = {
   CreateSingleTaskRequest: ["propertyId", "title", "date", "defaultStartTime", "defaultDeadline",
     "defaultWorkerLimit", "instructions", "ownerProvidesTools", "addOnNote", "cityId",
     "lat", "long"],
+  // F-07 ·10 — "Copy as new order". Every field but `dates` means "copy" when
+  // absent, and the three gap-fill fields are refused when the source already
+  // has them — so a renamed field would silently turn into "copy" or a 400.
+  CloneTaskGroupRequest: ["dates", "defaultStartTime", "defaultDeadline", "title",
+    "instructions", "ownerProvidesTools", "cityId", "lat", "long"],
   // F-07 ·5 — the complaint read and the decide body. The guide documents
   // neither shape, so this line is the only thing that would notice a rename.
   TaskComplaintDto: ["id", "taskId", "reason", "raisedAt", "decision", "decidedAt",
@@ -151,9 +156,12 @@ const EXPECTED_FIELDS = {
   // ⚠ `status` is NOT here. F-07 ·0 (2026-09-17) deleted it from TaskGroupDto;
   // this line asserted it for four days and was one of the few things that did
   // go red — see the `days`/`closed` counts below, which replaced it.
+  // F-07 ·10 — the copy dialog decides from `title`, `instructions`,
+  // `ownerProvidesTools` (which answers to ask for) and `cityId`/`ownerId` (is it
+  // a walk-in order), so a rename of any of them changes what the clone sends.
   TaskGroupDto: ["id", "propertyId", "ownerId", "title", "defaultStartTime", "defaultDeadline",
     "instructions", "days", "closed", "ratingFloor", "allowNewWorkers", "eligibleProfessionIds",
-    "dates", "tasks", "createdAt"],
+    "dates", "tasks", "createdAt", "ownerProvidesTools", "cityId"],
   TaskGroupDayCountsDto: ["total", "pending", "checkedIn", "inReview", "done", "cancelled",
     "rejected"],
   // ⚠ `closedReplacement` is always 0 today — forward-declared for ·5. Gated so
@@ -229,6 +237,8 @@ for (const [route, method] of [
   ["/api/tasks/admin/groups/{id}/cancel", "post"],
   // F-07 ·12 — the single-task door both order forms route one date to.
   ["/api/tasks/admin/single", "post"],
+  // F-07 ·10 — the admin clone door ("Copy as new order").
+  ["/api/tasks/admin/groups/{id}/clone", "post"],
   // F-07 ·5 — the decide door and the team's evidence the complaint page reads.
   ["/api/tasks/complaints/{complaintId}/decide", "post"],
   ["/api/tasks/{taskId}/media", "get"],

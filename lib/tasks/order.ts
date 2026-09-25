@@ -78,9 +78,10 @@ export function toWireTime(value: string): string {
 /**
  * `date + time` as the server reads it — **UTC** (`task-lifecycle.md` §0f·2).
  * Mirrored exactly rather than read as local time: refusing a start the server
- * accepts would invent a rule the API does not have.
+ * accepts would invent a rule the API does not have. Exported for
+ * `buildCloneOrder`, whose route judges the start the same way.
  */
-function startsAtOrBefore(date: string, wireTime: string, now: Date): boolean {
+export function startsAtOrBefore(date: string, wireTime: string, now: Date): boolean {
   return new Date(`${date}T${wireTime}Z`).getTime() <= now.getTime();
 }
 

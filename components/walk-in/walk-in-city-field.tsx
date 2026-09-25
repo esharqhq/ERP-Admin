@@ -30,11 +30,14 @@ export function WalkInCityField({
   cityId,
   onChange,
   disabled,
+  idPrefix = "wi",
 }: {
   countryId: string;
   cityId: string;
   onChange: (next: { countryId: string; cityId: string }) => void;
   disabled: boolean;
+  /** Keeps the element ids unique when the clone dialog mounts beside the walk-in form. */
+  idPrefix?: string;
 }) {
   const t = useTranslations("walkIn.form");
   const locale = useLocale();
@@ -58,7 +61,7 @@ export function WalkInCityField({
     <div className="flex flex-col gap-1.5">
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="wi-country">{t("country")}</Label>
+          <Label htmlFor={`${idPrefix}-country`}>{t("country")}</Label>
           <Select
             items={countryItems}
             value={countryId}
@@ -69,7 +72,7 @@ export function WalkInCityField({
           >
             {/* `w-full`: the trigger's own default is `w-fit`, which collapses
                 an empty select to its chevron. */}
-            <SelectTrigger id="wi-country" className="w-full">
+            <SelectTrigger id={`${idPrefix}-country`} className="w-full">
               <SelectValue placeholder={t("countryPlaceholder")} />
             </SelectTrigger>
             <SelectContent>
@@ -83,14 +86,14 @@ export function WalkInCityField({
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="wi-city">{t("city")}</Label>
+          <Label htmlFor={`${idPrefix}-city`}>{t("city")}</Label>
           <Select
             items={cityItems}
             value={cityId}
             onValueChange={(v) => onChange({ countryId, cityId: v ?? "" })}
             disabled={disabled || !countryId}
           >
-            <SelectTrigger id="wi-city" className="w-full">
+            <SelectTrigger id={`${idPrefix}-city`} className="w-full">
               <SelectValue placeholder={t("cityPlaceholder")} />
             </SelectTrigger>
             <SelectContent>

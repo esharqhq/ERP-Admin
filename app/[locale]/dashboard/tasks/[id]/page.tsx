@@ -2,7 +2,7 @@
 
 import { use, useState } from "react";
 import { Link } from "@/i18n/navigation";
-import { ArrowLeft, Star, UserPlus, UserMinus, RefreshCw, ShieldCheck, LockKeyhole, MessageSquareWarning } from "lucide-react";
+import { ArrowLeft, Copy, Star, UserPlus, UserMinus, RefreshCw, ShieldCheck, LockKeyhole, MessageSquareWarning } from "lucide-react";
 import { useTranslations, useLocale } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/table";
 import { Can } from "@/components/auth/can";
 import { ConfirmDialog } from "@/components/tasks/confirm-dialog";
+import { CloneOrderDialog } from "@/components/tasks/clone-order-dialog";
 import { AssignWorkerDialog } from "@/components/tasks/assign-worker-dialog";
 import { RateWorkerDialog } from "@/components/tasks/rate-worker-dialog";
 import { OutcomeDialog } from "@/components/tasks/outcome-dialog";
@@ -39,7 +40,9 @@ import {
   useUnassignWorker,
   useRateWorker,
 } from "@/hooks/use-tasks";
+import { useWalkInOwnerId } from "@/hooks/use-owners";
 import { isGroupActive } from "@/lib/tasks/staffing";
+import { isWalkInSource } from "@/lib/tasks/clone-order";
 import { canonicalTaskStatus } from "@/lib/tasks/status-vocab";
 import { outcomeChoices } from "@/lib/tasks/outcome-override";
 import { useClock } from "@/hooks/use-today";
@@ -76,6 +79,7 @@ interface TaskActions {
 
 type ModalState =
   | { type: "cancelGroup" }
+  | { type: "clone" }
   | { type: "assign"; taskId: string }
   | { type: "supervisor"; task: TaskItemDto }
   | { type: "forceClose"; task: TaskItemDto }
@@ -362,6 +366,9 @@ export default function TaskGroupDetailPage({
   const unassignWorker = useUnassignWorker(id);
   const rateWorker = useRateWorker(id);
   const clock = useClock();
+  // Tells a walk-in order apart for the copy dialog (its city and address).
+  // One request per session, shared with the owner and walk-in pages.
+  const walkIn = useWalkInOwnerId();
 
   const close = () => setModal(null);
   const actions: TaskActions = {
@@ -409,6 +416,15 @@ export default function TaskGroupDetailPage({
     a.scheduledDate.localeCompare(b.scheduledDate),
   );
   const groupCancellable = isGroupActive(group);
+  /**
+   * `null` while the walk-in lookup has not answered — and then the copy door
+   * is hidden rather than offered as if ordinary: an old walk-in order read as
+   * ordinary loses its city field and cannot be copied (`isWalkInSource`).
+   */
+  const sourceIsWalkIn = isWalkInSource(
+    group,
+    walkIn.isSuccess ? walkIn.data : undefined,
+  );
 
   return (
     <div className="flex flex-col gap-6">
@@ -421,17 +437,34 @@ export default function TaskGroupDetailPage({
           </h1>
           <TaskDaysBadge group={group} />
         </div>
-        {groupCancellable && (
-          <Can permission="task_group:cancel_any">
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={() => setModal({ type: "cancelGroup" })}
-            >
-              {t("actions.cancelGroup")}
-            </Button>
-          </Can>
-        )}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Any state can be copied (F-07 ·10, §0i·2) — a finished or
+              cancelled booking is exactly what gets repeated. */}
+          {sourceIsWalkIn !== null && (
+            <Can permission="task_group:create_any">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                onClick={() => setModal({ type: "clone" })}
+              >
+                <Copy className="size-3.5" />
+                {t("clone.action")}
+              </Button>
+            </Can>
+          )}
+          {groupCancellable && (
+            <Can permission="task_group:cancel_any">
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => setModal({ type: "cancelGroup" })}
+              >
+                {t("actions.cancelGroup")}
+              </Button>
+            </Can>
+          )}
+        </div>
       </div>
 
       <Card>
@@ -534,6 +567,15 @@ export default function TaskGroupDetailPage({
               },
             )
           }
+        />
+      )}
+
+      {modal?.type === "clone" && sourceIsWalkIn !== null && (
+        <CloneOrderDialog
+          open
+          onClose={close}
+          source={group}
+          isWalkIn={sourceIsWalkIn}
         />
       )}
 

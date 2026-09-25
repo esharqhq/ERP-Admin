@@ -288,6 +288,65 @@ export interface CreateSingleTaskRequest extends CreateTaskBaseRequest {
   date: string;
 }
 
+/**
+ * `POST /api/tasks/admin/groups/{id}/clone` — repeat an existing booking or
+ * single task, in ANY state, as new work on new dates (F-07 ·10,
+ * `task-lifecycle.md` §0i·3; `TaskDtos.cs` `CloneTaskGroupRequest`). Answers
+ * `201 TaskGroupDto`. `task_group:create_any` (SUPER_ADMIN only), `[Idempotent]`.
+ *
+ * Only `dates` is required; **every other field means something different when
+ * absent**, which is why `buildCloneOrder` omits rather than nulls:
+ *
+ * - the property, worker limit, rating floor, skills, allow-new-workers, add-on
+ *   note and internal note are always copied — there is no field for them;
+ * - workers, statuses, check-ins, photos, outcomes and ratings are never copied.
+ */
+export interface CloneTaskGroupRequest {
+  /**
+   * `YYYY-MM-DD`, required. The DISTINCT count decides the new kind — one date
+   * is a `SingleTask`, two or more a `Booking` — whatever the source was.
+   */
+  dates: string[];
+  /** `HH:mm:ss`. Omitted or `null` = copy the source's. */
+  defaultStartTime?: string | null;
+  /**
+   * `HH:mm:ss`. Omitted or `null` = copy the source's — ⚠ **but only if it is
+   * still after the (new) start**; otherwise it is dropped and the day gets the
+   * standard 8 hours. A sent value is used as sent: equal to the start is
+   * `400 deadline_not_after_start`.
+   *
+   * ⚠ There is no way to say "no deadline" on this route: `null` means "copy".
+   */
+  defaultDeadline?: string | null;
+  /**
+   * ⚠ **Gap-fill only** (§0i·4), like `instructions` and `ownerProvidesTools`:
+   * send it only when the source's is `null`/blank — then it is required
+   * (`clone_title_required`). Sending one the source already has is
+   * `400 clone_field_already_set`, not a quiet override. A blank string counts as
+   * not sent.
+   */
+  title?: string;
+  /** Gap-fill only — `clone_instructions_required` when the source has none. */
+  instructions?: string;
+  /** Gap-fill only — `clone_tools_answer_required` when the source's is `null`. */
+  ownerProvidesTools?: boolean;
+  /**
+   * **Walk-in only.** Omitted = copy the order's city, sent = replace it.
+   * Required when a walk-in order filed before 2026-09-23 has none
+   * (`walkin_city_required`); refused on an ordinary source
+   * (`group_city_not_allowed`).
+   */
+  cityId?: string;
+  /**
+   * **Walk-in only, as a pair** with `long`. Omit both = copy the order's
+   * address, send both = replace it; one alone is `walkin_location_required`.
+   * `-90`..`90` — out of range is a problem-details 400.
+   */
+  lat?: number;
+  /** `-180`..`180`. ⚠ `long`, not `lng`, as on the create doors. */
+  long?: number;
+}
+
 /** Response of rate / outcome-override (mirror WorkerRatingDto). */
 export interface WorkerRatingDto {
   workerId: string;

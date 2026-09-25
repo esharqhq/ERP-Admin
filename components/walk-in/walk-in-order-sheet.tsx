@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import { Copy } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,6 +14,7 @@ import {
 } from "@/components/ui/sheet";
 import { Can } from "@/components/auth/can";
 import { AssignWorkerDialog } from "@/components/tasks/assign-worker-dialog";
+import { CloneOrderDialog } from "@/components/tasks/clone-order-dialog";
 import { ConfirmDialog } from "@/components/tasks/confirm-dialog";
 import { TaskDaysBadge } from "@/components/tasks/task-days-badge";
 import { toastGroupCancel } from "@/components/tasks/group-cancel-toast";
@@ -23,6 +25,7 @@ import {
   useCancelTaskGroup,
   useUnassignWorker,
 } from "@/hooks/use-tasks";
+import { useHasPermission } from "@/hooks/use-current-permissions";
 import { activeWorkers, isGroupActive, isOpen } from "@/lib/tasks/staffing";
 import { classifyAssignError } from "@/lib/tasks/assign-errors";
 import type { TaskGroupDto, TaskItemDto, TaskWorkerDto } from "@/lib/types/task.types";
@@ -31,6 +34,7 @@ type Modal =
   | { type: "assign"; taskId: string }
   | { type: "unassign"; taskId: string; worker: TaskWorkerDto }
   | { type: "cancelGroup" }
+  | { type: "clone" }
   | null;
 
 /** `"09:00:00"` → `"09:00"`. The wire carries seconds; nobody needs to read them. */
@@ -72,6 +76,10 @@ export function WalkInOrderSheet({
   const assign = useAssignWorker(groupId);
   const unassign = useUnassignWorker(groupId);
   const cancelGroup = useCancelTaskGroup();
+  // Read as booleans rather than through `<Can>`, so the footer's border is not drawn
+  // around nothing when the admin holds neither action.
+  const canClone = useHasPermission("task_group:create_any");
+  const canCancel = useHasPermission("task_group:cancel_any");
 
   function close() {
     setModal(null);
@@ -172,12 +180,29 @@ export function WalkInOrderSheet({
               error catalog, so the admin would see only the generic failure.
               `isGroupActive` is the same check the list uses to sort a group
               into Active vs. History — both conditions apply, so both gate.
+
+              "Copy as new order" is offered in every state — History included:
+              repeating a phone customer's finished order is what it is for, and
+              the admin route is the only one that can clone a walk-in order
+              (§0i·2). Every group in this sheet is a walk-in order, so the
+              dialog is told so directly.
             */}
-            {isGroupActive(group) ? (
-              <Can permission="task_group:cancel_any">
-                <div className="mt-auto border-t border-border px-4 py-3">
+            {canClone || (canCancel && isGroupActive(group)) ? (
+              <div className="mt-auto flex flex-wrap items-center gap-2 border-t border-border px-4 py-3">
+                {canClone ? (
+                  <Button
+                    variant="outline"
+                    className="gap-1.5"
+                    onClick={() => setModal({ type: "clone" })}
+                  >
+                    <Copy className="size-4" />
+                    {tTasks("clone.action")}
+                  </Button>
+                ) : null}
+                {canCancel && isGroupActive(group) ? (
                   <Button
                     variant="destructive"
+                    className="ml-auto"
                     onClick={() => {
                       cancelGroup.reset();
                       setModal({ type: "cancelGroup" });
@@ -185,8 +210,18 @@ export function WalkInOrderSheet({
                   >
                     {t("cancel")}
                   </Button>
-                </div>
-              </Can>
+                ) : null}
+              </div>
+            ) : null}
+
+            {/* Mounted per open, so its idempotency key never outlives one source. */}
+            {modal?.type === "clone" ? (
+              <CloneOrderDialog
+                open
+                onClose={() => setModal(null)}
+                source={group}
+                isWalkIn
+              />
             ) : null}
 
             {modal?.type === "assign" ? (

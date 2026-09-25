@@ -1070,3 +1070,25 @@ None of them blocks us (all were read from source); all of them will bite the ne
    `DONE`/`CANCELLED`.** The server also refuses `REJECTED` (`TaskService.cs:3846-3857`,
    `400 supervisor_change_not_allowed`) since the ·5 merge. Ask that the guide say so.
 
+
+---
+
+## Open — 2026-09-26 · an admin cannot correct a job it just cloned (F-07 ·10)
+
+**Not blocking; it shapes the UI.** `task-lifecycle.md` §0i·4 (lines ~1197-1199) tells the cloner to change a
+copied value with `PUT /api/tasks/groups/{newId}`. That route needs `task_group:update`
+(`TasksController.cs:448`), which only owner roles hold (`DatabaseSeeder.cs:2076, 2094`; absent from the
+SUPER_ADMIN block at `:1955-1958`), and `PermissionService` has no admin bypass (`:54-58`). So the admin who
+clones through `POST /api/tasks/admin/groups/{id}/clone` has **no door to fix the new job afterwards** — a wrong
+start time or title is permanent short of cancelling and cloning again.
+
+The panel works around it: the copy dialog states "cannot be edited afterwards" before the confirm.
+
+**Ask:** either an admin edit door for a task group (`PUT /api/tasks/admin/groups/{id}`, `task_group:update_any`),
+or a sentence in §0i·4 saying the `PUT` is owner-only so the next admin client does not promise it.
+
+Two smaller doc gaps found on the same pass, neither blocking:
+- The clone's source is recorded only as `clonedFromTaskGroupId` in audit 65's metadata (`TaskService.cs:1125`);
+  §0i says "records the source" without the key.
+- The ·9a CHANGELOG entry (2026-09-16) does not name its audit-113 metadata key `overrodeAvailability`; it is only
+  in §0h·4 and C#. `AuthorizationEnums.cs:343-344` still lists 113's metadata without `overrodeLocation`.

@@ -8,6 +8,7 @@ import type {
   OverrideTaskWorkerOutcomeRequest,
   CreateTaskGroupRequest,
   CreateSingleTaskRequest,
+  CloneTaskGroupRequest,
   AdminSetSupervisorRequest,
   TaskSupervisorDto,
   ForceCloseTaskRequest,
@@ -75,6 +76,32 @@ export const taskService = {
   ): Promise<TaskGroupDto> => {
     const { data } = await apiClient.post<TaskGroupDto>(
       "/api/tasks/admin/single",
+      body,
+      idempotent(idempotencyKey),
+    );
+    return data;
+  },
+
+  /**
+   * `POST /api/tasks/admin/groups/{id}/clone` — repeat an existing booking or
+   * single task, in any state and of either kind, walk-in orders included, as a
+   * NEW job on new dates (F-07 ·10, `task-lifecycle.md` §0i). `id` is the source
+   * `TaskGroupDto.id`. Same permission as `createAdminGroup`
+   * (`task_group:create_any`, SUPER_ADMIN only; a MODERATOR gets an empty 403).
+   *
+   * `[Idempotent]`, and ⚠ **a reused key replays the first response even for a
+   * different source** — so the key belongs to one clone intent of one source,
+   * minted into a ref and cleared only on success. Answers `201 TaskGroupDto`,
+   * the new job, which belongs to the property's BOSS. `buildCloneOrder` owns
+   * which fields go in the body; this sends it as given.
+   */
+  cloneAdminGroup: async (
+    id: string,
+    body: CloneTaskGroupRequest,
+    idempotencyKey: string,
+  ): Promise<TaskGroupDto> => {
+    const { data } = await apiClient.post<TaskGroupDto>(
+      `/api/tasks/admin/groups/${id}/clone`,
       body,
       idempotent(idempotencyKey),
     );

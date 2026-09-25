@@ -211,8 +211,7 @@ Built to the guide, never exercised against production:
 
 ### WP11 — F-07 remainder · `task-lifecycle`, `f-02b-6`
 
-- MISSING: **clone** `POST /api/tasks/admin/groups/{id}/clone` — the only way to repeat a walk-in order
-  (an order filed before 09-23 needs `cityId`).
+- ✅ BUILT 2026-09-26: **clone** `POST /api/tasks/admin/groups/{id}/clone` — booking page + walk-in sheet ([§4](#2026-09-26--f-07-10-copy-as-new-order)).
 - MISSING: `kind` label (`"Booking"`/`"SingleTask"`) — not on `TaskItemDto`, not rendered.
 - MISSING: read back `ownerProvidesTools`/`addOnNote` on the order sheet (typed `task.types.ts:181-183`).
 - PARTIAL: `closed` counts typed, never rendered (`task.types.ts:164`).
@@ -275,6 +274,21 @@ by every document viewer.
 ## 4. Pass log — newest first
 
 The record of what each pass **built** or **established**. What a pass read and did not build is in §3.
+
+### 2026-09-26 — F-07 ·10: copy as new order
+
+`task-lifecycle.md` §0i. `POST /api/tasks/admin/groups/{id}/clone` (`task_group:create_any`, `[Idempotent]`).
+
+| What changed | Where |
+|---|---|
+| `buildCloneOrder` — dates required, UTC past-start (shared `startsAtOrBefore`), a changed deadline must follow the start, an untouched copied one the new start passes is omitted (server falls back to 8 h, said in the dialog); gap-fill `title`/`instructions`/`ownerProvidesTools` sent **only** when the source lacks them and then required; walk-in `cityId` required when the source has none; `lat`/`long` as a pair. `classifyCloneError` maps the 16 codes | `lib/tasks/clone-order.ts` (+ 45 tests) |
+| `cloneAdminGroup` + `useCloneTaskGroup` (key per clone intent, cleared on success) | `lib/services/task.service.ts`, `hooks/use-tasks.ts` |
+| Dialog: read-only "copying from" summary, dates, times, "missing on the original" answers, walk-in city/address, "cannot be edited afterwards" warning | `components/tasks/clone-order-dialog.tsx` |
+| Entry points, any state: booking header (walk-in told apart by `cityId` or the walk-in owner id; hidden while unknown), walk-in sheet footer | `tasks/[id]/page.tsx`, `walk-in-order-sheet.tsx` |
+| Gate: the route and `CloneTaskGroupRequest` fields | `scripts/verify-v2.mjs` |
+
+⚠ The admin cannot edit the clone afterwards — `PUT /api/tasks/groups/{id}` is owner-only; filed in
+`BACKEND-ASKS.md` (2026-09-26). Checked in the browser (dialog and both entry points); no clone was submitted.
 
 ### 2026-09-26 — F-07 ·8: the short-handed card and the staffing rungs in the bell
 

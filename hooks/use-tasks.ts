@@ -16,6 +16,7 @@ import {
 } from "@/lib/tasks/cancel-outcome";
 import type { OrderRequest } from "@/lib/tasks/order";
 import type {
+  CloneTaskGroupRequest,
   SubmitTaskWorkerStarRequest,
   OverrideTaskWorkerOutcomeRequest,
   TaskGroupDayCountsDto,
@@ -275,6 +276,29 @@ export function useCreateTaskGroup() {
       request.kind === "single"
         ? taskService.createAdminSingle(request.body, idempotencyKey)
         : taskService.createAdminGroup(request.body, idempotencyKey),
+    onSuccess: (group) => invalidate(group.id),
+  });
+}
+
+/**
+ * Copy an existing booking or single task as a new order (F-07 ·10,
+ * `task-lifecycle.md` §0i). Same ownership of the key as `useCreateTaskGroup`:
+ * one per clone intent, held across retries, and — because a reused key replays
+ * the first response even for another source — never shared between sources.
+ * The new group's id is what gets invalidated; the source is untouched.
+ */
+export function useCloneTaskGroup() {
+  const invalidate = useInvalidateTasks();
+  return useMutation({
+    mutationFn: ({
+      sourceId,
+      body,
+      idempotencyKey,
+    }: {
+      sourceId: string;
+      body: CloneTaskGroupRequest;
+      idempotencyKey: string;
+    }) => taskService.cloneAdminGroup(sourceId, body, idempotencyKey),
     onSuccess: (group) => invalidate(group.id),
   });
 }
