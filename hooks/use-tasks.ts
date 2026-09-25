@@ -237,6 +237,37 @@ export function useRateWorker(groupId?: string) {
   });
 }
 
+/**
+ * One score for the whole team of a day — `PUT /api/tasks/{taskId}/rating`,
+ * §0c·8. `workerIds` is who the dialog expects to be scored
+ * (`teamRatingTargets`); it is sent nowhere, only refreshed.
+ *
+ * ⚠ Refreshes on error as well as on success: the route is not atomic, so a
+ * failure part-way leaves earlier workers already scored and the booking's
+ * rating column would otherwise show the old stars. On success the response's
+ * own `workerId`s are refreshed too — the server, not the preview, says who was
+ * scored.
+ */
+export function useRateTeam(groupId?: string) {
+  const invalidate = useInvalidateTasks();
+  const invalidateRating = useInvalidateWorkerRating();
+  return useMutation({
+    mutationFn: ({
+      taskId,
+      body,
+    }: {
+      taskId: string;
+      workerIds: string[];
+      body: SubmitTaskWorkerStarRequest;
+    }) => taskService.rateTeam(taskId, body),
+    onSettled: (rated, _err, { workerIds }) => {
+      invalidate(groupId);
+      const ids = new Set([...workerIds, ...(rated ?? []).map((r) => r.workerId)]);
+      ids.forEach((id) => invalidateRating(id));
+    },
+  });
+}
+
 export function useOverrideOutcome(groupId?: string) {
   const invalidate = useInvalidateTasks();
   const invalidateRating = useInvalidateWorkerRating();

@@ -21,6 +21,7 @@ import { ConfirmDialog } from "@/components/tasks/confirm-dialog";
 import { CloneOrderDialog } from "@/components/tasks/clone-order-dialog";
 import { AssignWorkerDialog } from "@/components/tasks/assign-worker-dialog";
 import { RateWorkerDialog } from "@/components/tasks/rate-worker-dialog";
+import { RateTeamDialog } from "@/components/tasks/rate-team-dialog";
 import { OutcomeDialog } from "@/components/tasks/outcome-dialog";
 import { TaskDaysBadge } from "@/components/tasks/task-days-badge";
 import { toastGroupCancel } from "@/components/tasks/group-cancel-toast";
@@ -46,6 +47,8 @@ import { isGroupActive } from "@/lib/tasks/staffing";
 import { isWalkInSource } from "@/lib/tasks/clone-order";
 import { canonicalTaskStatus } from "@/lib/tasks/status-vocab";
 import { outcomeChoices } from "@/lib/tasks/outcome-override";
+import { canRateTeam, ratingErrorKey } from "@/lib/tasks/team-rating";
+import { getValidationMessage } from "@/lib/http/api-error";
 import { useClock } from "@/hooks/use-today";
 import {
   normalizeStatus,
@@ -73,6 +76,7 @@ interface TaskActions {
   onAssign: (taskId: string) => void;
   onSupervisor: (task: TaskItemDto) => void;
   onForceClose: (task: TaskItemDto) => void;
+  onRateTeam: (task: TaskItemDto) => void;
   onRate: (taskId: string, tw: TaskWorkerDto) => void;
   onOutcome: (task: TaskItemDto, tw: TaskWorkerDto) => void;
   onUnassign: (taskId: string, tw: TaskWorkerDto) => void;
@@ -84,6 +88,7 @@ type ModalState =
   | { type: "assign"; taskId: string }
   | { type: "supervisor"; task: TaskItemDto }
   | { type: "forceClose"; task: TaskItemDto }
+  | { type: "rateTeam"; task: TaskItemDto }
   | { type: "rate"; taskId: string; tw: TaskWorkerDto }
   | { type: "outcome"; task: TaskItemDto; tw: TaskWorkerDto }
   | { type: "unassign"; taskId: string; tw: TaskWorkerDto }
@@ -164,7 +169,7 @@ function WorkersTable({
             <TableCell className="text-sm">
               {tw.starRating != null ? (
                 <span className="inline-flex items-center gap-1">
-                  <Star className="size-3.5 fill-amber-400 text-amber-400" />
+                  <Star className="size-3.5 fill-status-pending text-status-pending" />
                   {tw.starRating.toFixed(1)}
                 </span>
               ) : (
@@ -240,6 +245,7 @@ function TaskCard({
   const t = useTranslations("tasks");
   const tSup = useTranslations("tasks.supervisor");
   const tClose = useTranslations("tasks.forceClose");
+  const tTeam = useTranslations("tasks.rateTeam");
   const state = canonicalTaskStatus(task.status);
   const terminal = state === "cancelled" || state === "done";
   // F-07 ·5: waiting on a ruling, not on staff — so no Assign, and a way to the ruling.
@@ -319,6 +325,22 @@ function TaskCard({
               </Button>
             </Can>
           )}
+          {/* §0c·8 — one score for every Completed worker. Only a Done day has
+              any: outcomes are decided at acceptance, so on InReview the route
+              answers `409 no_completed_workers` ("accept first, then rate"). */}
+          {canRateTeam(task) && (
+            <Can permission="task_worker:rate_any">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                onClick={() => actions.onRateTeam(task)}
+              >
+                <Star className="size-3.5" />
+                {tTeam("action")}
+              </Button>
+            </Can>
+          )}
         </div>
       </CardHeader>
       {/* The two fields F-07 ·4 added to a day, plus ·3's closure reason. The
@@ -373,11 +395,24 @@ export default function TaskGroupDetailPage({
   const unassignWorker = useUnassignWorker(id);
   const rateWorker = useRateWorker(id);
   const clock = useClock();
+  const rateWorkerError = (err: unknown): string | null => {
+    if (!err) return null;
+    const key = ratingErrorKey(err);
+    return key
+      ? t(`rateErrors.${key}`)
+      : (getValidationMessage(err) ?? t("rateErrors.generic"));
+  };
   // Tells a walk-in order apart for the copy dialog (its city and address).
   // One request per session, shared with the owner and walk-in pages.
   const walkIn = useWalkInOwnerId();
 
-  const close = () => setModal(null);
+  const close = () => {
+    // The per-worker star keeps its last refusal in the mutation; without a
+    // reset it would greet the next worker's dialog. Only an error is reset — a
+    // reset mid-flight would drop the pending call's own callbacks.
+    if (rateWorker.isError) rateWorker.reset();
+    setModal(null);
+  };
   const actions: TaskActions = {
     onAssign: (taskId) => setModal({ type: "assign", taskId }),
     onRate: (taskId, tw) => setModal({ type: "rate", taskId, tw }),
@@ -385,6 +420,7 @@ export default function TaskGroupDetailPage({
     onUnassign: (taskId, tw) => setModal({ type: "unassign", taskId, tw }),
     onSupervisor: (task) => setModal({ type: "supervisor", task }),
     onForceClose: (task) => setModal({ type: "forceClose", task }),
+    onRateTeam: (task) => setModal({ type: "rateTeam", task }),
   };
 
   const backBar = (
@@ -600,6 +636,10 @@ export default function TaskGroupDetailPage({
         />
       )}
 
+      {modal?.type === "rateTeam" && (
+        <RateTeamDialog open onClose={close} task={modal.task} groupId={id} />
+      )}
+
       {modal?.type === "rate" && (
         <RateWorkerDialog
           open
@@ -607,6 +647,10 @@ export default function TaskGroupDetailPage({
           isPending={rateWorker.isPending}
           workerName={modal.tw.workerName ?? modal.tw.workerId.slice(0, 8)}
           initial={modal.tw.starRating}
+          error={rateWorkerError(rateWorker.error)}
+          onStarsChange={() => {
+            if (rateWorker.isError) rateWorker.reset();
+          }}
           onConfirm={(stars) =>
             rateWorker.mutate(
               { taskId: modal.taskId, workerId: modal.tw.workerId, body: { stars } },

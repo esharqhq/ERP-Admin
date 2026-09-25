@@ -2143,6 +2143,27 @@
         "generic": "Das Ergebnis konnte nicht geändert werden. Bitte erneut versuchen."
       }
     },
+    "rateTeam": {
+      "action": "Team bewerten",
+      "title": "Team bewerten — {date}",
+      "description": "{count, plural, one {Diese Bewertung erhält der # Mitarbeiter, der diesen Tag erledigt hat:} other {Diese Bewertung erhalten alle # Mitarbeiter, die diesen Tag erledigt haben:}}",
+      "note": "Sie ersetzt die aktuelle Bewertung jedes Einzelnen für diesen Tag. Mitarbeiter, die nicht erschienen sind oder entfernt wurden, werden nicht bewertet.",
+      "done": "{count, plural, one {Team bewertet — # Mitarbeiter} other {Team bewertet — # Mitarbeiter}}",
+      "errors": {
+        "no_completed_workers": "An diesem Tag hat niemand mehr das Ergebnis „Erledigt“, daher gibt es niemanden zu bewerten. Seite neu laden.",
+        "task_worker_not_completed": "Das Ergebnis eines Mitarbeiters hat sich beim Speichern geändert. Einige Mitarbeiter haben die neue Bewertung vielleicht schon — laden Sie die Seite neu und speichern Sie erneut; das ist unbedenklich.",
+        "task_worker_not_found": "Ein Mitarbeiter ist nicht mehr an diesem Tag eingeteilt. Einige Mitarbeiter haben die neue Bewertung vielleicht schon — laden Sie die Seite neu und speichern Sie erneut; das ist unbedenklich.",
+        "forbidden": "Ihre Rolle darf Mitarbeiter nicht bewerten.",
+        "generic": "Das Team konnte nicht bewertet werden. Einige Mitarbeiter haben die neue Bewertung vielleicht schon — erneutes Speichern ist unbedenklich."
+      }
+    },
+    "rateErrors": {
+      "no_completed_workers": "An diesem Tag hat niemand das Ergebnis „Erledigt“, daher gibt es niemanden zu bewerten.",
+      "task_worker_not_completed": "Dieser Mitarbeiter hat den Tag nicht erledigt und kann daher nicht bewertet werden.",
+      "task_worker_not_found": "Dieser Mitarbeiter ist nicht mehr an diesem Tag eingeteilt. Seite neu laden.",
+      "forbidden": "Ihre Rolle darf Mitarbeiter nicht bewerten.",
+      "generic": "Die Bewertung konnte nicht gespeichert werden. Bitte erneut versuchen."
+    },
     "statuses": {
       "todo": "Zu erledigen",
       "inProgress": "In Bearbeitung",

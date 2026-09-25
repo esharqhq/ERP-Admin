@@ -215,7 +215,7 @@ Built to the guide, never exercised against production:
 - MISSING: `kind` label (`"Booking"`/`"SingleTask"`) — not on `TaskItemDto`, not rendered.
 - MISSING: read back `ownerProvidesTools`/`addOnNote` on the order sheet (typed `task.types.ts:181-183`).
 - PARTIAL: `closed` counts typed, never rendered (`task.types.ts:164`).
-- MISSING: team rating `PUT /api/tasks/{taskId}/rating` (admin row in `task-lifecycle` §7).
+- ✅ BUILT 2026-09-26: team rating `PUT /api/tasks/{taskId}/rating` — "Rate the team" on a Done day ([§4](#2026-09-26--f-07-4-rate-the-whole-team)).
 - ✅ BUILT 2026-09-26: the critical staffing list, `?staffing=Warning|Critical` — home-page card ([§4](#2026-09-26--f-07-8-the-short-handed-card-and-the-staffing-rungs-in-the-bell)).
 
 ### WP12 — Property location · `f-02c` §4.1a, 09-23 ·9b
@@ -274,6 +274,21 @@ by every document viewer.
 ## 4. Pass log — newest first
 
 The record of what each pass **built** or **established**. What a pass read and did not build is in §3.
+
+### 2026-09-26 — F-07 ·4: rate the whole team
+
+`task-lifecycle.md` §0c·8. `PUT /api/tasks/{taskId}/rating` (`task_worker:rate_any`) scores every **Completed**
+worker, overwriting each one's star; not atomic.
+
+| What changed | Where |
+|---|---|
+| `teamRatingTargets`, `canRateTeam` (a `done` day with ≥1 Completed worker), `ratingErrorKey` (shared with the per-worker route, whose codes are a subset) | `lib/tasks/team-rating.ts` (+ 12 tests) |
+| `rateTeam` + `useRateTeam` — refreshes the booking and each worker's cached rating on **settle**, since a failure part-way leaves some scored | `task.service.ts`, `use-tasks.ts` |
+| "Rate the team" in each Done day card; dialog names the Completed workers, says it replaces their scores and skips no-shows/removed; per-worker star dialog gained an error line (it swallowed errors) | `rate-team-dialog.tsx`, `rate-worker-dialog.tsx`, `tasks/[id]/page.tsx` |
+| Star colour: raw amber → `status-pending` token (booking table, dialogs, home Top workers) | same + `dashboard/page.tsx` |
+| Gate: the route | `scripts/verify-v2.mjs` |
+
+Checked in the browser (button only on the Completed day, dialog); no score was sent.
 
 ### 2026-09-26 — audit log: each entry says what it is about (F-07 ·9a/·9b/·10 metadata)
 

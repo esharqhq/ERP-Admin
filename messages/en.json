@@ -2143,6 +2143,27 @@
         "generic": "The result could not be changed. Try again."
       }
     },
+    "rateTeam": {
+      "action": "Rate the team",
+      "title": "Rate the team — {date}",
+      "description": "{count, plural, one {This score goes to the # worker who completed this day:} other {This score goes to all # workers who completed this day:}}",
+      "note": "It replaces each one's current score for this day. Workers who were a no-show or were removed are not rated.",
+      "done": "{count, plural, one {Team rated — # worker} other {Team rated — # workers}}",
+      "errors": {
+        "no_completed_workers": "Nobody on this day has a Completed result any more, so there is no one to rate. Reload the page.",
+        "task_worker_not_completed": "A worker's result changed while saving. Some workers may already have the new score — reload the page and save again; that is safe.",
+        "task_worker_not_found": "A worker is no longer on this day. Some workers may already have the new score — reload the page and save again; that is safe.",
+        "forbidden": "Your role cannot rate workers.",
+        "generic": "The team could not be rated. Some workers may already have the new score — saving again is safe."
+      }
+    },
+    "rateErrors": {
+      "no_completed_workers": "Nobody on this day has a Completed result, so there is no one to rate.",
+      "task_worker_not_completed": "This worker did not complete the day, so they cannot be rated.",
+      "task_worker_not_found": "This worker is no longer on this day. Reload the page.",
+      "forbidden": "Your role cannot rate workers.",
+      "generic": "The rating could not be saved. Try again."
+    },
     "statuses": {
       "todo": "To Do",
       "inProgress": "In Progress",

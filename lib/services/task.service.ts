@@ -293,6 +293,30 @@ export const taskService = {
     return data;
   },
 
+  /**
+   * task_worker:rate_any — one score for the whole team of a day
+   * (`task-lifecycle.md` §0c·8, F-07 ·4). The same `stars` goes onto every
+   * worker whose outcome is `Completed`, replacing each one's previous star;
+   * the response has one entry per worker scored, already counting this star.
+   *
+   * ⚠ **Not atomic across the team.** Workers are scored one at a time, so an
+   * error part-way leaves the earlier ones scored. Sending the same call again is
+   * safe — it overwrites.
+   *
+   * ⚠ `409 no_completed_workers` is the normal answer on a day not yet accepted
+   * (every outcome is still `Pending`) — do not retry it.
+   */
+  rateTeam: async (
+    taskId: string,
+    body: SubmitTaskWorkerStarRequest,
+  ): Promise<WorkerRatingDto[]> => {
+    const { data } = await apiClient.put<WorkerRatingDto[]>(
+      `/api/tasks/${taskId}/rating`,
+      body,
+    );
+    return data;
+  },
+
   /** task_worker:mark_outcome_any — override an auto-derived outcome. */
   overrideOutcome: async (
     taskId: string,

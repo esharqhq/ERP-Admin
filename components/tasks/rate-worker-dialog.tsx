@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import {
   Dialog,
   DialogContent,
@@ -18,11 +18,26 @@ interface Props {
   onClose: () => void;
   onConfirm: (stars: number) => void;
   isPending: boolean;
-  workerName: string;
+  /** Shown in bold as the description when `description` is not given. */
+  workerName?: string;
   initial?: number | null;
+  /** Defaults to "Rate Worker". */
+  title?: string;
+  /** Replaces the bold worker name — the team dialog says who it scores. */
+  description?: ReactNode;
+  /** Extra body between the header and the stars. */
+  children?: ReactNode;
+  /** The refusal, as a line under the stars. Cleared by the caller. */
+  error?: string | null;
+  /** Called on every pick — a caller uses it to clear a stale `error`. */
+  onStarsChange?: (stars: number) => void;
 }
 
-/** Star-rating picker (1–5). Only meaningful for a Completed task worker. */
+/**
+ * Star-rating picker (1–5, whole stars — the route takes fractions, this picker
+ * does not offer them). Only meaningful for a Completed task worker; the team
+ * dialog (`rate-team-dialog.tsx`) reuses it for every Completed worker at once.
+ */
 export function RateWorkerDialog({
   open,
   onClose,
@@ -30,6 +45,11 @@ export function RateWorkerDialog({
   isPending,
   workerName,
   initial,
+  title,
+  description,
+  children,
+  error,
+  onStarsChange,
 }: Props) {
   const t = useTranslations("tasks");
   const tCommon = useTranslations("common");
@@ -39,30 +59,35 @@ export function RateWorkerDialog({
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{t("actions.rateTitle")}</DialogTitle>
+          <DialogTitle>{title ?? t("actions.rateTitle")}</DialogTitle>
           <DialogDescription>
-            <strong>{workerName}</strong>
+            {description ?? <strong>{workerName}</strong>}
           </DialogDescription>
         </DialogHeader>
+        {children}
         <div className="flex items-center justify-center gap-1 py-2">
           {[1, 2, 3, 4, 5].map((n) => (
             <button
               key={n}
               type="button"
-              onClick={() => setStars(n)}
+              onClick={() => {
+                setStars(n);
+                onStarsChange?.(n);
+              }}
               className="p-1"
               aria-label={`${n}`}
             >
               <Star
                 className={`size-7 transition-colors ${
                   n <= stars
-                    ? "fill-amber-400 text-amber-400"
+                    ? "fill-status-pending text-status-pending"
                     : "text-muted-foreground"
                 }`}
               />
             </button>
           ))}
         </div>
+        {error ? <p className="text-sm text-destructive">{error}</p> : null}
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={isPending}>
             {tCommon("cancel")}

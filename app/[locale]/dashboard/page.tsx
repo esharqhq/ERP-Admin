@@ -187,7 +187,7 @@ export default function DashboardPage() {
                     </span>
                     {w.rating > 0 ? (
                       <span className="flex items-center gap-1 text-sm font-medium">
-                        <Star className="size-3.5 fill-amber-400 text-amber-400" />
+                        <Star className="size-3.5 fill-status-pending text-status-pending" />
                         {w.rating.toFixed(1)}
                       </span>
                     ) : (

@@ -261,6 +261,8 @@ for (const [route, method] of [
   // F-07 ·4 / ·3 — the two SUPER_ADMIN doors on a day.
   ["/api/tasks/{taskId}/supervisor", "put"],
   ["/api/tasks/{taskId}/force-close", "post"],
+  // F-07 ·4 §0c·8 — one score for every Completed worker on a day.
+  ["/api/tasks/{taskId}/rating", "put"],
   // The two restore doors — SUPER_ADMIN only, shipped 2026-09-10 as a `fix`
   // whose guide Revision was deliberately NOT bumped, so the date alone would
   // never have surfaced them.
