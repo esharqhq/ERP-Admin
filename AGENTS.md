@@ -7,18 +7,19 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ## ⚠ Backend kontrakti va ish ro'yxati — BIRINCHI SHUNI O'QING
 
-Backend (`../Backend`, `esharqhq/Germany-ERP`) — yagona haqiqat manbai, va u tez o'zgaradi.
-Shu repo uchun ochiq ish ro'yxati: **`../assets/docs/admin-panel-tasks.md`**
-(indeks va qoidalar: `../assets/docs/README.md`).
+Backend (`esharqhq/Germany-ERP`) — yagona haqiqat manbai, va u tez o'zgaradi.
+Checkout: **`$env:GERMANY_ERP`** (`D:\Victus\Projects\Backend\Germany ERP` — yo'lda bo'sh joy
+bor, har doim qo'shtirnoqqa oling), `main` branch. Kontraktning o'zi: `docs/handoff/` — avval `git pull`.
+Ustunlik: **jonli javob > guide > README/guidance.**
 
-Kontraktning o'zi: `../Backend/docs/handoff/` — avval `git pull`.
-Ustunlik: **jonli javob > guide > bu hujjatlar.**
-⚠ **Ledger: `BACKEND-REVISIONS.md` — repo ildizida, `docs/` da EMAS.** Bu repoda `/docs`
-gitignore qilingan (`.gitignore:12`), ya'ni u yerdagi ledger'ni na git ko'radi, na boshqa odam —
-va ikkinchi nusxa jimgina birinchisidan uzoqlashadi.
+Uchta joy, har birining bitta nusxasi:
 
-Oxirgi catch-up pass: **2026-09-21**, backend HEAD `064ce64`. Unda F-07 (·0/·1/·3/·4) va
-ikkita restore eshigi bajarildi. ⚠ Ledger **o'qilgan** va **bajarilgan** ni alohida ustunda
-saqlaydi — ikkalasini aralashtirsangiz, keyingi pass o'z deltasini xato toraytiradi va buzuvchi
-yozuv qayta o'qilmaydi. Protsedura shu repoda emas: `erp-backend-source` skill,
-`references/return-pass.md`.
+| Nima | Qayerda |
+|---|---|
+| **Protsedura** (qoidalar, birinchi o'qish, catch-up pass) | `erp-backend-source` skill — `.claude/skills/erp-backend-source/` |
+| **Ledger** (watermark'lar, guide jadvali, pass log) | `BACKEND-REVISIONS.md` — repo ildizida, `docs/` da EMAS (`/docs` gitignore qilingan) |
+| **Ochiq ish ro'yxati** | `BACKEND-REVISIONS.md` → **§3 Open work** |
+| Backend'dan so'rovlar | `BACKEND-ASKS.md` |
+
+Backend kontraktiga tegadigan har qanday ishdan oldin skill'ni yuklang. Oxirgi pass sanasi va
+HEAD bu yerda yozilmaydi — ular faqat ledger §1 da turadi (ikkinchi nusxa jimgina eskiradi).
