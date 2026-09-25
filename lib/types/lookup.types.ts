@@ -6,7 +6,8 @@
  *   2026-08-13), which the Owners table filters on. It replaced F-02 #4's
  *   company-city filter; the company now carries a plain `registrationAddress`.
  * - **properties** — optional `countryId`/`cityId` since F-07 ·9b (2026-09-23,
- *   `f-02c-property-rework.md` §4.1a). Not built in this panel yet (ledger WP12).
+ *   `f-02c-property-rework.md` §4.1a): the create/edit dialogs pick the pair and
+ *   property detail shows it (`PropertyDto.country`/`.city`, a `LocationRefDto`).
  * - **workers** — service location (F-04a).
  */
 

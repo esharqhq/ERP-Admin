@@ -115,16 +115,23 @@ const EXPECTED_FIELDS = {
   // F-02c reshaped these and this gate did not notice, because nothing property-
   // shaped was ever listed here. `category` is the field that replaced `type`;
   // `roomCount`/`areaSqm` are the new ones the table renders.
+  // F-07 ·9b (f-02c §4.1a) added the `country`/`city` pair, each a `LocationRefDto`:
+  // detail renders it and the edit dialog seeds its selects from it. The write
+  // side takes `countryId`/`cityId`, both optional — so a rename would not 400,
+  // it would silently fall back to the owner's city on create and "keep" on edit.
   PropertyDto: ["id", "bossOwnerUserId", "name", "address", "lat", "long", "category",
-    "entryInstructions", "floorCount", "roomCount", "areaSqm", "createdAt", "isDeleted", "media"],
+    "entryInstructions", "floorCount", "roomCount", "areaSqm", "createdAt", "country", "city",
+    "isDeleted", "media"],
+  LocationRefDto: ["id", "nameDe", "nameEn"],
   PropertyCategoryRefDto: ["id", "code", "nameDe", "nameEn"],
   PropertyCategoryDto: ["id", "code", "nameDe", "nameEn", "icon", "color", "description", "isActive"],
   PropertyMediaDto: ["id", "propertyId", "type", "url", "originalFileName", "mimeType",
     "fileSize", "createdAt"],
   UpdatePropertyRequest: ["name", "address", "lat", "long", "propertyCategoryId",
-    "entryInstructions", "floorCount", "roomCount", "areaSqm"],
+    "entryInstructions", "countryId", "cityId", "floorCount", "roomCount", "areaSqm"],
   AdminCreatePropertyRequest: ["ownerUserId", "name", "address", "lat", "long",
-    "propertyCategoryId", "entryInstructions", "floorCount", "roomCount", "areaSqm"],
+    "propertyCategoryId", "entryInstructions", "countryId", "cityId", "floorCount", "roomCount",
+    "areaSqm"],
   // The Walk-In order form sends `defaultDeadline`; the orders list and detail
   // sheet render every TaskGroupDto/TaskItemDto field below. Nothing else in this
   // script covered the tasks surface, which is how a change here would otherwise

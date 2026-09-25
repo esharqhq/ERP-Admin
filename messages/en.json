@@ -1420,7 +1420,29 @@
       "location": "Location",
       "locationEmpty": "No point selected",
       "locationHint": "Click the map to place the property",
-      "locationAdjust": "Drag the pin to adjust, or click again elsewhere."
+      "locationAdjust": "Drag the pin to adjust, or click again elsewhere.",
+      "country": "Country",
+      "countryPlaceholder": "Choose a country",
+      "city": "City",
+      "cityPlaceholder": "Choose a city",
+      "locationClear": "Use the owner's city",
+      "cityHintCreate": "Leave empty to use the owner's city.",
+      "cityHintEdit": "Only workers registered in this city see and can take work at this property.",
+      "locationRefusals": {
+        "cityRequired": "Choose a city for the selected country.",
+        "cannotClear": "A property's city can be changed, but not removed."
+      }
+    },
+    "locationErrors": {
+      "cityNotFound": "That city no longer exists. Choose another.",
+      "countryNotFound": "That country no longer exists. Choose another.",
+      "cityCountryMismatch": "That city does not belong to the selected country.",
+      "cityRequired": "Choose a city for the selected country.",
+      "ownerHasNoCity": "This owner has no city on file. Choose a country and city for the property.",
+      "cityInactive": "That city has been deactivated. Choose an active one.",
+      "ownerCityInactive": "The owner's city has been deactivated. Choose an active city for this property.",
+      "countryInactive": "That country has been deactivated. Choose an active one.",
+      "ownerCountryInactive": "The owner's country has been deactivated. Choose an active country and city for this property."
     },
     "edit": {
       "action": "Edit",
@@ -1546,7 +1568,10 @@
         "forbidden": "You cannot see booked work",
         "forbiddenWhy": "Your role does not include reading the task list.",
         "error": "Booked work could not be loaded"
-      }
+      },
+      "city": "City",
+      "country": "Country",
+      "noCity": "No city set"
     },
     "summaryFilters": {
       "photosNone": "No photos",

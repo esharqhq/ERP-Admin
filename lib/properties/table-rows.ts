@@ -44,8 +44,9 @@ export function categoryName(
 /**
  * Owner id → display name, for the table's Owner column and its filter.
  *
- * `PropertyDto` carries only `bossOwnerUserId`, so the name comes from a
- * separate `GET /api/admin/owners/bosses` read and is joined client-side.
+ * The name comes from a separate `GET /api/admin/owners/bosses` read and is
+ * joined client-side on `bossOwnerUserId`. (`PropertyDto.bossOwnerName` is now on
+ * the wire too, but no guide documents it yet — see `property.types.ts`.)
  * Owners with no usable name are omitted so the caller's own fallback renders,
  * rather than the cell going blank.
  */

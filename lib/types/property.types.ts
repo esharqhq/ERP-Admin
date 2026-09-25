@@ -50,6 +50,15 @@ export interface UpdatePropertyRequest {
   roomCount: number | null;
   /** `[Range(0, 1000000)]`, new in F-02c. */
   areaSqm: number | null;
+  /**
+   * F-07 ·9b (`f-02c-property-rework.md` §4.1a) — where the property is. Both
+   * optional `Guid?`, and ⚠ **an omitted pair means different things per door**:
+   * on create, the target BOSS's own country + city; on edit, **keep the stored
+   * pair** (never re-defaulted). A country without a city is `400 city_required`.
+   * Build them with `lib/properties/location-fields.ts`, never by hand.
+   */
+  countryId?: string;
+  cityId?: string;
 }
 
 /**
@@ -80,10 +89,27 @@ export interface CreateAdminPropertyRequest extends UpdatePropertyRequest {
  * admin branch; a non-admin caller sending it is silently given their own
  * membership-scoped list instead.
  */
+/**
+ * `PropertyDto.country` / `.city` (F-07 ·9b) — display names only, the same slim
+ * shape as the category ref. No `code`, no `isActive`: whether the stored city is
+ * still active has to be read off the lookup lists.
+ */
+export interface LocationRefDto {
+  id: string;
+  nameDe: string;
+  nameEn: string;
+}
+
 export interface PropertyDto {
   id: string;
-  /** ⚠ Id only — no owner name. Resolve against `GET /api/admin/owners/bosses`. */
   bossOwnerUserId: string;
+  /**
+   * ⚠ In the C# record (`PropertyDtos.cs`, backend `f8952a61`) and on the live
+   * swagger, but **no handoff guide documents it** — so it is typed optional and
+   * nothing here reads it yet. The screens still resolve the owner's name from
+   * `bossOwnerUserId` against the owners list.
+   */
+  bossOwnerName?: string | null;
   name: string;
   address: string;
   lat: number;
@@ -95,6 +121,14 @@ export interface PropertyDto {
   roomCount: number | null;
   areaSqm: number | null;
   createdAt: string;
+  /**
+   * F-07 ·9b (§4.1a). `null` for the walk-in placeholder property (by ruling) and
+   * for any property whose BOSS had no location when it was backfilled. The
+   * backfill copied the BOSS's own pair, so for a property outside the owner's
+   * city this is a **guess** until someone corrects it.
+   */
+  country: LocationRefDto | null;
+  city: LocationRefDto | null;
   /**
    * Soft-delete flag. Exposed on the wire for the restore view; only returned
    * as `true` when listing with `?includeDeleted=true` (honored solely for

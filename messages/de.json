@@ -1420,7 +1420,29 @@
       "location": "Standort",
       "locationEmpty": "Kein Punkt gewählt",
       "locationHint": "Klicken Sie auf die Karte, um das Objekt zu setzen",
-      "locationAdjust": "Ziehen Sie die Markierung zum Anpassen oder klicken Sie erneut an eine andere Stelle."
+      "locationAdjust": "Ziehen Sie die Markierung zum Anpassen oder klicken Sie erneut an eine andere Stelle.",
+      "country": "Land",
+      "countryPlaceholder": "Land wählen",
+      "city": "Stadt",
+      "cityPlaceholder": "Stadt wählen",
+      "locationClear": "Stadt des Eigentümers verwenden",
+      "cityHintCreate": "Lassen Sie beide Felder leer, um die Stadt des Eigentümers zu übernehmen.",
+      "cityHintEdit": "Nur Mitarbeiter, die in dieser Stadt registriert sind, sehen die Aufträge dieses Objekts und können sie übernehmen.",
+      "locationRefusals": {
+        "cityRequired": "Wählen Sie eine Stadt im ausgewählten Land.",
+        "cannotClear": "Die Stadt eines Objekts kann geändert, aber nicht entfernt werden."
+      }
+    },
+    "locationErrors": {
+      "cityNotFound": "Diese Stadt existiert nicht mehr. Wählen Sie eine andere.",
+      "countryNotFound": "Dieses Land existiert nicht mehr. Wählen Sie ein anderes.",
+      "cityCountryMismatch": "Diese Stadt gehört nicht zum ausgewählten Land.",
+      "cityRequired": "Wählen Sie eine Stadt im ausgewählten Land.",
+      "ownerHasNoCity": "Für diesen Eigentümer ist keine Stadt hinterlegt. Wählen Sie ein Land und eine Stadt für das Objekt.",
+      "cityInactive": "Diese Stadt wurde deaktiviert. Wählen Sie eine aktive Stadt.",
+      "ownerCityInactive": "Die Stadt des Eigentümers wurde deaktiviert. Wählen Sie eine aktive Stadt für dieses Objekt.",
+      "countryInactive": "Dieses Land wurde deaktiviert. Wählen Sie ein aktives Land.",
+      "ownerCountryInactive": "Das Land des Eigentümers wurde deaktiviert. Wählen Sie ein aktives Land und eine Stadt für dieses Objekt."
     },
     "edit": {
       "action": "Bearbeiten",
@@ -1546,7 +1568,10 @@
         "forbidden": "Sie können gebuchte Arbeit nicht sehen",
         "forbiddenWhy": "Ihre Rolle umfasst das Lesen der Aufgabenliste nicht.",
         "error": "Gebuchte Arbeit konnte nicht geladen werden"
-      }
+      },
+      "city": "Stadt",
+      "country": "Land",
+      "noCity": "Keine Stadt hinterlegt"
     },
     "summaryFilters": {
       "photosNone": "Keine Fotos",

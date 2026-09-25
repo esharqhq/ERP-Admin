@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { BandStat, FactTile, IdentityBand } from "@/components/detail/identity-band";
+import { locationName } from "@/lib/properties/location-fields";
 import { categoryName } from "@/lib/properties/table-rows";
 import { initials } from "@/lib/ui/initials";
 import type { PropertyDto, PropertyMembershipDto } from "@/lib/types/property.types";
@@ -58,6 +59,14 @@ export function PropertyIdentityCard({
     .filter(Boolean)
     .join(" · ");
 
+  // F-07 ·9b — the city decides which workers see this property's work
+  // (task-lifecycle §0h). `null` for the walk-in placeholder and for a property
+  // whose BOSS had no location; the backfill copied the BOSS's own pair, so a
+  // value here can still be a guess nobody has corrected.
+  const city = locationName(property.city, locale);
+  const country = locationName(property.country, locale);
+  const place = [city, country].filter(Boolean).join(", ");
+
   return (
     <IdentityBand
       // `IdentityBand` prints initials in its avatar; a place gets the building
@@ -69,11 +78,27 @@ export function PropertyIdentityCard({
       // The address gets its **own line** under the name, as the design draws it.
       // It was in `meta`, which shares the badge row — so it trailed the category
       // and the size and read as a fourth chip rather than as where this is.
+      // City and country ride on the same line, after the address: the design
+      // (§02) draws exactly four fact tiles in a four-column row, and a fifth
+      // would orphan itself on a row of its own. `shrink-0` keeps the city
+      // readable while a long street truncates.
       subtitle={
         <>
           <MapPin className="size-3.5 shrink-0" />
           <span className="truncate" title={property.address}>
             {property.address}
+          </span>
+          <span aria-hidden className="shrink-0">·</span>
+          <span
+            className="shrink-0"
+            title={`${tDetail("city")}: ${city ?? "–"} · ${tDetail("country")}: ${country ?? "–"}`}
+          >
+            {place || (
+              <>
+                <span aria-hidden>–</span>
+                <span className="sr-only">{tDetail("noCity")}</span>
+              </>
+            )}
           </span>
         </>
       }

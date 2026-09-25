@@ -9,7 +9,9 @@ import { ConfirmDialog } from "@/components/tasks/confirm-dialog";
 import { PropertyEditDialog } from "@/components/properties/property-edit-dialog";
 import { useRouter } from "@/i18n/navigation";
 import { useUpdateProperty, useSoftDeleteProperty } from "@/hooks/use-properties";
-import { getApiErrorCode } from "@/lib/http/api-error";
+import { getApiErrorCode, getValidationMessage } from "@/lib/http/api-error";
+import { isPermissionDenied } from "@/lib/onboarding/errors";
+import { propertyLocationErrorKey, sentLocation } from "@/lib/properties/location-fields";
 import type { PropertyDto, UpdatePropertyRequest } from "@/lib/types/property.types";
 
 /**
@@ -20,6 +22,7 @@ import type { PropertyDto, UpdatePropertyRequest } from "@/lib/types/property.ty
  */
 export function PropertyActions({ property }: { property: PropertyDto }) {
   const t = useTranslations("properties");
+  const tOnboarding = useTranslations("onboarding");
   const router = useRouter();
 
   const [editOpen, setEditOpen] = useState(false);
@@ -30,9 +33,21 @@ export function PropertyActions({ property }: { property: PropertyDto }) {
   const update = useUpdateProperty(property.id);
   const softDelete = useSoftDeleteProperty();
 
-  function mapEditError(err: unknown): string {
+  /**
+   * Code → problem-details → empty 403 → generic. The F-07 ·9b location codes
+   * (§4.1a) arrive only when the pair was sent — the dialog omits an unchanged
+   * one — so they are about the admin's pick.
+   */
+  function mapEditError(err: unknown, body: UpdatePropertyRequest): string {
     const code = getApiErrorCode(err);
     if (code === "property_not_found") return t("edit.errors.notFound");
+    const locationKey = propertyLocationErrorKey(code, { sent: sentLocation(body) });
+    if (locationKey) return t(`locationErrors.${locationKey}`);
+    if (!code) {
+      const detail = getValidationMessage(err);
+      if (detail) return tOnboarding("apiErrors.validation", { detail });
+      if (isPermissionDenied(err)) return tOnboarding("permissionDenied");
+    }
     return t("edit.errors.generic");
   }
 
@@ -46,7 +61,7 @@ export function PropertyActions({ property }: { property: PropertyDto }) {
     setEditError(null);
     update.mutate(body, {
       onSuccess: () => setEditOpen(false),
-      onError: (err) => setEditError(mapEditError(err)),
+      onError: (err) => setEditError(mapEditError(err, body)),
     });
   }
 

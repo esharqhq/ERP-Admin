@@ -35,6 +35,8 @@ import { useLocale, useTranslations } from "next-intl";
 import { Can } from "@/components/auth/can";
 import { PropertyCreateDialog } from "@/components/properties/property-create-dialog";
 import { describeApiError, isGateRefusal, isPermissionDenied } from "@/lib/onboarding/errors";
+import { getApiErrorCode } from "@/lib/http/api-error";
+import { propertyLocationErrorKey, sentLocation } from "@/lib/properties/location-fields";
 import { categoryName, ownerNameById } from "@/lib/properties/table-rows";
 import type { PropertyDto } from "@/lib/types/property.types";
 
@@ -260,18 +262,27 @@ export default function PropertiesPage() {
   // POST /api/admin/properties is gated on the TARGET OWNER's contract, not the
   // admin's — a 403 with a body is that owner's cover, not a permission problem
   // (isPermissionDenied catches the empty-body 403 that actually is one).
+  // The six F-07 ·9b location codes go first, worded by whether the body named a
+  // pair — left blank, the failing pair is the owner's default (§4.1a).
+  const createLocationKey = create.isError
+    ? propertyLocationErrorKey(getApiErrorCode(create.error), {
+        sent: sentLocation(create.variables),
+      })
+    : null;
   const createError = !create.isError
     ? null
-    : isPermissionDenied(create.error)
-      ? tOnboarding("permissionDenied")
-      : (() => {
-          const info = describeApiError(create.error);
-          if (info && isGateRefusal(create.error)) {
-            // About the OWNER's contract, not the admin's access.
-            return tOnboarding(`apiErrors.${info.labelKey}`);
-          }
-          return tOnboarding(`apiErrors.${info?.labelKey ?? "unknown"}`);
-        })();
+    : createLocationKey
+      ? t(`locationErrors.${createLocationKey}`)
+      : isPermissionDenied(create.error)
+        ? tOnboarding("permissionDenied")
+        : (() => {
+            const info = describeApiError(create.error);
+            if (info && isGateRefusal(create.error)) {
+              // About the OWNER's contract, not the admin's access.
+              return tOnboarding(`apiErrors.${info.labelKey}`);
+            }
+            return tOnboarding(`apiErrors.${info?.labelKey ?? "unknown"}`);
+          })();
 
   const closeCreate = () => {
     setCreateOpen(false);

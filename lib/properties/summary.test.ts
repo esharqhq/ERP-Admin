@@ -20,6 +20,8 @@ function property(over: Partial<PropertyDto> = {}): PropertyDto {
     roomCount: 48,
     areaSqm: 1840,
     createdAt: "2026-08-12T00:00:00Z",
+    country: null,
+    city: null,
     isDeleted: false,
     media: [],
     ...over,

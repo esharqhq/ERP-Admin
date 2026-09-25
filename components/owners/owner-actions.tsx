@@ -33,6 +33,7 @@ import { useCreateAdminProperty } from "@/hooks/use-properties";
 import { useCreateTicketForUser } from "@/hooks/use-support";
 import { getApiErrorCode } from "@/lib/http/api-error";
 import { describeApiError, isPermissionDenied } from "@/lib/onboarding/errors";
+import { propertyLocationErrorKey, sentLocation } from "@/lib/properties/location-fields";
 import type {
   OwnerDetailActions,
   OwnerUpdateBody,
@@ -74,6 +75,7 @@ export function OwnerActions({
   const t = useTranslations("owners");
   const tCommon = useTranslations("common");
   const tOnboarding = useTranslations("onboarding");
+  const tProperties = useTranslations("properties");
   const router = useRouter();
 
   const [open, setOpen] = useState(false);
@@ -92,15 +94,23 @@ export function OwnerActions({
    * the admin's access, so a `403` *with* a body is a statement about this owner's
    * cover — only the empty-body one is a permission problem, which is what
    * `isPermissionDenied` tests. Same mapping as the properties table, which owns
-   * the other entry point to this route.
+   * the other entry point to this route — including the F-07 ·9b location codes
+   * first, worded by whether the body named a pair.
    */
+  const propertyLocationKey = createProperty.isError
+    ? propertyLocationErrorKey(getApiErrorCode(createProperty.error), {
+        sent: sentLocation(createProperty.variables),
+      })
+    : null;
   const propertyError = !createProperty.isError
     ? null
-    : isPermissionDenied(createProperty.error)
-      ? tOnboarding("permissionDenied")
-      : tOnboarding(
-          `apiErrors.${describeApiError(createProperty.error)?.labelKey ?? "unknown"}`,
-        );
+    : propertyLocationKey
+      ? tProperties(`locationErrors.${propertyLocationKey}`)
+      : isPermissionDenied(createProperty.error)
+        ? tOnboarding("permissionDenied")
+        : tOnboarding(
+            `apiErrors.${describeApiError(createProperty.error)?.labelKey ?? "unknown"}`,
+          );
 
   const [messageOpen, setMessageOpen] = useState(false);
   const [messageError, setMessageError] = useState<string | null>(null);

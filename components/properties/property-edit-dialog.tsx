@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { usePropertyCategories } from "@/hooks/use-lookups";
 import { LocationPicker } from "@/components/properties/location-picker";
+import { CountryCityField } from "@/components/location/country-city-field";
 import { categoryName } from "@/lib/properties/table-rows";
 import {
   AREA_MAX,
@@ -28,6 +29,7 @@ import {
   ROOM_MAX,
   parseOptionalNumber,
 } from "@/lib/properties/form-fields";
+import { buildEditLocation } from "@/lib/properties/location-fields";
 import type { PropertyDto, UpdatePropertyRequest } from "@/lib/types/property.types";
 
 interface Props {
@@ -67,6 +69,17 @@ export function PropertyEditDialog({
   const [floorCount, setFloorCount] = useState(property.floorCount?.toString() ?? "");
   const [roomCount, setRoomCount] = useState(property.roomCount?.toString() ?? "");
   const [areaSqm, setAreaSqm] = useState(property.areaSqm?.toString() ?? "");
+  // F-07 ·9b (§4.1a). Seeded from the stored pair; left as is, it is **not
+  // sent** — an omitted pair keeps the stored one, which is the only way a city
+  // deactivated since it was set survives a save (validation runs on a change).
+  const [place, setPlace] = useState({
+    countryId: property.country?.id ?? "",
+    cityId: property.city?.id ?? "",
+  });
+  const placeResult = buildEditLocation(place, {
+    countryId: property.country?.id ?? null,
+    cityId: property.city?.id ?? null,
+  });
 
   // The list is active-only, and a deactivated category is never retroactively
   // enforced — the backend validates a category only when it *changes*. So a
@@ -92,10 +105,11 @@ export function PropertyEditDialog({
     floor.ok &&
     room.ok &&
     area.ok &&
+    placeResult.ok &&
     !pending;
 
   function handleSubmit() {
-    if (!canSubmit || !location) return;
+    if (!canSubmit || !location || !placeResult.ok) return;
     onSubmit({
       name: name.trim(),
       address: address.trim(),
@@ -106,6 +120,7 @@ export function PropertyEditDialog({
       floorCount: floor.value,
       roomCount: room.value,
       areaSqm: area.value,
+      ...placeResult.fields,
     });
   }
 
@@ -143,6 +158,30 @@ export function PropertyEditDialog({
           <LocationPicker
             value={location}
             onChange={(lat, long) => setLocation({ lat, long })}
+          />
+
+          {/* `keep` is the category pattern below, for the location: the stored
+              pair stays selectable even once deactivated, and is named while
+              the lookup lists load. No `onClear` — there is no "remove the
+              city" on the wire, an omitted pair means "keep". */}
+          <CountryCityField
+            idPrefix="pe"
+            countryId={place.countryId}
+            cityId={place.cityId}
+            onChange={setPlace}
+            disabled={pending}
+            keep={{ country: property.country, city: property.city }}
+            labels={{
+              country: t("form.country"),
+              countryPlaceholder: t("form.countryPlaceholder"),
+              city: t("form.city"),
+              cityPlaceholder: t("form.cityPlaceholder"),
+            }}
+            hint={
+              placeResult.ok
+                ? t("form.cityHintEdit")
+                : t(`form.locationRefusals.${placeResult.reason}`)
+            }
           />
 
           <div className="flex flex-col gap-1">

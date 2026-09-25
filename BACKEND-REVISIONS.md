@@ -220,8 +220,8 @@ Built to the guide, never exercised against production:
 
 ### WP12 — Property location · `f-02c` §4.1a, 09-23 ·9b
 
-MISSING: optional `countryId`/`cityId` on property create/edit (pre-filled from the BOSS);
-`PropertyDto.country`/`city` display (`lib/types/property.types.ts:83-106`). Error codes are in WP6.
+✅ BUILT 2026-09-26 ([§4](#2026-09-26--f-07-9b-property-country-and-city)): optional `countryId`/`cityId` on property
+create/edit, `PropertyDto.country`/`city` on the detail page, the six location codes mapped.
 
 ### WP13 — Worker Detail completion · `f-04a`, `f-04b`, `f-04c`, `fnd-3`
 
@@ -274,6 +274,23 @@ by every document viewer.
 ## 4. Pass log — newest first
 
 The record of what each pass **built** or **established**. What a pass read and did not build is in §3.
+
+### 2026-09-26 — F-07 ·9b: property country and city
+
+`f-02c-property-rework.md` §4.1a; CHANGELOG 2026-09-23 (·9b). Create `POST /api/admin/properties`, edit
+`PUT /api/properties/{id}` (the admin has no edit route of its own).
+
+| What changed | Where |
+|---|---|
+| `buildCreateLocation` (both blank → neither sent, server defaults to the BOSS's pair; country without city refused), `buildEditLocation` (unchanged → neither sent, so a city deactivated since keeps; blanking a stored pair refused — an omitted pair means "keep"), `propertyLocationErrorKey` worded by whether a pair was sent | `lib/properties/location-fields.ts` (+ 23 tests) |
+| Shared `CountryCityField` (labels/hint props, `keep` for a deactivated stored pair, optional clear); walk-in field is now a thin wrapper, unchanged for its callers | `components/location/country-city-field.tsx`, `walk-in-city-field.tsx` |
+| Create/edit dialogs; the three create/edit error mappers learn the codes (edit's also problem-details + empty 403, which it lacked) | `property-create-dialog.tsx`, `property-edit-dialog.tsx`, `properties/page.tsx`, `owner-actions.tsx`, `property-actions.tsx` |
+| Detail page address line: "address · City, Country" (DS has four fact tiles — no fifth) | `property-identity.tsx` |
+| Types (`LocationRefDto`, `bossOwnerName`) and the gate | `property.types.ts`, `scripts/verify-v2.mjs` |
+
+Checked in the browser (detail page, edit dialog prefilled); nothing saved. Left open: the walk-in placeholder
+property's edit dialog still offers the picker (§4.1a says it stays city-less; nothing says `PUT` refuses one);
+`createAdminProperty` mints a key per request, not per intent (WP5).
 
 ### 2026-09-26 — F-07 ·10: copy as new order
 

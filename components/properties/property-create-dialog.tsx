@@ -22,6 +22,7 @@ import {
 import { useOwnerList } from "@/hooks/use-owners";
 import { usePropertyCategories } from "@/hooks/use-lookups";
 import { LocationPicker } from "@/components/properties/location-picker";
+import { CountryCityField } from "@/components/location/country-city-field";
 import { categoryName } from "@/lib/properties/table-rows";
 import {
   AREA_MAX,
@@ -29,6 +30,7 @@ import {
   ROOM_MAX,
   parseOptionalNumber,
 } from "@/lib/properties/form-fields";
+import { buildCreateLocation } from "@/lib/properties/location-fields";
 import type { CreateAdminPropertyRequest } from "@/lib/types/property.types";
 
 interface Props {
@@ -106,6 +108,12 @@ export function PropertyCreateDialog({
   const [floorCount, setFloorCount] = useState("");
   const [roomCount, setRoomCount] = useState("");
   const [areaSqm, setAreaSqm] = useState("");
+  // F-07 ·9b — optional. Both blank means "the owner's city" (§4.1a).
+  // ⚠ The hint cannot name that city: the owner picker reads the KYC queue
+  // (`KycProfileSummaryDto`), which carries no location, and a second read just
+  // for a hint is not worth it. An owner with none is answered `city_required`.
+  const [place, setPlace] = useState({ countryId: "", cityId: "" });
+  const placeResult = buildCreateLocation(place);
 
   const floor = parseOptionalNumber(floorCount, { max: FLOOR_MAX, integer: true });
   const room = parseOptionalNumber(roomCount, { max: ROOM_MAX, integer: true });
@@ -124,10 +132,11 @@ export function PropertyCreateDialog({
     floor.ok &&
     room.ok &&
     area.ok &&
+    placeResult.ok &&
     !pending;
 
   function handleSubmit() {
-    if (!canSubmit || !location) return;
+    if (!canSubmit || !location || !placeResult.ok) return;
     onSubmit({
       ownerUserId,
       name: name.trim(),
@@ -139,6 +148,7 @@ export function PropertyCreateDialog({
       floorCount: floor.value,
       roomCount: room.value,
       areaSqm: area.value,
+      ...placeResult.fields,
     });
   }
 
@@ -248,6 +258,29 @@ export function PropertyCreateDialog({
           <LocationPicker
             value={location}
             onChange={(lat, long) => setLocation({ lat, long })}
+          />
+
+          {/* Under the map: the city is what decides which workers see this
+              property's work (task-lifecycle §0h), so it belongs with "where". */}
+          <CountryCityField
+            idPrefix="pc"
+            countryId={place.countryId}
+            cityId={place.cityId}
+            onChange={setPlace}
+            onClear={() => setPlace({ countryId: "", cityId: "" })}
+            disabled={pending}
+            labels={{
+              country: t("form.country"),
+              countryPlaceholder: t("form.countryPlaceholder"),
+              city: t("form.city"),
+              cityPlaceholder: t("form.cityPlaceholder"),
+              clear: t("form.locationClear"),
+            }}
+            hint={
+              placeResult.ok
+                ? t("form.cityHintCreate")
+                : t(`form.locationRefusals.${placeResult.reason}`)
+            }
           />
 
           <div className="grid grid-cols-3 gap-3">
