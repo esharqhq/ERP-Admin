@@ -42,7 +42,9 @@ const STATUS_COLORS: Record<string, string> = {
   // F-07 ·0 (2026-09-17) renamed `Active` → `CheckedIn`, `Review` → `InReview`.
   // `active` stays for a cached old response.
   checkedin: "var(--chart-2)",
-  inreview: "var(--status-pending)",
+  // Not `--status-pending`: the donut has no slice labels, so it must differ from
+  // `pending`. This is the forest-300 it drew from the fallback before.
+  inreview: "var(--chart-4)",
   active: "var(--chart-2)",
   done: "var(--status-active)",
   completed: "var(--status-active)",

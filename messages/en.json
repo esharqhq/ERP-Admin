@@ -307,7 +307,8 @@
         "BusinessLicense": "Business licence",
         "CompanyRegistration": "Company registration",
         "TaxCertificate": "Tax certificate",
-        "Other": "Other"
+        "Other": "Other",
+        "RepresentativeAuthorization": "Authorization letter"
       },
       "filesTitle": "Files",
       "groupIdentity": "Identity",
@@ -997,9 +998,9 @@
     },
     "filters": {
       "country": "Country",
-      "countryHint": "The owner's own location, not their company's. Also scopes the city list.",
+      "countryHint": "The owner's own location, not their company's. Owners who haven't set one are excluded.",
       "city": "City",
-      "cityHint": "Pick a country first. An owner who has not set a location is excluded.",
+      "cityHint": "The owner's own city. Owners who haven't set one are excluded.",
       "registered": "Registered",
       "lastOrdered": "Last order",
       "neverOrdered": "Ordering",

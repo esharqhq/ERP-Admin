@@ -53,8 +53,9 @@ export interface AdminHomeDto {
    *
    * ⚠ The statuses it returns are **task** statuses (`Pending`, `CheckedIn`,
    * `InReview`, `Done`, `Cancelled`), not the four `TaskGroupStatusName`s the
-   * card's copy still claims. `StatusDonut` colours the two it does not know
-   * from `STATUS_FALLBACK`, so this renders — but the description is now wrong.
+   * card's copy still claims. `StatusDonut` has a colour for each (since
+   * 2026-09-25), and a state it does not know falls back to `STATUS_FALLBACK` —
+   * but the card's description is still wrong.
    */
   dayStatusBreakdown: StatusBreakdownItem[] | null;
   topWorkers: TopWorkerItem[] | null;

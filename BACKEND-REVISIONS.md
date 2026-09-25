@@ -114,6 +114,20 @@ Status words: BROKEN · PARTIAL · MISSING · NEEDS-LIVE. Evidence is `file:line
 me-permissions, broadcasts, agencies + applications + links, skill requests, professions, support tickets,
 clone, and `kind`/`cityId` on the task DTOs. Add each one's routes and fields as its package lands.
 
+### WP1/WP2 follow-ups — from the 2026-09-25 final review (minor, deferred)
+
+- `lib/workers/matrix.ts:159` `DEAD_TASK = {"cancelled","completed"}` — `completed` is not a task state,
+  so a **Done** day is never treated as dead in the workers matrix. Pre-existing; the last wrong-word
+  comparison found. Use `canonicalTaskStatus`.
+- `hooks/use-worker-shifts.ts:181-185`: a past day in an **unknown** state with no check-in reads
+  *missed* (a no-show on a word the panel does not know). Return `"scheduled"` for `null`.
+- `lib/types/task.types.ts:5-10` `TaskItemStatusName` still lists `Active`/`Review` (unused) — update or delete.
+- A bookmarked Owners URL with `?companyCityId=` keeps the dead key in the address; map it to `cityId` on
+  load and drop it.
+- Owners Location cell: a country with no city renders "—" over the country; render the country alone.
+- `scripts/verify-v2.mjs` "gone" list for `OwnerCompanyDto` omits `cityNameDe`/`countryNameDe`.
+- `facts-rail.tsx`: "Registered in" + a street address reads better as "Registered address".
+
 ### WP2 remainder — Owner location edit · `owner-location-model` §3
 
 MISSING: admin owner location edit on `PUT /api/owners/{id}` (`countryId`/`cityId`, pickers
@@ -276,7 +290,7 @@ unchanged (1 existing warning). Contract gate 5 FAIL / 96 PASS → **0 FAIL / 11
 | WP2 | Owners filter sends `cityId` + `countryId` (country is now a real filter); hints rewritten en/de | `lib/owners/owner-filter-query.ts`, `owners/page.tsx`, `lib/types/owner.types.ts` (`2cccd42`) |
 | WP2 | Owners table shows the owner's own city + country (column id `location`), blanks kept | `owners/page.tsx`, `OwnerRowDto` (`4be6828`) |
 | WP2 | KYC "Registered in" reads `registrationAddress` | `components/docs-workspace/detail/facts-rail.tsx`, `OwnerCompanyDto` (`97053e9`) |
-| WP2 | `RepresentativeAuthorization` grouped with company documents, labelled en/de; required set unchanged | `lib/onboarding/doc-set.ts`, messages (`50895f0`) |
+| WP2 | `RepresentativeAuthorization` grouped with company documents, labelled en/de in **both** label maps (owner card `onboarding.docType` and the review workspace `docsWorkspace.detail.type`, the second found by the final review); required set unchanged | `lib/onboarding/doc-set.ts`, messages (`50895f0`, fix pass) |
 
 Visible effect in production once shipped: checked-in days get their fill buttons back, and the
 under-staffing and owner-attention counts rise to their true values. Choosing only a country now filters

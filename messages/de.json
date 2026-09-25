@@ -307,7 +307,8 @@
         "BusinessLicense": "Gewerbeschein",
         "CompanyRegistration": "Handelsregisterauszug",
         "TaxCertificate": "Steuerbescheinigung",
-        "Other": "Sonstiges"
+        "Other": "Sonstiges",
+        "RepresentativeAuthorization": "Vollmacht"
       },
       "filesTitle": "Dateien",
       "groupIdentity": "Identität",
@@ -997,9 +998,9 @@
     },
     "filters": {
       "country": "Land",
-      "countryHint": "Der eigene Standort des Eigentümers, nicht der seiner Firma. Begrenzt auch die Städteliste.",
+      "countryHint": "Der eigene Standort des Eigentümers, nicht der seiner Firma. Eigentümer ohne Standort werden ausgeschlossen.",
       "city": "Stadt",
-      "cityHint": "Zuerst ein Land wählen. Eigentümer ohne Standort werden ausgeschlossen.",
+      "cityHint": "Die eigene Stadt des Eigentümers. Eigentümer ohne Standort werden ausgeschlossen.",
       "registered": "Registriert",
       "lastOrdered": "Letzte Bestellung",
       "neverOrdered": "Bestellungen",
