@@ -39,6 +39,10 @@ const COMPLETED_COLOR = "var(--chart-3)"; /* fresh */
  */
 const STATUS_COLORS: Record<string, string> = {
   pending: "var(--status-pending)",
+  // F-07 ·0 (2026-09-17) renamed `Active` → `CheckedIn`, `Review` → `InReview`.
+  // `active` stays for a cached old response.
+  checkedin: "var(--chart-2)",
+  inreview: "var(--status-pending)",
   active: "var(--chart-2)",
   done: "var(--status-active)",
   completed: "var(--status-active)",

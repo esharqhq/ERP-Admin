@@ -32,6 +32,11 @@ import { cn } from "@/lib/utils";
  * returning hexes: it holds literal colours. These are tokens.
  */
 const STATUS_TONE: Record<string, string> = {
+  // F-07 ·0 (2026-09-17) renamed `Active`/`Review`; ·5 (2026-09-21) added
+  // `Rejected`. The old two stay for a cached response.
+  checkedin: "bg-status-active-tint text-status-active",
+  inreview: "bg-status-pending-tint text-status-pending-deep",
+  rejected: "bg-status-pending-tint text-status-pending-deep",
   active: "bg-status-active-tint text-status-active",
   pending: "bg-muted text-muted-foreground",
   review: "bg-status-pending-tint text-status-pending-deep",

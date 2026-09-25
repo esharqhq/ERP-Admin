@@ -4,6 +4,7 @@ import {
   type TaskItemDto,
   type TaskWorkerDto,
 } from "@/lib/types/task.types";
+import { canonicalTaskStatus, type TaskStateKey } from "@/lib/tasks/status-vocab";
 
 /**
  * A worker whose outcome is one of these no longer occupies a slot — the task is
@@ -16,15 +17,21 @@ import {
 export const VACATED_OUTCOMES = new Set(["removed", "cancelled", "noshow"]);
 
 /**
- * Only PENDING / ACTIVE tasks can still take a worker. REVIEW (work submitted)
- * and the terminal DONE / CANCELLED states are not dispatch targets.
+ * The day states a dispatcher may still fill: not started, or started. Handed-in
+ * (`InReview`), disputed (`Rejected`) and the terminal DONE / CANCELLED states are
+ * not dispatch targets.
  *
  * The backend does **not** enforce this: `POST /api/tasks/{id}/admin-assign/{workerId}`
  * has no task-date or task-status guard, so an elapsed, Done or Cancelled task can
  * still be filled (`GT_AdminFillHasNoDateOrStatusGuard`). This is the client-side
  * guard that keeps that out of reach.
+ *
+ * ⚠ An allowlist over the canonical key, never a raw lowercase word list: the
+ * states were renamed on 2026-09-17 (`Active` → `CheckedIn`) and a word list
+ * silently closed every checked-in day. An unknown future state is `null` here,
+ * so it reads as closed rather than as open.
  */
-export const OPEN_STATUSES = new Set(["pending", "active"]);
+const OPEN_STATES: ReadonlySet<TaskStateKey> = new Set(["pending", "checkedIn"]);
 
 export function activeWorkers(task: TaskItemDto): TaskWorkerDto[] {
   return (task.workers ?? []).filter(
@@ -33,7 +40,8 @@ export function activeWorkers(task: TaskItemDto): TaskWorkerDto[] {
 }
 
 export function isOpen(task: TaskItemDto): boolean {
-  return OPEN_STATUSES.has(normalizeStatus(task.status));
+  const state = canonicalTaskStatus(task.status);
+  return state !== null && OPEN_STATES.has(state);
 }
 
 export function needsWorkers(task: TaskItemDto): boolean {
@@ -86,7 +94,7 @@ export function groupStaffing(tasks: TaskItemDto[]): { filled: number; required:
 /**
  * A booking is "active" while at least one of its days is still unsettled.
  *
- * Shared for the same reason `OPEN_STATUSES` is: the Walk-In orders list (its
+ * Shared for the same reason `isOpen` is: the Walk-In orders list (its
  * Active/History split), the Walk-In order sheet (whether Cancel can even be
  * offered) and the Dispatch task-detail page (`groupCancellable`) all need the
  * same answer, and the backend's cancel flow enforces it server-side — it
