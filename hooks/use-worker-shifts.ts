@@ -6,6 +6,7 @@ import { taskService } from "@/lib/services/task.service";
 import { useCurrentPermissions } from "@/hooks/use-current-permissions";
 import { useTodayKey } from "@/hooks/use-today";
 import { normalizeStatus } from "@/lib/types/task.types";
+import { canonicalTaskStatus } from "@/lib/tasks/status-vocab";
 import { toLocalDateKey } from "@/lib/tasks/weekly-rows";
 import type { TaskItemDto, TaskWorkerDto } from "@/lib/types/task.types";
 
@@ -177,9 +178,9 @@ function shiftState(
   // necessarily been either — the worker may still arrive. Only a day that is
   // over says nobody came. Day granularity is also what keeps this stable
   // between the server snapshot and hydration.
-  const status = normalizeStatus(task.status);
-  if (status === "done" || status === "review") return "done";
-  if (status === "cancelled") return "scheduled";
+  const state = canonicalTaskStatus(task.status);
+  if (state === "done" || state === "inReview" || state === "rejected") return "done";
+  if (state === "cancelled") return "scheduled";
   if (!todayKey) return "scheduled";
   return task.scheduledDate < todayKey ? "missed" : "scheduled";
 }

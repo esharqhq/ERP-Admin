@@ -153,6 +153,22 @@ describe("toShifts", () => {
     expect(row.state).toBe("onSite");
   });
 
+  // F-07 ·0 (2026-09-17) renamed `Review` → `InReview`; ·5 (2026-09-21) added
+  // `Rejected` — a handed-in day the owner disputes. Both are handed in, so an
+  // absent check-in on such a day is not a no-show.
+  it.each(["InReview", "Rejected", "Done"])(
+    "reads a past %s day the worker never clocked into as done, not missed",
+    (status) => {
+      const [shift] = toShifts(
+        [task({ status, scheduledDate: "2026-08-24", scheduledAt: "2026-08-24T08:00:00" })],
+        ME,
+        WEEK,
+        TODAY,
+      );
+      expect(shift.state).toBe("done");
+    },
+  );
+
   it("does not call a shift missed until its day is over", () => {
     // Same task, same absent check-in — only the date differs. Today's is still
     // open; yesterday's is not.
