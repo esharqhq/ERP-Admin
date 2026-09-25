@@ -26,6 +26,7 @@ import {
     useMarkAllRead,
 } from "@/hooks/use-notifications";
 import {notificationRoute} from "@/lib/notifications/route";
+import {NotificationToneMark} from "./notification-tone-mark";
 
 function relativeTime(createdAt: string): string {
     const mins = Math.floor((Date.now() - new Date(createdAt).getTime()) / 60000);
@@ -263,7 +264,10 @@ export function DashboardHeader({healthUrl}: { healthUrl?: string }) {
                                                     }`}
                                                 />
                                                 <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                                                    <span className="text-[13px] font-medium leading-tight">{n.title}</span>
+                                                    <span className="flex items-center gap-1.5 text-[13px] font-medium leading-tight">
+                                                        <NotificationToneMark type={n.type}/>
+                                                        <span className="min-w-0">{n.title}</span>
+                                                    </span>
                                                     <span className="truncate text-xs text-muted-foreground">{n.body}</span>
                                                     <span className="text-[10px] text-muted-foreground/70">{relativeTime(n.createdAt)}</span>
                                                 </div>

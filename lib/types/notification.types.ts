@@ -26,6 +26,9 @@ export type NotificationType =
   | "TaskComplaintEscalated"
   | "TaskStaffingWarning"
   | "TaskStaffingCritical"
+  // 19 — RETIRED 2026-09-22 by F-07 ·8 (82/83 replace it). Nothing emits it any
+  // more, but inboxes still hold its rows; `notificationTone` still marks them.
+  | "TaskUnderstaffed"
   | "TaskOverdue"
   | "TaskStuckEscalated"
   // any type the backend adds later: render the row, do not crash

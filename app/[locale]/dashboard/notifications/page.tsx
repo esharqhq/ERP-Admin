@@ -13,6 +13,7 @@ import {
   useMarkAllRead,
 } from "@/hooks/use-notifications";
 import { notificationRoute } from "@/lib/notifications/route";
+import { NotificationToneMark } from "@/components/layout/notification-tone-mark";
 
 type Filter = "all" | "unread";
 
@@ -143,8 +144,9 @@ export default function NotificationsPage() {
                   }`}
                 />
                 <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                  <span className={`text-sm leading-snug ${!n.isRead ? "font-semibold" : "font-medium"}`}>
-                    {n.title}
+                  <span className={`flex items-center gap-1.5 text-sm leading-snug ${!n.isRead ? "font-semibold" : "font-medium"}`}>
+                    <NotificationToneMark type={n.type} />
+                    <span className="min-w-0">{n.title}</span>
                   </span>
                   <span className="text-sm text-muted-foreground">{n.body}</span>
                   <span className="mt-0.5 text-xs text-muted-foreground/70">

@@ -8,8 +8,11 @@ import { toLocalDateKey } from "@/lib/tasks/weekly-rows";
  * Not zero, and that is deliberate. `POST admin-assign` has no task-date guard
  * (`GT_AdminFillHasNoDateOrStatusGuard`), and the backend's own note on that gap
  * calls filling a *just-elapsed* task a legitimate workflow — "record whoever
- * actually turned up" — because the under-staffing alert fires only 3 h before
- * start. A queue that began at this morning's midnight would hide last night's
+ * actually turned up" — written when the under-staffing alert fired only 3 h
+ * before start. Since F-07 ·8 (2026-09-22) the last rung, 83, fires at 6 h, and a
+ * day that started short drops out of the server's `?staffing=` list altogether,
+ * so the reasoning holds. A queue that began at this morning's midnight would
+ * hide last night's
  * unstaffed shift, which is the most urgent row there is.
  */
 export const DISPATCH_BACKSTOP_DAYS = 2;

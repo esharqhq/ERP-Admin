@@ -217,7 +217,7 @@ Built to the guide, never exercised against production:
 - MISSING: read back `ownerProvidesTools`/`addOnNote` on the order sheet (typed `task.types.ts:181-183`).
 - PARTIAL: `closed` counts typed, never rendered (`task.types.ts:164`).
 - MISSING: team rating `PUT /api/tasks/{taskId}/rating` (admin row in `task-lifecycle` §7).
-- MISSING: the critical staffing list, `?staffing=Warning|Critical`.
+- ✅ BUILT 2026-09-26: the critical staffing list, `?staffing=Warning|Critical` — home-page card ([§4](#2026-09-26--f-07-8-the-short-handed-card-and-the-staffing-rungs-in-the-bell)).
 
 ### WP12 — Property location · `f-02c` §4.1a, 09-23 ·9b
 
@@ -275,6 +275,24 @@ by every document viewer.
 ## 4. Pass log — newest first
 
 The record of what each pass **built** or **established**. What a pass read and did not build is in §3.
+
+### 2026-09-26 — F-07 ·8: the short-handed card and the staffing rungs in the bell
+
+CHANGELOG 2026-09-22 (·8, `affects: [admin-panel, owner-app]`, breaking). Kind 19 was never switched on here,
+so nothing went silent; 82/83 were already clickable (·5 bell routing → the day's booking).
+
+| What changed | Where |
+|---|---|
+| `staffingAlert(warning, critical, limit)` — counts from the two server answers, soonest first, a critical row the 24 h answer lacks is merged in (the reads are not atomic) | `lib/tasks/staffing-alert.ts` (+ test) |
+| `getStaffingList(level)` + `useStaffingList` — key `["admin-tasks","staffing",level]`, so `invalidateTasks` reaches it; refetch every 60 s | `lib/services/task.service.ts`, `hooks/use-staffing.ts` |
+| Home card: under-6 h and 6–24 h counts (a band, not the nested total — side by side the nested pair reads as additive), five soonest rows → the booking, and a "See all on Dispatch" link shown only with `task:assign_worker_any`. Gated on `task:list_any` alone (shown even without analytics permission) | `components/dashboard/staffing-alert-card.tsx`, `dashboard/page.tsx` — in the slot of the removed "Revenue — coming soon" placeholder, beside Top workers |
+| Bell + notifications page: 83 critical, 82 and retired 19 warning — `notificationTone` | `lib/notifications/tone.ts` (+ test), `components/layout/notification-tone-mark.tsx` |
+| Gate: `GET /api/tasks/admin` takes `?staffing` | `scripts/verify-v2.mjs` |
+| Stale "alert fires 3 h before" comments | `lib/tasks/dispatch-row.ts`, `lib/tasks/dispatch-window.ts` |
+
+⚠ Deliberately **not** on Dispatch: it already loads a fortnight and counts the gap itself — including days
+already started, which `?staffing=` drops (`ScheduledAt > now`). The card says so. Not verified live (needs an
+admin session and a short-handed day inside 24 h).
 
 ### 2026-09-26 — rating card: the change-result button is state-guarded
 

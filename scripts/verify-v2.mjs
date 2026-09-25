@@ -262,7 +262,8 @@ else bad("admin groups list lost ?ownerUserId — the Walk-In orders list is bui
 // window (`scheduledFrom`/`scheduledTo`) and `status`; without the window the route
 // falls back to a 500-row cap (f-02a-1 §8), silently.
 const tasksParams = (swagger.paths["/api/tasks/admin"]?.get?.parameters ?? []).map((p) => p.name);
-for (const p of ["scheduledFrom", "scheduledTo", "status"]) {
+// F-07 ·8 — `staffing` feeds the home page's short-handed card (Warning|Critical).
+for (const p of ["scheduledFrom", "scheduledTo", "status", "staffing"]) {
   if (tasksParams.includes(p)) ok(`GET /api/tasks/admin takes ?${p}`);
   else bad(`GET /api/tasks/admin lost ?${p}`);
 }

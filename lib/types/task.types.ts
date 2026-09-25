@@ -312,6 +312,9 @@ export interface SubmitTaskWorkerStarRequest {
  */
 export type OverrideOutcomeTarget = "Completed" | "NoShow" | "Removed";
 
+/** `?staffing=` on `GET /api/tasks/admin` (F-07 ·8, `TaskStaffingFilter`). */
+export type StaffingLevel = "Warning" | "Critical";
+
 export interface OverrideTaskWorkerOutcomeRequest {
   outcome: OverrideOutcomeTarget;
 }

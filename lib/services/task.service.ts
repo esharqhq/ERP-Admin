@@ -13,6 +13,7 @@ import type {
   ForceCloseTaskRequest,
   TaskMediaListItem,
   DecideComplaintRequest,
+  StaffingLevel,
   TaskStatusDto,
 } from "@/lib/types/task.types";
 
@@ -126,6 +127,21 @@ export const taskService = {
   ): Promise<TaskItemDto[]> => {
     const { data } = await apiClient.get<TaskItemDto[]>("/api/tasks/admin", {
       params: { scheduledFrom, scheduledTo },
+    });
+    return data;
+  },
+
+  /**
+   * The admin "Critical list" (F-07 ·8) — `task:list_any`. Short-handed days,
+   * still `Pending`/`CheckedIn`, **not yet started**, starting within 24 h
+   * (`Warning`) or 6 h (`Critical`). ⚠ Nested: `Warning` includes the critical
+   * ones. The filter is a closed window, so the cap is 5,000, not 500.
+   */
+  getStaffingList: async (
+    staffing: StaffingLevel,
+  ): Promise<TaskItemDto[]> => {
+    const { data } = await apiClient.get<TaskItemDto[]>("/api/tasks/admin", {
+      params: { staffing },
     });
     return data;
   },

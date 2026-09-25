@@ -7,7 +7,6 @@ import {
   Home,
   ClipboardList,
   Star,
-  Wallet,
 } from "lucide-react";
 import {
   Card,
@@ -20,6 +19,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAdminHome } from "@/hooks/use-analytics";
 import { useCurrentPermissions } from "@/hooks/use-current-permissions";
 import { TrendChart, StatusDonut } from "@/components/dashboard/dashboard-charts";
+import { StaffingAlertCard } from "@/components/dashboard/staffing-alert-card";
 import type { AdminHomeTotals } from "@/lib/types/analytics.types";
 
 const KPI_META: {
@@ -65,6 +65,8 @@ export default function DashboardPage() {
     return (
       <div className="flex flex-col gap-6">
         <Header t={t} />
+        {/* Gated on its own permission — see StaffingAlertCard. */}
+        <StaffingAlertCard />
         <Card>
           <CardContent className="py-16 text-center text-sm text-muted-foreground">
             {t("noAccess")}
@@ -150,7 +152,7 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      {/* Top workers + revenue */}
+      {/* Top workers + short-handed days (F-07 ·8) */}
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
@@ -200,18 +202,9 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>{t("revenue.title")}</CardTitle>
-            <CardDescription>{t("revenue.desc")}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex h-[200px] flex-col items-center justify-center gap-2 rounded-md border border-dashed text-muted-foreground">
-              <Wallet className="size-6" />
-              <span className="text-sm">{t("revenue.comingSoon")}</span>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Took the slot of a "Revenue — coming soon" placeholder: there is no
+            monetary data in the domain yet (`revenueSeries` is always []). */}
+        <StaffingAlertCard />
       </div>
     </div>
   );

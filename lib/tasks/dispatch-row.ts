@@ -4,9 +4,14 @@ import { activeWorkers, isOpen } from "@/lib/tasks/staffing";
 import type { TaskItemDto } from "@/lib/types/task.types";
 
 /**
- * The window the board's header pill counts, and the one the backend's own
- * under-staffing alert uses — `WorkerThresholdNotifiedAt` fires 3 h before start,
- * so a day is not a useful unit here but 24 h is.
+ * The window the board's header pill counts — the same 24 h as the backend's
+ * first under-staffing rung (F-07 ·8: notification 82 under 24 h, 83 under 6 h;
+ * the old single 3 h alert, kind 19, is retired). A day is not a useful unit
+ * here but 24 h is.
+ *
+ * ⚠ The pill counts days **already started** too, and the server's
+ * `?staffing=` list does not — so the two can disagree, on purpose. See
+ * `components/dashboard/staffing-alert-card.tsx`.
  */
 export const IMMINENT_HOURS = 24;
 

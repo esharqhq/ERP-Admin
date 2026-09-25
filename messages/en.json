@@ -1657,7 +1657,11 @@
       "loading": "Loading…",
       "all": "All",
       "unread": "Unread",
-      "noUnread": "No unread notifications"
+      "noUnread": "No unread notifications",
+      "tone": {
+        "critical": "Critical:",
+        "warning": "Warning:"
+      }
     }
   },
   "login": {
@@ -1691,6 +1695,27 @@
     "title": "Dashboard",
     "subtitle": "Overview of key metrics",
     "noAccess": "You don't have permission to view analytics.",
+    "staffing": {
+      "title": "Short-handed days",
+      "desc": "Starting within 24 hours and not started yet. Days already under way are on Dispatch.",
+      "critical": {
+        "title": "Critical",
+        "detail": "Starts in under 6 hours"
+      },
+      "warning": {
+        "title": "Warning",
+        "detail": "Starts in 6–24 hours"
+      },
+      "workers": "workers",
+      "hidden": "{count, plural, one {# more short-handed day} other {# more short-handed days}}",
+      "empty": {
+        "title": "Every day is staffed",
+        "detail": "No short-handed day starts in the next 24 hours.",
+        "action": "Open Dispatch"
+      },
+      "error": "The list could not be loaded. Reload the page.",
+      "openDispatch": "See all"
+    },
     "kpi": {
       "workers": "Workers",
       "owners": "Owners",
@@ -1713,11 +1738,6 @@
       "desc": "Highest-rated workers",
       "new": "New",
       "empty": "No workers yet"
-    },
-    "revenue": {
-      "title": "Revenue",
-      "desc": "Monthly revenue overview",
-      "comingSoon": "Coming soon"
     }
   },
   "attendance": {

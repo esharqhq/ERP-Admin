@@ -1657,7 +1657,11 @@
       "loading": "Laden…",
       "all": "Alle",
       "unread": "Ungelesen",
-      "noUnread": "Keine ungelesenen Benachrichtigungen"
+      "noUnread": "Keine ungelesenen Benachrichtigungen",
+      "tone": {
+        "critical": "Kritisch:",
+        "warning": "Warnung:"
+      }
     }
   },
   "login": {
@@ -1691,6 +1695,27 @@
     "title": "Dashboard",
     "subtitle": "Übersicht der wichtigsten Kennzahlen",
     "noAccess": "Sie haben keine Berechtigung, Analysen anzuzeigen.",
+    "staffing": {
+      "title": "Unterbesetzte Tage",
+      "desc": "Start innerhalb von 24 Stunden, noch nicht begonnen. Bereits laufende Tage stehen im Dispatch.",
+      "critical": {
+        "title": "Kritisch",
+        "detail": "Beginnt in weniger als 6 Std."
+      },
+      "warning": {
+        "title": "Warnung",
+        "detail": "Beginnt in 6–24 Std."
+      },
+      "workers": "Mitarbeiter",
+      "hidden": "{count, plural, one {# weiterer unterbesetzter Tag} other {# weitere unterbesetzte Tage}}",
+      "empty": {
+        "title": "Alle Tage sind besetzt",
+        "detail": "In den nächsten 24 Stunden beginnt kein unterbesetzter Tag.",
+        "action": "Dispatch öffnen"
+      },
+      "error": "Die Liste konnte nicht geladen werden. Seite neu laden.",
+      "openDispatch": "Alle ansehen"
+    },
     "kpi": {
       "workers": "Mitarbeiter",
       "owners": "Eigentümer",
@@ -1713,11 +1738,6 @@
       "desc": "Am besten bewertete Mitarbeiter",
       "new": "Neu",
       "empty": "Noch keine Mitarbeiter"
-    },
-    "revenue": {
-      "title": "Umsatz",
-      "desc": "Monatliche Umsatzübersicht",
-      "comingSoon": "Demnächst verfügbar"
     }
   },
   "attendance": {
