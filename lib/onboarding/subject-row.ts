@@ -186,7 +186,7 @@ export const ownerContractSubjectId = (
  * and would otherwise have to wait on the KYC read to learn the profile id
  * before it could show a contract period at all — and would then report "no
  * contract" for an owner whose KYC read merely 404'd. Both ids are non-null on
- * the list DTO (`Backend/index/dtos/contracts.md:300-301`), so joining on this
+ * the list DTO (`index/dtos/contracts.md:300-301`), so joining on this
  * one costs nothing and drops the dependency.
  */
 export const ownerContractUserId = (

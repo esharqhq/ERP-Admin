@@ -1,5 +1,5 @@
 // ── Profession types ───────────────────────────────────────────────────────
-// Guide: ../Backend/docs/handoff/profession-fnd1-retrofit.md
+// Guide: profession-fnd1-retrofit.md
 //
 // ⚠ FND-1 turned this into a lookup and the change was BREAKING on the one route
 // every client reads: `GET /api/professions` renamed `name` to `nameEn` and added

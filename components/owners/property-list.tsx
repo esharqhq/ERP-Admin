@@ -20,7 +20,7 @@ export function PropertyList({ properties }: PropertyListProps) {
           title, and a "View All" button that went to the *global* properties
           table. This list is already every property this owner holds:
           `GET /api/properties?ownerUserId=` takes no page parameter and returns a
-          bare `List<PropertyDto>` (`Backend/index/controllers/properties.md:15`),
+          bare `List<PropertyDto>` (`index/controllers/properties.md:15`),
           and nothing here caps it. So the button led away from a complete answer
           to a less relevant one while its label promised the opposite. Each row
           still opens its own property. */}

@@ -1,9 +1,9 @@
 // Source of truth:
-//   - Backend/docs/handoff/CHANGELOG.md (2026-08-31)
-//   - Backend/index/dtos/notifications.md
+//   - handoff CHANGELOG.md (2026-08-31)
+//   - index/dtos/notifications.md
 //   - Backend/GermanyERP.Domain/Models/Notifications/Broadcast.cs (enums)
 //
-// Note: Backend/docs/handoff/f-01-a-broadcast-core.md §5.2 lists 11/16
+// Note: f-01-a-broadcast-core.md §5.2 lists 11/16
 // keys without namedCount. That table is stale per its own CHANGELOG
 // entry. Filed upstream as B15.
 //

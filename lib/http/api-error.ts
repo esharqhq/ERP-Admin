@@ -23,7 +23,7 @@ export function getApiErrorCode(err: unknown): string | null {
  * Not every 400 uses this project's `{error}` envelope. `[Required]` failures and
  * enum-name deserialization failures are refused by ASP.NET **before** the action
  * runs, so they arrive as problem-details with no `error` field at all — a blank
- * rejection reason is the everyday case (`Backend/index/controllers/kyc.md:37`).
+ * rejection reason is the everyday case (`index/controllers/kyc.md:37`).
  * Without this the admin who left the box empty is told "unknown error".
  */
 export function getValidationMessage(err: unknown): string | null {

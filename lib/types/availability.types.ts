@@ -1,7 +1,7 @@
 /**
  * A worker's declared schedule.
  *
- * Guide: `../Backend/docs/handoff/f-04b-worker-availability.md`. The admin routes
+ * Guide: `f-04b-worker-availability.md`. The admin routes
  * are `api/admin/workers/{workerId}/availability` and mirror the worker's own six
  * calls exactly — `worker:read` to read, `worker:profile:update_any` to write, and
  * **every write needs a `reason`** (missing or blank ⇒ `400 reason_required`).
