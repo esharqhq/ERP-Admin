@@ -275,6 +275,19 @@ by every document viewer.
 
 The record of what each pass **built** or **established**. What a pass read and did not build is in §3.
 
+### 2026-09-26 — audit log: each entry says what it is about (F-07 ·9a/·9b/·10 metadata)
+
+`GET /api/admin/audit-log` — `metadata` is a JSON **string** (`"{}"` when empty), parsed defensively.
+
+| What changed | Where |
+|---|---|
+| `parseAuditMetadata` (plain objects only), `auditDetails`: 113 `WorkerTaskAssigned` → one warning chip for `overrodeAvailability`/`overrodeLocation` (only when `true`; one badge per row), the day, "Open day"; 65 `TaskGroupCreatedByAdmin` → "Open order" and, when `clonedFromTaskGroupId` is set (it is on every 65 row, `null` if not a clone), "Copied from order" | `lib/audit/metadata.ts` (+ 17 tests) |
+| Row second line: `targetEntity` + short `targetId` in mono, then the facts; search also matches `targetId`; the two actions added to the filter; `TONE_STYLES` moved from raw emerald/amber to status tokens | `settings/audit/page.tsx` |
+| Gate: `AuditLogEntryDto` | `scripts/verify-v2.mjs` |
+
+Checked in the browser. No 113 row is inside the 200-row window, so the override chip was not seen on real data —
+that window is WP4, still open.
+
 ### 2026-09-26 — F-07 ·2: how each worker checked in
 
 No guide section and no CHANGELOG entry (filed, `BACKEND-ASKS.md` 2026-09-24 item 2); read from C#

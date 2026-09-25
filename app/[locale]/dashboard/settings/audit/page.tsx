@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useLocale } from "next-intl";
+import { Link } from "@/i18n/navigation";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -12,6 +14,13 @@ import {
 import { Search, Check, X, PenLine, History } from "lucide-react";
 import { useAuditLog } from "@/hooks/use-audit";
 import { cn } from "@/lib/utils";
+import {
+  auditDetails,
+  normalizeAction as normalize,
+  parseAuditMetadata,
+  type AuditFact,
+} from "@/lib/audit/metadata";
+import { fromDayKey } from "@/lib/ui/week";
 
 const AUDIT_ACTIONS = [
   "ADMIN_CREATED", "ADMIN_MODIFIED", "ADMIN_DEACTIVATED", "ADMIN_ROLE_CHANGED",
@@ -25,13 +34,15 @@ const AUDIT_ACTIONS = [
   "WORKER_CONTRACT_FORCE_DEACTIVATED",
   "WORKER_LEAVE_REQUEST_APPROVED", "WORKER_LEAVE_REQUEST_REJECTED",
   "WORKER_TASK_RATED",
+  // F-07 ·9a/·9b and ·10 — the rows whose metadata the list reads out.
+  "WORKER_TASK_ASSIGNED", "TASK_GROUP_CREATED_BY_ADMIN",
 ] as const;
 
 type Tone = "positive" | "negative" | "neutral";
 
 // Group each action into a tone that drives the row's icon + accent color, so
 // the log reads at a glance: green = something granted/approved, red = something
-// removed/rejected, amber = something edited. The backend sends PascalCase
+// removed/rejected, amber (the pending tokens) = something edited. The backend sends PascalCase
 // (e.g. "RolePermissionRemoved"), so match case-insensitively.
 function toneOf(action: string): Tone {
   if (/approved|restored|created|added/i.test(action)) return "positive";
@@ -40,19 +51,16 @@ function toneOf(action: string): Tone {
 }
 
 // The message keys are UPPER_SNAKE but the backend action strings are PascalCase.
-// Normalize both to a letters-only lowercase form so lookups match regardless
-// of casing/underscores.
-function normalize(s: string) {
-  return s.replace(/[^a-z0-9]/gi, "").toLowerCase();
-}
+// `normalize` (shared with `lib/audit/metadata`, so the two cannot drift) folds
+// both to a letters-only lowercase form so lookups match regardless of casing.
 const ACTION_KEY_BY_NORM: Record<string, string> = Object.fromEntries(
   AUDIT_ACTIONS.map((a) => [normalize(a), a]),
 );
 
 const TONE_STYLES: Record<Tone, { icon: React.ElementType; wrap: string }> = {
-  positive: { icon: Check, wrap: "bg-emerald-500/10 text-emerald-600" },
-  negative: { icon: X, wrap: "bg-destructive/10 text-destructive" },
-  neutral: { icon: PenLine, wrap: "bg-amber-500/10 text-amber-600" },
+  positive: { icon: Check, wrap: "bg-status-active-tint text-status-active" },
+  negative: { icon: X, wrap: "bg-status-cancelled-tint text-status-cancelled-deep" },
+  neutral: { icon: PenLine, wrap: "bg-status-pending-tint text-status-pending-deep" },
 };
 
 // Fallback for an action the message file doesn't know yet. Handles both
@@ -96,7 +104,8 @@ export default function AuditPage() {
         return (
           actorLabel(l.actorType).toLowerCase().includes(q) ||
           actionLabel(l.action).toLowerCase().includes(q) ||
-          l.targetEntity.toLowerCase().includes(q)
+          l.targetEntity.toLowerCase().includes(q) ||
+          l.targetId.toLowerCase().includes(q)
         );
       })
     : byAction;
@@ -106,6 +115,40 @@ export default function AuditPage() {
       month: "short", day: "numeric", year: "numeric",
       hour: "2-digit", minute: "2-digit",
     });
+  }
+
+  function formatDayKey(key: string) {
+    return fromDayKey(key).toLocaleDateString(locale, {
+      day: "2-digit", month: "short", year: "numeric",
+    });
+  }
+
+  // One fact under the action label. The overrides arrive as a single fact, so
+  // the row never carries more than the one badge the DS allows.
+  function renderFact(f: AuditFact) {
+    switch (f.kind) {
+      case "overrides":
+        return (
+          <Badge key="overrides" tone="warning">
+            {t("details.overrode", {
+              list: f.keys.map((k) => t(`details.override.${k}`)).join(" · "),
+            })}
+          </Badge>
+        );
+      case "date":
+        return (
+          <span key={f.key}>
+            {t(`details.${f.key}`)}{" "}
+            <span className="font-mono tabular-nums text-foreground">{formatDayKey(f.value)}</span>
+          </span>
+        );
+      case "link":
+        return (
+          <Link key={f.key} href={f.href} className="text-primary hover:underline">
+            {t(`details.${f.key}`)}
+          </Link>
+        );
+    }
   }
 
   return (
@@ -175,6 +218,7 @@ export default function AuditPage() {
                 {filtered.map((log) => {
                   const tone = toneOf(log.action);
                   const { icon: Icon, wrap } = TONE_STYLES[tone];
+                  const details = auditDetails(log.action, parseAuditMetadata(log.metadata));
                   return (
                     <li
                       key={log.id}
@@ -183,14 +227,30 @@ export default function AuditPage() {
                       <div className={cn("mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full", wrap)}>
                         <Icon className="size-[18px]" />
                       </div>
-                      <div className="flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
-                        <p className="text-sm leading-snug text-foreground">
-                          <span className="font-semibold">{actorLabel(log.actorType)}</span>{" "}
-                          <span className="text-muted-foreground">{actionLabel(log.action)}</span>
-                        </p>
-                        <time className="shrink-0 text-xs text-muted-foreground tabular-nums">
-                          {formatDate(log.createdAt)}
-                        </time>
+                      <div className="flex min-w-0 flex-1 flex-col gap-1">
+                        <div className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
+                          <p className="text-sm leading-snug text-foreground">
+                            <span className="font-semibold">{actorLabel(log.actorType)}</span>{" "}
+                            <span className="text-muted-foreground">{actionLabel(log.action)}</span>
+                          </p>
+                          <time className="shrink-0 text-xs text-muted-foreground tabular-nums">
+                            {formatDate(log.createdAt)}
+                          </time>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                          <span>
+                            {log.targetEntity}
+                            {log.targetId && (
+                              <>
+                                {" "}
+                                <span className="font-mono tabular-nums" title={log.targetId}>
+                                  {log.targetId.slice(0, 8)}
+                                </span>
+                              </>
+                            )}
+                          </span>
+                          {details.map(renderFact)}
+                        </div>
                       </div>
                     </li>
                   );

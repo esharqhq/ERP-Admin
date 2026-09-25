@@ -2731,7 +2731,20 @@
       "WORKER_CONTRACT_FORCE_DEACTIVATED": "force-ended a worker contract",
       "WORKER_LEAVE_REQUEST_APPROVED": "approved a leave request",
       "WORKER_LEAVE_REQUEST_REJECTED": "rejected a leave request",
-      "WORKER_TASK_RATED": "rated a worker's task"
+      "WORKER_TASK_RATED": "rated a worker's task",
+      "WORKER_TASK_ASSIGNED": "assigned a worker to a day",
+      "TASK_GROUP_CREATED_BY_ADMIN": "created an order"
+    },
+    "details": {
+      "overrode": "Overrode: {list}",
+      "override": {
+        "availability": "day off",
+        "location": "other city"
+      },
+      "scheduledDate": "Day",
+      "task": "Open day",
+      "taskGroup": "Open order",
+      "clonedFrom": "Copied from order"
     }
   },
   "settings": {

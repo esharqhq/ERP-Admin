@@ -194,6 +194,10 @@ const EXPECTED_FIELDS = {
     // F-07 ·2 (2026-09-22) — the check-in door. ⚠ On `OwnerScannedWorker` the
     // row's coordinates are the scanner's phone; dropped, that caveat vanishes.
     "checkinDoor"],
+  // The activity log. ⚠ `metadata` is a JSON-encoded string, read per action by
+  // `lib/audit/metadata.ts` (F-07 ·9a/·9b overrides, ·10 clone source).
+  AuditLogEntryDto: ["id", "actorId", "actorType", "action", "targetEntity", "targetId",
+    "metadata", "createdAt"],
 };
 for (const [name, fields] of Object.entries(EXPECTED_FIELDS)) {
   const live = S[name]?.properties;
