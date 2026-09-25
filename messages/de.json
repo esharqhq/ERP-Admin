@@ -990,7 +990,7 @@
       "onboardingStatus": "Phase",
       "onboarding": "Onboarding",
       "properties": "Objekte",
-      "companyCity": "Firmenstadt",
+      "location": "Standort",
       "lastOrdered": "Letzte Bestellung",
       "tasks": "Aufträge"
     },

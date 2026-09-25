@@ -990,7 +990,7 @@
       "onboardingStatus": "Stage",
       "onboarding": "Onboarding",
       "properties": "Properties",
-      "companyCity": "Company city",
+      "location": "Location",
       "lastOrdered": "Last order",
       "tasks": "Tasks"
     },

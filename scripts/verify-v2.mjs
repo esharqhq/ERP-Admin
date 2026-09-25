@@ -81,13 +81,11 @@ const EXPECTED_FIELDS = {
   // `ownerType` is F-02b·6's addition and the field the UI keys the walk-in
   // account's four refusals on; the paged envelope was never asserted here,
   // which is how the owners page went on using the unpaged picker endpoint.
-  // F-02 #4's three columns. `companyCity` is a NAME while the filter param is
-  // `companyCityId` — a city lives only on an owner's company record, which is why
-  // the filter can reach neither private individuals nor companies with a blank
-  // city, and why the column must be rendered including its blanks.
+  // owner-location-model (2026-08-13): the owner's own city/country NAMES;
+  // companyCity is gone. Rendered including blanks (f-02-4 §2.1).
   OwnerRowDto: ["id", "fullName", "email", "phoneNumber", "status", "onboardingStatus",
     "isVerified", "propertyCount", "createdAt", "ownerType",
-    "companyCity", "lastOrderedAt", "taskCount",
+    "city", "country", "lastOrderedAt", "taskCount",
     // ⚠ `?status=Deleted` was accepted and always answered `total: 0` until
     // 2026-09-07. These two are the deleted-owners screen's whole content.
     "deletedAt", "deletedBy"],
@@ -266,6 +264,17 @@ for (const p of ["scheduledFrom", "scheduledTo", "status"]) {
   if (tasksParams.includes(p)) ok(`GET /api/tasks/admin takes ?${p}`);
   else bad(`GET /api/tasks/admin lost ?${p}`);
 }
+
+// owner-location-model (2026-08-13) replaced `companyCityId` with this pair.
+// An unknown query key is ignored, so a stale name returns the whole table.
+// Swagger lists these PascalCase (`CityId`), hence the lower-casing.
+const ownersParams = (swagger.paths["/api/admin/owners"]?.get?.parameters ?? []).map((p) => p.name.toLowerCase());
+for (const p of ["cityid", "countryid"]) {
+  if (ownersParams.includes(p)) ok(`GET /api/admin/owners takes ?${p}`);
+  else bad(`GET /api/admin/owners lost ?${p}`);
+}
+if (ownersParams.includes("companycityid")) bad("GET /api/admin/owners still takes ?companyCityId");
+else ok("GET /api/admin/owners no longer takes ?companyCityId");
 
 // ── 7. i18n: every labelKey used by lib/onboarding/* exists in BOTH locales ──
 const REPO = join(dirname(fileURLToPath(import.meta.url)), "..");

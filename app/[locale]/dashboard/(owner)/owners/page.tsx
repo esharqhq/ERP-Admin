@@ -326,14 +326,19 @@ export default function OwnersPage() {
         },
       },
       {
-        id: "companyCity",
-        label: t("columns.companyCity"),
-        // Blanks are rendered deliberately: these are exactly the rows a
-        // company-city filter can never return, so showing them is what lets a
-        // short filtered list explain itself.
-        cell: (o) => (
-          <span className="text-sm text-muted-foreground">{o.companyCity || "—"}</span>
-        ),
+        id: "location",
+        label: t("columns.location"),
+        // Blanks rendered on purpose: those rows are the ones a location filter
+        // can never return (f-02-4 §2.1).
+        cell: (o) =>
+          o.city || o.country ? (
+            <div className="flex min-w-0 flex-col gap-px">
+              <span className="truncate text-sm">{o.city || "—"}</span>
+              <span className="truncate text-[11px] text-muted-foreground">{o.country || "—"}</span>
+            </div>
+          ) : (
+            <span className="text-sm text-muted-foreground">—</span>
+          ),
       },
       {
         id: "properties",
