@@ -202,6 +202,8 @@ for (const [name, dead] of Object.entries({
   // `onTask` → `booked`. `?onTask=`/`?employeeType=` are silently ignored now, so a
   // reader that came back would filter nothing without an error.
   WorkerRowDto: ["employeeType", "onTask"],
+  // owner-location-model §4: the company lost its country/city pair to `registrationAddress`.
+  OwnerCompanyDto: ["countryId", "cityId", "cityNameEn", "countryNameEn"],
 })) {
   const live = S[name]?.properties ?? {};
   for (const d of [].concat(dead)) {
@@ -384,8 +386,9 @@ if (!email || !password) {
 const F031_FIELDS = {
   OwnerIdentityDto: ["firstName", "lastName", "passportNumber", "passportExpiry"],
   WorkerIdentityDto: ["firstName", "lastName", "passportNumber", "passportExpiry", "licenseExpiry"],
+  // owner-location-model §4 (2026-08-13): one plain-text address replaced the country/city pair.
   OwnerCompanyDto: ["id", "name", "type", "licenseNumber", "licenseExpiry", "registrationDate",
-    "countryId", "countryNameDe", "countryNameEn", "cityId", "cityNameDe", "cityNameEn", "taxNumber"],
+    "registrationAddress", "taxNumber"],
   KycProfileDto: ["identity", "company"],
   KycDocDto: ["status", "rejectReason", "reviewedAt", "reviewedByAdminId"],
   WorkerDetailDto: ["identity"],

@@ -45,11 +45,11 @@ export interface OwnerCompanyDto {
   /** Watched by the expiry ladder — a lapse reverts the owner to `Kyc`. */
   licenseExpiry: string | null;
   registrationDate: string | null;
-  countryId: string;
-  countryNameDe: string | null;
-  countryNameEn: string | null;
-  cityId: string | null;
-  cityNameDe: string | null;
-  cityNameEn: string | null;
+  /**
+   * owner-location-model §4 (2026-08-13): the legal address exactly as written on
+   * the registration document — one required string on write, replacing the
+   * country/city pickers. `null` only on a company saved before the change.
+   */
+  registrationAddress: string | null;
   taxNumber: string | null;
 }

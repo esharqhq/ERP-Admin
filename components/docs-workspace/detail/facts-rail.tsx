@@ -35,14 +35,6 @@ export function FactsRail({
   const legalName =
     [identity?.firstName, identity?.lastName].filter(Boolean).join(" ") || null;
 
-  const registeredIn =
-    [
-      locale === "de" ? company?.cityNameDe : company?.cityNameEn,
-      locale === "de" ? company?.countryNameDe : company?.countryNameEn,
-    ]
-      .filter(Boolean)
-      .join(", ") || null;
-
   return (
     <section className="flex flex-col gap-2.5 rounded-xl bg-card p-3.5 shadow-card ring-1 ring-foreground/10">
       <div className="flex items-baseline justify-between gap-2">
@@ -87,7 +79,9 @@ export function FactsRail({
                   locale={locale}
                 />
                 <Fact label={t("taxNumber")} value={company.taxNumber} mono />
-                <Fact label={t("registeredIn")} value={registeredIn} />
+                {/* owner-location-model §4: one plain-text address, as the
+                    registration document writes it — no country/city pair any more. */}
+                <Fact label={t("registeredIn")} value={company.registrationAddress} />
               </>
             )}
           </>
