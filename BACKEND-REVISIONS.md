@@ -32,7 +32,7 @@ only for what it says.
 | **Oldest `Absorbed to`** | **2026-07-01** (`support-ticket-followup-fix`, `worker-doc-approved-delete-guard` — both verified, nothing to build). A return pass starts reading the CHANGELOG here. |
 | **Deployed?** | Yes. The live swagger (`api.uyer.app`, 2026-09-25) matches the guides: `GET /api/admin/owners` takes `CityId`/`CountryId` (no `companyCityId`); `OwnerRowDto` has no `companyCity`; `OwnerCompanyDto` has no city/country names; `AccountStatusFilter` = `Active,Pending,Deleted,Lapsed,Blocked`. ⚠ Swagger's `required` is empty for the whole schema — required-ness comes from source, not swagger. |
 | **Last HEAD check** | 2026-09-25, `origin/main` `692bd26`. No `docs/handoff` or `index/` commit since. |
-| **`verify-v2.mjs`** | 🔴 **Red: 5 FAIL / 96 PASS (2026-09-25, swagger-only run).** All five are stale assertions of the old contract, not new breaks — see §3 WP0. Until WP0 lands, a red run cannot tell a real break from a stale check. |
+| **`verify-v2.mjs`** | 🔴 **Red: 2 FAIL / 107 PASS (2026-09-25, swagger-only, after WP0).** Both are **real**: the app still reads `OwnerRowDto.companyCity` and `OwnerCompanyDto`'s city/country names, which are gone (WP2). Before WP0 it was 5 FAIL / 96 PASS — the other three were the script's own stale expectations. |
 
 ---
 

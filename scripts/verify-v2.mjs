@@ -22,11 +22,21 @@ const EXPECTED_ENUMS = {
   OnboardingStatus:    ["Kyc", "Review", "Rejected", "Approved", "Contract", "Active"],
   ContractStatus:      ["Draft", "Sent", "Signed", "Expired", "Terminated"],
   ContractPhase:       ["Draft", "Sent", "Scheduled", "InForce", "Lapsed", "Expired", "Terminated"],
-  AccountStatusFilter: ["Active", "Pending", "Deleted", "Blocked"],
+  // 2026-08-28: `Blocked` was renamed `Lapsed`, and a real admin `Blocked` added.
+  // The owner table refuses `Blocked`, so the app keeps two lists —
+  // `ACCOUNT_STATUS_FILTERS` (owners) and `WORKER_STATUS_FILTERS` (this one).
+  AccountStatusFilter: ["Active", "Pending", "Deleted", "Lapsed", "Blocked"],
   SortDir:             ["Asc", "Desc"],
   OnboardingSubjectType: ["Owner", "Worker"],
+  // 2026-09-01 added `RepresentativeAuthorization` (the authorization letter).
   OwnerKYCDocType:     ["Passport", "IdCard", "ResidencePermit", "BusinessLicense",
-                        "CompanyRegistration", "TaxCertificate", "Other"],
+                        "CompanyRegistration", "TaxCertificate", "Other",
+                        "RepresentativeAuthorization"],
+  // The day states — must match the words `canonicalTaskStatus` knows
+  // (`lib/tasks/status-vocab.ts`). They moved three times: F-07 ·0 renamed two
+  // (2026-09-17) and ·5 added `Rejected` (2026-09-21). A seventh value turns this
+  // red, which is the point: every day-state consumer must learn it first.
+  TaskStatus:          ["Pending", "CheckedIn", "InReview", "Done", "Cancelled", "Rejected"],
 };
 for (const [name, expected] of Object.entries(EXPECTED_ENUMS)) {
   const live = S[name]?.enum;
@@ -82,9 +92,14 @@ const EXPECTED_FIELDS = {
     // 2026-09-07. These two are the deleted-owners screen's whole content.
     "deletedAt", "deletedBy"],
   OwnerRowDtoPagedResult: ["items", "total", "page", "pageSize", "totalPages"],
+  // `employeeType` went with register-merge (2026-08-19) and `onTask` was renamed
+  // `booked` (2026-08-27) — both asserted gone in section 3. The rest are what the
+  // Workers table renders: location (F-04a), recency (2026-08-13), agency (F-05c).
   WorkerRowDto: ["id", "fullName", "email", "phoneNumber", "licenseExpiry", "status", "onboardingStatus",
-    "employeeType", "skills", "rating", "experience", "completedTasks",
-    "hasActiveContract", "onTask", "createdAt",
+    "skills", "rating", "experience", "completedTasks",
+    "hasActiveContract", "booked", "createdAt",
+    "country", "city", "lastSeenAt", "lastLoginAt",
+    "agency", "pendingAgency", "pendingAgencyStatus",
     // Same as OwnerRowDto — the deleted-workers screen reads these two.
     "deletedAt", "deletedBy"],
   WorkerRowDtoPagedResult: ["items", "total", "page", "pageSize", "totalPages"],
@@ -174,7 +189,9 @@ for (const [name, fields] of Object.entries(EXPECTED_FIELDS)) {
 
 // ── 3. fields that must be GONE ─────────────────────────────────────────────
 for (const [name, dead] of Object.entries({
-  WorkerDetailDto: "isApproved", KycProfileDto: "kycStatus", KycProfileSummaryDto: "isApproved",
+  // register-merge (2026-08-19) also took `address` and `employeeType` off the detail.
+  WorkerDetailDto: ["isApproved", "address", "employeeType"],
+  KycProfileDto: "kycStatus", KycProfileSummaryDto: "isApproved",
   // F-02c retired the `type` enum and deleted the document-review fields. If any
   // of these reappear, this app's rewritten property surface is reading the
   // wrong contract again.
@@ -183,10 +200,16 @@ for (const [name, dead] of Object.entries({
   // under this name, `isGroupActive` and `groupBucket` are reading the wrong
   // contract again — which is exactly how Cancel vanished from three screens.
   TaskGroupDto: "status",
+  // register-merge (2026-08-19) removed `employeeType`; F-06d (2026-08-27) renamed
+  // `onTask` → `booked`. `?onTask=`/`?employeeType=` are silently ignored now, so a
+  // reader that came back would filter nothing without an error.
+  WorkerRowDto: ["employeeType", "onTask"],
 })) {
   const live = S[name]?.properties ?? {};
-  if (dead in live) bad(`${name}.${dead} still exists — v1 field came back`);
-  else ok(`${name}.${dead} gone`);
+  for (const d of [].concat(dead)) {
+    if (d in live) bad(`${name}.${d} still exists — removed field came back`);
+    else ok(`${name}.${d} gone`);
+  }
 }
 
 // ── 4. routes we call ───────────────────────────────────────────────────────
@@ -234,6 +257,15 @@ else bad("renew no longer requires X-Idempotency-Key — re-check the spec");
 const groupsParams = swagger.paths["/api/tasks/admin/groups"]?.get?.parameters ?? [];
 if (groupsParams.some((p) => p.name === "ownerUserId")) ok("admin groups list takes ?ownerUserId");
 else bad("admin groups list lost ?ownerUserId — the Walk-In orders list is built on it");
+
+// The day list Dispatch and the shift grid read. `task.service.ts` sends a closed
+// window (`scheduledFrom`/`scheduledTo`) and `status`; without the window the route
+// falls back to a 500-row cap (f-02a-1 §8), silently.
+const tasksParams = (swagger.paths["/api/tasks/admin"]?.get?.parameters ?? []).map((p) => p.name);
+for (const p of ["scheduledFrom", "scheduledTo", "status"]) {
+  if (tasksParams.includes(p)) ok(`GET /api/tasks/admin takes ?${p}`);
+  else bad(`GET /api/tasks/admin lost ?${p}`);
+}
 
 // ── 7. i18n: every labelKey used by lib/onboarding/* exists in BOTH locales ──
 const REPO = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -293,9 +325,12 @@ if (!email || !password) {
     const kyc = await fetch(`${BASE}/api/admin/kyc?status=Review`, { headers: H });
     if (kyc.ok) ok("GET /api/admin/kyc?status=Review");
     else bad(`GET /api/admin/kyc?status=Review → ${kyc.status}`);
-    const kycRows = kyc.ok ? await kyc.json() : [];
-    if (Array.isArray(kycRows)) {
-      ok(`kyc list is a bare array (${kycRows.length} rows)`);
+    // Paged since 2026-09-08 (`kyc-queue-load-audit`) — it was a bare array
+    // silently capped at 200. `kyc.service.ts` reads the `PagedResult` envelope.
+    const kycPage = kyc.ok ? await kyc.json() : {};
+    const kycRows = kycPage?.items;
+    if (Array.isArray(kycRows) && typeof kycPage.total === "number") {
+      ok(`kyc list is paged (${kycRows.length} of ${kycPage.total} rows)`);
       if (kycRows[0]) {
         for (const f of ["ownerProfileId", "ownerUserId", "onboardingStatus", "documentCount"]) {
           if (f in kycRows[0]) ok(`kyc row has ${f}`);
@@ -303,7 +338,7 @@ if (!email || !password) {
         }
         if ("kycStatus" in kycRows[0]) bad("kyc row still has kycStatus");
       } else console.log("SKIP  kyc row field check (queue is empty)");
-    } else bad("kyc list is not an array");
+    } else bad("kyc list is not a PagedResult envelope");
 
     const wk = await fetch(`${BASE}/api/admin/workers?onboardingStatus=Review&pageSize=1`, { headers: H });
     if (wk.ok) ok("GET /api/admin/workers?onboardingStatus=Review");
