@@ -38,10 +38,11 @@ import {
   useAssignWorker,
   useUnassignWorker,
   useRateWorker,
-  useOverrideOutcome,
 } from "@/hooks/use-tasks";
 import { isGroupActive } from "@/lib/tasks/staffing";
 import { canonicalTaskStatus } from "@/lib/tasks/status-vocab";
+import { outcomeChoices } from "@/lib/tasks/outcome-override";
+import { useClock } from "@/hooks/use-today";
 import {
   normalizeStatus,
   type TaskItemDto,
@@ -69,7 +70,7 @@ interface TaskActions {
   onSupervisor: (task: TaskItemDto) => void;
   onForceClose: (task: TaskItemDto) => void;
   onRate: (taskId: string, tw: TaskWorkerDto) => void;
-  onOutcome: (taskId: string, tw: TaskWorkerDto) => void;
+  onOutcome: (task: TaskItemDto, tw: TaskWorkerDto) => void;
   onUnassign: (taskId: string, tw: TaskWorkerDto) => void;
 }
 
@@ -79,7 +80,7 @@ type ModalState =
   | { type: "supervisor"; task: TaskItemDto }
   | { type: "forceClose"; task: TaskItemDto }
   | { type: "rate"; taskId: string; tw: TaskWorkerDto }
-  | { type: "outcome"; taskId: string; tw: TaskWorkerDto }
+  | { type: "outcome"; task: TaskItemDto; tw: TaskWorkerDto }
   | { type: "unassign"; taskId: string; tw: TaskWorkerDto }
   | null;
 
@@ -123,6 +124,7 @@ function WorkersTable({
   actions: TaskActions;
 }) {
   const t = useTranslations("tasks");
+  const now = useClock();
   const workers = task.workers ?? [];
   if (workers.length === 0) {
     return (
@@ -182,16 +184,19 @@ function WorkersTable({
                     <Star className="size-4" />
                   </Button>
                 </Can>
-                <Can permission="task_worker:mark_outcome_any">
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    title={t("actions.outcome")}
-                    onClick={() => actions.onOutcome(task.id, tw)}
-                  >
-                    <RefreshCw className="size-4" />
-                  </Button>
-                </Can>
+                {/* Hidden where §0j refuses every value — see `outcomeChoices`. */}
+                {outcomeChoices(task, tw.outcome, now).length > 0 && (
+                  <Can permission="task_worker:mark_outcome_any">
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      title={t("actions.outcome")}
+                      onClick={() => actions.onOutcome(task, tw)}
+                    >
+                      <RefreshCw className="size-4" />
+                    </Button>
+                  </Can>
+                )}
                 <Can permission="task:unassign_worker_any">
                   <Button
                     variant="ghost"
@@ -356,13 +361,13 @@ export default function TaskGroupDetailPage({
   const assignWorker = useAssignWorker(id);
   const unassignWorker = useUnassignWorker(id);
   const rateWorker = useRateWorker(id);
-  const overrideOutcome = useOverrideOutcome(id);
+  const clock = useClock();
 
   const close = () => setModal(null);
   const actions: TaskActions = {
     onAssign: (taskId) => setModal({ type: "assign", taskId }),
     onRate: (taskId, tw) => setModal({ type: "rate", taskId, tw }),
-    onOutcome: (taskId, tw) => setModal({ type: "outcome", taskId, tw }),
+    onOutcome: (task, tw) => setModal({ type: "outcome", task, tw }),
     onUnassign: (taskId, tw) => setModal({ type: "unassign", taskId, tw }),
     onSupervisor: (task) => setModal({ type: "supervisor", task }),
     onForceClose: (task) => setModal({ type: "forceClose", task }),
@@ -566,19 +571,10 @@ export default function TaskGroupDetailPage({
         <OutcomeDialog
           open
           onClose={close}
-          isPending={overrideOutcome.isPending}
-          workerName={modal.tw.workerName ?? modal.tw.workerId.slice(0, 8)}
-          current={modal.tw.outcome}
-          onConfirm={(outcome) =>
-            overrideOutcome.mutate(
-              {
-                taskId: modal.taskId,
-                workerId: modal.tw.workerId,
-                body: { outcome },
-              },
-              { onSuccess: close },
-            )
-          }
+          taskId={modal.task.id}
+          worker={modal.tw}
+          choices={outcomeChoices(modal.task, modal.tw.outcome, clock)}
+          groupId={id}
         />
       )}
 

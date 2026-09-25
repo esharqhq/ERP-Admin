@@ -27,11 +27,11 @@ only for what it says.
 | | |
 |---|---|
 | **Last full pass** | **2026-09-25 — full audit**, every admin-panel guide and every CHANGELOG entry naming one, read at `origin/main` **`692bd26`** ([§4](#2026-09-25--full-audit-of-every-admin-panel-guide)) |
-| **CHANGELOG reviewed through** | **2026-09-24** — the newest entry; nothing newer exists at `692bd26` |
+| **CHANGELOG reviewed through** | **2026-09-25** — the rating-card entry (read and actioned, [§4](#2026-09-26--rating-card-the-change-result-button-is-state-guarded)); nothing newer at `9de945d9` |
 | **Actioned through** | **Per guide, in §2.** A single date would lie: ten guides are fully absorbed (as of 2026-09-25, after WP0–WP2), the rest carry open packages in §3. |
 | **Oldest `Absorbed to`** | **2026-07-01** (`support-ticket-followup-fix`, `worker-doc-approved-delete-guard` — both verified, nothing to build). A return pass starts reading the CHANGELOG here. |
 | **Deployed?** | Yes. The live swagger (`api.uyer.app`, 2026-09-25) matches the guides: `GET /api/admin/owners` takes `CityId`/`CountryId` (no `companyCityId`); `OwnerRowDto` has no `companyCity`; `OwnerCompanyDto` has no city/country names; `AccountStatusFilter` = `Active,Pending,Deleted,Lapsed,Blocked`. ⚠ Swagger's `required` is empty for the whole schema — required-ness comes from source, not swagger. |
-| **Last HEAD check** | 2026-09-25, `origin/main` `692bd26`. No `docs/handoff` or `index/` commit since. |
+| **Last HEAD check** | 2026-09-26, `origin/main` `9de945d9`. One commit touching `docs/handoff` or `index/` since `692bd26`: `bbf30cb8`, the rating card (both folders). |
 | **`verify-v2.mjs`** | ✅ **0 FAIL / 116 PASS (2026-09-25, swagger-only, after WP0–WP2).** It was 5 FAIL / 96 PASS before WP0: three were the script's own stale expectations, two were real app bugs (fixed in WP2). The logged-in half needs `ERP_ADMIN_EMAIL`/`ERP_ADMIN_PASSWORD` (WP10). |
 
 ---
@@ -52,7 +52,7 @@ guide is not current to it. Every row was audited; `—` no longer means "never 
 
 | Guide | Shape | Revision | Absorbed to | State | Open packages / note |
 |---|---|---|---|---|---|
-| `task-lifecycle.md` | companion set | 2026-09-24 | 2026-09-21 | ⚠ | WP6, WP11, WP10. The ·0 day-state rename was completed 2026-09-25 (WP1, §4). One living document for all thirteen F-07 slices; read its delta through CHANGELOG entries, never its own diff. §2 `canJoin`, §3 browse, §4 join, §5 drop are worker-app only. |
+| `task-lifecycle.md` | companion set | 2026-09-25 | 2026-09-21 | ⚠ | WP6, WP11, WP10. The ·0 day-state rename was completed 2026-09-25 (WP1, §4). One living document for all thirteen F-07 slices; read its delta through CHANGELOG entries, never its own diff. §2 `canJoin`, §3 browse, §4 join, §5 drop are worker-app only. |
 | `task-cancel-lifecycle-guards.md` | companion set | 2026-09-22 | 2026-07-01 | ⚠ | WP6 (group-cancel 409s unhandled). The `204` re-fetch is verified. |
 | `notification-bell.md` | companion set | 2026-09-22 | 2026-08-05 | ❌ | **WP3** — the 08-05 core rule (upsert by `id`) was never met. |
 | `f-02b-6-default-owner-walk-in-orders.md` | companion set | 2026-09-24 | 2026-08-12 | ⚠ | WP11 (clone). Everything else in the order form is verified. |
@@ -275,6 +275,27 @@ by every document viewer.
 ## 4. Pass log — newest first
 
 The record of what each pass **built** or **established**. What a pass read and did not build is in §3.
+
+### 2026-09-26 — rating card: the change-result button is state-guarded
+
+CHANGELOG 2026-09-25 (`affects: [owner-app, admin-panel, worker-app]`, breaking), `task-lifecycle.md` §0j.
+`PATCH /api/tasks/{taskId}/workers/{workerId}/outcome` now accepts a change on a `Done` day
+(`Completed`/`NoShow`/`Removed`) and on a not-yet-started `Pending` day (`Removed` only); `Cancelled` is refused
+everywhere. The admin dialog offered every outcome word on every day, pre-selected `Pending` (always refused), and
+had no `onError` — every refusal was silent.
+
+| What changed | Where |
+|---|---|
+| `outcomeChoices(task, current, now)` — the §0j table, minus the result already held; empty hides the button. `outcomeErrorKey` maps the six codes + empty-bodied 403 | `lib/tasks/outcome-override.ts` (+ test) |
+| Request type narrowed to `Completed \| NoShow \| Removed`, so `tsc` refuses `Pending`/`Cancelled` | `lib/types/task.types.ts` |
+| Dialog: DS `ChoiceGroup`, nothing pre-selected, i18n labels, inline error by `error` string; a not-started day says the removal counts against the rating | `components/tasks/outcome-dialog.tsx`, messages en/de `tasks.outcomeDialog` |
+| Button gated per worker | `app/[locale]/dashboard/tasks/[id]/page.tsx` |
+| Ratings are current on return (§0j·2) — rate and outcome also invalidate `["worker-rating", workerId]` | `hooks/use-tasks.ts` |
+
+⚠ Not claimed: whether admin Unassign (`DELETE /api/tasks/{taskId}/admin-assign/{workerId}`) affects the rating —
+§0j names only the booking-level `DELETE /api/tasks/groups/{id}/workers/{workerId}`. `complaint_already_decided`
+binds the owner only, so the admin keeps the button on a decided-complaint day. No swagger-visible change, so
+`verify-v2.mjs` is unchanged. Not verified live (needs a real `Done` day).
 
 ### 2026-09-25 — contract gate and two live breaks (WP0–WP2)
 

@@ -2050,8 +2050,7 @@
       "noWorkers": "Keine Mitarbeiter gefunden",
       "rate": "Bewerten",
       "rateTitle": "Mitarbeiter bewerten",
-      "outcome": "Ergebnis",
-      "outcomeTitle": "Ergebnis überschreiben",
+      "outcome": "Ergebnis ändern",
       "unassign": "Entfernen",
       "unassignTitle": "Mitarbeiter entfernen",
       "unassignConfirm": "{name} aus dieser Aufgabe entfernen?",
@@ -2060,6 +2059,32 @@
       "resultNone": "Es wurde nichts storniert. Alle {remaining} verbleibenden Tage beginnen in weniger als 3 Stunden — die Stornierungsfrist ist abgelaufen.",
       "resultUnknown": "Die Anfrage wurde angenommen, die Buchung konnte aber nicht neu geladen werden — bitte aktualisieren.",
       "viewComplaint": "Beschwerde ansehen"
+    },
+    "outcomeDialog": {
+      "title": "Ergebnis ändern",
+      "titleRemove": "Von diesem Tag entfernen",
+      "current": "{name} — aktuelles Ergebnis: {outcome}",
+      "newResult": "Neues Ergebnis",
+      "ratingNote": "Die Bewertung des Mitarbeiters wird beim Speichern sofort neu berechnet.",
+      "removeWarning": "Dieser Tag hat noch nicht begonnen, daher kann {name} nur entfernt werden. Eine Entfernung zählt gegen die Bewertung.",
+      "submitRemove": "Entfernen",
+      "values": {
+        "pending": "Ausstehend",
+        "completed": "Erledigt",
+        "noShow": "Nicht erschienen",
+        "removed": "Entfernt",
+        "cancelled": "Storniert"
+      },
+      "errors": {
+        "outcome_target_not_allowed": "Dieses Ergebnis kann an diesem Tag nicht gesetzt werden.",
+        "outcome_not_overridable": "Dieser Tag kann so nicht mehr geändert werden — er hat vielleicht begonnen. Seite neu laden.",
+        "decide_the_complaint_first": "Zu diesem Tag gibt es eine offene Beschwerde. Entscheiden Sie zuerst die Beschwerde.",
+        "complaint_already_decided": "Die Beschwerde zu diesem Tag ist entschieden, das Ergebnis kann nicht geändert werden.",
+        "cannot_override_to_pending": "Ein Ergebnis kann nicht auf ausstehend zurückgesetzt werden.",
+        "task_worker_not_found": "Dieser Mitarbeiter ist nicht mehr an diesem Tag eingeteilt. Seite neu laden.",
+        "forbidden": "Ihre Rolle darf das Ergebnis eines Mitarbeiters nicht ändern.",
+        "generic": "Das Ergebnis konnte nicht geändert werden. Bitte erneut versuchen."
+      }
     },
     "statuses": {
       "todo": "Zu erledigen",

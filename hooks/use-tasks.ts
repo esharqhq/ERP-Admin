@@ -204,8 +204,21 @@ export function useUnassignWorker(groupId?: string) {
   });
 }
 
+/**
+ * Since the rating card (`task-lifecycle.md` §0j·2, 2026-09-25) a star or a
+ * result change moves the worker's stored rating **at once** — it used to lag
+ * one event behind. So the worker's own rating read (`use-worker-detail.ts`) is
+ * refreshed too, not only the booking.
+ */
+function useInvalidateWorkerRating() {
+  const qc = useQueryClient();
+  return (workerId: string) =>
+    qc.invalidateQueries({ queryKey: ["worker-rating", workerId] });
+}
+
 export function useRateWorker(groupId?: string) {
   const invalidate = useInvalidateTasks();
+  const invalidateRating = useInvalidateWorkerRating();
   return useMutation({
     mutationFn: ({
       taskId,
@@ -216,12 +229,16 @@ export function useRateWorker(groupId?: string) {
       workerId: string;
       body: SubmitTaskWorkerStarRequest;
     }) => taskService.rateWorker(taskId, workerId, body),
-    onSuccess: () => invalidate(groupId),
+    onSuccess: (_, { workerId }) => {
+      invalidate(groupId);
+      invalidateRating(workerId);
+    },
   });
 }
 
 export function useOverrideOutcome(groupId?: string) {
   const invalidate = useInvalidateTasks();
+  const invalidateRating = useInvalidateWorkerRating();
   return useMutation({
     mutationFn: ({
       taskId,
@@ -232,7 +249,10 @@ export function useOverrideOutcome(groupId?: string) {
       workerId: string;
       body: OverrideTaskWorkerOutcomeRequest;
     }) => taskService.overrideOutcome(taskId, workerId, body),
-    onSuccess: () => invalidate(groupId),
+    onSuccess: (_, { workerId }) => {
+      invalidate(groupId);
+      invalidateRating(workerId);
+    },
   });
 }
 

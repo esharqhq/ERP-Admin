@@ -304,8 +304,16 @@ export interface SubmitTaskWorkerStarRequest {
   stars: number; // 1.0 – 5.0
 }
 
+/**
+ * The only values `PATCH …/workers/{workerId}/outcome` accepts since the rating
+ * card (`task-lifecycle.md` §0j, 2026-09-25). `Pending` has always been refused;
+ * `Cancelled` is refused on every day now. Narrower than `TaskWorkerOutcomeName`
+ * on purpose — rows still *carry* those two, but nothing may *send* them.
+ */
+export type OverrideOutcomeTarget = "Completed" | "NoShow" | "Removed";
+
 export interface OverrideTaskWorkerOutcomeRequest {
-  outcome: string; // TaskWorkerOutcomeName (sent as enum name string)
+  outcome: OverrideOutcomeTarget;
 }
 
 /** Filterable task-group statuses for the admin Tasks list (plus "all"). */

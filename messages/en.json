@@ -2050,8 +2050,7 @@
       "noWorkers": "No workers found",
       "rate": "Rate",
       "rateTitle": "Rate Worker",
-      "outcome": "Outcome",
-      "outcomeTitle": "Override Outcome",
+      "outcome": "Change result",
       "unassign": "Unassign",
       "unassignTitle": "Unassign Worker",
       "unassignConfirm": "Remove {name} from this task?",
@@ -2060,6 +2059,32 @@
       "resultNone": "Nothing was cancelled. All {remaining} remaining days start within 3 hours, which is past the cancellation window.",
       "resultUnknown": "The request was accepted, but the booking could not be re-read — refresh to see which days were cancelled.",
       "viewComplaint": "View complaint"
+    },
+    "outcomeDialog": {
+      "title": "Change result",
+      "titleRemove": "Remove from this day",
+      "current": "{name} — current result: {outcome}",
+      "newResult": "New result",
+      "ratingNote": "The worker's rating is recalculated as soon as you save.",
+      "removeWarning": "This day has not started, so {name} can only be removed from it. A removal counts against their rating.",
+      "submitRemove": "Remove",
+      "values": {
+        "pending": "Pending",
+        "completed": "Completed",
+        "noShow": "No-show",
+        "removed": "Removed",
+        "cancelled": "Cancelled"
+      },
+      "errors": {
+        "outcome_target_not_allowed": "That result cannot be set on this day.",
+        "outcome_not_overridable": "This day can no longer be changed this way — it may have started. Reload the page.",
+        "decide_the_complaint_first": "This day has an open complaint. Decide the complaint first.",
+        "complaint_already_decided": "The complaint on this day has been decided, so the result cannot be changed.",
+        "cannot_override_to_pending": "A result cannot be set back to pending.",
+        "task_worker_not_found": "This worker is no longer on this day. Reload the page.",
+        "forbidden": "Your role cannot change a worker's result.",
+        "generic": "The result could not be changed. Try again."
+      }
     },
     "statuses": {
       "todo": "To Do",
