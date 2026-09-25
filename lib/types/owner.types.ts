@@ -66,15 +66,15 @@ export interface OwnerRowDto {
   createdAt: string;
   ownerType: OwnerType;
   /**
-   * F-02 #4. The **company's** city name — `null` for an owner who registered as
-   * a private individual, and `null` for a company that left the field blank.
+   * owner-location-model (2026-08-13). The owner's own city and country **names**
+   * (not their company's). `null` when the owner has not set a location.
    *
-   * ⚠ Render this column **including its blanks.** Those rows are exactly the ones
-   * a `companyCityId` filter can never return, so showing them is what lets a
-   * short filtered list explain itself. Hiding the column makes the filter
-   * silently misleading.
+   * ⚠ Render the column **including its blanks** (f-02-4 §2.1): a blank is exactly
+   * the row a city/country filter can never return, which is what lets a short
+   * filtered list explain itself.
    */
-  companyCity: string | null;
+  city: string | null;
+  country: string | null;
   /**
    * F-02 #4. When the owner last **placed an order** — created a task group on one
    * of their properties. `null` when they never have.
@@ -114,15 +114,15 @@ export interface OwnerListQuery extends PagedQuery {
   propertyCountMin?: number;
   propertyCountMax?: number;
   /**
-   * F-02 #4. A city **id** from `GET /api/countries/{countryId}/cities`, not a
-   * name — which is why the param is `companyCityId` and the returned column is
-   * `companyCity`.
+   * owner-location-model (2026-08-13). The owner **operates** in this country /
+   * city — the owner's own account, not their company, so it reaches every owner.
+   * AND-combined. Ids from `GET /api/countries` and `/api/countries/{id}/cities`.
    *
-   * ⚠ An unrecognised id returns an **empty page, not an error**: the backend
-   * assumes the value came from that dropdown. A stale id therefore looks like "no
-   * matches" rather than a fault, so clear this whenever the country changes.
+   * ⚠ An unrecognised id returns an **empty page, not an error**, so clear
+   * `cityId` whenever the country changes.
    */
-  companyCityId?: string;
+  countryId?: string;
+  cityId?: string;
   lastOrderedFrom?: string;
   lastOrderedTo?: string;
   /**

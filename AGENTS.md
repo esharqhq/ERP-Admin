@@ -9,7 +9,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 Backend (`esharqhq/Germany-ERP`) — yagona haqiqat manbai, va u tez o'zgaradi.
 Checkout: **`$env:GERMANY_ERP`** (`D:\Victus\Projects\Backend\Germany ERP` — yo'lda bo'sh joy
-bor, har doim qo'shtirnoqqa oling), `main` branch. Kontraktning o'zi: `docs/handoff/` — avval `git pull`.
+bor, har doim qo'shtirnoqqa oling). Kontraktning o'zi: `docs/handoff/` — **faqat push qilingan
+`origin/main` dan o'qing** (`git fetch`, keyin `git show origin/main:<yo'l>`). ⚠ U checkout'da boshqa
+agentlar ishlaydi: `pull`, `checkout`, `switch`, `stash` va hech qanday yozish QILMANG; working tree —
+kontrakt emas.
 Ustunlik: **jonli javob > guide > README/guidance.**
 
 Uchta joy, har birining bitta nusxasi:

@@ -103,12 +103,28 @@ describe("activeWorkers", () => {
 });
 
 describe("isOpen", () => {
-  it.each(["Pending", "Active", "pending", "ACTIVE"])("is true for %s", (status) => {
-    expect(isOpen(task({ status }))).toBe(true);
-  });
+  // F-07 ·0 (2026-09-17) renamed `Active` → `CheckedIn`. A checked-in day still
+  // takes workers; the legacy word stays open because a cached response can carry it.
+  it.each(["Pending", "CheckedIn", "pending", "checkedin", "Active"])(
+    "is true for %s",
+    (status) => {
+      expect(isOpen(task({ status }))).toBe(true);
+    },
+  );
 
-  it.each(["Review", "Done", "Cancelled"])("is false for %s", (status) => {
-    expect(isOpen(task({ status }))).toBe(false);
+  // Settled or handed-in days are closed — and so is a word the panel has never
+  // seen: the guard is an allowlist, so a future state fails closed.
+  it.each(["InReview", "Review", "Done", "Cancelled", "Rejected", "Paused", ""])(
+    "is false for %s",
+    (status) => {
+      expect(isOpen(task({ status }))).toBe(false);
+    },
+  );
+});
+
+describe("needsWorkers on a checked-in day", () => {
+  it("is true when the day has started and nobody is on it", () => {
+    expect(needsWorkers(task({ status: "CheckedIn", workers: [] }))).toBe(true);
   });
 });
 

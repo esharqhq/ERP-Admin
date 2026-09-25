@@ -1,7 +1,9 @@
 # Backend contract revisions — what this panel is current against
 
 `MY_APP` for this repo is **`admin-panel`**. Backend checkout: **`$env:GERMANY_ERP`**
-(`D:\Victus\Projects\Backend\Germany ERP` — quote it, the path has a space), on `main`.
+(`D:\Victus\Projects\Backend\Germany ERP` — quote it, the path has a space). **Read it only from the
+pushed `origin/main`** (`git show origin/main:<path>`): other agents work in that checkout, so its working
+tree is not the contract. Never pull, checkout or write there.
 
 This file is **data only**: watermarks, the per-guide table, open work, the pass log, and findings.
 **The procedure lives in the `erp-backend-source` skill** (`.claude/skills/erp-backend-source/` in
@@ -10,7 +12,7 @@ this repo) — `SKILL.md` for the rules, `references/first-time.md` for a guide 
 copies of a contract; where this file and the skill differ, the skill is right.
 
 **Contents:** [1 Watermarks](#1-watermarks) · [2 Guides](#2-guides-this-panel-consumes) ·
-[3 Open work](#3-open-work) · [4 Pass log](#4-pass-log--newest-first) ·
+[3 Open work](#3-open-work--the-backend-task-list) · [4 Pass log](#4-pass-log--newest-first) ·
 [5 Guide bugs to report upstream](#5-guide-bugs-to-report-upstream) ·
 [6 Findings in this repo](#6-findings-in-this-repo)
 
@@ -24,12 +26,13 @@ only for what it says.
 
 | | |
 |---|---|
-| **Last full pass** | 2026-09-24, backend `064ce64 → 38dd53d6` (127 commits) |
-| **CHANGELOG reviewed through** | **2026-09-24** — every entry above 2026-09-21 ·3 read in full |
-| **Actioned through** | **2026-09-21**, plus **the create-form halves only** of four 09-23/09-24 entries ([§4, 2026-09-24](#2026-09-24--f-07-create-forms-and-complaints)). Everything else read that pass is in [§3](#3-open-work). |
-| **Oldest `Absorbed to`** | **2026-07-01** — a return pass starts reading the CHANGELOG here, not at the reviewed-through date |
-| **Deployed?** | Yes, as of 2026-09-24 — live swagger has `/api/tasks/single`, `/admin/single`, `/admin/groups/{id}/clone`, `/complaints/{id}/decide`, `?staffing=`, `TaskStatus` `Rejected`, and `ownerProvidesTools`/`cityId` on `CreateTaskGroupRequest`. ⚠ Swagger's `required` is empty for the whole schema — required-ness comes from source, not swagger. |
-| **Last HEAD check** | 2026-09-25, backend `692bd26` (37 commits past `38dd53d6`, in step with `origin/main` apart from one local `docs(mind)` commit). **No CHANGELOG entry newer than 2026-09-24** — nothing to review. Guide `Revision` column refreshed from README's *How they relate* table; no `Absorbed to` moved. |
+| **Last full pass** | **2026-09-25 — full audit**, every admin-panel guide and every CHANGELOG entry naming one, read at `origin/main` **`692bd26`** ([§4](#2026-09-25--full-audit-of-every-admin-panel-guide)) |
+| **CHANGELOG reviewed through** | **2026-09-24** — the newest entry; nothing newer exists at `692bd26` |
+| **Actioned through** | **Per guide, in §2.** A single date would lie: ten guides are fully absorbed (as of 2026-09-25, after WP0–WP2), the rest carry open packages in §3. |
+| **Oldest `Absorbed to`** | **2026-07-01** (`support-ticket-followup-fix`, `worker-doc-approved-delete-guard` — both verified, nothing to build). A return pass starts reading the CHANGELOG here. |
+| **Deployed?** | Yes. The live swagger (`api.uyer.app`, 2026-09-25) matches the guides: `GET /api/admin/owners` takes `CityId`/`CountryId` (no `companyCityId`); `OwnerRowDto` has no `companyCity`; `OwnerCompanyDto` has no city/country names; `AccountStatusFilter` = `Active,Pending,Deleted,Lapsed,Blocked`. ⚠ Swagger's `required` is empty for the whole schema — required-ness comes from source, not swagger. |
+| **Last HEAD check** | 2026-09-25, `origin/main` `692bd26`. No `docs/handoff` or `index/` commit since. |
+| **`verify-v2.mjs`** | ✅ **0 FAIL / 116 PASS (2026-09-25, swagger-only, after WP0–WP2).** It was 5 FAIL / 96 PASS before WP0: three were the script's own stale expectations, two were real app bugs (fixed in WP2). The logged-in half needs `ERP_ADMIN_EMAIL`/`ERP_ADMIN_PASSWORD` (WP10). |
 
 ---
 
@@ -39,209 +42,295 @@ Every guide whose `Consumers:` in `docs/handoff/README.md` → *How they relate*
 (superseded stubs excluded). Two dates per row, and confusing them defeats the point of this file:
 
 - **Revision** — the date the *guide* carries upstream. Copied from the catalog; refreshing it is safe.
-- **Absorbed to** — the date *we* are current to. Moves **only** when the entries up to that date are
-  actually built (or checked to need nothing). **`—` means never absorbed**: that guide gets a
-  first-time read (`references/first-time.md`), not a changelog pass.
+- **Absorbed to** — the date *we* are current to. Moves **only** when every admin-panel obligation up to
+  that date is built or checked to need nothing. **`—`** means never absorbed.
 
-`State` is what we have verified **up to `Absorbed to`**, not what we assume. `Shape` matters: an
-**extension** omits auth and the scope gate — read the guide it extends first.
+**`State`** is the 2026-09-25 audit verdict: ✅ absorbed · ⚠ open work (packages in §3) · ❌ an
+`Absorbed to` claim the audit found **false** — the date is kept so the history stays readable, but the
+guide is not current to it. Every row was audited; `—` no longer means "never read".
+`Shape` matters: an **extension** omits auth and the scope gate — read the guide it extends first.
 
-### Tracked
-
-| Guide | Shape | Revision | Absorbed to | State | Notes |
+| Guide | Shape | Revision | Absorbed to | State | Open packages / note |
 |---|---|---|---|---|---|
-| `task-lifecycle.md` | companion set | 2026-09-24 | 2026-09-21 | ⚠ partly | **One living document for all thirteen F-07 slices** — do not expect one file per slice. Absorbed: **§0** (·0 — the two renamed day states and the deleted `TaskGroupDto.status`), **§0b** (·1 — the `InReview` attendance read), **§0c** (·4 — supervisor override, `supervisorWorkerId`, `workSummary`), **§0d** (·3 — force-close, `closed` counts, `closureReason`, the three-hour cancel window). The 09-23/09-24 create-form halves are built but the row stays at 09-21 — see §3. ⚠ **Not absorbed: §2 `canJoin`, §3 the day browse list, §4 join, §5 drop** — worker-app surfaces this panel has no screen for. ⚠ Its delta is read through CHANGELOG entries and **never** through the file's own diff. |
-| `deleted-account-email-release.md` | companion set | 2026-09-08 | 2026-09-21 | ✅ yes | ⚠ **The Revision is older than the absorption date on purpose — that is the trap this row records.** The restore doors (`worker:restore` 80047, `owner:restore` 30006) shipped 2026-09-10 as `Kind: fix` and the guide's Revision was **deliberately not bumped**, because nothing an end-user client can see moved. Watching Revisions alone would never have surfaced them. Both are built (the two deleted-accounts screens). §6's two withdrawn agency instructions were checked and neither was ever encoded here — `lib/agencies/application-errors.ts` already links `existingAgencyId` unconditionally, which is what §6 now says to do. |
-| `f-06-c-checkin-proof.md` | companion set | 2026-09-23 | 2026-09-08 | ✅ yes | All three admin halves verified. §4 the walk-in order's own `lat`/`long` (fixed 2026-09-08, [§4](#2026-09-08--the-walk-in-order-form-could-not-file-an-order)); §5 property coordinates, already sent and gated on `location !== null` by `property-create-dialog.tsx:117,129` and `property-edit-dialog.tsx:91,102`; §6 the four refusal fields, modelled in `lib/types/attendance.types.ts:30-55` and rendered as the workers matrix' `refused` chip (`lib/workers/matrix.ts:40-65`). ⚠ Nothing here can read a filed order's coordinates back — §4.2, upstream gap, not ours. |
-| `f-02b-6-default-owner-walk-in-orders.md` | companion set | 2026-09-24 | 2026-08-12 | ✅ yes | The walk-in page (PR #21). At 08-12 its Revision had moved via F-02 #4's Owners-table changes, not the order flow. The 09-23/09-24 create-form halves are built but not absorbed — see §3. |
-| `f-02-4-owner-table-filters.md` | companion set | 2026-09-07 | 2026-08-12 | ⚠ partly | All six filter params and all three columns were built **as the guide stood on 08-12** (`companyCityId`, `lastOrderedFrom`/`To`, `neverOrdered`, `taskCountMin`/`Max`; `companyCity`, `lastOrderedAt`, `taskCount`), gated in `verify-v2.mjs`. ⚠ The city pair has since been renamed — see §3.0. The **three sort keys and three export columns are not** built, and cannot be "absorbed" — see §3.5. |
-| `fnd-3-table-query.md` | companion set | 2026-09-18 | 2026-08-12 | ⚠ partly | The owners/workers tables use it. Same split: filters in, sorting and export absent app-wide. `invalid_filter_value` went from 3 triggers to 6 — all six are refused client-side by `buildOwnerFilterQuery` before the request. |
-| `contract-lifecycle.md` | companion set | 2026-09-04 | 2026-08-11 | ⚠ partly | §7.7 `ownerLegalName`/`workerLegalName` modelled and carried on `RegistryRow` as `partyLegalName`. **Nothing renders it yet** — the registry itself is unbuilt, so whoever builds it must show both names and render nothing when the legal one is null. |
-| `onboarding-and-active-gate.md` | companion set | 2026-09-24 | 2026-08-11 | ⚠ partly | §10.3 `prefill.legalName` modelled. Our authoring flow has no contracting-party name field — the admin uploads a PDF — so there is currently nowhere to use it. |
-| `f-02a-1-admin-task-list-filters.md` | standalone | 2026-09-17 | 2026-08-10 | ⚠ partly | The conditional row cap is understood and documented at the call site. **None of the four filters** (`propertyId`, `scheduledFrom`, `scheduledTo`, repeatable `status`) are built, so the dispatch page still sends no window and 500 is the live bound. |
-| `f-02b-7-admin-owner-edit.md` | companion set | 2026-09-08 | 2026-08-10 | ✅ yes | Verified: `owner_has_open_tasks` handled, dead `boss_has_active_properties` documented as removed. |
-| `f-03-1-structured-document-data.md` | companion set | 2026-09-04 | 2026-08-10 | ✅ yes | v2 phases. Gated by `verify-v2.mjs`. |
-| `f-02c-property-rework.md` | companion set | 2026-09-23 | 2026-08-07 | ✅ yes | Verified: `category` FK object, no `docsStatus`, property entries in `verify-v2.mjs`. |
-| `fnd-1-configurable-lookups.md` | companion set | 2026-09-23 | 2026-08-07 | ✅ yes | v2 phase 4. |
-| `notification-bell.md` | companion set | 2026-09-22 | 2026-08-05 | ✅ yes | v2 phase 4. |
-| `fnd-2-admin-initiated-ticket.md` | standalone | 2026-08-03 | 2026-08-03 | ✅ yes | Gated by `verify-v2.mjs` (`AdminOpenTicketRequest`). |
-| `support-ticket-followup-fix.md` | standalone | 2026-07-01 | 2026-07-01 | ✅ assumed | Not re-verified. |
-| `task-cancel-lifecycle-guards.md` | companion set | 2026-09-22 | 2026-07-01 | ✅ assumed | Not re-verified. |
-| `worker-doc-approved-delete-guard.md` | standalone | 2026-07-01 | 2026-07-01 | ✅ assumed | Not re-verified. |
-
-### Untracked — consumed, never recorded (found 2026-09-25)
-
-These name `admin-panel` in `Consumers:` and were **missing from this table**, although several are
-cited in code. `Absorbed to` is `—` on purpose: code that cites a guide is not evidence it was absorbed.
-Each needs a first-time read before it gets a date.
-
-| Guide | Shape | Revision | Absorbed to | Cited in code |
-|---|---|---|---|---|
-| `f-01-a-broadcast-core.md` | companion set | 2026-08-31 | — | `components/broadcasts/compose-form.tsx`, `hooks/use-broadcasts.ts`, `hooks/use-broadcast-audience-preview.ts`, `lib/types/broadcast.types.ts`, the broadcast pages |
-| `f-04a-worker-location.md` | companion set | 2026-09-23 | — | nowhere |
-| `f-04b-worker-availability.md` | companion set | 2026-09-16 | — | `lib/types/availability.types.ts`, `lib/types/skill-request.types.ts` |
-| `f-04c-username-at-setup.md` | companion set | 2026-08-19 | — | nowhere |
-| `f-05-0-agency-user-type.md` | companion set | 2026-09-08 | — | nowhere — ⚠ it is the **base** of the three `f-05-*` extensions below; read it first |
-| `f-05-a-application-review.md` | extension of `f-05-0` | 2026-09-10 | — | `lib/types/agency.types.ts`, `components/agency-requests/review-history.tsx`, `components/docs-workspace/detail/file-viewer.tsx` |
-| `f-05-b-agency-portal.md` | extension of `f-05-0` | 2026-09-20 | — | `lib/agencies/portal-impact.ts` (+ test) |
-| `f-05-c-worker-agency-link.md` | extension of `f-05-0` | 2026-09-04 | — | `lib/types/agency.types.ts`, `lib/types/worker.types.ts`, `lib/workers/agency-link.ts` (+ test); the screen itself: `app/[locale]/dashboard/agency-links/page.tsx`, `lib/agencies/link-{actions,errors,query}.ts` (+ tests) |
-| `f-06-a-skills-request.md` | companion set | 2026-09-04 | — | `lib/types/skill-request.types.ts` (comment claims rev 2026-09-04) |
-| `owner-location-model.md` | companion set | 2026-09-23 | — | nowhere (but `useCountries`/`useCities` are wired — see §3 backlog) |
-| `profession-fnd1-retrofit.md` | companion set | 2026-09-23 | — | `lib/types/profession.types.ts`, `lib/professions/*`, the professions and skill-requests pages, `BACKEND-ASKS.md` #36 |
-| `register-merge.md` | companion set | 2026-09-08 | — | `lib/types/worker.types.ts`, `lib/types/availability.types.ts`, `components/workers/*`, `components/docs-workspace/queue-cells.tsx` |
+| `task-lifecycle.md` | companion set | 2026-09-24 | 2026-09-21 | ⚠ | WP6, WP11, WP10. The ·0 day-state rename was completed 2026-09-25 (WP1, §4). One living document for all thirteen F-07 slices; read its delta through CHANGELOG entries, never its own diff. §2 `canJoin`, §3 browse, §4 join, §5 drop are worker-app only. |
+| `task-cancel-lifecycle-guards.md` | companion set | 2026-09-22 | 2026-07-01 | ⚠ | WP6 (group-cancel 409s unhandled). The `204` re-fetch is verified. |
+| `notification-bell.md` | companion set | 2026-09-22 | 2026-08-05 | ❌ | **WP3** — the 08-05 core rule (upsert by `id`) was never met. |
+| `f-02b-6-default-owner-walk-in-orders.md` | companion set | 2026-09-24 | 2026-08-12 | ⚠ | WP11 (clone). Everything else in the order form is verified. |
+| `f-02a-1-admin-task-list-filters.md` | standalone | 2026-09-17 | 2026-08-10 | ⚠ | WP9 (no 500/5,000 cap signal). `scheduledFrom`/`scheduledTo`/`status` **are** sent; only `propertyId` and repeatable `status` are unbuilt (no consumer needs them). |
+| `f-06-c-checkin-proof.md` | companion set | 2026-09-23 | 2026-09-08 | ⚠ | WP6 (property dialogs skip problem-details — minor). Nothing can read a filed order's coordinates back — §4.2, upstream gap. |
+| `f-02c-property-rework.md` | companion set | 2026-09-23 | 2026-08-07 | ⚠ | **WP12** (09-23 ·9b property `countryId`/`cityId`). |
+| `fnd-1-configurable-lookups.md` | companion set | 2026-09-23 | 2026-08-07 | ❌ | WP15 — Country/City admin CRUD (in the guide since 08-03) was never built. Category CRUD verified. |
+| `fnd-3-table-query.md` | companion set | 2026-09-18 | 2026-08-12 | ⚠ | WP13 (block), WP14 (owner last-seen + sort), WP18 (exports). Owner city/country filter + column fixed 2026-09-25 (WP2, §4). Worker table: every filter and six sort keys verified. |
+| `f-02-4-owner-table-filters.md` | companion set | 2026-09-07 | 2026-08-12 | ⚠ | WP14 (sort), WP18 (export). The city filter, column and hint were fixed 2026-09-25 (WP2, §4). lastOrdered/neverOrdered/taskCount verified. |
+| `owner-location-model.md` | companion set | 2026-09-23 | — | ⚠ | **WP2 remainder** (admin location edit). Filter, columns and KYC address fixed 2026-09-25 (§4). |
+| `f-02b-7-admin-owner-edit.md` | companion set | 2026-09-08 | **2026-09-08** | ✅ | Name lock, reason, codes, SUPER_ADMIN gates verified. Its location fields belong to `owner-location-model` (WP2). |
+| `onboarding-and-active-gate.md` | companion set | 2026-09-24 | 2026-08-11 | ⚠ | WP6 (doc reject ≥ 3 chars), WP9 (KYC picker cap), WP11 (clone). `registrationAddress` and `RepresentativeAuthorization` fixed 2026-09-25 (§4). `prefill.legalName` is N/A (PDF authoring). |
+| `f-04a-worker-location.md` | companion set | 2026-09-23 | — | ⚠ | WP13 (admin edit form, location on detail). Filters and row names verified. |
+| `f-04b-worker-availability.md` | companion set | 2026-09-16 | — | ⚠ | WP13 (the five writes, reset, Worker Detail). Read-only matrix view verified. |
+| `f-04c-username-at-setup.md` | companion set | 2026-08-19 | — | ⚠ | WP13 (username on detail). |
+| `register-merge.md` | companion set | 2026-09-08 | **2026-09-08** | ✅ | `employeeType`/`address` removed, rows keyed on id. Export half N/A (no export). |
+| `deleted-account-email-release.md` | companion set | 2026-09-08 | 2026-09-21 | ✅ | ⚠ **Revision older than absorption on purpose:** the restore doors shipped 2026-09-10 as `Kind: fix` without a Revision bump — watching Revisions alone would never have surfaced them. Both built and gated. |
+| `worker-doc-approved-delete-guard.md` | standalone | 2026-07-01 | 2026-07-01 | ✅ | Verified (was "assumed"): the bell row is non-navigable. |
+| `f-05-0-agency-user-type.md` | companion set | 2026-09-08 | **2026-09-08** | ✅ | Base of the three extensions below. |
+| `f-05-a-application-review.md` | extension of `f-05-0` | 2026-09-10 | — | ⚠ | WP16 (expired PDF preview), WP6 (upload refusal codes), WP10 (both reason fields). |
+| `f-05-b-agency-portal.md` | extension of `f-05-0` | 2026-09-20 | **2026-09-20** | ✅ | Both admin levers (confirm before PUT ends access; reject warns of portal loss). |
+| `f-05-c-worker-agency-link.md` | extension of `f-05-0` | 2026-09-04 | **2026-09-04** | ✅ | Dispute queue, overrule, mutual exclusion, reject-then-attach, detail block. |
+| `profession-fnd1-retrofit.md` | companion set | 2026-09-23 | **2026-09-23** | ✅ | `nameEn`/`nameDe`, deactivate-only, `includeInactive`, GENERAL guard. |
+| `f-06-a-skills-request.md` | companion set | 2026-09-04 | — | ⚠ | WP17 (certificate preview), WP9 (history cap), WP10 (`history.rating` null). |
+| `contract-lifecycle.md` | companion set | 2026-09-04 | 2026-08-11 | ⚠ | **WP7** (terms read-back, clearing, write gates). |
+| `f-03-1-structured-document-data.md` | companion set | 2026-09-04 | **2026-09-04** | ✅ | §7 verified by the audit; its last open item, the shared 09-01 `RepresentativeAuthorization` label, was fixed 2026-09-25 (§4). |
+| `f-01-a-broadcast-core.md` | companion set | 2026-08-31 | — | ⚠ | **WP8** (send-now polling, unknown-status crash, selection errors). |
+| `fnd-2-admin-initiated-ticket.md` | standalone | 2026-08-03 | 2026-08-03 | ❌ | **WP5** — `[Idempotent]` door called without the key. |
+| `support-ticket-followup-fix.md` | standalone | 2026-07-01 | 2026-07-01 | ✅ | Verified: no client change required. |
 
 Deliberately absent — their `Consumers:` do not include `admin-panel`: the four `worker-chat*` guides,
 `admin-assigned-group-visibility.md` and `f-06-b-skill-based-task-visibility.md`. `f-04d-completeness-gate.md`,
-`who-builds-what.md` and `worker-chat.md` are superseded stubs.
+`who-builds-what.md` and `worker-chat.md` are superseded stubs. Surfaces with **no guide** (admin users,
+roles, permissions, audit log, `me/permissions`) are checked against `index/` — WP4, WP5.
 
 ---
 
-## 3. Open work
+## 3. Open work — the backend task list
 
-**This is the panel's backend task list.** Everything read and not built lives here and only here;
-when an item is built, move it to the pass that built it in §4. Order: live breaks, then partly done,
-then unbuilt, then the backlog nobody has read yet.
+**Everything the 2026-09-25 audit found open lives here, and only here**, grouped into packages by the
+files they touch. When a package is built, move it to §4 as a pass and move its guides' `Absorbed to`.
 
-### 3.0 🔴 Suspected live break — the Owners-table city filter (found 2026-09-25)
+### How the order was chosen (backend-derived)
 
-**Guide-derived, not yet confirmed against a live response.** `owner-location-model` (2026-08-13)
-renamed the Owners-table city filter `companyCityId` → **`cityId` + a new `countryId`**, and the row
-fields `companyCity` → **`city` + `country`**. `f-02-4-owner-table-filters.md` §2: *"the original
-`companyCityId` name is history, not something you can still send."* This panel still sends it and
-reads it:
+1. **WP0 first** — it is the regression gate every later package is verified by. ✅ Green since 2026-09-25.
+2. **Live now, silent** — wrong today and nothing tells the admin (WP1–WP5).
+3. **Live now, loud or data-losing** — a visible error or a write that loses data (WP6, WP7).
+4. **Latent** — breaks only on a future backend change or a rare race (WP8).
+5. **Silent truncation** (WP9) and **built but unproven live** (WP10, needs a session).
+6. **Shipped contract not yet built** (WP11–WP17), then **new features** (WP18).
 
-- `lib/owners/owner-filter-query.ts:17,34` — `companyCityId` in the key lists, and `countryId`
-  deliberately **not** sent (the doc comment at `:8-10` says `companyCityId` is "the only city param
-  the route accepts" — now false).
-- `app/[locale]/dashboard/(owner)/owners/page.tsx:170` — the filter control's key.
-- `lib/types/owner.types.ts:77,125` — `companyCity` row field and `companyCityId` filter type.
+Status words: BROKEN · PARTIAL · MISSING · NEEDS-LIVE. Evidence is `file:line` at audit time.
 
-Expected symptom: picking a city returns the **unfiltered** table (an unknown query key is ignored, the
-same failure class as `?onTask=` in 3.4), and the city column renders blank for everyone. **First step:**
-one real `GET /api/admin/owners?companyCityId=<id>` vs `?cityId=<id>` to confirm. Then read the
-2026-08-13/14 `owner-location-model` entries (inside the 3.6 backlog) and the guide in full.
+**WP0, WP1 and WP2 (except the edit form below) were built 2026-09-25 — see [§4](#2026-09-25--contract-gate-and-two-live-breaks-wp0wp2).**
 
-### 3.1 Built but not yet proven against production
+### WP0 remainder — contract-gate coverage (ongoing)
 
-| Item | From | What is missing |
-|---|---|---|
-| The two admin create forms (description + tools, single vs group routing, walk-in `cityId`, deadline ≤ start) | 09-23 ·7 · ·12 · ·9b, 09-24 ·10 | Matches the guide and the live swagger request DTOs; **not yet filed against production**. Until one real order has gone through each of `/admin/single` and `/admin/groups`, do not call them confirmed live. |
-| The complaint decide door, `Rejected` reads, `decide_the_complaint_first` | 09-21 ·5, 09-22 ·5 post-merge | Not yet exercised against a real complaint. |
+`scripts/verify-v2.mjs` is green, but it still does not gate: admin users/roles/permissions/audit-log/
+me-permissions, broadcasts, agencies + applications + links, skill requests, professions, support tickets,
+clone, and `kind`/`cityId` on the task DTOs. Add each one's routes and fields as its package lands.
 
-### 3.2 Partly actioned — what is left
+### WP1/WP2 follow-ups — from the 2026-09-25 final review (minor, deferred)
 
-| Entry | Kind | Still open |
-|---|---|---|
-| 2026-09-24 F-07 ·10 clone + deadline | breaking | **Clone.** New `POST /api/tasks/admin/groups/{id}/clone` — the **only** way to repeat a walk-in order (send `cityId` for one filed before 09-23). The deadline half (`deadline_not_after_start` on deadline == start) is done. `buildOrder`'s doc comment (*"an earlier deadline … may mean next day"*) was false — night jobs are accepted and do not work. |
-| 2026-09-23 F-07 ·9b same-city gate | breaking | **Property city fields on the property forms; `overrodeLocation` on the audit page.** `group_city_not_allowed` if `cityId` is sent for an ordinary property (so `buildOrder` must keep omitting it). Additive: `PropertyDto.country`/`city`, `TaskGroupDto.cityId`, audit 113 `overrodeLocation`. Admin assign is not gated. The walk-in `cityId` is done. |
-| 2026-09-23 F-07 ·7 description + tools | breaking | **Reading `ownerProvidesTools`/`addOnNote` back on the order sheet** (typed on `TaskGroupDto`, not rendered). `Instructions` and `OwnerProvidesTools` are `[Required]` (`GermanyERP.Domain/Models/DTOs/Tasks/TaskDtos.cs:33,45`). The `PUT /api/tasks/groups/{id}` half does not apply — this panel calls no group PUT. The create half is done. |
-| 2026-09-23 F-07 ·12 single task | breaking | **Rendering `kind`** — typed on `TaskGroupDto` only, not on `TaskItemDto`, not shown. Routing and `task_date_in_past` are done. |
-| 2026-09-22 F-07 ·8 staffing ladder | breaking | **The critical list** — `?staffing=Warning\|Critical` on `GET /api/tasks/admin` is unbuilt. Kind 19 retired → 82/83; no break here (the bell routes by `entityType`, never by kind number) and 82/83 rows are clickable since 09-24. `lib/tasks/dispatch-row.ts:8` comment still names the retired 3-hour alert (comment only — no 3 h constant in code). |
-| 2026-09-08 KYC queue paging + richer rows | breaking | Paging is done (`lib/services/kyc.service.ts`). The five new `KycProfileSummaryDto` fields are on the wire and unsurfaced — a product decision, not a break. |
-| 2026-09-07 `?status=Deleted`, `deletedAt`/`deletedBy` | fix | ✅ Confirmed live 2026-09-22 (5 real rows, each with `deletedAt`/`deletedBy`). Both row DTOs carry the two fields. **Open: the export column counts it also moved** — untouched, since this app calls no export route. |
+- `lib/workers/matrix.ts:159` `DEAD_TASK = {"cancelled","completed"}` — `completed` is not a task state,
+  so a **Done** day is never treated as dead in the workers matrix. Pre-existing; the last wrong-word
+  comparison found. Use `canonicalTaskStatus`.
+- `hooks/use-worker-shifts.ts:181-185`: a past day in an **unknown** state with no check-in reads
+  *missed* (a no-show on a word the panel does not know). Return `"scheduled"` for `null`.
+- `lib/types/task.types.ts:5-10` `TaskItemStatusName` still lists `Active`/`Review` (unused) — update or delete.
+- A bookmarked Owners URL with `?companyCityId=` keeps the dead key in the address; map it to `cityId` on
+  load and drop it.
+- Owners Location cell: a country with no city renders "—" over the country; render the country alone.
+- `scripts/verify-v2.mjs` "gone" list for `OwnerCompanyDto` omits `cityNameDe`/`countryNameDe`.
+- `facts-rail.tsx`: "Registered in" + a street address reads better as "Registered address".
 
-### 3.3 Read, not actioned
+### WP2 remainder — Owner location edit · `owner-location-model` §3
 
-| Entry | Kind | State |
-|---|---|---|
-| 2026-09-16 ×2 (availability, one-day join) | breaking | `affects:` names `admin-panel`; neither was checked in any pass. |
-| 2026-09-11 direct-upload `Content-Type` | fix | Worker/owner upload surface. Not checked against this panel's uploads. |
-| 2026-09-11 chat `PUT` → `POST` | fix | `worker-chat-core.md` — not a guide this panel consumes. Nothing to do unless that changes. |
-| 2026-09-10 upload-signature error shape | fix | Open. |
-| 2026-09-10 non-Latin filenames | fix | Open. |
+MISSING: admin owner location edit on `PUT /api/owners/{id}` (`countryId`/`cityId`, pickers
+pre-selected, `city_country_mismatch`/`country_not_found`/`city_not_found`) — `lib/owners/detail-actions.ts:31-35`.
+A new form section; needs its own design.
 
-### 3.4 Intake pulled 2026-08-30 — read, not absorbed
+### WP3 — Notification bell · 🔴 live, silent · `notification-bell` §10/§11
 
-Backend `08ab6d7 → f3a2334`. Three `affects: admin-panel` entries, in `Became false:` order. It is the
-best write-up of these three; it is **not** everything outstanding — see 3.6.
+- `hooks/use-notifications.ts:16-22` **prepends** every socket event and adds +1 unread even for a
+  rewrite of an existing row or an already-read one → duplicate rows, badge drifts up. Upsert by `id`;
+  count only a new unread row.
+- MISSING: dedupe pages by `id` (§11.4); wire `DELETE /api/notifications/{id}` (08-31; `notification.service.ts:26` has no caller).
+- ⚠ `lib/notifications/route.ts:94` branches on `type`, not only `entityType`; 82/83 routing is NEEDS-LIVE (WP10).
 
-**1. `onTask` → `booked` (CHANGELOG 2026-08-27, F-06d) — breaking, and it fails SILENTLY.**
-`?onTask=` is now an unknown query key, so it is ignored and the request returns the **whole unfiltered
-table**. The rule behind the filter did not change. Row field `onTask` → `booked`; the export's
-`Task status` values `On task`/`Free` → `Booked`/`Free`. Our sites:
-`lib/workers/worker-filter-query.ts:35,48`, `lib/workers/worker-filter-query.test.ts:33-35`,
-`lib/types/worker.types.ts:57,82`. **`buildWorkerFilterQuery` has no consumer today** — the workers page
-still filters client-side over one page — so this is a rename in unwired code, not a live regression.
+### WP4 — Audit log · 🔴 live, silent · no guide (`index/controllers/admin.md`)
 
-**2. `Blocked` → `Lapsed`, and a real `Blocked` (CHANGELOG 2026-08-28) — breaking on both tables.**
-Same numeric code, same rows, new word. Worker table takes `Lapsed` **and** a new `Blocked` (an admin
-sanction, stored not derived). Owner table takes the **rename only** — `?status=Blocked` there is now
-`400 status_not_supported_for_owners` on the list *and* the export. The buckets now partition:
-`Active`/`Pending`/`Lapsed` all exclude blocked workers. Our sites: `lib/types/onboarding.types.ts:46-51`
-(`ACCOUNT_STATUS_FILTERS`), and the doc comments at `lib/types/worker.types.ts:43` and
-`lib/types/owner.types.ts:43`. **No live 400 risk today** — `status` is in `OWNER_FILTER_KEYS` and
-`WORKER_FILTER_KEYS` but no filter control populates it, and the owners/workers pages drive their tabs
-off `onboardingStatus`, whose six filter values this entry does not touch.
+- `app/[locale]/dashboard/settings/audit/page.tsx:74-91` fetches unfiltered and filters on the client, but
+  the server caps at **200 rows** — an older action shows "no entries", indistinguishable from a real
+  empty result. Send `?action=` with the **C# member name** (`KycApproved`, not `KYC_APPROVED`, which is a
+  problem-details 400). The code comment's "casing" reason is wrong.
+- Remove the dead `PROPERTY_DOCS_*` options (`page.tsx:23`) — those routes were deleted (guidance §5).
 
-**3. "Do NOT build an edit-required-skills control" is WITHDRAWN (CHANGELOG 2026-08-27, F-06 tail).**
-`PUT /api/tasks/groups/{id}` now accepts a non-empty `eligibleProfessionIds`; re-sending the same set is
-a real no-op, so a plain Save is safe. The eligibility **freeze** is unchanged — once any child task
-leaves `Pending` it refuses `task_group_eligibility_frozen`, so **disable** the control on a started
-booking rather than letting the save fail.
+### WP5 — Write safety: idempotency and retry · 🔴 live, silent duplicates · `fnd-2`, guidance §6
 
-Newly available and unbuilt (no `Became false:`, so none of it is urgent): `POST /api/admin/workers/{id}/block`
-and `/unblock` (`worker:block` 80046, SUPER_ADMIN, reason mandatory both ways; `blockedAt`/`blockedReason`
-on worker detail); worker-table filters `?startingSoon=`, `?idleWeek=`, `?availableOn=YYYY-MM-DD`,
-`?agencySource=Independent|ViaAgency`; support-ticket filters `?requesterUserId=`, `?requesterUserType=`,
-`?search=` on `GET /api/support-tickets/admin/all` — that trio is what a Worker Detail → Tickets tab calls.
+- `lib/services/support.service.ts:134` `createForUser` sends **no `X-Idempotency-Key`** on an
+  `[Idempotent]` door — a double-click opens two tickets.
+- `lib/services/admin-user.service.ts:34` and `role.service.ts:131` mint a **fresh key per call**,
+  against `lib/http/idempotency.ts:6-8` (one key per intent, held in a ref). Deactivate sends none.
+- Nothing re-reads after a `500` or the 15 s timeout (`lib/http/client.ts:10`) before a retry.
 
-⚠ `verify-v2.mjs` stays green through all of this. It only gates the v2-migration surface.
+### WP6 — Errors that are swallowed or generic · live, silent/loud
 
-### 3.5 New features, not migrations — sort keys and export columns
+- **Silent:** per-worker rating `409 task_worker_not_completed` — `app/[locale]/dashboard/tasks/[id]/page.tsx:557-560`
+  has `onSuccess` only. Group-cancel 409s — `page.tsx:522-529` (race only).
+- **Generic:** `worker_already_assigned_to_task` (09-16 one-day join) missing from `lib/tasks/assign-errors.ts:8-41`;
+  upload refusals `raw_body_expected` / `invalid_or_expired_signature` / `unsafe_storage_key` (09-10);
+  property dialogs never call `getValidationMessage`, and `city_required` / `country_inactive` are unmapped
+  (`lib/onboarding/errors.ts:82-83,156`); 15 callers read only `getApiErrorCode` (settings/professions,
+  property-categories, admins, presets, `property-actions.tsx:34`, `leave-decision-pane.tsx:105`,
+  `ticket-detail-pane.tsx:155`, …).
+- Worker doc reject allows 1–2 characters; the server needs ≥ 3 (`reject-dialog.tsx:61,86`).
 
-Several entries list **sort keys** and **export columns** among their changes. Neither can be absorbed,
-because **neither surface exists anywhere in this app**:
+### WP7 — Contract edit · live, data loss · `contract-lifecycle` 09-03
 
-- **No table sorts *server-side*.** No page sends `sortBy`/`dir`, and `DataTableColumn` is
-  `{ label, className }` with no sort affordance. A `SortableTableHead` primitive **does** exist and the
-  attendance screen uses it — but that sort is client-side over already-fetched rows
-  (`useAttendanceTable` holds local `sortKey`/`sortDir`), which is not what a `sortBy` whitelist is for.
-  So the primitive is reusable; the plumbing is what is missing.
-- **No admin table exports.** Nothing calls any export route: no `?format=`, no `/export`. The only CSV
-  in the app is the attendance screen's client-side one.
+- The edit form **starts blank** (`components/docs-workspace/contract-panel.tsx:50-57` `EMPTY`; summary has
+  no terms `:34-45`) instead of the stored `generalTerms`/`extraClauses` — render them as form fields.
+- Three-state PUT: `""` (clear) is never sent (`owner-documents/[ownerProfileId]/page.tsx:244-245`), so an
+  admin cannot clear a term.
+- Save / send / recall / renew are **not permission-gated** (only the read is, `use-contracts.ts:79`).
+- NEEDS-LIVE: draft edit without a new file sends `fileUrl:""`/`fileName:""` (`page.tsx:238,242`);
+  `file_not_found` unmapped.
 
-Each needs its own spec. Two rules to carry into them: the `sortBy` whitelist needs a **default branch**
-(an unknown key must not fall through), and the export must be read **by header name, not column
-position** — the owner export has gone 9 → 10 → 13 → 15 → 16 → 18 and the worker one
-16 → 18 → 17 → 18-but-a-different-18 → 20 (it *shrank* once, and `register-merge` removed a 7th column,
-shifting everything after it left by one), so an exact-column-count assertion has now broken five times.
+### WP8 — Broadcasts · latent crash + silent · `f-01-a`
 
-### 3.6 The unread backlog — 27 entries, measured 2026-09-08
+- **Latent crash:** `components/broadcasts/broadcast-detail-rail.tsx:84` switch has five cases and no
+  default → `rows` undefined → `rows.map` (`:185`) throws on any new status.
+  `broadcast-detail-header.tsx:90`, `broadcast-detail-panels.tsx:149` have no default either.
+- **Silent:** send-now sits at `Scheduled` — `hooks/use-broadcasts.ts:40-41` polls only while `Sending`.
+- Selection errors (`selection_required`/`too_large`/`recipient_unknown`/`not_allowed`) fall to generic and
+  `detail` is never shown (`compose-form.tsx:305-318`); preview maps only `too_large`.
 
-Counted at backend HEAD `fc20f9a` (2026-09-07) with an earlier version of the counter now in
-`references/return-pass.md` (it used `d > since`; the current one uses `>=`, so a re-run counts
-same-day entries too and will not reproduce 27 exactly):
-**27** `affects: admin-panel` entries dated after `2026-08-12` — **13 breaking**, 11 additive, 2 fix,
-1 removal. (An earlier estimate by inspection said ~19.) The breaking count is the one that matters: each
-carries a `Became false:` quoting a sentence this app may have coded against.
+### WP9 — Silent truncation
 
-Of the 27, one is absorbed (`f-06-c-checkin-proof.md`, [§4 2026-09-08](#2026-09-08--the-walk-in-order-form-could-not-file-an-order))
-and the 09-07 `?status=Deleted` fix is partly done (3.2). The 2026-09-21 pass read 09-08 → 09-21 only,
-so **this backlog is still open** — do not read a moved F-07 row as a finished backlog. Four entries
-(F-05a, F-05b, F-05c, F-06a) named admin screens that did not exist here on 2026-09-08 — an **Agency
-links** screen whose status filter is the dispute queue, and a **Skill Requests** queue. ⚠ Both have
-been built since (`app/[locale]/dashboard/agency-links/page.tsx`, `d0404ee` 2026-09-09; the
-`(worker)/skill-requests` page) — but against which guide revision is unverified, so their guides stay
-`—` in §2 until a first-time read checks them.
+- Skill-request history: 100 rows per status (`hooks/use-skill-requests.ts:399`; `BACKEND-ASKS.md` #35).
+- KYC owner picker capped at 100 with no signal (`lib/services/owner.service.ts:28-36`).
+- Deleted-accounts bucket: one page of 100, no signal; null `deletedBy` renders "—" not "unknown"
+  (`deleted-accounts-table.tsx:162-165`).
+- Admin task list: nothing warns at exactly 500 / 5,000 rows (`f-02a-1` §8).
+- Audit log 200 — WP4.
 
-Spot-checked, so the picture is genuinely mixed rather than uniformly stale:
+### WP10 — Prove it live (needs an admin session)
 
-- **Absorbed despite the column** — `owner-location-model` (2026-08-13/14): `useCountries`/`useCities` are
-  wired and the owners filter bar has both pickers. ⚠ **Only half** — the pickers exist, but they send
-  the pre-rename `companyCityId` (3.0).
-- **Not absorbed** — last-seen recency (2026-08-13): `lastSeenAt` appears only in a doc comment at
-  `components/ui/data-table/data-table.tsx:126`. Agency (F-05·0 through F-05c): only `lib/nav-items.ts`
-  and `lib/http/files.ts` mention it. Worker availability (F-04b): only `components/detail/account-log.tsx`.
+Built to the guide, never exercised against production:
+- Both create routes (`/admin/single`, `/admin/groups`) with one real order each; the complaint decide door.
+- Bell kinds 82/83 carry `entityType: "Task"`; `GET /api/admin/me/permissions` returns the code strings the
+  gates compare (app-wide).
+- `f-06-a` `history.rating` can be `null` → `worker-panel.tsx:66` `.toFixed` would throw.
+- `f-05-a` `review-history.tsx` renders both `infoRequestNote` and `decisionReason`.
+- `/api/admin/conversations` excludes worker Contact/Group chat (guidance §5).
+- Weekly work card on a sub-account owner: `200 []` shown as "none" (`weekly-work-card.tsx:120`).
 
-So the column is wrong in both directions and cannot be repaired by inspection. **Absorbing this backlog
-needs its own pass**, entry by entry from 2026-08-13 downwards — and it overlaps the untracked guides in
-§2, which is the natural way to split it.
+### WP11 — F-07 remainder · `task-lifecycle`, `f-02b-6`
+
+- MISSING: **clone** `POST /api/tasks/admin/groups/{id}/clone` — the only way to repeat a walk-in order
+  (an order filed before 09-23 needs `cityId`).
+- MISSING: `kind` label (`"Booking"`/`"SingleTask"`) — not on `TaskItemDto`, not rendered.
+- MISSING: read back `ownerProvidesTools`/`addOnNote` on the order sheet (typed `task.types.ts:181-183`).
+- PARTIAL: `closed` counts typed, never rendered (`task.types.ts:164`).
+- MISSING: team rating `PUT /api/tasks/{taskId}/rating` (admin row in `task-lifecycle` §7).
+- MISSING: the critical staffing list, `?staffing=Warning|Critical`.
+
+### WP12 — Property location · `f-02c` §4.1a, 09-23 ·9b
+
+MISSING: optional `countryId`/`cityId` on property create/edit (pre-filled from the BOSS);
+`PropertyDto.country`/`city` display (`lib/types/property.types.ts:83-106`). Error codes are in WP6.
+
+### WP13 — Worker Detail completion · `f-04a`, `f-04b`, `f-04c`, `fnd-3`
+
+- MISSING: admin worker edit `PUT /api/admin/workers/{id}` (SUPER_ADMIN, `reason` mandatory, both ids when
+  the country changes; `worker.service.ts:12-82` has no PUT) and location on detail (`WorkerDetailDto`
+  `worker.types.ts:224-261`).
+- MISSING: availability writes — base, day, day reset (`DELETE` with `{reason}` body), exception PUT/DELETE;
+  `source` badge and reset on Worker Detail; error mapping. Read-only matrix exists (`matrix-row.tsx`).
+- MISSING: `username` read-only on detail (`f-04c` §6).
+- MISSING: block/unblock (`worker:block` 80046, SUPER_ADMIN, reason both ways; `blockedAt`/`blockedReason`).
+- PARTIAL: Worker Detail → Tickets filters by requester client-side (`use-subject-tickets.ts:45-54`) —
+  send `?requesterUserId=` (08-27); the comment at `:26-30` calling it an open ask is stale.
+- Copy: `messages/en.json:940` "it does not gate" misleads since 09-16 — the filter still recommends, but
+  availability now gates worker joins. `availability.types.ts:9-13` comment false since 09-16.
+
+### WP14 — Owners table completion · `fnd-3`, `f-02-4`
+
+MISSING: owner `lastSeenFrom`/`lastSeenTo`/`neverLoggedIn` + `lastSeenAt`/`lastLoginAt` columns
+(`owner.types.ts:85` still says "no login-recency data"); owner server sort, seven keys — reuse
+`lib/ui/server-sort.ts` (default branch already there).
+
+### WP15 — Country/City management · `fnd-1` §6.3-6.5
+
+MISSING: admin CRUD for countries and cities (`lib/services/lookup.service.ts:61-77` is read-only).
+
+### WP16 — Document previews · `f-05-a` §6.2
+
+PARTIAL: an expired `previewUrl` (~5 min) in a PDF iframe shows the browser's error with no reload
+(`components/docs-workspace/detail/file-viewer.tsx:238-249`; images already detect it at `:230`). Shared
+by every document viewer.
+
+### WP17 — Smaller shipped surfaces
+
+- `f-06-a` §8: certificate preview on the skill claim (`claim-panel.tsx:20` deliberately unrendered).
+- 08-27 F-06 tail: edit-required-skills control on a booking (disable once a day leaves `Pending`,
+  `task_group_eligibility_frozen`) — no group PUT exists in this app.
+- Render fallbacks: `signatureMethod` is a closed type with no i18n fallback (`contract.types.ts:49`,
+  `contract-panel.tsx:329`); a property whose owner was deleted shows blank initials (`properties/page.tsx:351`).
+
+### WP18 — New features (need a spec each)
+
+- **Exports** for the Owners and Workers tables — nothing calls an export route; the workers button is
+  disabled and not permission-gated (`workers/page.tsx:574`). Read **by header name, never position**: the
+  owner export went 9 → 10 → 13 → 15 → 16 → 18, the worker one 16 → 18 → 17 → 18-but-different → 20.
+- Contract registry with `partyLegalName` (render nothing when null) — `lib/contracts/registry-row.ts:53,73`.
+- The five new `KycProfileSummaryDto` fields (09-08) — a product decision.
 
 ---
 
 ## 4. Pass log — newest first
 
-The record of what each pass **built**. What a pass read and did not build went to §3.
+The record of what each pass **built** or **established**. What a pass read and did not build is in §3.
+
+### 2026-09-25 — contract gate and two live breaks (WP0–WP2)
+
+Plan: `docs/superpowers/plans/2026-09-25-contract-gate-and-live-breaks.md`. Branch
+`fix/contract-gate-and-live-breaks`, test-first per task. Suite 1198 → 1210 tests, `tsc` clean, lint
+unchanged (1 existing warning). Contract gate 5 FAIL / 96 PASS → **0 FAIL / 116 PASS**.
+
+| Package | What changed | Where |
+|---|---|---|
+| WP0 | Gate asserts the shipped contract: `AccountStatusFilter` (+`Lapsed`), `OwnerKYCDocType` (+`RepresentativeAuthorization`), `TaskStatus` enum, `WorkerRowDto` fields, removed fields asserted gone, `GET /api/tasks/admin` window params, owners `CityId`/`CountryId`, paged KYC | `scripts/verify-v2.mjs` (`00584aa`, `4be6828`, `97053e9`) |
+| WP1 | A checked-in day is open again — `isOpen` reads `canonicalTaskStatus` against an allowlist (`pending`, `checkedIn`); unknown states read closed. Chart + Dispatch pill colours learn the new words | `lib/tasks/staffing.ts`, `components/dashboard/dashboard-charts.tsx`, `components/dispatch/dispatch-task-row.tsx` (`c699bd2`) |
+| WP1 | Shift grid: a past `InReview`/`Rejected` day the worker never clocked into reads **done**, not missed | `hooks/use-worker-shifts.ts` (`80f80ac`) |
+| WP2 | Owners filter sends `cityId` + `countryId` (country is now a real filter); hints rewritten en/de | `lib/owners/owner-filter-query.ts`, `owners/page.tsx`, `lib/types/owner.types.ts` (`2cccd42`) |
+| WP2 | Owners table shows the owner's own city + country (column id `location`), blanks kept | `owners/page.tsx`, `OwnerRowDto` (`4be6828`) |
+| WP2 | KYC "Registered in" reads `registrationAddress` | `components/docs-workspace/detail/facts-rail.tsx`, `OwnerCompanyDto` (`97053e9`) |
+| WP2 | `RepresentativeAuthorization` grouped with company documents, labelled en/de in **both** label maps (owner card `onboarding.docType` and the review workspace `docsWorkspace.detail.type`, the second found by the final review); required set unchanged | `lib/onboarding/doc-set.ts`, messages (`50895f0`, fix pass) |
+
+Visible effect in production once shipped: checked-in days get their fill buttons back, and the
+under-staffing and owner-attention counts rise to their true values. Choosing only a country now filters
+the Owners table.
+
+### 2026-09-25 — full audit of every admin-panel guide
+
+Seven read-only audits, one owner per guide, against `origin/main` `692bd26`; every CHANGELOG entry whose
+`Guides:` names an admin-panel guide, from the start of each guide's history. Evidence bar: code that
+shows the behaviour, not a type or a comment. Every BROKEN row was re-checked by hand before it went into
+§3, and the owner-location rows were confirmed against the live swagger.
+
+**Absorbed as a result** (every obligation DONE or N/A): `register-merge` → 09-08, `f-05-0` → 09-08,
+`f-05-b` → 09-20, `f-05-c` → 09-04, `profession-fnd1-retrofit` → 09-23, `f-02b-7` → 09-08;
+`worker-doc-approved-delete-guard` and `support-ticket-followup-fix` verified at 07-01.
+
+**Ledger claims the audit found wrong** (all corrected above):
+
+- *"The two renamed day states" done (09-21)* — not complete; WP1.
+- *`notification-bell` ✅ 08-05*, *`fnd-1` ✅ 08-07*, *`fnd-2` ✅ 08-03* — core obligations never met.
+- *"No table sorts server-side"* — the Workers table sorts on six keys (`workers/page.tsx:160`), and the
+  agency queues send `sortBy` (`application-query.ts:82`, `link-query.ts:77`). Only Owners lacks it.
+- *"`buildWorkerFilterQuery` has no consumer"* — it drives the Workers page (`page.tsx:147-148`);
+  `onTask` → `booked` and `Blocked` → `Lapsed` were already absorbed.
+- *"Newly available and unbuilt: `?startingSoon=`, `?idleWeek=`, `?availableOn=`, `?agencySource=`"* — all
+  four built (`worker-filter-query.ts:39-46,59-63`).
+- *`f-02a-1` "none of the four filters built"* — `scheduledFrom`/`scheduledTo`/`status` are sent.
+- *Agency, availability and last-seen "only mentioned in a comment"* (09-08 spot-checks) — agency is three
+  pages and ~40 modules; availability has a service and the matrix view since 09-02/09-05; worker
+  `lastSeenAt` is rendered (true only for owners).
+- *"`verify-v2.mjs` stays green"* — red; WP0.
+- *"The rating halves are owner/worker surfaces"* — the admin calls the per-worker route and has a team
+  route to build (WP6, WP11).
+- *`overrodeLocation` on the audit page open* — N/A: the page renders no metadata.
+- *"The bell routes by `entityType`, never by kind"* — `route.ts:94` branches on `type`.
+- *The 27-entry backlog (09-08)* — superseded: this audit read every entry by its `Guides:` field.
+
+⚠ Process: before the "`origin/main` only" rule reached them, three audits read the backend working tree;
+`docs/handoff` and `index/` were identical to `origin/main` at that time. One ran a read-only
+`git diff --quiet` on the handoff folder; nothing from it was used.
 
 ### 2026-09-24 — F-07 create forms and complaints
 
@@ -268,16 +357,16 @@ to `null`). When `rejected` was added, `canForceClose` stayed an allowlist and `
 ### 2026-09-21 — F-07 ·0/·1/·3/·4 and the restore doors
 
 Backend HEAD `064ce64`. CHANGELOG reviewed 2026-09-08 → 2026-09-21 in full; **only the F-07 entries and
-the restore doors were actioned.** Plan: `docs/superpowers/plans/2026-09-21-admin-f07-integration.md`
-(Tasks 1–7).
+the restore doors were actioned.** (Plan file not in the repo — an earlier version of this ledger cited
+`docs/superpowers/plans/2026-09-21-admin-f07-integration.md`, which does not exist.) ⚠ The ·0 row below was found incomplete on 2026-09-25 (WP1).
 
 | Entry | Kind | What was done |
 |---|---|---|
 | 2026-09-21 F-07 ·3 | breaking | `closed` counts + `closureReason` modelled; force-close door built; the `204`-lies cancel reading; `completedAt` checked (one render site, no arithmetic — safe) |
-| 2026-09-20 ·4 follow-ups | breaking | The bodiless-request problem-details trap is handled on every new door. The `rating` and `complete` halves are owner/worker surfaces — nothing here calls them. |
+| 2026-09-20 ·4 follow-ups | breaking | The bodiless-request problem-details trap is handled on every new door. |
 | 2026-09-19 F-07 ·4 | breaking | Supervisor override built; `supervisorWorkerId` / `workSummary` modelled and rendered |
 | 2026-09-18 F-07 ·1 | breaking | `InReview` attendance read fixed — a live bug: a worker who never arrived on a handed-in day read `overdue` instead of `noshow` |
-| 2026-09-17 F-07 ·0 | breaking | The two renamed day states, and `TaskGroupDto.status` → `days` |
+| 2026-09-17 F-07 ·0 | breaking | The two renamed day states (**incomplete — WP1**), and `TaskGroupDto.status` → `days` |
 | 2026-09-10 restore doors | fix | Both restore screens built |
 
 ### 2026-09-08 — the walk-in order form could not file an order
@@ -313,8 +402,8 @@ property is a placeholder and carries no location"*, false since F-06c; swept in
 ⚠ **The upstream gap is unchanged and shapes the UI.** §4.2: `TaskGroupDto` does not return the
 coordinates and `PUT /api/tasks/groups/{id}` cannot change them
 (`G_WalkInGroupLocationNotReadableOrEditable`), so a wrong address can only be cancelled and
-re-filed, with every check-in refused until then. That is why the form warns before submit — there
-is no second chance in any surface.
+re-filed — or, since 09-24, cloned (WP11) — with every check-in refused until then. That is why the form
+warns before submit.
 
 ⚠ Branch: made on **`feat/admin-tasks-register`** (an earlier note wrongly said
 `feat/walk-in-job-management`), where `components/walk-in/` is already present.
@@ -329,38 +418,40 @@ The guide table (§2) was first reviewed that day; `support-ticket-followup-fix`
 ## 5. Guide bugs to report upstream
 
 Per precedence (**live response > guide > README/guidance**), a guide bug is an issue on
-[esharqhq/Germany-ERP](https://github.com/esharqhq/Germany-ERP/issues), never a local workaround. Once
-filed, record it in `BACKEND-ASKS.md` and delete it here.
+[esharqhq/Germany-ERP](https://github.com/esharqhq/Germany-ERP/issues), never a local workaround. File
+**one issue per guide**, not one per line, and ask before filing — it is outward-facing. Once filed,
+record it in `BACKEND-ASKS.md` and delete the row here. ⚑ = changes client behaviour; file those first.
 
-### 5.1 `bossOwnerName` is missing from `f-02c-property-rework.md` — unreported, worth filing as is
+| Guide | Bug (at `origin/main` `692bd26`) |
+|---|---|
+| ⚑ `CHANGELOG.md` | The 2026-08-28 entry (`Blocked` → `Lapsed`) has **no `Kind:` and no `affects:` line** — any `affects:` filter (ours included) misses a breaking change. |
+| ⚑ `task-cancel-lifecycle-guards.md` | The 3-hour cancel rule (§1, §9) is contradicted by **"1h"** in four places (§1 UI implications, §3 note, §7 `too_close_to_start`, §7 guard-order). §4/§5 still "recompute/re-render the booking's status" — a booking has no status. |
+| ⚑ `f-01-a-broadcast-core.md` | §5.1b presign route `/api/file-uploads/presign`; five other guides and the app use `/api/files/presign`. Also "five admin routes" lists six; §5.2 key lists omit `namedCount`. |
+| ⚑ `f-05-c-worker-agency-link.md` | Never names the admin permissions (`agency_link:read_any` / `manage_any`) or MODERATOR read-only; only `guidance.md` row 18 does. |
+| ⚑ `guidance.md` | Row **18 "Agency links screen"** is admin content filed under **§2 Owner app** (line 89). §6 item still says `Active`/`Review`. Owner export 16 (rows 11-13) vs 18 (§6). Row 13(b) says `PUT /api/profile` gained location fields; removed 08-18. Lines 322-323 "no agency-facing screen" vs F-05b. Header "Last reviewed 2026-08-19". §7 doesn't point to `index/controllers/admin.md` for the audit `?action=` trap. |
+| `f-02c-property-rework.md` | `bossOwnerName` on `PropertyDto` exists only in `index/dtos/properties.md`; the guide shows `bossOwnerUserId` only. §1/§11 still call F-02a·1 and F-02b·6 outstanding. |
+| `task-lifecycle.md` | §0d says photo endpoints still work on a finished day; §0e says three evidence doors refuse `task_media_locked` unless PENDING/CHECKED_IN. §0d supervisor refusal lists DONE/CANCELLED; source also refuses `Rejected` (`TaskService.cs:3854-3857`). |
+| `notification-bell.md` | Type counts disagree (83 / 69 / 61 / "11 values" / 15 destinations); §8 table has 14 rows and lacks `Broadcast`; types 62–78 never listed. |
+| `f-04b-worker-availability.md` | §8 "nothing compares a schedule against a task at any door" vs its own summary/§8.1 and CHANGELOG 09-16 (it gates). §3 `isSet: false` "every existing worker" is unreachable per §1/§9. |
+| `f-04a-worker-location.md` / `profession-fnd1-retrofit.md` / `fnd-3-table-query.md` | Worker export column count: 17 (f-04a summary, profession §8) / 18 (f-04a §8.3, guidance) / "still 18" next to a 20-column list (fnd-3 §6.2) / 20 (CHANGELOG 09-07). |
+| `register-merge.md` | §9 "availability and location are recorded, not enforced" — false since 09-16 and 09-23 ·9b, though it is in the 09-16 entry's `Guides:`. |
+| `profession-fnd1-retrofit.md` | Summary, §2, §8, §9 say no door assigns a skill; §1 and `f-06-a` say F-06a does. `BACKEND-ASKS.md` #36 cites §9 only. |
+| `f-06-a-skills-request.md` | §4.3 "send `publicUrl`, not `storageKey`" vs its §11 (either) and `contract-lifecycle` §7.1 (the reverse). "Three decision verbs" vs four; "three refusals" lists four. |
+| `f-05-0-agency-user-type.md` | §7 "only two agency permission codes" vs its own table of three (170001/2/7). §1 "None of that exists yet" contradicts the sentence before it. |
+| `f-05-a-application-review.md` | §7.3 says link `existingAgencyId`, but no guide defines an agency detail screen to link to. |
+| `f-02b-6-default-owner-walk-in-orders.md` | §4.5 "18 columns" lists 16; §3.3 "four" lists five; §3.4 "no new codes" vs six new on 09-23. |
+| `f-02a-1-admin-task-list-filters.md` | §4 omitted status = "all five" vs `?status=Rejected` binding; §13 "no task guide yet" and cites `docs/mind/`; §5 defers `TaskItemDto` to `index/`. |
+| `f-06-c-checkin-proof.md` | §3.1 example `"status": "Active"` (renamed 09-17); §4.2/§10 "cancel and re-file is the only correction" vs clone (09-24). |
+| `fnd-1-configurable-lookups.md` | §1/§3 "every endpoint requires `[Authorize]`" vs §5 (public); §9 "no consumer endpoint" vs §10; §9.1 lists removed `PUT /api/profile`; §10 `OFFICE` exception vs `f-06-c` §9 (declined). |
+| `fnd-3-table-query.md` | §5.1 note 2 `?status=Blocked` "does not return the walk-in" vs a 400; §6.1 omits `agencyId`/`agencySource`; §5.2 "grown four times" lists five. |
+| `f-02-4-owner-table-filters.md` | "Six" sort values / "six query params" above lists of seven. |
+| `f-02b-7-admin-owner-edit.md` | §3/§7 omit the `countryId`/`cityId` fields and three codes `owner-location-model` adds to the same route; `related:` lacks it. |
+| `onboarding-and-active-gate.md` | §14.4 "no admin correction endpoint" vs `f-02b-7`; §13.1 3-char minimum ambiguous for the owner per-doc route. |
+| `f-03-1-structured-document-data.md` / `contract-lifecycle.md` | §11 / §9.4 tables split by an inline paragraph, so the rows after it don't render. |
 
-`bossOwnerName` on `PropertyDto` exists only in `index/dtos/properties.md` (re-checked 2026-09-08; cite
-the field, not the line — it moved from 156 to 179). `f-02c-property-rework.md` still shows a
-`bossOwnerUserId`-only response and does not mention `bossOwnerName` anywhere.
-
-### 5.2 An admin row filed under the owner route in `guidance.md` — unreported (found 2026-09-25)
-
-`guidance.md` row **18 "Agency links screen + attach/confirm/reject on Worker Detail"** is admin-panel
-content (two admin permissions, the dispute queue, the worker export), but it sits in the **§2 Owner
-app** table (line 89), not §4. A client following its own section never sees it. Small, and worth
-filing as is.
-
-### 5.3 Revision dates that did not move — half-closed upstream, re-check before filing
-
-**Original finding.** Four guides changed with client-visible, breaking content in the 2026-08-30 pull
-and their `revision:` frontmatter **did not move**: `fnd-3-table-query.md` (still 2026-08-20),
-`f-04b-worker-availability.md` (2026-08-19), `f-05-b-agency-portal.md` (2026-08-24),
-`onboarding-and-active-gate.md` (2026-08-25). A stale `revision:` makes a breaking change invisible to
-the catch-up loop.
-
-**As of 2026-09-08**, `fnd-3-table-query.md` and `onboarding-and-active-gate.md` both carried
-`revision: 2026-09-07`; `f-04b-worker-availability.md` (2026-08-19) and `f-05-b-agency-portal.md`
-(2026-08-24) had not moved. **As of 2026-09-25** the catalog shows `f-04b` at **2026-09-16** and `f-05-b`
-at **2026-09-20** — both have moved since, so this may now be fully closed.
-
-**Do not file it as written** — it would report guides already fixed, and filing a closed bug costs the
-credibility that makes the precedence rule work. Either re-verify that a specific guide took a
-client-visible change after its stated date and file only that, or drop it.
+**Revision dates that did not move (from 2026-08-30).** Four guides took breaking changes without a
+`revision:` bump. As of 2026-09-25 all four have moved (`fnd-3` 09-18, `onboarding` 09-24, `f-04b` 09-16,
+`f-05-b` 09-20). Likely closed — **do not file** unless a specific guide is re-verified as still stale.
 
 ---
 
@@ -368,31 +459,33 @@ client-visible change after its stated date and file only that, or drop it.
 
 ### 6.1 `lib/http/on-forbidden.ts` does not exist (found 2026-09-08)
 
-Four doc comments assert a shared behaviour that is not in this repo: that any API `403` triggers an
+Five doc comments assert a shared behaviour that is not in this repo: that any API `403` triggers an
 immediate refetch of the current admin's permissions, in `lib/http/on-forbidden.ts`.
 
-- `hooks/use-owners.ts:23`, `:41`, `:59`
+- `hooks/use-owners.ts:33`, `:51`, `:69`
 - `hooks/use-contracts.ts:42`
 - `hooks/use-current-permissions.ts:45`
 
-There is no such file (`ls lib/http/` → `api-error.ts`, `client.ts`, `files.ts`, `idempotency.ts`,
-plus tests), `git log -- lib/http/on-forbidden.ts` returns nothing — it was **never** committed — and
-no interceptor anywhere does a 403-keyed invalidate (`lib/http/client.ts` has no `403` branch).
+There is no such file (`lib/http/` holds `api-error.ts`, `auth-endpoint.ts`, `client.ts`, `files.ts`,
+`idempotency.ts`, plus tests), `git log -- lib/http/on-forbidden.ts` returns nothing — it was **never**
+committed — and no interceptor does a 403-keyed invalidate (`lib/http/client.ts` has no `403` branch).
 
-**Why it matters more than a stale comment.** Two of the five sites use it to justify a *design
-decision*: supporting reads are gated on their permission "because an API 403 also forces a
-permission refetch — see `lib/http/on-forbidden.ts`", i.e. to avoid a cost nothing incurs. The gating
-is still right on its own merits (a custom-role admin should see a dash in a joined column, not a 403
-on page load), but the stated reason is fictional, so anyone reasoning from it will over-weight 403
-avoidance in the next design.
-
-Not fixed on purpose: deciding between "write the interceptor" and "delete the claim" is a design call,
-not a sweep. ⚠ Do not cite this file in a review or a spec.
+**Why it matters more than a stale comment.** Two sites use it to justify a *design decision*:
+supporting reads are gated on their permission "because an API 403 also forces a permission refetch", i.e.
+to avoid a cost nothing incurs. The gating is still right on its own merits, but the stated reason is
+fictional. Not fixed on purpose: "write the interceptor" vs "delete the claim" is a design call.
+⚠ Do not cite this file in a review or a spec.
 
 ### 6.2 Backend paths in code comments (fixed 2026-09-25)
 
 Comments cited the backend as `../Backend/...` or `Backend/...` — a checkout path that does not exist on
-this machine (the backend is `$env:GERMANY_ERP`). Swept to path-independent citations: a guide by file
-name (`f-05-c-worker-agency-link.md §4.2`), an index file by its backend-relative path
-(`index/dtos/notifications.md`). The plans and specs under `docs/superpowers/` still carry the old form;
-they are historical and were left alone.
+this machine. Swept to path-independent citations: a guide by file name, an index file by its
+backend-relative path. The plans and specs under `docs/superpowers/` still carry the old form; they are
+historical and were left alone.
+
+### 6.3 Stale comments found by the 2026-09-25 audit
+
+Fix alongside the package that touches the file: `lib/tasks/dispatch-row.ts:8` (retired 3 h alert, WP1);
+`lib/types/availability.types.ts:9-13` (WP13); `hooks/use-subject-tickets.ts:26-30` (WP13);
+`lib/types/owner.types.ts:85` (WP14); `settings/audit/page.tsx` "casing" rationale (WP4);
+`lib/types/contract.types.ts:87` "else 500".

@@ -111,7 +111,8 @@
       "businessLicense": "Business licence",
       "companyRegistration": "Company registration",
       "taxCertificate": "Tax certificate",
-      "other": "Other"
+      "other": "Other",
+      "representativeAuthorization": "Authorization letter"
     },
     "companyType": {
       "llc": "LLC",
@@ -306,7 +307,8 @@
         "BusinessLicense": "Business licence",
         "CompanyRegistration": "Company registration",
         "TaxCertificate": "Tax certificate",
-        "Other": "Other"
+        "Other": "Other",
+        "RepresentativeAuthorization": "Authorization letter"
       },
       "filesTitle": "Files",
       "groupIdentity": "Identity",
@@ -990,15 +992,15 @@
       "onboardingStatus": "Stage",
       "onboarding": "Onboarding",
       "properties": "Properties",
-      "companyCity": "Company city",
+      "location": "Location",
       "lastOrdered": "Last order",
       "tasks": "Tasks"
     },
     "filters": {
       "country": "Country",
-      "countryHint": "Scopes the city list; filters nothing on its own.",
-      "companyCity": "Company city",
-      "companyCityHint": "Only owners with a company address on file.",
+      "countryHint": "The owner's own location, not their company's. Owners who haven't set one are excluded.",
+      "city": "City",
+      "cityHint": "The owner's own city. Owners who haven't set one are excluded.",
       "registered": "Registered",
       "lastOrdered": "Last order",
       "neverOrdered": "Ordering",

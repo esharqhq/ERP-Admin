@@ -160,18 +160,16 @@ export default function OwnersPage() {
       {
         key: "countryId",
         label: t("filters.country"),
-        // It genuinely filters nothing — saying so stops it reading as broken.
+        // f-02-4 §2.1: both filter the owner's own location and reach every owner.
         hint: t("filters.countryHint"),
         options: (countries.data ?? [])
           .filter((c) => c.isActive)
           .map((c) => ({ value: c.id, label: lookupLabel(c, locale) })),
       },
       {
-        key: "companyCityId",
-        label: t("filters.companyCity"),
-        // §2.1: a city lives only on a company record, so this filter can reach
-        // neither private individuals nor companies with a blank city.
-        hint: t("filters.companyCityHint"),
+        key: "cityId",
+        label: t("filters.city"),
+        hint: t("filters.cityHint"),
         // Empty until a country is chosen, and a select with no options renders
         // nothing — which is exactly the wanted behaviour, with no extra flag.
         options: (cities.data ?? [])
@@ -328,14 +326,19 @@ export default function OwnersPage() {
         },
       },
       {
-        id: "companyCity",
-        label: t("columns.companyCity"),
-        // Blanks are rendered deliberately: these are exactly the rows a
-        // company-city filter can never return, so showing them is what lets a
-        // short filtered list explain itself.
-        cell: (o) => (
-          <span className="text-sm text-muted-foreground">{o.companyCity || "—"}</span>
-        ),
+        id: "location",
+        label: t("columns.location"),
+        // Blanks rendered on purpose: those rows are the ones a location filter
+        // can never return (f-02-4 §2.1).
+        cell: (o) =>
+          o.city || o.country ? (
+            <div className="flex min-w-0 flex-col gap-px">
+              <span className="truncate text-sm">{o.city || "—"}</span>
+              <span className="truncate text-[11px] text-muted-foreground">{o.country || "—"}</span>
+            </div>
+          ) : (
+            <span className="text-sm text-muted-foreground">—</span>
+          ),
       },
       {
         id: "properties",

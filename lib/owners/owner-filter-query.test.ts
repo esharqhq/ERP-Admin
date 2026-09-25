@@ -12,16 +12,25 @@ describe("buildOwnerFilterQuery", () => {
   });
 
   it("drops blanks rather than sending them as empty params", () => {
-    expect(buildOwnerFilterQuery({ companyCityId: "", taskCountMin: "" })).toEqual({
+    expect(buildOwnerFilterQuery({ cityId: "", taskCountMin: "" })).toEqual({
       ok: true,
       query: {},
     });
   });
 
-  // `countryId` scopes which cities are offered; it is not a filter and the API
-  // has no param for it. Sending it would be a 400 on an unknown query key.
-  it("never sends countryId, which only scopes the city list", () => {
-    expect(buildOwnerFilterQuery({ countryId: "de" })).toEqual({ ok: true, query: {} });
+  // owner-location-model (2026-08-13): `countryId` is a real filter on the owner's
+  // own location, AND-combined with `cityId`. It used to only scope the city list.
+  it("sends countryId on its own", () => {
+    expect(buildOwnerFilterQuery({ countryId: "de" })).toEqual({
+      ok: true,
+      query: { countryId: "de" },
+    });
+  });
+
+  it("sends the city as cityId, never the removed companyCityId", () => {
+    const result = buildOwnerFilterQuery({ countryId: "de", cityId: "berlin-id" });
+    expect(result).toEqual({ ok: true, query: { countryId: "de", cityId: "berlin-id" } });
+    expect(JSON.stringify(result)).not.toContain("companyCityId");
   });
 
   // The single most consequential rule in this file.
@@ -49,10 +58,10 @@ describe("buildOwnerFilterQuery", () => {
 
   it("passes the text filters through untouched", () => {
     expect(
-      buildOwnerFilterQuery({ companyCityId: "berlin-id", registeredFrom: "2026-01-01" }),
+      buildOwnerFilterQuery({ cityId: "berlin-id", registeredFrom: "2026-01-01" }),
     ).toEqual({
       ok: true,
-      query: { companyCityId: "berlin-id", registeredFrom: "2026-01-01" },
+      query: { cityId: "berlin-id", registeredFrom: "2026-01-01" },
     });
   });
 
@@ -95,31 +104,31 @@ describe("buildOwnerFilterQuery", () => {
 });
 
 describe("clearCityOnCountryChange", () => {
-  // A stale companyCityId returns an EMPTY PAGE, not an error, so a city left over
+  // A stale `cityId` returns an EMPTY PAGE, not an error, so a city left over
   // from the previous country looks like a legitimately empty result.
   it("drops the city when the country changes", () => {
     const next = clearCityOnCountryChange(
-      { countryId: "de", companyCityId: "berlin" },
+      { countryId: "de", cityId: "berlin" },
       "at",
     );
     expect(next.countryId).toBe("at");
-    expect(next.companyCityId).toBe("");
+    expect(next.cityId).toBe("");
   });
 
   it("keeps the city when the country is unchanged", () => {
     const next = clearCityOnCountryChange(
-      { countryId: "de", companyCityId: "berlin" },
+      { countryId: "de", cityId: "berlin" },
       "de",
     );
-    expect(next.companyCityId).toBe("berlin");
+    expect(next.cityId).toBe("berlin");
   });
 
   it("clears the city when the country is cleared back to Any", () => {
     const next = clearCityOnCountryChange(
-      { countryId: "de", companyCityId: "berlin" },
+      { countryId: "de", cityId: "berlin" },
       "",
     );
     expect(next.countryId).toBe("");
-    expect(next.companyCityId).toBe("");
+    expect(next.cityId).toBe("");
   });
 });

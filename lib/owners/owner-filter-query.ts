@@ -5,16 +5,17 @@ import { countRangeError, rangeError } from "@/lib/ui/filter-validation";
  * Turns the owners table's filter bag into a typed query.
  *
  * The bag is keyed by **wire param name**, so the mapping below is 1:1 and
- * greppable — these key names are the API's, not ours. `countryId` is the one
- * exception: it scopes which cities the picker offers and is **never sent**,
- * because `companyCityId` is the only city param the route accepts.
+ * greppable — these key names are the API's, not ours. `countryId` and `cityId`
+ * filter on the owner's own location (owner-location-model, 2026-08-13) and
+ * AND-combine; they replaced F-02 #4's `companyCityId`, which the route no longer
+ * reads — sending it returns the whole table.
  */
 export const OWNER_FILTER_KEYS = [
   "status",
   "onboardingStatus",
   "ownerType",
   "countryId",
-  "companyCityId",
+  "cityId",
   "registeredFrom",
   "registeredTo",
   "lastOrderedFrom",
@@ -26,12 +27,13 @@ export const OWNER_FILTER_KEYS = [
   "taskCountMax",
 ] as const;
 
-/** Sent as-is when non-blank. Deliberately excludes `countryId`. */
+/** Sent as-is when non-blank. */
 const TEXT_KEYS = [
   "status",
   "onboardingStatus",
   "ownerType",
-  "companyCityId",
+  "countryId",
+  "cityId",
   "registeredFrom",
   "registeredTo",
   "lastOrderedFrom",
@@ -90,7 +92,7 @@ export function buildOwnerFilterQuery(values: Record<string, string>): Result {
  * Changing the country invalidates the chosen city — cities are unique per country
  * and referenced by id, so yesterday's city id means nothing under a new country.
  *
- * This matters more than a tidiness fix: an unrecognised `companyCityId` returns an
+ * This matters more than a tidiness fix: an unrecognised `cityId` returns an
  * **empty page rather than an error**, so a stale id would read as "this country
  * has no matching owners" instead of as a mistake.
  */
@@ -99,5 +101,5 @@ export function clearCityOnCountryChange(
   countryId: string,
 ): Record<string, string> {
   if ((values.countryId ?? "") === countryId) return values;
-  return { ...values, countryId, companyCityId: "" };
+  return { ...values, countryId, cityId: "" };
 }

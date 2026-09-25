@@ -1,5 +1,9 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
+  COMPANY_TYPES,
+  IDENTITY_TYPES,
   firstToRead,
   groupDocuments,
   groupOf,
@@ -175,5 +179,29 @@ describe("viewerKind", () => {
     expect(viewerKind("scan.docx", null)).toBe("unsupported");
     expect(viewerKind("noextension", null)).toBe("unsupported");
     expect(viewerKind(null, null)).toBe("unsupported");
+  });
+});
+
+describe("the representative's authorization letter (2026-09-01)", () => {
+  it("is grouped with the company documents", () => {
+    expect(groupOf("RepresentativeAuthorization")).toBe("company");
+  });
+
+  it("satisfies no requirement — a bundle of only the letter is still incomplete", () => {
+    expect(requiredSet([doc({ type: "RepresentativeAuthorization" })], true).complete).toBe(false);
+  });
+});
+
+describe("every owner document type has a review-workspace label", () => {
+  // The docs workspace renders `docsWorkspace.detail.type.<Type>` with no `.has()`
+  // guard, so a missing key shows the raw message path to the admin. The list is
+  // the live `OwnerKYCDocType` enum (asserted by `scripts/verify-v2.mjs`).
+  const OWNER_DOC_TYPES = [...IDENTITY_TYPES, ...COMPANY_TYPES, "Other"];
+  const load = (locale: string) =>
+    JSON.parse(readFileSync(join(process.cwd(), "messages", `${locale}.json`), "utf8"));
+
+  it.each(["en", "de"])("%s has a detail.type label for each", (locale) => {
+    const labels = load(locale).docsWorkspace.detail.type as Record<string, string>;
+    expect(OWNER_DOC_TYPES.filter((t) => !labels[t])).toEqual([]);
   });
 });

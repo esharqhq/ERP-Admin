@@ -5,18 +5,20 @@ newest first and append-only, so an entry you have read never changes under you.
 
 Commands below are Bash (Git Bash). In PowerShell use `"$env:GERMANY_ERP"` instead of `"$GERMANY_ERP"`.
 
-## 0. Pull safely, and short-circuit if the contract did not move
+## 0. Fetch, and short-circuit if the contract did not move
+
+Everything reads from `origin/main`. **Never pull, checkout or otherwise touch the working tree** —
+other agents work in it (see SKILL.md).
 
 ```bash
-git -C "$GERMANY_ERP" fetch
-git -C "$GERMANY_ERP" log --oneline origin/main..main   # local-only commits: someone's work, not yours to merge over
-git -C "$GERMANY_ERP" pull --ff-only                    # never a merge pull; if ff-only fails, stop and ask
+git -C "$GERMANY_ERP" fetch -q origin
 LAST=<the newest HEAD in ledger §1 — the "Last HEAD check" cell, else "Last full pass">
-git -C "$GERMANY_ERP" log --oneline "$LAST"..HEAD -- docs/handoff
+git -C "$GERMANY_ERP" log --oneline "$LAST"..origin/main -- docs/handoff
+git -C "$GERMANY_ERP" rev-parse --short origin/main     # the HEAD you record in §1
 ```
 
-If the last command prints nothing, the contract did not move. Update the **Last HEAD check** cell
-in ledger §1 (date + HEAD) and stop. Most backend commits are `docs(mind)`, CI or index work.
+If the `log` prints nothing, the contract did not move. Update the **Last HEAD check** cell in ledger
+§1 (date + `origin/main` sha) and stop. Most backend commits are `docs(mind)`, CI or index work.
 
 ## 1. List the entries to read
 
@@ -25,15 +27,19 @@ reviewed-through date only tells you which of those entries you have already rea
 
 ```bash
 SINCE=<oldest Absorbed to>   # >= on purpose: several entries can share a date
-awk -v since="$SINCE" -v app=admin-panel '
-  /^## 2026-/   { d=$2; t=$0; k="" }
+git -C "$GERMANY_ERP" show origin/main:docs/handoff/CHANGELOG.md | awk -v since="$SINCE" -v app=admin-panel '
+  function flush() { if (d != "" && d >= since && !seen) print d, "NO-AFFECTS", (k ? k : "no-Kind"), substr(t,1,100) }
+  /^## 2026-/   { flush(); d=$2; t=$0; k=""; seen=0 }
   /^- Kind:/    { k=$3 }
-  /^- affects:/ { if (d>=since && index($0,app)) print d, k, substr(t,1,100) }
-' "$GERMANY_ERP/docs/handoff/CHANGELOG.md"
+  /^- affects:/ { seen=1; if (d>=since && index($0,app)) print d, k, substr(t,1,100) }
+  END           { flush() }
+'
 ```
 
-This keeps only entries whose `affects:` names `admin-panel`. The vocabulary is fixed:
-`admin-panel` · `owner-app` · `worker-app`. Cross out the entries the pass log (§4) already built and
+This keeps entries whose `affects:` names `admin-panel`. The vocabulary is fixed:
+`admin-panel` · `owner-app` · `worker-app`. It also prints every entry that has **no `affects:` line at
+all**, flagged `NO-AFFECTS`. Read those too: the 2026-08-28 `Blocked` → `Lapsed` rename is a breaking
+change with neither `affects:` nor `Kind:`, so a filter on `affects:` alone never shows it. Cross out the entries the pass log (§4) already built and
 the ones §3 already records as read. What is left is this pass's reading list.
 
 ## 2. Read each entry, acting on its fields in this order

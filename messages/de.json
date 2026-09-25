@@ -111,7 +111,8 @@
       "businessLicense": "Gewerbeschein",
       "companyRegistration": "Handelsregisterauszug",
       "taxCertificate": "Steuerbescheinigung",
-      "other": "Sonstiges"
+      "other": "Sonstiges",
+      "representativeAuthorization": "Vollmacht"
     },
     "companyType": {
       "llc": "LLC",
@@ -306,7 +307,8 @@
         "BusinessLicense": "Gewerbeschein",
         "CompanyRegistration": "Handelsregisterauszug",
         "TaxCertificate": "Steuerbescheinigung",
-        "Other": "Sonstiges"
+        "Other": "Sonstiges",
+        "RepresentativeAuthorization": "Vollmacht"
       },
       "filesTitle": "Dateien",
       "groupIdentity": "Identität",
@@ -990,15 +992,15 @@
       "onboardingStatus": "Phase",
       "onboarding": "Onboarding",
       "properties": "Objekte",
-      "companyCity": "Firmenstadt",
+      "location": "Standort",
       "lastOrdered": "Letzte Bestellung",
       "tasks": "Aufträge"
     },
     "filters": {
       "country": "Land",
-      "countryHint": "Begrenzt die Städteliste; filtert allein nichts.",
-      "companyCity": "Firmenstadt",
-      "companyCityHint": "Nur Eigentümer mit hinterlegter Firmenadresse.",
+      "countryHint": "Der eigene Standort des Eigentümers, nicht der seiner Firma. Eigentümer ohne Standort werden ausgeschlossen.",
+      "city": "Stadt",
+      "cityHint": "Die eigene Stadt des Eigentümers. Eigentümer ohne Standort werden ausgeschlossen.",
       "registered": "Registriert",
       "lastOrdered": "Letzte Bestellung",
       "neverOrdered": "Bestellungen",
