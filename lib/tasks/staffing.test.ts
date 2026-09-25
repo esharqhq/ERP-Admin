@@ -29,6 +29,7 @@ function worker(over: Partial<TaskWorkerDto> = {}): TaskWorkerDto {
     checkoutAt: null,
     checkinLat: null,
     checkinLng: null,
+    checkinDoor: null,
     ...over,
   };
 }

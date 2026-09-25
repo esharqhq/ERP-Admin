@@ -53,4 +53,18 @@ export interface AttendanceRowDto {
    * render without a number as a normal case, not as missing data.
    */
   lastRefusalDistanceMeters: number | null;
+
+  /**
+   * F-07 ·2 (2026-09-22) — which door this row's **successful** check-in came
+   * through: `"WorkerTapped"` · `"WorkerScannedDisplay"` · `"OwnerScannedWorker"`,
+   * or `null`. PascalCase on the wire. Read it through `checkinDoorKind`
+   * (`lib/attendance/checkin-door.ts`); the set is not closed.
+   *
+   * ⚠ On `OwnerScannedWorker`, `checkinLat`/`checkinLng` above are the
+   * **scanner's** phone, not the worker's.
+   * ⚠ `null` = never checked in **or** a row from before 2026-09-22 — the two
+   * cannot be told apart. Always present on the wire (the C# record gives it no
+   * default here, unlike `TaskWorkerDto`'s twin; no global null-ignore either).
+   */
+  checkinDoor: string | null;
 }

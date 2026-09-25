@@ -38,6 +38,7 @@ function row(over: Partial<AttendanceRowDto> = {}): AttendanceRowDto {
     checkinAt: null,
     checkinLat: null,
     checkinLng: null,
+    checkinDoor: null,
     checkoutAt: null,
     submittedAt: null,
     outcome: "Pending",

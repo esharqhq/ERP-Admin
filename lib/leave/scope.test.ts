@@ -37,6 +37,7 @@ function task(
       checkoutAt: null,
       checkinLat: null,
       checkinLng: null,
+      checkinDoor: null,
     });
   }
   for (let i = 0; i < (opts.others ?? 0); i++) {
@@ -53,6 +54,7 @@ function task(
       checkoutAt: null,
       checkinLat: null,
       checkinLng: null,
+      checkinDoor: null,
     });
   }
   return {

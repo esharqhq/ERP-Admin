@@ -4,6 +4,8 @@ import { AlertTriangle, MapPin } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { lateBy, refusalReasonKey, type AttendanceRow } from "@/lib/attendance/status";
 import { EMPTY, hhmm, metres } from "@/lib/attendance/format";
+import { coordsAreScanners } from "@/lib/attendance/checkin-door";
+import { CheckinDoorLabel } from "@/components/attendance/checkin-door-label";
 import { cn } from "@/lib/utils";
 
 /**
@@ -20,6 +22,10 @@ import { cn } from "@/lib/utils";
  * refusal count and a successful check-in **coexist**. The count is history,
  * `present` is now. Both lines stay, so the forty minutes between them have an
  * explanation.
+ *
+ * The door (F-07 ·2 `checkinDoor`) is a third, quieter line under the time — a
+ * caption, not a chip, because the row already has its one badge. It is absent
+ * for `null` (never checked in, or a pre-2026-09-22 row) rather than guessed.
  */
 export function CheckinCell({
   row,
@@ -34,6 +40,9 @@ export function CheckinCell({
 }) {
   const t = useTranslations("attendance");
   const hasCoords = row.checkinLat != null && row.checkinLng != null;
+  // ⚠ On a staff scan the pair is the SCANNER's phone, not the worker's — the
+  // pin still opens it, but its tooltip has to say whose location it is.
+  const scannerCoords = coordsAreScanners(row.checkinDoor);
   const delta = lateBy(row, nowMs, isToday);
 
   return (
@@ -61,11 +70,15 @@ export function CheckinCell({
             /* The row itself opens the detail sheet, so an inner link has to keep
                its click to itself or the map and the sheet both fire. */
             onClick={(e) => e.stopPropagation()}
-            title={t("cell.mapTooltip", {
+            title={t(scannerCoords ? "cell.mapTooltipScanner" : "cell.mapTooltip", {
               lat: String(row.checkinLat),
               lng: String(row.checkinLng),
             })}
-            aria-label={t("cell.openMap")}
+            aria-label={
+              scannerCoords
+                ? `${t("cell.openMap")}. ${t("door.scannerCoords")}.`
+                : t("cell.openMap")
+            }
             className="flex-none text-ink-soft transition-colors hover:text-primary"
           >
             <MapPin className="size-3" />
@@ -74,6 +87,8 @@ export function CheckinCell({
 
         {delta != null && <DeltaChip minutes={delta} kind={row.kind} />}
       </span>
+
+      <CheckinDoorLabel door={row.checkinDoor} />
 
       {row.refused && <RefusalLine row={row} />}
     </div>

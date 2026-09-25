@@ -190,7 +190,10 @@ const EXPECTED_FIELDS = {
   // One body, both restore doors. ⚠ `reason` is mandatory.
   RestoreAccountRequest: ["reason"],
   TaskWorkerDto: ["id", "taskId", "workerId", "workerName", "outcome", "starRating",
-    "assignedAt", "checkinAt", "submittedAt", "checkoutAt"],
+    "assignedAt", "checkinAt", "submittedAt", "checkoutAt",
+    // F-07 ·2 (2026-09-22) — the check-in door. ⚠ On `OwnerScannedWorker` the
+    // row's coordinates are the scanner's phone; dropped, that caveat vanishes.
+    "checkinDoor"],
 };
 for (const [name, fields] of Object.entries(EXPECTED_FIELDS)) {
   const live = S[name]?.properties;

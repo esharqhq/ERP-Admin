@@ -43,6 +43,14 @@ export interface TaskWorkerDto {
   checkoutAt: string | null;
   checkinLat: number | null;
   checkinLng: number | null;
+  /**
+   * F-07 ·2 (2026-09-22) — `"WorkerTapped"` · `"WorkerScannedDisplay"` ·
+   * `"OwnerScannedWorker"` · `null`. Read through `checkinDoorKind`; the set is
+   * not closed. ⚠ On `OwnerScannedWorker` the two coordinates above are the
+   * scanner's phone. ⚠ `null` = never checked in **or** checked in before
+   * 2026-09-22. Same field as `AttendanceRowDto.checkinDoor`.
+   */
+  checkinDoor: string | null;
 }
 
 export interface TaskGroupDateDto {

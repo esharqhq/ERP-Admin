@@ -275,6 +275,24 @@ by every document viewer.
 
 The record of what each pass **built** or **established**. What a pass read and did not build is in §3.
 
+### 2026-09-26 — F-07 ·2: how each worker checked in
+
+No guide section and no CHANGELOG entry (filed, `BACKEND-ASKS.md` 2026-09-24 item 2); read from C#
+(`TaskEnums.cs:132-142`, `TaskDtos.cs:519`, `AttendanceRowDto.cs:79`). `checkinDoor` is PascalCase on the wire
+(`WorkerTapped` · `WorkerScannedDisplay` · `OwnerScannedWorker` · null) — `index/` spells it `WORKER_TAPPED`, which
+is wrong for a client.
+
+| What changed | Where |
+|---|---|
+| `checkinDoorKind` (unknown → null, never crashes), `coordsAreScanners` | `lib/attendance/checkin-door.ts` (+ tests) |
+| `CheckinDoorLabel` — a muted caption with a Lucide icon, not a badge (a method, not a status); nothing for null, which means "never checked in" **or** "before 2026-09-22" | `components/attendance/checkin-door-label.tsx` |
+| Shown in the attendance cell (+ the map pin says the location is the scanner's phone on a staff scan), detail sheet field + coordinates caveat + timeline, mobile cards, CSV column, booking `WorkersTable`, complaint team card | `components/attendance/*`, `attendance/page.tsx`, `tasks/[id]/page.tsx`, `complaint-team-card.tsx` |
+| Types + gate (`TaskWorkerDto.checkinDoor`) | `attendance.types.ts`, `task.types.ts`, `scripts/verify-v2.mjs` |
+
+Also fixed on the way: the attendance forbidden panel's link-button lacked `nativeButton={false}` (Base UI
+console error). Checked in the browser; every row in the data predates the field, so the caption itself was not
+seen on real data.
+
 ### 2026-09-26 — F-07 ·9b: property country and city
 
 `f-02c-property-rework.md` §4.1a; CHANGELOG 2026-09-23 (·9b). Create `POST /api/admin/properties`, edit

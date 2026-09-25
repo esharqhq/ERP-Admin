@@ -3,6 +3,7 @@
 import { AlertTriangle } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { AttendanceBadge, KIND_RAIL } from "@/components/attendance/attendance-badge";
+import { CheckinDoorLabel } from "@/components/attendance/checkin-door-label";
 import { initials } from "@/lib/ui/initials";
 import { hhmm, metres } from "@/lib/attendance/format";
 import { refusalReasonKey, type AttendanceRow } from "@/lib/attendance/status";
@@ -15,7 +16,8 @@ import { cn } from "@/lib/utils";
  *
  * Seven columns cannot be scrolled horizontally at 390px and stay readable, so
  * the card keeps what a phone is actually used for — identity, the two times, the
- * badge and the refusal line — and everything else is one tap into the sheet.
+ * check-in door, the badge and the refusal line — and everything else is one tap
+ * into the sheet.
  *
  * ⚠ **The order is different on purpose.** The desktop table sorts by worker; the
  * phone sorts by severity, refusals first. Same rows and the same badges — only
@@ -110,6 +112,9 @@ function Card({
           })}
           <span className="text-muted-foreground/70">{row.outcome}</span>
         </span>
+
+        {/* Its own line: at 390px the mono times line has no room left for it. */}
+        <CheckinDoorLabel door={row.checkinDoor} className="text-[11px]" />
 
         {row.refused && (
           <span className="flex items-center gap-1 text-[11px] font-medium text-status-cancelled-deep">

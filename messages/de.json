@@ -1826,6 +1826,7 @@
       "sent": "aufgabenweit · gesendet {time}",
       "taskWide": "aufgabenweit",
       "mapTooltip": "Check-in-Standort: {lat}, {lng}",
+      "mapTooltipScanner": "Standort vom Telefon der scannenden Person, nicht vom Telefon des Mitarbeiters: {lat}, {lng}",
       "openMap": "Check-in-Standort auf der Karte öffnen",
       "empty": "—"
     },
@@ -1839,6 +1840,15 @@
       },
       "windowNote": "Mehrere Versuche innerhalb einer Viertelstunde zählen als einer.",
       "unassignedNote": "Eine Abweisung von jemandem, der der Aufgabe nicht zugewiesen ist, hat hier keine Zeile — dies sind also nicht alle Abweisungen der Plattform."
+    },
+    "door": {
+      "tapped": "In der App",
+      "display": "Vor-Ort-QR",
+      "scanned": "Vor Ort gescannt",
+      "tappedLong": "Der Mitarbeiter hat in der App eingecheckt",
+      "displayLong": "Der Mitarbeiter hat den QR-Code vor Ort gescannt",
+      "scannedLong": "Jemand vor Ort (Seite des Eigentümers) hat den Code des Mitarbeiters gescannt",
+      "scannerCoords": "Standort vom Telefon der scannenden Person, nicht vom Telefon des Mitarbeiters"
     },
     "footer": {
       "shown": "{shown} von {total} Zeilen",
@@ -1874,6 +1884,7 @@
       "refusedMoreSub": "Nur der letzte davon ist beschrieben.",
       "checkIn": "Check-in",
       "checkInSub": "bei {lat}, {lng}",
+      "checkInSubScanner": "bei {lat}, {lng} — vom Telefon der scannenden Person, nicht vom Telefon des Mitarbeiters.",
       "checkInMissing": "In dieser Zeile hat niemand eingecheckt.",
       "checkOut": "Check-out",
       "checkOutSub": "Wird für alle Mitarbeitenden gleichzeitig gesetzt, sobald der Eigentümer die Aufgabe abnimmt.",
@@ -1894,6 +1905,7 @@
         "property": "Objekt",
         "taskGroup": "Aufgabengruppe",
         "coordinates": "Check-in-Koordinaten",
+        "checkinMethod": "Check-in-Methode",
         "submittedAt": "Eingereicht",
         "refusedCount": "Abgewiesene Versuche",
         "lastRefusal": "Letzte Abweisung"

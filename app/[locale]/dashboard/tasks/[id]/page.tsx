@@ -25,6 +25,7 @@ import { OutcomeDialog } from "@/components/tasks/outcome-dialog";
 import { TaskDaysBadge } from "@/components/tasks/task-days-badge";
 import { toastGroupCancel } from "@/components/tasks/group-cancel-toast";
 import { TaskStatusBadge } from "@/components/tasks/task-status-badge";
+import { CheckinDoorLabel } from "@/components/attendance/checkin-door-label";
 import {
   SupervisorOverrideDialog,
   canOverrideSupervisor,
@@ -171,7 +172,13 @@ function WorkersTable({
               )}
             </TableCell>
             <TableCell className="text-sm text-muted-foreground">
-              {fmtDateTime(tw.checkinAt, locale)}
+              {/* F-07 ·2 — how they got in, under the time rather than in a
+                  seventh column: it is blank on every row that never checked in
+                  and on every row from before 2026-09-22. */}
+              <div className="flex flex-col gap-0.5">
+                <span>{fmtDateTime(tw.checkinAt, locale)}</span>
+                <CheckinDoorLabel door={tw.checkinDoor} className="text-xs" />
+              </div>
             </TableCell>
             <TableCell className="text-sm text-muted-foreground">
               {fmtDateTime(tw.checkoutAt, locale)}

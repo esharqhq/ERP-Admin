@@ -1826,6 +1826,7 @@
       "sent": "task-wide · sent {time}",
       "taskWide": "task-wide",
       "mapTooltip": "Check-in location: {lat}, {lng}",
+      "mapTooltipScanner": "Location from the scanner's phone, not the worker's: {lat}, {lng}",
       "openMap": "Open the check-in location on a map",
       "empty": "—"
     },
@@ -1839,6 +1840,15 @@
       },
       "windowNote": "Repeated tries within a quarter of an hour count once.",
       "unassignedNote": "A refusal by someone who is not assigned to the task has no row here, so this is not every refusal on the platform."
+    },
+    "door": {
+      "tapped": "In the app",
+      "display": "Site QR",
+      "scanned": "Scanned on site",
+      "tappedLong": "The worker checked in from the app",
+      "displayLong": "The worker scanned the on-site QR code",
+      "scannedLong": "Someone on site (the owner's side) scanned the worker's code",
+      "scannerCoords": "Location from the scanner's phone, not the worker's"
     },
     "footer": {
       "shown": "{shown} of {total} rows",
@@ -1874,6 +1884,7 @@
       "refusedMoreSub": "Only the most recent one is described.",
       "checkIn": "Check-in",
       "checkInSub": "at {lat}, {lng}",
+      "checkInSubScanner": "at {lat}, {lng} — from the scanner's phone, not the worker's.",
       "checkInMissing": "Nobody checked in on this row.",
       "checkOut": "Check-out",
       "checkOutSub": "Stamped for every worker at once when the owner accepts the task.",
@@ -1894,6 +1905,7 @@
         "property": "Property",
         "taskGroup": "Task group",
         "coordinates": "Check-in coordinates",
+        "checkinMethod": "Check-in method",
         "submittedAt": "Submitted",
         "refusedCount": "Refused tries",
         "lastRefusal": "Last refusal"

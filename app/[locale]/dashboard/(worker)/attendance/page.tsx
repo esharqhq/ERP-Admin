@@ -35,6 +35,7 @@ import { useTableUrlState } from "@/hooks/use-table-url-state";
 import { useHasPermission } from "@/hooks/use-current-permissions";
 import { useLiveClock, useTodayKey } from "@/hooks/use-today";
 import { hhmm, longDate } from "@/lib/attendance/format";
+import { checkinDoorKind } from "@/lib/attendance/checkin-door";
 import type { AttendanceRow, AttendanceTab } from "@/lib/attendance/status";
 import { downloadCsv } from "@/lib/csv";
 
@@ -159,25 +160,33 @@ export default function AttendancePage() {
       t("columns.status"),
       t("detail.field.outcome"),
       t("detail.field.coordinates"),
+      t("detail.field.checkinMethod"),
       t("detail.field.refusedCount"),
       t("detail.field.lastRefusal"),
     ];
     // What is filtered, not what is paged — there are no pages.
-    const data = table.rows.map((r) => [
-      r.workerName,
-      r.propertyName,
-      r.taskGroupTitle || r.taskId,
-      hhmm(r.scheduledAt, locale),
-      hhmm(r.checkinAt, locale),
-      hhmm(r.checkoutAt, locale),
-      t(`status.${r.kind}`),
-      r.outcome,
-      r.checkinLat != null && r.checkinLng != null
-        ? `${r.checkinLat}, ${r.checkinLng}`
-        : "",
-      r.refusedCheckinCount,
-      [r.lastRefusalReason, r.lastRefusalDistanceMeters].filter((v) => v != null).join(" · "),
-    ]);
+    const data = table.rows.map((r) => {
+      // F-07 ·2. Empty for `null` (never checked in, or before 2026-09-22) and
+      // for a door this app does not know — a cell, not a guess. ⚠ Beside the
+      // coordinates on purpose: on "scanned by staff" they are the scanner's.
+      const door = checkinDoorKind(r.checkinDoor);
+      return [
+        r.workerName,
+        r.propertyName,
+        r.taskGroupTitle || r.taskId,
+        hhmm(r.scheduledAt, locale),
+        hhmm(r.checkinAt, locale),
+        hhmm(r.checkoutAt, locale),
+        t(`status.${r.kind}`),
+        r.outcome,
+        r.checkinLat != null && r.checkinLng != null
+          ? `${r.checkinLat}, ${r.checkinLng}`
+          : "",
+        door ? t(`door.${door}`) : "",
+        r.refusedCheckinCount,
+        [r.lastRefusalReason, r.lastRefusalDistanceMeters].filter((v) => v != null).join(" · "),
+      ];
+    });
     downloadCsv(`attendance-${dayKey}.csv`, headers, data);
   };
 
@@ -501,7 +510,7 @@ function ForbiddenPanel() {
               <code className="rounded-md bg-muted px-2 py-1 font-mono text-[11px] text-muted-foreground">
                 {t("forbiddenCode")}
               </code>
-              <Button variant="outline" size="sm" render={<Link href="/dashboard" />}>
+              <Button variant="outline" size="sm" nativeButton={false} render={<Link href="/dashboard" />}>
                 {t("forbiddenBack")}
               </Button>
             </div>

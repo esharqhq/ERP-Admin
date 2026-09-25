@@ -15,13 +15,15 @@ import { AttendanceBadge } from "@/components/attendance/attendance-badge";
 import { initials } from "@/lib/ui/initials";
 import { EMPTY, hhmm, metres } from "@/lib/attendance/format";
 import { refusalReasonKey, type AttendanceRow } from "@/lib/attendance/status";
+import { checkinDoorKind } from "@/lib/attendance/checkin-door";
 import { cn } from "@/lib/utils";
 
 /**
  * The rest of the row, one click away.
  *
  * Seven columns is the table's cap, so the fields that do not earn one live here:
- * the coordinates, the submission time, the refusal timestamp and the ids.
+ * the coordinates, the check-in door, the submission time, the refusal timestamp
+ * and the ids.
  * **Nothing new** — the panel invents no value the response did not send.
  *
  * ⚠ **Read-only, because the route is.** `GET` is the whole endpoint: there is no
@@ -41,10 +43,15 @@ export function AttendanceDetailSheet({
 }) {
   const t = useTranslations("attendance.detail");
   const tRefusal = useTranslations("attendance.refusal");
+  const tDoor = useTranslations("attendance.door");
 
   const reason = refusalReasonKey(row.lastRefusalReason);
   const distance = metres(row.lastRefusalDistanceMeters);
   const hasCoords = row.checkinLat != null && row.checkinLng != null;
+  // F-07 ·2. `null` — never checked in, or a pre-2026-09-22 row — reads as the
+  // dash, never as a guessed door. An unknown door does the same.
+  const door = checkinDoorKind(row.checkinDoor);
+  const scannerCoords = door === "scanned";
   const distanceLabel =
     distance != null ? tRefusal("distance", { meters: distance }) : null;
 
@@ -85,6 +92,7 @@ export function AttendanceDetailSheet({
               row,
               locale,
               hasCoords,
+              scannerCoords,
               distanceLabel,
               reason,
               t,
@@ -130,6 +138,15 @@ export function AttendanceDetailSheet({
               v={hasCoords ? `${row.checkinLat}, ${row.checkinLng}` : EMPTY}
               mono
               dim={!hasCoords}
+              // ⚠ On a staff scan the pair is the scanner's phone. The value alone
+              // would be read as where the worker stood, so it carries the caveat.
+              note={hasCoords && scannerCoords ? tDoor("scannerCoords") : undefined}
+            />
+            {/* A word, not a value — so not mono. */}
+            <Field
+              k={t("field.checkinMethod")}
+              v={door ? tDoor(door) : EMPTY}
+              dim={!door}
             />
             <Field
               k={t("field.refusedCount")}
@@ -217,6 +234,7 @@ function buildTimeline({
   row,
   locale,
   hasCoords,
+  scannerCoords,
   distanceLabel,
   reason,
   t,
@@ -225,6 +243,7 @@ function buildTimeline({
   row: AttendanceRow;
   locale: string;
   hasCoords: boolean;
+  scannerCoords: boolean;
   distanceLabel: string | null;
   reason: ReturnType<typeof refusalReasonKey>;
   t: (key: string, values?: Record<string, string | number>) => string;
@@ -272,7 +291,7 @@ function buildTimeline({
       time: hhmm(row.checkinAt, locale),
       label: t("checkIn"),
       sub: hasCoords
-        ? t("checkInSub", {
+        ? t(scannerCoords ? "checkInSubScanner" : "checkInSub", {
             lat: String(row.checkinLat),
             lng: String(row.checkinLng),
           })
@@ -364,11 +383,14 @@ function Field({
   v,
   mono,
   dim,
+  note,
 }: {
   k: string;
   v: string;
   mono?: boolean;
   dim?: boolean;
+  /** A caveat under the value. Wraps — the value itself still truncates. */
+  note?: string;
 }) {
   return (
     <div className="flex items-baseline justify-between gap-3 py-1">
@@ -380,7 +402,16 @@ function Field({
           dim ? "text-muted-foreground/60" : "text-foreground",
         )}
       >
-        {v}
+        {note ? (
+          <>
+            <span className="block truncate">{v}</span>
+            <span className="block font-sans text-[10.5px] whitespace-normal text-muted-foreground text-pretty">
+              {note}
+            </span>
+          </>
+        ) : (
+          v
+        )}
       </dd>
     </div>
   );

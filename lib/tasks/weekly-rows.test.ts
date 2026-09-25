@@ -22,6 +22,7 @@ function worker(name: string | null, outcome = "assigned") {
     checkoutAt: null,
     checkinLat: null,
     checkinLng: null,
+    checkinDoor: null,
   };
 }
 

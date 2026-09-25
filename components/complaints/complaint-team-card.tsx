@@ -4,6 +4,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PhotoGrid } from "@/components/complaints/photo-grid";
+import { CheckinDoorLabel } from "@/components/attendance/checkin-door-label";
 import { VACATED_OUTCOMES } from "@/lib/tasks/staffing";
 import { normalizeStatus } from "@/lib/types/task.types";
 import type { TaskItemDto, TaskMediaListItem } from "@/lib/types/task.types";
@@ -105,8 +106,13 @@ export function ComplaintTeamCard({
                       {outcomeLabel(w.outcome, t)}
                     </span>
                   </span>
-                  <span className="shrink-0 font-mono text-xs text-muted-foreground tabular-nums">
-                    {t("checkin")} {fmtTime(w.checkinAt, locale)} · {t("checkout")} {fmtTime(w.checkoutAt, locale)}
+                  <span className="flex shrink-0 flex-col items-end gap-0.5">
+                    <span className="font-mono text-xs text-muted-foreground tabular-nums">
+                      {t("checkin")} {fmtTime(w.checkinAt, locale)} · {t("checkout")} {fmtTime(w.checkoutAt, locale)}
+                    </span>
+                    {/* F-07 ·2 — how they got in. On a disputed day, "scanned by
+                        staff" means the owner's own side checked the worker in. */}
+                    <CheckinDoorLabel door={w.checkinDoor} />
                   </span>
                 </li>
               );
