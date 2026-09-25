@@ -168,7 +168,9 @@ const EXPECTED_FIELDS = {
   // a walk-in order), so a rename of any of them changes what the clone sends.
   TaskGroupDto: ["id", "propertyId", "ownerId", "title", "defaultStartTime", "defaultDeadline",
     "instructions", "days", "closed", "ratingFloor", "allowNewWorkers", "eligibleProfessionIds",
-    "dates", "tasks", "createdAt", "ownerProvidesTools", "cityId"],
+    "dates", "tasks", "createdAt", "ownerProvidesTools", "cityId",
+    // F-07 ·12 / ·7 — rendered on the booking page and the walk-in sheet.
+    "kind", "addOnNote"],
   TaskGroupDayCountsDto: ["total", "pending", "checkedIn", "inReview", "done", "cancelled",
     "rejected"],
   // ⚠ `closedReplacement` is always 0 today — forward-declared for ·5. Gated so

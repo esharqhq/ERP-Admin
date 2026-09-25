@@ -1333,9 +1333,14 @@
     "toolsOwner": "Owner provides",
     "toolsCompany": "We bring them",
     "toolsHint": "Required. Workers see this before they accept the job.",
+    "toolsUnspecified": "Not specified",
     "addOn": "Add-on note · optional",
+    "addOnRead": "Add-on note",
     "addOnPlaceholder": "Post-construction cleanup, after a flood…",
-    "addOnHint": "Shown to workers before they accept. A note only — nothing is priced or checked from it."
+    "addOnHint": "Shown to workers before they accept. A note only — nothing is priced or checked from it.",
+    "kind": "Order type",
+    "kindBooking": "Booking",
+    "kindSingle": "Single task"
   },
   "properties": {
     "title": "Properties",
@@ -2073,6 +2078,7 @@
       "tasksTitle": "Tasks",
       "noTasks": "No tasks in this group",
       "noWorkers": "No workers assigned",
+      "closedBeforeReasons": "{count, plural, one {# day closed before reasons were recorded} other {# days closed before reasons were recorded}}",
       "info": {
         "propertyId": "Property ID",
         "ownerId": "Owner ID",

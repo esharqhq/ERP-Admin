@@ -209,12 +209,12 @@ Built to the guide, never exercised against production:
 - `/api/admin/conversations` excludes worker Contact/Group chat (guidance §5).
 - Weekly work card on a sub-account owner: `200 []` shown as "none" (`weekly-work-card.tsx:120`).
 
-### WP11 — F-07 remainder · `task-lifecycle`, `f-02b-6`
+### WP11 — F-07 remainder · `task-lifecycle`, `f-02b-6` · ✅ done 2026-09-26
 
 - ✅ BUILT 2026-09-26: **clone** `POST /api/tasks/admin/groups/{id}/clone` — booking page + walk-in sheet ([§4](#2026-09-26--f-07-10-copy-as-new-order)).
-- MISSING: `kind` label (`"Booking"`/`"SingleTask"`) — not on `TaskItemDto`, not rendered.
-- MISSING: read back `ownerProvidesTools`/`addOnNote` on the order sheet (typed `task.types.ts:181-183`).
-- PARTIAL: `closed` counts typed, never rendered (`task.types.ts:164`).
+- ✅ BUILT 2026-09-26: `kind` label — booking header + walk-in sheet ([§4](#2026-09-26--wp11-an-order-shows-what-it-carries)).
+- ✅ BUILT 2026-09-26: `ownerProvidesTools` (null → "Not specified") and `addOnNote` read back ([§4](#2026-09-26--wp11-an-order-shows-what-it-carries)). Walk-in city name **not** shown: no lookup resolves one city by id and the order carries no `countryId`.
+- ✅ BUILT 2026-09-26: `closed` counts on the booking page ([§4](#2026-09-26--wp11-an-order-shows-what-it-carries)).
 - ✅ BUILT 2026-09-26: team rating `PUT /api/tasks/{taskId}/rating` — "Rate the team" on a Done day ([§4](#2026-09-26--f-07-4-rate-the-whole-team)).
 - ✅ BUILT 2026-09-26: the critical staffing list, `?staffing=Warning|Critical` — home-page card ([§4](#2026-09-26--f-07-8-the-short-handed-card-and-the-staffing-rungs-in-the-bell)).
 
@@ -274,6 +274,19 @@ by every document viewer.
 ## 4. Pass log — newest first
 
 The record of what each pass **built** or **established**. What a pass read and did not build is in §3.
+
+### 2026-09-26 — WP11: an order shows what it carries
+
+`TaskGroupDto.kind` (·12), `ownerProvidesTools` / `addOnNote` (·7), `closed` (·3/·5).
+
+| What changed | Where |
+|---|---|
+| `toolsAnswerKey` (`null`/absent → `unspecified`, never "no"), `kindKey` (unknown → null, printed verbatim), `closureTally` (four reasons in fixed order, zeros kept, `unexplained = done − sum` = days closed before 2026-09-21) | `lib/tasks/order-facts.ts` (+ 12 tests) |
+| Booking page: kind as muted text beside the days badge (that badge is the row's one badge), "Cleaning tools" row, add-on note when present, a "Closed as" caption row with counts (captions, not `SummaryStrip`: it truncates the reason labels and offers a narrowing there is nothing to narrow) | `tasks/[id]/page.tsx` |
+| Walk-in sheet: order type, tools, add-on note | `walk-in-order-sheet.tsx` |
+| Gate: `kind`, `addOnNote` on `TaskGroupDto` | `scripts/verify-v2.mjs` |
+
+Checked in the browser (booking page). Walk-in city name skipped — see WP11.
 
 ### 2026-09-26 — F-07 ·4: rate the whole team
 

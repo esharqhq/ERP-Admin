@@ -1333,9 +1333,14 @@
     "toolsOwner": "Stellt der Eigentümer",
     "toolsCompany": "Bringen wir mit",
     "toolsHint": "Pflichtangabe. Mitarbeiter sehen das, bevor sie den Auftrag annehmen.",
+    "toolsUnspecified": "Nicht angegeben",
     "addOn": "Zusatzhinweis · optional",
+    "addOnRead": "Zusatzhinweis",
     "addOnPlaceholder": "Bauendreinigung, nach Wasserschaden…",
-    "addOnHint": "Wird Mitarbeitern vor der Annahme angezeigt. Nur ein Hinweis — daraus wird nichts berechnet oder geprüft."
+    "addOnHint": "Wird Mitarbeitern vor der Annahme angezeigt. Nur ein Hinweis — daraus wird nichts berechnet oder geprüft.",
+    "kind": "Auftragsart",
+    "kindBooking": "Buchung",
+    "kindSingle": "Einzelaufgabe"
   },
   "properties": {
     "title": "Objekte",
@@ -2073,6 +2078,7 @@
       "tasksTitle": "Aufgaben",
       "noTasks": "Keine Aufgaben in dieser Gruppe",
       "noWorkers": "Keine Mitarbeiter zugewiesen",
+      "closedBeforeReasons": "{count, plural, one {# Tag vor Einführung der Abschlussgründe abgeschlossen} other {# Tage vor Einführung der Abschlussgründe abgeschlossen}}",
       "info": {
         "propertyId": "Objekt-ID",
         "ownerId": "Eigentümer-ID",

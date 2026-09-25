@@ -28,6 +28,12 @@ import {
 import { useHasPermission } from "@/hooks/use-current-permissions";
 import { activeWorkers, isGroupActive, isOpen } from "@/lib/tasks/staffing";
 import { classifyAssignError } from "@/lib/tasks/assign-errors";
+import {
+  KIND_MESSAGE,
+  TOOLS_MESSAGE,
+  kindKey,
+  toolsAnswerKey,
+} from "@/lib/tasks/order-facts";
 import type { TaskGroupDto, TaskItemDto, TaskWorkerDto } from "@/lib/types/task.types";
 
 type Modal =
@@ -69,6 +75,7 @@ export function WalkInOrderSheet({
   const tTasks = useTranslations("tasks");
   const tAssign = useTranslations("workers.assignErrors");
   const tOnboarding = useTranslations("onboarding");
+  const tOrder = useTranslations("orderFields");
   const locale = useLocale();
   const [modal, setModal] = useState<Modal>(null);
 
@@ -112,6 +119,11 @@ export function WalkInOrderSheet({
       })()
     : null;
 
+  // An unknown kind prints verbatim; an absent one prints nothing.
+  const kind = kindKey(group?.kind);
+  const kindLabel = kind ? tOrder(KIND_MESSAGE[kind]) : group?.kind || null;
+  const toolsAnswer = toolsAnswerKey(group?.ownerProvidesTools);
+
   return (
     <Sheet open={!!group} onOpenChange={(open: boolean) => !open && close()}>
       <SheetContent className="flex w-full flex-col gap-0 overflow-y-auto sm:max-w-lg">
@@ -138,10 +150,34 @@ export function WalkInOrderSheet({
               <dd className="tabular-nums">
                 {hhmm(group.defaultDeadline) ?? t("noDeadline")}
               </dd>
+              {/* F-07 ·12 — text, since the title already carries this sheet's
+                  one badge. */}
+              {kindLabel ? (
+                <>
+                  <dt className="text-muted-foreground">{tOrder("kind")}</dt>
+                  <dd>{kindLabel}</dd>
+                </>
+              ) : null}
+              {/* F-07 ·7. ⚠ `null` = filed before the question: "Not
+                  specified", never "No". */}
+              <dt className="text-muted-foreground">{tOrder("tools")}</dt>
+              <dd
+                className={
+                  toolsAnswer === "unspecified" ? "text-muted-foreground" : undefined
+                }
+              >
+                {tOrder(TOOLS_MESSAGE[toolsAnswer])}
+              </dd>
               {group.instructions ? (
                 <>
                   <dt className="text-muted-foreground">{t("instructions")}</dt>
                   <dd className="whitespace-pre-wrap">{group.instructions}</dd>
+                </>
+              ) : null}
+              {group.addOnNote?.trim() ? (
+                <>
+                  <dt className="text-muted-foreground">{tOrder("addOnRead")}</dt>
+                  <dd className="whitespace-pre-wrap">{group.addOnNote}</dd>
                 </>
               ) : null}
             </dl>

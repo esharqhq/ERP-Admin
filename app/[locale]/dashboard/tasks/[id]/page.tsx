@@ -48,6 +48,14 @@ import { isWalkInSource } from "@/lib/tasks/clone-order";
 import { canonicalTaskStatus } from "@/lib/tasks/status-vocab";
 import { outcomeChoices } from "@/lib/tasks/outcome-override";
 import { canRateTeam, ratingErrorKey } from "@/lib/tasks/team-rating";
+import {
+  KIND_MESSAGE,
+  TOOLS_MESSAGE,
+  closureTally,
+  kindKey,
+  toolsAnswerKey,
+  type ClosureKey,
+} from "@/lib/tasks/order-facts";
 import { getValidationMessage } from "@/lib/http/api-error";
 import { useClock } from "@/hooks/use-today";
 import {
@@ -70,6 +78,11 @@ const CLOSURE_REASONS = new Set([
 
 function closureReasonLabel(reason: string, t: (k: string) => string): string {
   return CLOSURE_REASONS.has(reason) ? t(`reasons.${reason}`) : reason;
+}
+
+/** `closed`'s counter names are the reasons in camelCase: `ownerAccepted` → `OwnerAccepted`. */
+function closureCounterReason(key: ClosureKey): string {
+  return key.charAt(0).toUpperCase() + key.slice(1);
 }
 
 interface TaskActions {
@@ -386,6 +399,8 @@ export default function TaskGroupDetailPage({
   const { id } = use(params);
   const t = useTranslations("tasks");
   const tCommon = useTranslations("common");
+  const tOrder = useTranslations("orderFields");
+  const tClose = useTranslations("tasks.forceClose");
   const locale = useLocale();
   const { data: group, isLoading, isError } = useTaskGroup(id);
 
@@ -468,6 +483,11 @@ export default function TaskGroupDetailPage({
     group,
     walkIn.isSuccess ? walkIn.data : undefined,
   );
+  // An unknown kind prints verbatim; an absent one prints nothing.
+  const kind = kindKey(group.kind);
+  const kindLabel = kind ? tOrder(KIND_MESSAGE[kind]) : group.kind || null;
+  const toolsAnswer = toolsAnswerKey(group.ownerProvidesTools);
+  const tally = closureTally(group.closed, group.days?.done);
 
   return (
     <div className="flex flex-col gap-6">
@@ -479,6 +499,11 @@ export default function TaskGroupDetailPage({
             {group.title ?? "—"}
           </h1>
           <TaskDaysBadge group={group} />
+          {/* F-07 ·12. Text, not a second badge: `TaskDaysBadge` already is
+              this row's one badge. */}
+          {kindLabel ? (
+            <span className="text-sm text-muted-foreground">{kindLabel}</span>
+          ) : null}
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {/* Any state can be copied (F-07 ·10, §0i·2) — a finished or
@@ -541,11 +566,34 @@ export default function TaskGroupDetailPage({
             label={t("detail.info.dates")}
             value={(group.dates ?? []).length}
           />
+          {/* F-07 ·7. ⚠ `null` is a booking from before the question — "Not
+              specified", never "No". */}
+          <InfoRow
+            label={tOrder("tools")}
+            value={
+              <span
+                className={
+                  toolsAnswer === "unspecified" ? "text-muted-foreground" : undefined
+                }
+              >
+                {tOrder(TOOLS_MESSAGE[toolsAnswer])}
+              </span>
+            }
+          />
           {group.instructions ? (
             <div className="col-span-2 sm:col-span-3 lg:col-span-4">
               <InfoRow
                 label={t("detail.info.instructions")}
                 value={group.instructions}
+              />
+            </div>
+          ) : null}
+          {/* Shown only when present, like instructions above. */}
+          {group.addOnNote?.trim() ? (
+            <div className="col-span-2 sm:col-span-3 lg:col-span-4">
+              <InfoRow
+                label={tOrder("addOnRead")}
+                value={<span className="whitespace-pre-wrap">{group.addOnNote}</span>}
               />
             </div>
           ) : null}
@@ -560,6 +608,41 @@ export default function TaskGroupDetailPage({
           {tCommon("resultsFound", { count: sortedTasks.length })}
         </p>
       </div>
+
+      {/* F-07 ·3 — how the finished days closed, in the words each day's card
+          uses. A caption row rather than a `SummaryStrip`: the strip truncates
+          its titles, which would cut the reason labels, and it offers a
+          narrowing there is nothing here to narrow. Zeros stay, so the row
+          never reflows as days close. */}
+      {tally ? (
+        <div className="flex flex-col gap-1.5">
+          <span className="overline-label text-muted-foreground">
+            {tClose("closedAs")}
+          </span>
+          <ul className="flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted-foreground">
+            {tally.rows.map((row) => (
+              <li key={row.key}>
+                {closureReasonLabel(closureCounterReason(row.key), tClose)} ·{" "}
+                <span
+                  className={
+                    row.count > 0
+                      ? "font-mono tabular-nums text-foreground"
+                      : "font-mono tabular-nums"
+                  }
+                >
+                  {row.count}
+                </span>
+              </li>
+            ))}
+          </ul>
+          {/* ⚠ Not a discrepancy: days closed before 2026-09-21 carry no reason. */}
+          {tally.unexplained > 0 ? (
+            <p className="text-xs text-muted-foreground">
+              {t("detail.closedBeforeReasons", { count: tally.unexplained })}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
 
       {sortedTasks.length === 0 ? (
         <p className="text-sm text-muted-foreground">{t("detail.noTasks")}</p>
