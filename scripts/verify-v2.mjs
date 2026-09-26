@@ -296,6 +296,16 @@ for (const p of ["scheduledFrom", "scheduledTo", "status", "staffing"]) {
   else bad(`GET /api/tasks/admin lost ?${p}`);
 }
 
+// WP4 — the audit page filters on the server (the list is capped at 200 rows), so a
+// renamed param would silently return the unfiltered newest 200. ⚠ `action` also
+// depends on the C# `SuperAdminAuditAction` member names; `lib/audit/filters.test.ts`
+// pins those.
+const auditParams = (swagger.paths["/api/admin/audit-log"]?.get?.parameters ?? []).map((p) => p.name.toLowerCase());
+for (const p of ["action", "fromUtc", "toUtc"]) {
+  if (auditParams.includes(p.toLowerCase())) ok(`GET /api/admin/audit-log takes ?${p}`);
+  else bad(`GET /api/admin/audit-log lost ?${p}`);
+}
+
 // owner-location-model (2026-08-13) replaced `companyCityId` with this pair.
 // An unknown query key is ignored, so a stale name returns the whole table.
 // Swagger lists these PascalCase (`CityId`), hence the lower-casing.

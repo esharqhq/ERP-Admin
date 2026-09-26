@@ -2725,10 +2725,13 @@
   "audit": {
     "title": "Activity Log",
     "subtitle": "A record of what admins have done",
-    "searchPlaceholder": "Search by admin or action...",
+    "searchPlaceholder": "Search these entries by admin, action or target...",
     "allActions": "All activity",
+    "dateRange": "Date",
     "noLogs": "No activity yet",
+    "noMatch": "No entries for this filter",
     "count": "{count} events",
+    "capped": "Showing the newest {cap} entries. Narrow by action or date to see older ones.",
     "actorTypes": {
       "SuperAdmin": "A Super Admin",
       "Moderator": "A Moderator",

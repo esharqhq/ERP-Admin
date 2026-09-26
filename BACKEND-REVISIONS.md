@@ -139,13 +139,10 @@ A new form section; needs its own design.
 - ✅ Upsert by `id`, count only a real unread change; pages deduped by `id`; `DELETE /api/notifications/{id}` wired.
 - ⚠ `lib/notifications/route.ts` branches on `type`, not only `entityType`; 82/83 routing is NEEDS-LIVE (WP10).
 
-### WP4 — Audit log · 🔴 live, silent · no guide (`index/controllers/admin.md`)
+### WP4 — Audit log · ✅ done 2026-09-26 ([§4](#2026-09-26--wp4-the-audit-log-filters-on-the-server))
 
-- `app/[locale]/dashboard/settings/audit/page.tsx:74-91` fetches unfiltered and filters on the client, but
-  the server caps at **200 rows** — an older action shows "no entries", indistinguishable from a real
-  empty result. Send `?action=` with the **C# member name** (`KycApproved`, not `KYC_APPROVED`, which is a
-  problem-details 400). The code comment's "casing" reason is wrong.
-- Remove the dead `PROPERTY_DOCS_*` options (`page.tsx:23`) — those routes were deleted (guidance §5).
+- ✅ `?action=` (C# member name) and a date range sent to the server; capped answers say so; dead `PROPERTY_DOCS_*`
+  options removed.
 
 ### WP5 — Write safety: idempotency and retry · ✅ done 2026-09-26 ([§4](#2026-09-26--wp5-one-idempotency-key-per-user-intent))
 
@@ -269,6 +266,20 @@ by every document viewer.
 ## 4. Pass log — newest first
 
 The record of what each pass **built** or **established**. What a pass read and did not build is in §3.
+
+### 2026-09-26 — WP4: the audit log filters on the server
+
+`GET /api/admin/audit-log` (newest first, capped at 200, no total). Filtering the newest 200 in the browser made an
+older action read "no entries".
+
+| What changed | Where |
+|---|---|
+| `toActionMember` (UPPER_SNAKE → the C# member name the route takes; `KYC_APPROVED` is a problem-details 400), `buildAuditQuery` (local day bounds → ISO; `toUtc` is the last millisecond — the server compares `CreatedAt <= toUtc`), `isCapped`, the offered list checked against a frozen copy of the 88 members; `auditErrorKey` | `lib/audit/filters.ts`, `errors.ts` (+ tests) |
+| Action select and a new date range are server params; a capped answer says "showing the newest 200 — narrow by action or date"; filtered-empty vs never-any are worded apart; validation / forbidden / error states (a 403 used to read "no activity"); `PROPERTY_DOCS_*` no longer offered (labels kept for history rows) | `settings/audit/page.tsx` |
+| Gate: `action`, `fromUtc`, `toUtc` on the route | `scripts/verify-v2.mjs` |
+
+Client-side text search still searches only the returned rows (placeholder says so). Not checked in a browser (the
+extension was disconnected).
 
 ### 2026-09-26 — WP5: one idempotency key per user intent
 

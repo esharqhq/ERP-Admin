@@ -2725,10 +2725,13 @@
   "audit": {
     "title": "Aktivitätsprotokoll",
     "subtitle": "Eine Aufzeichnung der Aktionen von Admins",
-    "searchPlaceholder": "Nach Admin oder Aktion suchen...",
+    "searchPlaceholder": "Diese Einträge nach Admin, Aktion oder Ziel durchsuchen...",
     "allActions": "Alle Aktivitäten",
+    "dateRange": "Datum",
     "noLogs": "Noch keine Aktivität",
+    "noMatch": "Keine Einträge für diesen Filter",
     "count": "{count} Ereignisse",
+    "capped": "Es werden die neuesten {cap} Einträge angezeigt. Grenzen Sie nach Aktion oder Datum ein, um ältere zu sehen.",
     "actorTypes": {
       "SuperAdmin": "Ein Super-Admin",
       "Moderator": "Ein Moderator",
