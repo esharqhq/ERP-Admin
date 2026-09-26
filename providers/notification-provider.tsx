@@ -8,7 +8,7 @@ import {
   type HubConnection,
 } from "@microsoft/signalr";
 import { useAuthStore } from "@/store/auth.store";
-import { prependNotificationToCache } from "@/hooks/use-notifications";
+import { upsertNotificationInCache } from "@/hooks/use-notifications";
 import type { NotificationDto } from "@/lib/types/notification.types";
 import { toast } from "sonner";
 
@@ -16,7 +16,8 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 
 /**
  * Best-effort real-time notification push via the `/hubs/chat` SignalR hub.
- * Fail-silent — never throws into render; REST + on-mount fetch cover missed events.
+ * Fail-silent — never throws into render; the REST refetch on mount, window focus
+ * and reconnect covers missed events (`notification-bell.md` §10).
  */
 export function NotificationProvider() {
   const qc = useQueryClient();
@@ -34,7 +35,9 @@ export function NotificationProvider() {
       .build();
 
     connection.on("ReceiveNotification", (dto: NotificationDto) => {
-      prependNotificationToCache(qc, dto);
+      // Upsert by id, never append: an escalation re-fires with the same id
+      // (§11.1), and appending it showed the row twice and over-counted.
+      upsertNotificationInCache(qc, dto);
       toast(dto.title, { description: dto.body });
     });
 

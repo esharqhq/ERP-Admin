@@ -1688,6 +1688,9 @@
       "all": "Alle",
       "unread": "Ungelesen",
       "noUnread": "Keine ungelesenen Benachrichtigungen",
+      "markRead": "Als gelesen markieren",
+      "delete": "Benachrichtigung löschen",
+      "deleteFailed": "Die Benachrichtigung konnte nicht gelöscht werden. Bitte versuchen Sie es erneut.",
       "tone": {
         "critical": "Kritisch:",
         "warning": "Warnung:"

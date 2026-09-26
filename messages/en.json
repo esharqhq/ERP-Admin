@@ -1688,6 +1688,9 @@
       "all": "All",
       "unread": "Unread",
       "noUnread": "No unread notifications",
+      "markRead": "Mark as read",
+      "delete": "Delete notification",
+      "deleteFailed": "The notification could not be deleted. Please try again.",
       "tone": {
         "critical": "Critical:",
         "warning": "Warning:"

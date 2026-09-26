@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
-import { Bell, CheckCheck } from "lucide-react";
+import { Bell, CheckCheck, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -11,6 +12,7 @@ import {
   useUnreadCount,
   useMarkRead,
   useMarkAllRead,
+  useDeleteNotification,
 } from "@/hooks/use-notifications";
 import { notificationRoute } from "@/lib/notifications/route";
 import { NotificationToneMark } from "@/components/layout/notification-tone-mark";
@@ -36,6 +38,7 @@ export default function NotificationsPage() {
   const { data: unreadCount = 0 } = useUnreadCount();
   const markRead = useMarkRead();
   const markAllRead = useMarkAllRead();
+  const deleteNotification = useDeleteNotification();
 
   const allNotifications = infiniteData?.pages.flat() ?? [];
   const notifications =
@@ -153,18 +156,46 @@ export default function NotificationsPage() {
                     {relativeTime(n.createdAt)}
                   </span>
                 </div>
-                {!n.isRead && (
-                  <button
+                {/* Row controls stop both click and keydown: the row is itself a
+                    `role="button"` with an Enter/Space handler, so a key press on
+                    a control would otherwise bubble up and navigate. */}
+                <div className="flex shrink-0 items-center gap-0.5">
+                  {!n.isRead && (
+                    <Button
+                      variant="ghost"
+                      size="icon-xs"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        markRead.mutate(n.id);
+                      }}
+                      onKeyDown={(e) => e.stopPropagation()}
+                      className="text-muted-foreground"
+                      title={t("markRead")}
+                      aria-label={t("markRead")}
+                    >
+                      <CheckCheck className="size-3.5" />
+                    </Button>
+                  )}
+                  {/* §11.5 — deleting an unread row already takes it off the
+                      badge; the hook does not mark it read first. A 404 means
+                      the row is already gone and raises no toast. */}
+                  <Button
+                    variant="ghost"
+                    size="icon-xs"
                     onClick={(e) => {
                       e.stopPropagation();
-                      markRead.mutate(n.id);
+                      deleteNotification.mutate(n.id, {
+                        onError: () => toast.error(t("deleteFailed")),
+                      });
                     }}
-                    className="shrink-0 rounded p-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
-                    title="Mark as read"
+                    onKeyDown={(e) => e.stopPropagation()}
+                    className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                    title={t("delete")}
+                    aria-label={t("delete")}
                   >
-                    <CheckCheck className="size-3.5" />
-                  </button>
-                )}
+                    <Trash2 className="size-3.5" />
+                  </Button>
+                </div>
               </div>
             );
           })

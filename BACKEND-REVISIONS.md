@@ -134,13 +134,10 @@ MISSING: admin owner location edit on `PUT /api/owners/{id}` (`countryId`/`cityI
 pre-selected, `city_country_mismatch`/`country_not_found`/`city_not_found`) — `lib/owners/detail-actions.ts:31-35`.
 A new form section; needs its own design.
 
-### WP3 — Notification bell · 🔴 live, silent · `notification-bell` §10/§11
+### WP3 — Notification bell · ✅ done 2026-09-26 ([§4](#2026-09-26--wp3-the-bell-upserts-by-id-dedupes-pages-and-can-delete))
 
-- `hooks/use-notifications.ts:16-22` **prepends** every socket event and adds +1 unread even for a
-  rewrite of an existing row or an already-read one → duplicate rows, badge drifts up. Upsert by `id`;
-  count only a new unread row.
-- MISSING: dedupe pages by `id` (§11.4); wire `DELETE /api/notifications/{id}` (08-31; `notification.service.ts:26` has no caller).
-- ⚠ `lib/notifications/route.ts:94` branches on `type`, not only `entityType`; 82/83 routing is NEEDS-LIVE (WP10).
+- ✅ Upsert by `id`, count only a real unread change; pages deduped by `id`; `DELETE /api/notifications/{id}` wired.
+- ⚠ `lib/notifications/route.ts` branches on `type`, not only `entityType`; 82/83 routing is NEEDS-LIVE (WP10).
 
 ### WP4 — Audit log · 🔴 live, silent · no guide (`index/controllers/admin.md`)
 
@@ -274,6 +271,20 @@ by every document viewer.
 ## 4. Pass log — newest first
 
 The record of what each pass **built** or **established**. What a pass read and did not build is in §3.
+
+### 2026-09-26 — WP3: the bell upserts by id, dedupes pages, and can delete
+
+`notification-bell.md` §10–§11.
+
+| What changed | Where |
+|---|---|
+| `upsertNotification` (a known id is replaced **where it stands** — §11.1 keeps `createdAt`; the unread count moves only when the unread state does), `dedupePages` (§11.4), `removeNotification`; `isAlreadyGone` (bodyless 404, §11.5/§11.6) | `lib/notifications/cache.ts`, `notification-errors.ts` (+ tests, + a `QueryClient` hook test) |
+| Socket handler upserts instead of prepending (+1 on every event made the badge drift and duplicated rewritten rows); the list dedupes through `select`; the count refetches on every focus (§11.2) | `hooks/use-notifications.ts`, `providers/notification-provider.tsx` |
+| `DELETE /api/notifications/{id}` wired: a delete button per row on the notifications page, optimistic, 404 = already gone, rollback on a real error; the list is re-read after a delete so a 19-row last page does not hide "Load more" | `notifications/page.tsx`, `use-notifications.ts` |
+
+Not in the bell dropdown (a button inside a base-ui menu item breaks its keyboard handling). Known gap: a rewrite of a
+row not yet paged in looks new and over-counts by one until the next count refetch. Not checked in a browser (the
+extension was disconnected).
 
 ### 2026-09-26 — WP11: an order shows what it carries
 
