@@ -14,7 +14,8 @@ import {
   Pencil, Check, X, Plus, Loader2, Paperclip, ListChecks, SlidersHorizontal, FileSignature,
 } from "lucide-react";
 import { useSettings, useUpsertSetting } from "@/hooks/use-settings";
-import type { SystemSettingDto } from "@/lib/services/setting.service";
+import type { SystemSettingDto, UpsertSettingRequest } from "@/lib/services/setting.service";
+import { holdKey, type HeldKey } from "@/lib/http/idempotency";
 import { useRouter } from "@/i18n/navigation";
 import { useCurrentPermissions } from "@/hooks/use-current-permissions";
 import {
@@ -63,6 +64,10 @@ function isBoolean(value: string): boolean {
   return v === "true" || v === "false";
 }
 
+function isOn(value: string): boolean {
+  return value.trim().toLowerCase() === "true";
+}
+
 // Turn a raw key/segment like "worker_threshold.lead_hours" into readable words.
 function humanize(raw: string): string {
   return raw
@@ -104,6 +109,31 @@ export default function SettingsPage() {
   // as failed — track the one key that actually failed, in local state.
   const [failedKey, setFailedKey] = useState<string | null>(null);
 
+  /**
+   * `PUT /api/system/settings` is `[Idempotent]`. Every save on this page — an
+   * edit, a new setting, a switch flip — goes through `save`, which holds one key
+   * per body written: a retry of the same value replays, while another value (or
+   * another row, or the switch flipped back) is a different intent and gets its
+   * own key rather than replaying the previous write. Released on success.
+   */
+  const upsertKey = useRef<HeldKey | null>(null);
+
+  function save(
+    body: UpsertSettingRequest,
+    callbacks: { onSuccess?: () => void; onError?: () => void } = {},
+  ) {
+    upsert(
+      { body, idempotencyKey: holdKey(upsertKey, JSON.stringify(body)) },
+      {
+        onSuccess: () => {
+          upsertKey.current = null;
+          callbacks.onSuccess?.();
+        },
+        onError: callbacks.onError,
+      },
+    );
+  }
+
   // A `settings-link` error (e.g. contract_template_not_approved) deep-links here
   // with `?highlight=<key>`. The row is one of dozens across collapsed-by-default
   // categories, so it needs to scroll into view and carry a ring, not just exist.
@@ -138,19 +168,36 @@ export default function SettingsPage() {
     setEditing({ key, value });
   }
 
+  // A dismissed form is a dropped intent, so its held key goes with it.
   function cancelEdit() {
+    upsertKey.current = null;
     setEditing(null);
+  }
+
+  function closeAdd() {
+    upsertKey.current = null;
+    setShowAdd(false);
   }
 
   function saveEdit() {
     if (!editing) return;
-    upsert({ key: editing.key, value: editing.value }, {
+    save({ key: editing.key, value: editing.value }, {
       onSuccess: () => setEditing(null),
     });
   }
 
+  function toggleSetting(key: string, next: boolean) {
+    save(
+      { key, value: next ? "true" : "false" },
+      {
+        onSuccess: () => setFailedKey((k) => (k === key ? null : k)),
+        onError: () => setFailedKey(key),
+      },
+    );
+  }
+
   function saveNew() {
-    upsert(
+    save(
       { key: newSetting.key, value: newSetting.value, description: newSetting.description || undefined },
       {
         onSuccess: () => {
@@ -262,39 +309,28 @@ export default function SettingsPage() {
                             </span>
                           </div>
 
+                          {/* Not an IIFE any more: the React Compiler lint treats a
+                              handler created inside one as running during render,
+                              and `toggleSetting` touches a ref (the held key). */}
                           {isBoolean(s.value) ? (
-                            (() => {
-                              const isOn = s.value.trim().toLowerCase() === "true";
-                              return (
-                                <div className="flex shrink-0 flex-col items-end gap-1">
-                                  <div className="flex items-center gap-3">
-                                    <span className="text-sm text-muted-foreground">
-                                      {isOn ? t("on") : t("off")}
-                                    </span>
-                                    <Switch
-                                      checked={isOn}
-                                      disabled={isPending}
-                                      aria-label={s.description || s.key}
-                                      onCheckedChange={(next) =>
-                                        upsert(
-                                          { key: s.key, value: next ? "true" : "false" },
-                                          {
-                                            onSuccess: () =>
-                                              setFailedKey((k) => (k === s.key ? null : k)),
-                                            onError: () => setFailedKey(s.key),
-                                          },
-                                        )
-                                      }
-                                    />
-                                  </div>
-                                  {failedKey === s.key ? (
-                                    <span className="text-xs text-destructive">
-                                      {t("saveFailed")}
-                                    </span>
-                                  ) : null}
-                                </div>
-                              );
-                            })()
+                            <div className="flex shrink-0 flex-col items-end gap-1">
+                              <div className="flex items-center gap-3">
+                                <span className="text-sm text-muted-foreground">
+                                  {isOn(s.value) ? t("on") : t("off")}
+                                </span>
+                                <Switch
+                                  checked={isOn(s.value)}
+                                  disabled={isPending}
+                                  aria-label={s.description || s.key}
+                                  onCheckedChange={(next) => toggleSetting(s.key, next)}
+                                />
+                              </div>
+                              {failedKey === s.key ? (
+                                <span className="text-xs text-destructive">
+                                  {t("saveFailed")}
+                                </span>
+                              ) : null}
+                            </div>
                           ) : isEditing && prose ? (
                             <div className="flex flex-col gap-2">
                               {/* Enter has to insert a newline here, so Escape is the only shortcut. */}
@@ -391,7 +427,7 @@ export default function SettingsPage() {
         </div>
       )}
 
-      <Dialog open={showAdd} onOpenChange={(v) => !v && setShowAdd(false)}>
+      <Dialog open={showAdd} onOpenChange={(v) => !v && closeAdd()}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{t("dialog.createTitle")}</DialogTitle>
@@ -429,7 +465,7 @@ export default function SettingsPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAdd(false)} disabled={isPending}>
+            <Button variant="outline" onClick={closeAdd} disabled={isPending}>
               {t("cancel")}
             </Button>
             <Button

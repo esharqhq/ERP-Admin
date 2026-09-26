@@ -1,5 +1,5 @@
 import { apiClient } from "@/lib/http/client";
-import { idempotent, newIdempotencyKey } from "@/lib/http/idempotency";
+import { idempotent } from "@/lib/http/idempotency";
 import type { PagedResult } from "@/lib/types/paged.types";
 import type {
   SkillRequestDetailDto,
@@ -96,17 +96,16 @@ export const skillRequestService = {
    * attempt replays instead of deciding twice. Minting it in here on every call
    * would give every retry — including a double-click — a fresh key, which means the
    * header protects against nothing; that was a real defect on `broadcast.service`
-   * once. The fallback exists only for a call site that genuinely does not care.
+   * once. It is required, with no fallback, so a caller cannot forget it.
    *
    * Two admins approving at once is safe either way: the loser gets
    * `400 skill_request_invalid_state`, never a `500` and never a duplicate skill.
    */
-  approve: async (id: string, idempotencyKey?: string): Promise<SkillRequestDto> => {
-    const key = idempotencyKey ?? newIdempotencyKey();
+  approve: async (id: string, idempotencyKey: string): Promise<SkillRequestDto> => {
     const { data } = await apiClient.post<SkillRequestDto>(
       `${ROOT}/${id}/approve`,
       undefined,
-      idempotent(key),
+      idempotent(idempotencyKey),
     );
     return data;
   },

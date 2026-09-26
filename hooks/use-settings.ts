@@ -13,10 +13,12 @@ export function useSettings() {
   });
 }
 
+/** `idempotencyKey` comes from the caller, held per body written (`holdKey`). */
 export function useUpsertSetting() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: UpsertSettingRequest) => settingService.upsertSetting(data),
+    mutationFn: ({ body, idempotencyKey }: { body: UpsertSettingRequest; idempotencyKey: string }) =>
+      settingService.upsertSetting(body, idempotencyKey),
     onSuccess: () => qc.invalidateQueries({ queryKey: QUERY_KEY }),
   });
 }

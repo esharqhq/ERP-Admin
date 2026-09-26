@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -36,6 +36,7 @@ import { Can } from "@/components/auth/can";
 import { PropertyCreateDialog } from "@/components/properties/property-create-dialog";
 import { describeApiError, isGateRefusal, isPermissionDenied } from "@/lib/onboarding/errors";
 import { getApiErrorCode } from "@/lib/http/api-error";
+import { newIdempotencyKey } from "@/lib/http/idempotency";
 import { propertyLocationErrorKey, sentLocation } from "@/lib/properties/location-fields";
 import { categoryName, ownerNameById } from "@/lib/properties/table-rows";
 import type { PropertyDto } from "@/lib/types/property.types";
@@ -259,6 +260,10 @@ export default function PropertiesPage() {
 
   const [createOpen, setCreateOpen] = useState(false);
   const create = useCreateAdminProperty();
+  // One idempotency key per open of the create dialog, held across its retries
+  // (`[Idempotent]` — a fresh key per request would make a retry a duplicate).
+  // `closeCreate` drops it: it runs on success and on close alike.
+  const createKey = useRef<string | null>(null);
   // POST /api/admin/properties is gated on the TARGET OWNER's contract, not the
   // admin's — a 403 with a body is that owner's cover, not a permission problem
   // (isPermissionDenied catches the empty-body 403 that actually is one).
@@ -266,7 +271,7 @@ export default function PropertiesPage() {
   // pair — left blank, the failing pair is the owner's default (§4.1a).
   const createLocationKey = create.isError
     ? propertyLocationErrorKey(getApiErrorCode(create.error), {
-        sent: sentLocation(create.variables),
+        sent: sentLocation(create.variables?.body),
       })
     : null;
   const createError = !create.isError
@@ -285,6 +290,7 @@ export default function PropertiesPage() {
           })();
 
   const closeCreate = () => {
+    createKey.current = null;
     setCreateOpen(false);
     create.reset();
   };
@@ -580,7 +586,13 @@ export default function PropertiesPage() {
           onClose={closeCreate}
           pending={create.isPending}
           error={createError}
-          onSubmit={(body) => create.mutate(body, { onSuccess: closeCreate })}
+          onSubmit={(body) => {
+            createKey.current ??= newIdempotencyKey();
+            create.mutate(
+              { body, idempotencyKey: createKey.current },
+              { onSuccess: closeCreate },
+            );
+          }}
         />
       )}
     </div>

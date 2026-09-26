@@ -1,4 +1,5 @@
 import { apiClient } from "@/lib/http/client";
+import { idempotent } from "@/lib/http/idempotency";
 
 export interface SystemSettingDto {
   id: string;
@@ -20,8 +21,19 @@ export const settingService = {
     return data;
   },
 
-  upsertSetting: async (body: UpsertSettingRequest): Promise<SystemSettingDto> => {
-    const { data } = await apiClient.put<SystemSettingDto>("/api/system/settings", body);
+  /**
+   * `[Idempotent]`. The caller holds the key per body written (`holdKey`), so a
+   * retry of the same value replays while a different value gets its own key.
+   */
+  upsertSetting: async (
+    body: UpsertSettingRequest,
+    idempotencyKey: string,
+  ): Promise<SystemSettingDto> => {
+    const { data } = await apiClient.put<SystemSettingDto>(
+      "/api/system/settings",
+      body,
+      idempotent(idempotencyKey),
+    );
     return data;
   },
 };

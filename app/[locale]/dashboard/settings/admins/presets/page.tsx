@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { ArrowLeft, History, Pencil, Plus, ShieldCheck, Trash2 } from "lucide-react";
@@ -22,6 +22,7 @@ import {
   useDeleteRole,
 } from "@/hooks/use-permissions";
 import { getApiErrorCode } from "@/lib/http/api-error";
+import { newIdempotencyKey } from "@/lib/http/idempotency";
 import { isCustomRoleCode, type RoleDto } from "@/lib/types/admin-user.types";
 
 const CREATE_ERRORS = new Set(["role_code_exists", "invalid_applies_to"]);
@@ -44,6 +45,10 @@ export default function PresetsPage() {
   const remove = useDeleteRole();
 
   const [form, setForm] = useState<FormState>(null);
+  // One key per open of the create form, held across its retries — the route is
+  // `[Idempotent]`, and a fresh key per request would make a retry a second
+  // preset. `closeForm` drops it, on success and on close alike.
+  const createKey = useRef<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<RoleDto | null>(null);
   const [historyTarget, setHistoryTarget] = useState<RoleDto | null>(null);
 
@@ -81,6 +86,7 @@ export default function PresetsPage() {
       : null;
 
   const closeForm = () => {
+    createKey.current = null;
     setForm(null);
     create.reset();
     update.reset();
@@ -100,14 +106,18 @@ export default function PresetsPage() {
         { onSuccess: closeForm },
       );
     } else {
+      createKey.current ??= newIdempotencyKey();
       create.mutate(
         {
-          code: values.code,
-          name: values.name,
-          description: values.description || null,
-          appliesTo: "ADMIN",
-          isDefault: false,
-          permissionNames: values.permissionNames,
+          body: {
+            code: values.code,
+            name: values.name,
+            description: values.description || null,
+            appliesTo: "ADMIN",
+            isDefault: false,
+            permissionNames: values.permissionNames,
+          },
+          idempotencyKey: createKey.current,
         },
         { onSuccess: closeForm },
       );

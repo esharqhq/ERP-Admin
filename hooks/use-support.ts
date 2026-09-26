@@ -129,11 +129,19 @@ export function useSendMessage(conversationId: string) {
  *
  * A new ticket appears in every support list, so both are invalidated. The
  * screen that opens it displays no tickets of its own, so it needs no refetch.
+ *
+ * `idempotencyKey` comes from the caller, minted once per draft and reused on retry.
  */
 export function useCreateTicketForUser() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: AdminOpenTicketRequest) => supportService.createForUser(body),
+    mutationFn: ({
+      body,
+      idempotencyKey,
+    }: {
+      body: AdminOpenTicketRequest;
+      idempotencyKey: string;
+    }) => supportService.createForUser(body, idempotencyKey),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["support-tickets"] });
       qc.invalidateQueries({ queryKey: ["support-inbox"] });

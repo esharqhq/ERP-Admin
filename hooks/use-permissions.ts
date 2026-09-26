@@ -26,10 +26,12 @@ export function usePermissionCatalog() {
   });
 }
 
+/** `idempotencyKey` comes from the caller, minted once per create intent and reused on retry. */
 export function useCreateRole() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: CreateRoleRequest) => roleService.createRole(data),
+    mutationFn: ({ body, idempotencyKey }: { body: CreateRoleRequest; idempotencyKey: string }) =>
+      roleService.createRole(body, idempotencyKey),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["roles"] }),
   });
 }

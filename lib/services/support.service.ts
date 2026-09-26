@@ -1,4 +1,5 @@
 import { apiClient } from "@/lib/http/client";
+import { idempotent } from "@/lib/http/idempotency";
 import type {
   AdminOpenTicketRequest,
   SupportTicketDto,
@@ -126,13 +127,19 @@ export const supportService = {
    *
    * `400 owner_is_system` for the walk-in account — it cannot sign in, so a
    * ticket addressed to it could never be read.
+   *
+   * `[Idempotent]`: `idempotencyKey` is minted once per message draft and held by
+   * the caller across retries, so a double-click or a retried timeout replays the
+   * first ticket instead of opening a second one.
    */
   createForUser: async (
     body: AdminOpenTicketRequest,
+    idempotencyKey: string,
   ): Promise<SupportTicketDto> => {
     const { data } = await apiClient.post<SupportTicketDto>(
       "/api/support-tickets/admin/for-user",
       body,
+      idempotent(idempotencyKey),
     );
     return data;
   },

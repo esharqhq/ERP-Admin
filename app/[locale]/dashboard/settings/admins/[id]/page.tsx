@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useRef, useState } from "react";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { ArrowLeft, BadgeCheck, Pencil, ShieldCheck, UserX } from "lucide-react";
@@ -21,6 +21,7 @@ import {
 } from "@/hooks/use-permissions";
 import { useCurrentPermissions } from "@/hooks/use-current-permissions";
 import { getApiErrorCode } from "@/lib/http/api-error";
+import { holdKey, type HeldKey } from "@/lib/http/idempotency";
 import { useAuthStore } from "@/store/auth.store";
 import { isCustomRoleCode, type UpdateAdminRequest } from "@/lib/types/admin-user.types";
 
@@ -62,6 +63,19 @@ export default function AdminDetailPage({
   const [showEdit, setShowEdit] = useState(false);
   const [showDeactivate, setShowDeactivate] = useState(false);
 
+  /**
+   * Idempotency keys for the `[Idempotent]` doors this page fires, each tagged
+   * with its intent (`holdKey`) so a retry replays and a changed choice does not:
+   * the role assignment by the role code it assigns, the detached override by the
+   * name + permission set it grants, deactivate by the admin. The form's two are
+   * released only when the whole submit lands — a retry after a later step
+   * failed then replays the override already minted (no orphan `custom_*` role)
+   * and its assignment — and when the form closes.
+   */
+  const assignKey = useRef<HeldKey | null>(null);
+  const roleKey = useRef<HeldKey | null>(null);
+  const deactivateKey = useRef<HeldKey | null>(null);
+
   // Effective grants of this admin's role (custom or shared) for the inline
   // read-only Access section. The roles list needs system:permission:read —
   // the section is gated on the same code below.
@@ -88,6 +102,11 @@ export default function AdminDetailPage({
     return t("assign.errors.generic");
   })();
 
+  function releaseFormKeys() {
+    assignKey.current = null;
+    roleKey.current = null;
+  }
+
   function resetFormMutations() {
     update.reset();
     assign.reset();
@@ -105,7 +124,10 @@ export default function AdminDetailPage({
       // stays open and already-applied steps remain applied).
       if (result.kind === "shared") {
         if (result.roleCode !== oldRole?.code) {
-          await assign.mutateAsync({ roleCode: result.roleCode });
+          await assign.mutateAsync({
+            body: { roleCode: result.roleCode },
+            idempotencyKey: holdKey(assignKey, result.roleCode),
+          });
           // Best-effort cleanup: the old per-admin custom role is orphaned now.
           if (oldRole && isCustomRoleCode(oldRole.code)) {
             removeRole.mutate(oldRole.id);
@@ -122,13 +144,22 @@ export default function AdminDetailPage({
           // Detach: mint a fresh custom_<uuid> role, then assign it, so the
           // shared preset and its other holders are untouched.
           const role = await createRole.mutateAsync({
-            code: `custom_${crypto.randomUUID()}`,
-            name: admin.fullName,
-            appliesTo: "ADMIN",
-            isDefault: false,
-            permissionNames: result.permissionNames,
+            body: {
+              code: `custom_${crypto.randomUUID()}`,
+              name: admin.fullName,
+              appliesTo: "ADMIN",
+              isDefault: false,
+              permissionNames: result.permissionNames,
+            },
+            idempotencyKey: holdKey(
+              roleKey,
+              JSON.stringify([admin.fullName, [...result.permissionNames].sort()]),
+            ),
           });
-          await assign.mutateAsync({ roleCode: role.code });
+          await assign.mutateAsync({
+            body: { roleCode: role.code },
+            idempotencyKey: holdKey(assignKey, role.code),
+          });
         }
       }
 
@@ -136,6 +167,7 @@ export default function AdminDetailPage({
       if (Object.keys(body).length > 0) {
         await update.mutateAsync(body);
       }
+      releaseFormKeys();
       setShowEdit(false);
     } catch {
       // Errors surface via the mutations' error state; the form stays open.
@@ -258,6 +290,7 @@ export default function AdminDetailPage({
           error={formError}
           emailError={emailError}
           onClose={() => {
+            releaseFormKeys();
             setShowEdit(false);
             resetFormMutations();
           }}
@@ -270,8 +303,17 @@ export default function AdminDetailPage({
         onClose={() => setShowDeactivate(false)}
         onConfirm={(reason) =>
           deactivate.mutate(
-            { id: admin.id, body: { reason } },
-            { onSuccess: () => router.push("/dashboard/settings/admins") },
+            {
+              id: admin.id,
+              body: { reason },
+              idempotencyKey: holdKey(deactivateKey, admin.id),
+            },
+            {
+              onSuccess: () => {
+                deactivateKey.current = null;
+                router.push("/dashboard/settings/admins");
+              },
+            },
           )
         }
         isPending={deactivate.isPending}

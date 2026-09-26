@@ -45,10 +45,17 @@ export function useUpdateAdmin(id: string) {
   });
 }
 
+/** `idempotencyKey` comes from the caller, held per intended role across retries. */
 export function useAssignAdminRole(id: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: AssignAdminRoleRequest) => adminUserService.assignRole(id, body),
+    mutationFn: ({
+      body,
+      idempotencyKey,
+    }: {
+      body: AssignAdminRoleRequest;
+      idempotencyKey: string;
+    }) => adminUserService.assignRole(id, body, idempotencyKey),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: QUERY_KEY });
       qc.invalidateQueries({ queryKey: ["admin", id] });
@@ -56,11 +63,19 @@ export function useAssignAdminRole(id: string) {
   });
 }
 
+/** `idempotencyKey` comes from the caller, held per target admin across retries. */
 export function useDeactivateAdmin() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, body }: { id: string; body: DeactivateAdminRequest }) =>
-      adminUserService.deactivateAdmin(id, body),
+    mutationFn: ({
+      id,
+      body,
+      idempotencyKey,
+    }: {
+      id: string;
+      body: DeactivateAdminRequest;
+      idempotencyKey: string;
+    }) => adminUserService.deactivateAdmin(id, body, idempotencyKey),
     onSuccess: () => qc.invalidateQueries({ queryKey: QUERY_KEY }),
   });
 }

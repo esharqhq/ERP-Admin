@@ -1,4 +1,5 @@
 import { apiClient } from "@/lib/http/client";
+import { idempotent } from "@/lib/http/idempotency";
 import type {
   AdminSummaryDto,
   AdminDetailDto,
@@ -29,14 +30,39 @@ export const adminUserService = {
     return data;
   },
 
-  assignRole: async (id: string, body: AssignAdminRoleRequest): Promise<AdminDetailDto> => {
-    const { data } = await apiClient.post<AdminDetailDto>(`/api/admin/users/${id}/role`, body, {
-      headers: { "X-Idempotency-Key": crypto.randomUUID() },
-    });
+  /**
+   * `[Idempotent]`. The caller mints the key once per intended role and holds it
+   * across retries — minting it here, as this once did, gave every retry a fresh
+   * key and so protected against nothing.
+   */
+  assignRole: async (
+    id: string,
+    body: AssignAdminRoleRequest,
+    idempotencyKey: string,
+  ): Promise<AdminDetailDto> => {
+    const { data } = await apiClient.post<AdminDetailDto>(
+      `/api/admin/users/${id}/role`,
+      body,
+      idempotent(idempotencyKey),
+    );
     return data;
   },
 
-  deactivateAdmin: async (id: string, body: DeactivateAdminRequest): Promise<void> => {
-    await apiClient.post(`/api/admin/users/${id}/deactivate`, body);
+  /**
+   * `[Idempotent]`, key held per target admin by the caller. ⚠ The route answers
+   * `204`, and the backend's `IdempotentAttribute` caches only an `ObjectResult`,
+   * so today a replay never happens here — the key is sent so this becomes
+   * correct the moment the attribute caches bodiless 2xx too.
+   */
+  deactivateAdmin: async (
+    id: string,
+    body: DeactivateAdminRequest,
+    idempotencyKey: string,
+  ): Promise<void> => {
+    await apiClient.post(
+      `/api/admin/users/${id}/deactivate`,
+      body,
+      idempotent(idempotencyKey),
+    );
   },
 };

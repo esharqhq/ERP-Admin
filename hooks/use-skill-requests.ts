@@ -91,7 +91,7 @@ export function useRejectSkillRequest() {
 export function useApproveSkillRequest() {
   const invalidate = useDecisionInvalidation();
   return useMutation({
-    mutationFn: ({ id, idempotencyKey }: { id: string; idempotencyKey?: string }) =>
+    mutationFn: ({ id, idempotencyKey }: { id: string; idempotencyKey: string }) =>
       skillRequestService.approve(id, idempotencyKey),
     onSuccess: (request) => invalidate(request.workerId),
   });

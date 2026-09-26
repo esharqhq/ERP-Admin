@@ -1,4 +1,5 @@
 import { apiClient } from "@/lib/http/client";
+import { idempotent } from "@/lib/http/idempotency";
 import type {
   PropertyMembershipDto,
   PropertyDto,
@@ -54,23 +55,19 @@ export const propertyService = {
   /**
    * Admin create-on-behalf-of-owner (`property:create_any`).
    *
-   * ⚠ **The idempotency key below is wrong and does not do its job.** The route
-   * is `[Idempotent]` (24 h Redis cache) so that a *retried* submit replays the
-   * cached 201 instead of authoring a second property — which requires the key
-   * to stay the same across retries of one intent. Minting it here gives every
-   * attempt a fresh key, so a retry creates a duplicate: exactly what the header
-   * exists to prevent. The correct shape is `contract.service.ts`'s — the caller
-   * mints one key per user-initiated attempt (a ref, not state) and passes it in.
-   * Deferred to the create-dialog rework rather than fixed here, because that is
-   * where the call site that must hold the key is being rebuilt anyway.
+   * `[Idempotent]` (24 h cache) so that a *retried* submit replays the cached 201
+   * instead of authoring a second property. The caller mints `idempotencyKey`
+   * once per create dialog (a ref, not state) and passes the same one on every
+   * retry; it used to be minted here per call, which made every retry a duplicate.
    */
   createAdminProperty: async (
     body: CreateAdminPropertyRequest,
+    idempotencyKey: string,
   ): Promise<PropertyDto> => {
     const { data } = await apiClient.post<PropertyDto>(
       "/api/admin/properties",
       body,
-      { headers: { "X-Idempotency-Key": crypto.randomUUID() } },
+      idempotent(idempotencyKey),
     );
     return data;
   },

@@ -1092,3 +1092,20 @@ Two smaller doc gaps found on the same pass, neither blocking:
   §0i says "records the source" without the key.
 - The ·9a CHANGELOG entry (2026-09-16) does not name its audit-113 metadata key `overrodeAvailability`; it is only
   in §0h·4 and C#. `AuthorizationEnums.cs:343-344` still lists 113's metadata without `overrodeLocation`.
+
+---
+
+## Open — 2026-09-26 · `[Idempotent]` does not protect two cases the panel relies on
+
+Found while making the admin panel hold one `X-Idempotency-Key` per user intent (ledger WP5). Neither blocks us.
+
+1. **A `204` is never cached.** `IdempotentAttribute` stores only an `ObjectResult`, so a door that answers
+   `NoContent()` re-runs on every retry with the same key. Affected doors the panel calls:
+   `POST /api/admin/users/{id}/deactivate` and `POST /api/tasks/admin/groups/{id}/cancel`. Ask: cache the status
+   code for bodiless 2xx too, or say in `guidance.md` §6 that these doors are not replay-safe.
+2. **No lock between read and write of the cache.** Two requests with the same key in flight at once both miss the
+   cache and both run the action. A held key protects a *retry*, not a concurrent double-submit. Ask: a short
+   per-key lock (or insert-first reservation), or a sentence in the guide so clients keep disabling the button.
+
+Also for the record: a write that commits and then fails later in the pipeline (e.g. a notification after commit
+throws → `500`) is not cached, so the retry writes twice. Same fix as (1) would not cover it; noting only.

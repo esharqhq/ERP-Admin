@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { DataTableCard } from "@/components/ui/data-table-card";
@@ -17,6 +17,7 @@ import {
 } from "@/components/admins/admin-form";
 import { Can } from "@/components/auth/can";
 import { useAuthStore } from "@/store/auth.store";
+import { holdKey, type HeldKey } from "@/lib/http/idempotency";
 
 export default function AdminsPage() {
   const t = useTranslations("admins");
@@ -31,11 +32,27 @@ export default function AdminsPage() {
   const currentAdminId = useAuthStore((s) => s.adminMe?.id);
   const isPending = isCreatingRole || isCreatingAdmin;
 
+  /**
+   * Idempotency keys for the two `[Idempotent]` doors on this page, each tagged
+   * with its intent (`holdKey`):
+   * - the custom override's role, by the name + permission set it grants. It is
+   *   released only once the admin exists, so a retry after `createAdmin` failed
+   *   (say, `admin_email_exists`) replays the role already minted instead of
+   *   leaving it orphaned — while a changed permission set is a new role;
+   * - deactivate, by the row's admin id — one mutation serves every row, so a key
+   *   held for one admin must never be sent for another.
+   */
+  const roleKey = useRef<HeldKey | null>(null);
+  const deactivateKey = useRef<HeldKey | null>(null);
+
   function finishCreateAdmin(identity: AdminIdentityCreate, roleCode: string) {
     createAdmin(
       { ...identity, roleCode },
       {
-        onSuccess: () => setShowCreate(false),
+        onSuccess: () => {
+          roleKey.current = null;
+          setShowCreate(false);
+        },
         onError: (err: unknown) => {
           const error = err as { response?: { data?: { error?: string } } };
           if (error?.response?.data?.error === "admin_email_exists") {
@@ -58,13 +75,20 @@ export default function AdminsPage() {
     }
     if (result.kind === "custom") {
       // Custom override: mint a per-admin custom_<uuid> role, then create the admin on it.
+      const idempotencyKey = holdKey(
+        roleKey,
+        JSON.stringify([identity.fullName, [...result.permissionNames].sort()]),
+      );
       createRole(
         {
-          code: `custom_${crypto.randomUUID()}`,
-          name: identity.fullName,
-          appliesTo: "ADMIN",
-          isDefault: false,
-          permissionNames: result.permissionNames,
+          body: {
+            code: `custom_${crypto.randomUUID()}`,
+            name: identity.fullName,
+            appliesTo: "ADMIN",
+            isDefault: false,
+            permissionNames: result.permissionNames,
+          },
+          idempotencyKey,
         },
         {
           onSuccess: (createdRole) => finishCreateAdmin(identity, createdRole.code ?? ""),
@@ -74,7 +98,10 @@ export default function AdminsPage() {
   }
 
   function handleDeactivate(id: string, reason?: string) {
-    deactivateAdmin({ id, body: { reason } });
+    deactivateAdmin(
+      { id, body: { reason }, idempotencyKey: holdKey(deactivateKey, id) },
+      { onSuccess: () => (deactivateKey.current = null) },
+    );
   }
 
   return (
@@ -144,7 +171,7 @@ export default function AdminsPage() {
           open
           isPending={isPending}
           emailError={emailError}
-          onClose={() => { setShowCreate(false); setEmailError(undefined); }}
+          onClose={() => { roleKey.current = null; setShowCreate(false); setEmailError(undefined); }}
           onSubmit={handleCreate}
         />
       )}

@@ -147,13 +147,11 @@ A new form section; needs its own design.
   problem-details 400). The code comment's "casing" reason is wrong.
 - Remove the dead `PROPERTY_DOCS_*` options (`page.tsx:23`) — those routes were deleted (guidance §5).
 
-### WP5 — Write safety: idempotency and retry · 🔴 live, silent duplicates · `fnd-2`, guidance §6
+### WP5 — Write safety: idempotency and retry · ✅ done 2026-09-26 ([§4](#2026-09-26--wp5-one-idempotency-key-per-user-intent))
 
-- `lib/services/support.service.ts:134` `createForUser` sends **no `X-Idempotency-Key`** on an
-  `[Idempotent]` door — a double-click opens two tickets.
-- `lib/services/admin-user.service.ts:34` and `role.service.ts:131` mint a **fresh key per call**,
-  against `lib/http/idempotency.ts:6-8` (one key per intent, held in a ref). Deactivate sends none.
-- Nothing re-reads after a `500` or the 15 s timeout (`lib/http/client.ts:10`) before a retry.
+- ✅ One key per intent on every `[Idempotent]` door the panel calls, except group cancel (204, see §4).
+- Nothing re-reads after a `500` before a retry — a held key replays a cached 2xx, but a write that committed and then
+  answered 500 is not cached and would run again (backend limit, filed).
 
 ### WP6 — Errors that are swallowed or generic · live, silent/loud
 
@@ -271,6 +269,26 @@ by every document viewer.
 ## 4. Pass log — newest first
 
 The record of what each pass **built** or **established**. What a pass read and did not build is in §3.
+
+### 2026-09-26 — WP5: one idempotency key per user intent
+
+CLAUDE.md → Idempotency; `IdempotentAttribute.cs` (caches a 2xx `ObjectResult` per user + key).
+
+| Door | Before | Now |
+|---|---|---|
+| `POST /api/support-tickets/admin/for-user` | no key | key per Message-dialog draft (owner + worker actions) |
+| `POST /api/admin/users/{id}/role` | fresh key per call | held across the whole save, scoped by role code |
+| `POST /api/admin/users/{id}/deactivate` | no key | scoped by admin id (list + detail) — ⚠ answers 204, which the attribute never caches |
+| `POST /api/admin/roles` | fresh key per call | presets: per form; custom-role flows: scoped by name + permission set, held until the whole create→assign flow succeeds, so a failed second step replays the role instead of orphaning it |
+| `POST /api/admin/properties` | fresh key per call | per create dialog (properties page, owner actions) |
+| `PUT /api/system/settings` | no key | scoped by the body |
+| broadcasts create, skill-request approve | silent per-call fallback | key parameter required (callers already held one) |
+
+`holdKey(ref, scope)` in `lib/http/idempotency.ts` (+ tests); the services take `idempotencyKey`; two readers of
+`mutation.variables` moved to `.variables.body`. Still open: `POST /api/tasks/admin/groups/{id}/cancel` sends no key
+(also a 204). Backend limits filed in `BACKEND-ASKS.md` (2026-09-26): 204s are never cached, and there is no lock, so
+a truly concurrent double-click can still write twice — the disabled-while-pending buttons are what stop that. Not
+checked in a browser (the extension was disconnected).
 
 ### 2026-09-26 — WP3: the bell upserts by id, dedupes pages, and can delete
 

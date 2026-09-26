@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   CheckCircle,
   FolderOpen,
@@ -26,6 +26,7 @@ import {
 } from "@/hooks/use-worker-actions";
 import { useCreateTicketForUser } from "@/hooks/use-support";
 import { getApiErrorCode } from "@/lib/http/api-error";
+import { newIdempotencyKey } from "@/lib/http/idempotency";
 import { isPermissionDenied } from "@/lib/onboarding/errors";
 import { canDecide } from "@/lib/onboarding/status";
 import type { WorkerDetailDto } from "@/lib/types/worker.types";
@@ -65,6 +66,12 @@ export function WorkerActions({ worker }: { worker: WorkerDetailDto }) {
   const { mutate: reject, isPending: isRejecting } = useRejectWorker(worker.id);
   const softDelete = useSoftDeleteWorker(worker.id);
   const createTicket = useCreateTicketForUser();
+  /**
+   * One key per open of the message dialog, held across its retries so a retried
+   * send replays the first ticket instead of opening a second (`[Idempotent]`).
+   * Cleared on success and on open — the dialog's draft is new each time.
+   */
+  const messageKey = useRef<string | null>(null);
 
   const name = worker.fullName ?? "—";
 
@@ -85,12 +92,19 @@ export function WorkerActions({ worker }: { worker: WorkerDetailDto }) {
 
   function handleMessageSubmit(draft: MessageDraft) {
     setMessageError(null);
+    messageKey.current ??= newIdempotencyKey();
     createTicket.mutate(
-      // `"Worker"` passes through `UserTypeNormalizer` unchanged — only the
-      // owner literal is remapped there, so this one needs no special casing.
-      { ...draft, targetUserType: "Worker", targetUserId: worker.id },
       {
-        onSuccess: () => setMessageOpen(false),
+        // `"Worker"` passes through `UserTypeNormalizer` unchanged — only the
+        // owner literal is remapped there, so this one needs no special casing.
+        body: { ...draft, targetUserType: "Worker", targetUserId: worker.id },
+        idempotencyKey: messageKey.current,
+      },
+      {
+        onSuccess: () => {
+          messageKey.current = null;
+          setMessageOpen(false);
+        },
         onError: (err) => setMessageError(mapMessageError(err)),
       },
     );
@@ -104,6 +118,7 @@ export function WorkerActions({ worker }: { worker: WorkerDetailDto }) {
           size="sm"
           className="gap-1.5"
           onClick={() => {
+            messageKey.current = null;
             setMessageError(null);
             setMessageOpen(true);
           }}

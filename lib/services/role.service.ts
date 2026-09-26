@@ -1,5 +1,6 @@
 // lib/services/role.service.ts
 import { apiClient } from "@/lib/http/client";
+import { idempotent } from "@/lib/http/idempotency";
 import type {
   RoleDto,
   CreateRoleRequest,
@@ -12,10 +13,17 @@ export const roleService = {
     return data;
   },
 
-  createRole: async (body: CreateRoleRequest): Promise<RoleDto> => {
-    const { data } = await apiClient.post<RoleDto>("/api/admin/roles", body, {
-      headers: { "X-Idempotency-Key": crypto.randomUUID() },
-    });
+  /**
+   * `[Idempotent]`. The caller mints the key once per create intent and holds it
+   * across retries, so a retried create replays the first role instead of
+   * authoring a second one (for a `custom_<uuid>` override, an orphan).
+   */
+  createRole: async (body: CreateRoleRequest, idempotencyKey: string): Promise<RoleDto> => {
+    const { data } = await apiClient.post<RoleDto>(
+      "/api/admin/roles",
+      body,
+      idempotent(idempotencyKey),
+    );
     return data;
   },
 

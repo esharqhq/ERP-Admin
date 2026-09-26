@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import {
   Trash2,
@@ -32,6 +32,7 @@ import { useSoftDeleteOwner, useUpdateOwner } from "@/hooks/use-owners";
 import { useCreateAdminProperty } from "@/hooks/use-properties";
 import { useCreateTicketForUser } from "@/hooks/use-support";
 import { getApiErrorCode } from "@/lib/http/api-error";
+import { newIdempotencyKey } from "@/lib/http/idempotency";
 import { describeApiError, isPermissionDenied } from "@/lib/onboarding/errors";
 import { propertyLocationErrorKey, sentLocation } from "@/lib/properties/location-fields";
 import type {
@@ -90,6 +91,15 @@ export function OwnerActions({
   const createProperty = useCreateAdminProperty();
 
   /**
+   * One key per open of each dialog, held across its retries — both routes are
+   * `[Idempotent]`, and a fresh key per request would turn a retried submit into
+   * a second property / a second ticket. Cleared on success, and whenever the
+   * dialog opens: it is mounted only while open, so reopening is a new draft.
+   */
+  const propertyKey = useRef<string | null>(null);
+  const messageKey = useRef<string | null>(null);
+
+  /**
    * `POST /api/admin/properties` is gated on the TARGET OWNER's contract, not on
    * the admin's access, so a `403` *with* a body is a statement about this owner's
    * cover — only the empty-body one is a permission problem, which is what
@@ -99,7 +109,7 @@ export function OwnerActions({
    */
   const propertyLocationKey = createProperty.isError
     ? propertyLocationErrorKey(getApiErrorCode(createProperty.error), {
-        sent: sentLocation(createProperty.variables),
+        sent: sentLocation(createProperty.variables?.body),
       })
     : null;
   const propertyError = !createProperty.isError
@@ -176,14 +186,21 @@ export function OwnerActions({
 
   function handleMessageSubmit(draft: MessageDraft) {
     setMessageError(null);
+    messageKey.current ??= newIdempotencyKey();
     createTicket.mutate(
-      // `"Owner"` rather than `"OwnerUser"`: the server runs the value through
-      // UserTypeNormalizer, which maps "Owner" → "OWNER_USER" and passes
-      // anything unrecognised straight through. "OwnerUser" would survive that
-      // map unchanged and then fail to match.
-      { ...draft, targetUserType: "Owner", targetUserId: owner.id },
       {
-        onSuccess: () => setMessageOpen(false),
+        // `"Owner"` rather than `"OwnerUser"`: the server runs the value through
+        // UserTypeNormalizer, which maps "Owner" → "OWNER_USER" and passes
+        // anything unrecognised straight through. "OwnerUser" would survive that
+        // map unchanged and then fail to match.
+        body: { ...draft, targetUserType: "Owner", targetUserId: owner.id },
+        idempotencyKey: messageKey.current,
+      },
+      {
+        onSuccess: () => {
+          messageKey.current = null;
+          setMessageOpen(false);
+        },
         onError: (err) => setMessageError(mapMessageError(err)),
       },
     );
@@ -223,6 +240,7 @@ export function OwnerActions({
             size="sm"
             className="gap-1.5"
             onClick={() => {
+              messageKey.current = null;
               setMessageError(null);
               setMessageOpen(true);
             }}
@@ -358,6 +376,7 @@ export function OwnerActions({
             size="sm"
             className="gap-1.5"
             onClick={() => {
+              propertyKey.current = null;
               createProperty.reset();
               setPropertyOpen(true);
             }}
@@ -382,11 +401,18 @@ export function OwnerActions({
                 id: owner.id,
                 label: owner.fullName || owner.email || owner.id,
               }}
-              onSubmit={(body) =>
-                createProperty.mutate(body, {
-                  onSuccess: () => setPropertyOpen(false),
-                })
-              }
+              onSubmit={(body) => {
+                propertyKey.current ??= newIdempotencyKey();
+                createProperty.mutate(
+                  { body, idempotencyKey: propertyKey.current },
+                  {
+                    onSuccess: () => {
+                      propertyKey.current = null;
+                      setPropertyOpen(false);
+                    },
+                  },
+                );
+              }}
             />
           ) : null}
         </Can>

@@ -58,11 +58,17 @@ export function useDeletedProperties(enabled = true) {
   });
 }
 
+/** `idempotencyKey` comes from the caller, minted once per create dialog and reused on retry. */
 export function useCreateAdminProperty() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: CreateAdminPropertyRequest) =>
-      propertyService.createAdminProperty(body),
+    mutationFn: ({
+      body,
+      idempotencyKey,
+    }: {
+      body: CreateAdminPropertyRequest;
+      idempotencyKey: string;
+    }) => propertyService.createAdminProperty(body, idempotencyKey),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["properties"] });
     },
