@@ -57,23 +57,39 @@ export function calendarWeek(values: Record<string, string>, todayKey: string): 
 
 const DAY_KEY = /^\d{4}-\d{2}-\d{2}$/;
 
+/** A span of day keys, both ends inclusive — the same shape as `DaySpan` in filters.ts. */
 export interface CalendarWindow { from: string; to: string }
 
 /**
- * The days the calendar may draw: the week on screen **intersected** with the
- * band's own `from`/`to`. The band's range only ever reaches the server as the
- * window (`matchesRegister` does not filter by date), so replacing it with the
- * week would draw days the band excludes while its chip still names them.
+ * The days the calendar may draw: the week on screen **intersected** with what
+ * would bound the List's window, so both drawings show the same set.
+ *
+ * - The band's own `from`/`to`, when it names any. The band's range only ever
+ *   reaches the server as the window (`matchesRegister` does not filter by
+ *   date), so replacing it with the week would draw days the band excludes
+ *   while its chip still names them.
+ * - Else the tab's own `span` (`tabSpan`): "Next 7 days" from a Wednesday is
+ *   Wed–Sun on this week and Mon–Tue on the next, never the past Mon–Tue of
+ *   this week. `null` (This week) = the pager's week is the range.
  *
  * `YYYY-MM-DD` compares lexically. A malformed bound is ignored, as
- * `resolveWindow` ignores it. `null` means the band lies wholly outside the
- * week — the calendar draws no rows, never the whole week.
+ * `resolveWindow` ignores it. `null` means nothing bounded lies in this week —
+ * the calendar draws no rows, never the whole week.
  */
-export function calendarWindow(values: Record<string, string>, week: Week): CalendarWindow | null {
+export function calendarWindow(
+  values: Record<string, string>,
+  week: Week,
+  span: CalendarWindow | null = null,
+): CalendarWindow | null {
   const start = week.dayKeys[0];
   const end = week.dayKeys[6];
-  const from = values.from && DAY_KEY.test(values.from) && values.from > start ? values.from : start;
-  const to = values.to && DAY_KEY.test(values.to) && values.to < end ? values.to : end;
+  const bandFrom = values.from && DAY_KEY.test(values.from) ? values.from : null;
+  const bandTo = values.to && DAY_KEY.test(values.to) ? values.to : null;
+  const hasBand = Boolean(bandFrom || bandTo);
+  const lo = hasBand ? bandFrom : span?.from ?? null;
+  const hi = hasBand ? bandTo : span?.to ?? null;
+  const from = lo && lo > start ? lo : start;
+  const to = hi && hi < end ? hi : end;
   return from <= to ? { from, to } : null;
 }
 
@@ -92,12 +108,22 @@ export function calendarBandPatch(patch: Record<string, string>): Record<string,
 }
 
 /**
- * Calendar → List, keeping the range (spec §5). A paged-to week becomes the
- * list's explicit `from`/`to`; with no `week` the list's own window (tab default
- * or the band's range) is already the one the calendar was showing.
+ * Calendar → List, keeping the range (spec §5: "List keeps that range").
+ *
+ * A **paged-to** week hands the list the days the calendar drew there (`window`,
+ * the week intersected by `calendarWindow`), so the list comes back with the
+ * same set — the bare week would widen a "Next 7 days" page to all seven days.
+ *
+ * Nothing is written when no week was paged to, when `?week` is malformed (it
+ * was never a week the calendar drew — `weekOf` fell back to today's), or when
+ * the paged-to week drew nothing: the list returns to its own window (the tab's
+ * or the band's), of which the calendar was showing this week's slice. Writing
+ * dates there would add a Dates chip nobody set and switch the tile off.
  */
-export function toListPatch(values: Record<string, string>): Record<string, string> {
-  if (!values.week) return { view: "", week: "" };
-  const week = weekOf(values.week, values.week);
-  return { view: "", week: "", from: week.dayKeys[0], to: week.dayKeys[6] };
+export function toListPatch(
+  values: Record<string, string>,
+  window: CalendarWindow | null,
+): Record<string, string> {
+  if (!values.week || !DAY_KEY.test(values.week) || !window) return { view: "", week: "" };
+  return { view: "", week: "", from: window.from, to: window.to };
 }

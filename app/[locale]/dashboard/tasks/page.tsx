@@ -16,17 +16,15 @@ import { useOwnerDirectory } from "@/hooks/use-owners";
 import { useHasPermission } from "@/hooks/use-current-permissions";
 import { useRegisterKeys } from "@/hooks/use-register-keys";
 import {
-  DEFAULT_REGISTER_TAB, REGISTER_FILTER_KEYS, REGISTER_TABS, bandResetPatch, bandValues,
-  isBandFiltered, isCapped, matchesRegister, matchesSearch, resolveWindow, tabMatches,
-  tilePatch, type RegisterTab,
+  DEFAULT_REGISTER_TAB, REGISTER_FILTER_KEYS, REGISTER_TABS, activeTile, bandResetPatch, bandValues,
+  isBandFiltered, isCapped, matchesRegister, matchesSearch, tabPatch, tilePatch, type RegisterTab,
 } from "@/lib/tasks/register/filters";
 import {
-  calendarBandPatch, calendarWeek, calendarWindow, inCalendarWindow, registerView, toListPatch,
-  weekPatch, type RegisterView,
+  calendarBandPatch, registerView, toListPatch, weekPatch, type RegisterView,
 } from "@/lib/tasks/register/week";
+import { nextAssignRow, registerRange, registerTabRows } from "@/lib/tasks/register/screen";
 import { registerSummary } from "@/lib/tasks/register/summary";
 import type { RegisterRow } from "@/lib/tasks/register/rows";
-import { compareSchedule } from "@/lib/tasks/register/sort";
 import { assignRefusalText, classifyAssignError } from "@/lib/tasks/assign-errors";
 import { propertyLabel } from "@/lib/tasks/dispatch-search";
 import { professionLabel } from "@/lib/types/profession.types";
@@ -36,7 +34,6 @@ import { RegisterStrip } from "@/components/tasks/register/register-strip";
 import { registerFields } from "@/components/tasks/register/register-fields";
 import { RegisterCalendarShell } from "@/components/tasks/register/register-calendar-shell";
 
-const TILE_TABS: readonly string[] = ["unstaffed", "short", "next7"];
 /** The table's `scope` — also the id the search input publishes for `/`. */
 const TABLE_SCOPE = "tasks-register";
 
@@ -59,30 +56,18 @@ export default function TasksPage() {
     defaultSort: { key: "schedule", dir: "asc" },
   });
   const view = registerView(state.filters);
-  /** The week the calendar draws — `null` in the list, or until the clock is known. */
-  const week = useMemo(
-    () => (view === "calendar" && todayKey ? calendarWeek(state.filters, todayKey) : null),
-    [view, state.filters, todayKey],
-  );
   /**
-   * Spec §5: while Calendar is on, the week pager **drives the date range** — the
-   * window is the week on screen, whatever the tab's default would be, so a
-   * seven-column grid is never fed a one-day window. **Intersected** with the
-   * band's own `from`/`to` (`calendarWindow`): the band's dates only narrow
-   * through the window, so overwriting them would draw days the band excludes.
-   * `null` = the band lies outside this week, and the calendar draws no rows.
+   * The server window, the calendar's week and the days it may draw — pure and
+   * tested (`registerRange`). In the calendar the week pager drives the range,
+   * intersected with the band's dates or the tab's own days, so the List and the
+   * Calendar draw one set. `null` until the clock is known: nothing is fetched.
    */
-  const calWindow = useMemo(() => (week ? calendarWindow(state.filters, week) : null), [week, state.filters]);
-  const range = useMemo(() => {
-    if (!todayKey) return null;
-    if (!week) return resolveWindow(state.tab, state.filters, todayKey);
-    // An empty intersection still needs a valid request; its rows are dropped below.
-    const span = calWindow ?? { from: week.dayKeys[0], to: week.dayKeys[6] };
-    return resolveWindow(state.tab, { ...state.filters, ...span }, todayKey);
-  }, [state.tab, state.filters, todayKey, week, calWindow]);
-  // resolveWindow needs a real day; until the clock is known the hook gets a dummy
-  // window and reports loading (useTaskRegister waits on the clock too).
-  const register = useTaskRegister(range ?? resolveWindow(DEFAULT_REGISTER_TAB, {}, "2000-01-03"));
+  const range = useMemo(
+    () => registerRange(state.tab, state.filters, todayKey),
+    [state.tab, state.filters, todayKey],
+  );
+  const week = range?.week ?? null;
+  const register = useTaskRegister(range?.window ?? null);
   const dispatch = useDispatchQueue();
   // Inactive included: a booking can still name a profession deactivated since,
   // and its chip must show the name, not fall back to nothing.
@@ -132,16 +117,10 @@ export default function TasksPage() {
     return registerColumns({ t, locale, profession, onAssign: setAssignRow });
   }, [t, locale, professions.data]);
 
-  /**
-   * In the calendar, only the days inside `calWindow` — the window request
-   * already asks for exactly those, and this also empties the set when the band
-   * lies outside the week (the request then fetched the whole week).
-   */
+  /** The tab's narrowing, and in the calendar only the days it draws (`registerTabRows`). */
   const tabRows = useMemo(
-    () => register.rows.filter(
-      (r) => tabMatches(state.tab, r, todayKey) && (!week || inCalendarWindow(r.dayKey, calWindow)),
-    ),
-    [register.rows, state.tab, todayKey, week, calWindow],
+    () => registerTabRows(register.rows, range, state.tab, todayKey),
+    [register.rows, range, state.tab, todayKey],
   );
   const tabs = REGISTER_TABS.map((value) => ({
     value,
@@ -154,6 +133,7 @@ export default function TasksPage() {
       locale,
       properties: properties.data ?? [],
       owners: canListOwners ? (owners.data ?? []) : [],
+      canListOwners,
       professions: activeProfessions,
     }),
     [t, locale, properties.data, owners.data, canListOwners, activeProfessions],
@@ -177,18 +157,28 @@ export default function TasksPage() {
    * every one in `resetFilters`. Left alone, the calendar switch by itself would
    * turn an empty window into "Nothing matches these filters", and Clear filters
    * would throw the admin out of the calendar. The shell gets band-only versions.
+   *
+   * And a saved-view tab is applied, not just named: `tabPatch` sets the tab and
+   * clears the band's dates, the Overdue flag and the calendar's week in **one**
+   * write — raw `setTab` left them in the URL, where they override the tab's own
+   * window (`resolveWindow`). Both shells, and the empty state's "see all"
+   * (`resetTab`), go through it.
    */
   const tableState = {
     ...state,
     filters: bandValues(state.filters),
     isFiltered: isBandFiltered(state.filters, state.search),
     resetFilters: () => state.setFilters(bandResetPatch()),
+    setTab: (tab: string) => state.setFilters(tabPatch(tab)),
+    resetTab: () => state.setFilters(tabPatch(DEFAULT_REGISTER_TAB)),
   };
 
   function setView(next: RegisterView) {
     if (next === view) return;
-    // Calendar → List keeps the paged-to week as the list's range (spec §5).
-    state.setFilters(next === "calendar" ? { view: "calendar" } : toListPatch(state.filters));
+    // Calendar → List keeps a paged-to week's drawn days as the list's range (spec §5).
+    state.setFilters(
+      next === "calendar" ? { view: "calendar" } : toListPatch(state.filters, range?.days ?? null),
+    );
   }
   const viewSwitch = (
     <ViewSwitch
@@ -202,10 +192,7 @@ export default function TasksPage() {
     />
   );
 
-  const hasDates = Boolean(state.filters.from || state.filters.to);
-  const activeTile = state.filters.overdue === "true"
-    ? "overdue"
-    : !hasDates && TILE_TABS.includes(state.tab) ? (state.tab as RegisterTab) : null;
+  const tile = activeTile(state.tab, state.filters);
 
   /**
    * The task the sheet is filling, resolved from the live rows rather than the
@@ -264,12 +251,11 @@ export default function TasksPage() {
     onNext: () => {
       // Cosmetic gate: without the permission the row's own Assign button is
       // already hidden by `<Can>`, so `N` must not open a door it hid.
-      if (!canAssign) return;
-      // The next unstaffed row **on screen** (else the next assignable one on
-      // screen) — not the whole loaded window, which can hold rows the current
-      // tab, search or filter band has hidden.
-      const sorted = [...visibleRows].sort(compareSchedule);
-      const next = sorted.find((r) => r.unstaffedToday) ?? sorted.find((r) => r.assignable);
+      if (!canAssign || !clock) return;
+      // From the rows **on screen** — not the whole loaded window, which can hold
+      // rows the current tab, search or filter band has hidden. Only assignable
+      // rows, as the row's own button (`nextAssignRow`).
+      const next = nextAssignRow(visibleRows, clock);
       if (next) setAssignRow(next);
     },
   });
@@ -280,7 +266,7 @@ export default function TasksPage() {
         summary={summary}
         isLoading={dispatch.isPending || !clock}
         onPick={pick}
-        active={activeTile}
+        active={tile}
       />
       {isCapped(register.count) ? <p className="text-xs text-muted-foreground">{t("capped")}</p> : null}
       {view === "calendar" ? (
@@ -357,7 +343,8 @@ export default function TasksPage() {
         <AssignWorkerSheet
           task={assignTask}
           propertyName={assignTask ? propertyLabel(assignTask) : "—"}
-          time={assignRow.startTime}
+          // "–" is the row's unreadable-start marker; the sheet wants "" for no time.
+          time={assignRow.startTime === "–" ? "" : assignRow.startTime}
           dateLabel={dayLabel(assignRow, locale)}
           urgent={assignRow.unstaffedToday}
           onClose={close}

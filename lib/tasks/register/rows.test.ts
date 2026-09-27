@@ -91,6 +91,20 @@ describe("buildRegisterRows", () => {
     expect(buildRegisterRows([t], byId(group()), NOW)[0].hasCheckin).toBe(true);
   });
 
+  it("does not crash on a day whose workers list is missing", () => {
+    const t = task({ workers: null as unknown as TaskWorkerDto[] });
+    expect(buildRegisterRows([t], byId(group()), NOW)[0].hasCheckin).toBe(false);
+  });
+
+  it("knows whether the day is still open, full or not", () => {
+    const full = task({ requiredWorkerCount: 1, workers: [worker()] });
+    const [open] = buildRegisterRows([full], byId(group()), NOW);
+    expect(open.open).toBe(true);
+    expect(open.assignable).toBe(false);
+    expect(buildRegisterRows([task({ status: "Cancelled" })], byId(group()), NOW)[0].open).toBe(false);
+    expect(buildRegisterRows([task({ status: "Done" })], byId(group()), NOW)[0].open).toBe(false);
+  });
+
   it("survives an unparseable start", () => {
     const [row] = buildRegisterRows([task({ scheduledAt: "not-a-date" })], byId(group()), NOW);
     expect(Number.isNaN(row.startMs)).toBe(true);

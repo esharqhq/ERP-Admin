@@ -26,6 +26,9 @@ export interface RegisterRow {
   durationH: number | null;
   unstaffedToday: boolean;
   startsSoon: boolean;
+  /** Still to be worked (`isOpen`: pending or checked in) — not Done, Cancelled, in review… */
+  open: boolean;
+  /** Open **and** a body short — what Assign is offered on. */
   assignable: boolean;
   ownerId: string | null;
   ratingFloor: number | null;
@@ -61,6 +64,7 @@ export function buildRegisterRows(
     const staffing = rowStaffing(task);
     const status = deriveTaskStatus(task, now);
     const untilStart = startMs - nowMs;
+    const open = isOpen(task);
     return {
       task,
       group,
@@ -77,11 +81,12 @@ export function buildRegisterRows(
       durationH: durationHours(task.scheduledAt, task.deadline),
       unstaffedToday: status === "Unstaffed",
       startsSoon: valid && untilStart >= 0 && untilStart < SOON_HOURS * HOUR_MS,
-      assignable: isOpen(task) && staffing.gap > 0,
+      open,
+      assignable: open && staffing.gap > 0,
       ownerId: group?.ownerId ?? null,
       ratingFloor: group?.ratingFloor ?? null,
       createdAt: group?.createdAt ?? null,
-      hasCheckin: task.workers.some((w) => Boolean(w.checkinAt)),
+      hasCheckin: (task.workers ?? []).some((w) => Boolean(w.checkinAt)),
     };
   });
 }

@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
-  REGISTER_FILTER_KEYS, bandResetPatch, bandValues, isBandFiltered,
-  isCapped, matchesRegister, matchesSearch, resolveWindow, staffingBucket, tabMatches, tilePatch,
-  type RegisterLookups,
+  REGISTER_FILTER_KEYS, activeTile, bandResetPatch, bandValues, isBandFiltered,
+  isCapped, matchesRegister, matchesSearch, resolveWindow, staffingBucket, tabMatches, tabPatch, tabSpan,
+  tilePatch, type RegisterLookups,
 } from "@/lib/tasks/register/filters";
 import type { RegisterRow } from "@/lib/tasks/register/rows";
 
@@ -15,7 +15,7 @@ function row(over: Partial<RegisterRow> = {}): RegisterRow {
     group: null, title: "House cleaning", repeating: false, status: "Open",
     staffing: { filled: 1, required: 2, gap: 1, covered: false }, over: 0, professionIds: ["pr-1"],
     dayKey: TODAY, startMs: 0, startTime: "09:00", endTime: "15:00", durationH: 6,
-    unstaffedToday: false, startsSoon: false, assignable: true, ownerId: "o-1", ratingFloor: 4,
+    unstaffedToday: false, startsSoon: false, assignable: true, open: true, ownerId: "o-1", ratingFloor: 4,
     createdAt: null, hasCheckin: false, ...over,
   } as RegisterRow;
 }
@@ -59,6 +59,24 @@ describe("tabMatches", () => {
     expect(tabMatches("short", row({ assignable: false }), TODAY)).toBe(false);
     expect(tabMatches("today", row({ dayKey: "2026-09-28" }), TODAY)).toBe(false);
     expect(tabMatches("thisWeek", row({ dayKey: "2026-09-28" }), TODAY)).toBe(true);
+  });
+  it("keeps next7 to the open days — what the Next 7 days tile counts", () => {
+    expect(tabMatches("next7", row(), TODAY)).toBe(true);
+    // Fully staffed but still open: planned work, counted by the tile.
+    expect(tabMatches("next7", row({ assignable: false, open: true }), TODAY)).toBe(true);
+    expect(tabMatches("next7", row({ status: "Done", assignable: false, open: false }), TODAY)).toBe(false);
+    expect(tabMatches("next7", row({ status: "Cancelled", assignable: false, open: false }), TODAY)).toBe(false);
+  });
+});
+
+describe("tabSpan", () => {
+  it("is the tab's own days — none for this week, whose range is the week on screen", () => {
+    expect(tabSpan("thisWeek", TODAY)).toBeNull();
+    expect(tabSpan("anything", TODAY)).toBeNull();
+    expect(tabSpan("today", TODAY)).toEqual({ from: TODAY, to: TODAY });
+    expect(tabSpan("unstaffed", TODAY)).toEqual({ from: TODAY, to: TODAY });
+    expect(tabSpan("short", TODAY)).toEqual({ from: TODAY, to: "2026-10-03" });
+    expect(tabSpan("next7", TODAY)).toEqual({ from: TODAY, to: "2026-10-03" });
   });
 });
 
@@ -145,10 +163,55 @@ describe("the view keys", () => {
   });
 });
 
+describe("tabPatch", () => {
+  it("applies the saved view in one write: the tab, with the band's dates and the week cleared", () => {
+    expect(tabPatch("today")).toEqual({ tab: "today", from: "", to: "", overdue: "", week: "" });
+  });
+  it("writes the default tab as no param", () => {
+    expect(tabPatch("thisWeek")).toMatchObject({ tab: "" });
+  });
+  it("keeps the drawing and every other band filter — it never names them", () => {
+    const patch = tabPatch("next7");
+    expect(Object.keys(patch)).not.toContain("view");
+    expect(Object.keys(patch)).not.toContain("status");
+    expect(Object.keys(patch)).not.toContain("property");
+  });
+  it("lets the tab's own window win again (repro: a paged week handed to the List, then Today)", () => {
+    // Calendar › next week → List wrote next week as from/to; the Today tab must land on today.
+    const url = { from: "2026-10-05", to: "2026-10-11", view: "", status: "Open" };
+    const next = Object.fromEntries(
+      Object.entries({ ...url, ...tabPatch("today") }).filter(([, v]) => v !== ""),
+    );
+    expect(resolveWindow("today", next, TODAY)).toMatchObject({ fromKey: TODAY, toKey: TODAY });
+    expect(next).toMatchObject({ status: "Open" });
+  });
+});
+
+describe("activeTile", () => {
+  it("lights the tile of the current tab while no dates override it", () => {
+    expect(activeTile("unstaffed", {})).toBe("unstaffed");
+    expect(activeTile("short", {})).toBe("short");
+    expect(activeTile("next7", {})).toBe("next7");
+    expect(activeTile("next7", { from: "2026-10-01" })).toBeNull();
+  });
+  it("has no tile for this week or today", () => {
+    expect(activeTile("thisWeek", {})).toBeNull();
+    expect(activeTile("today", {})).toBeNull();
+  });
+  it("lights overdue whenever its filter is on", () => {
+    expect(activeTile("thisWeek", { overdue: "true", from: "2026-09-25", to: TODAY })).toBe("overdue");
+  });
+});
+
 describe("tilePatch", () => {
   it("lands a tab tile on its own window in either drawing", () => {
     expect(tilePatch("unstaffed", TODAY)).toEqual({ tab: "unstaffed", overdue: "", from: "", to: "", week: "" });
     expect(tilePatch("thisWeek", TODAY)).toMatchObject({ tab: "" });
+  });
+  it("is the saved view's own patch for a tab tile", () => {
+    for (const tab of ["thisWeek", "today", "unstaffed", "short", "next7"] as const) {
+      expect(tilePatch(tab, TODAY)).toEqual(tabPatch(tab));
+    }
   });
   it("lands overdue on the backstop span, in the List — it is not a Mon–Sun week", () => {
     // Tue 2026-09-29: the span reaches back into the previous week.

@@ -26,6 +26,11 @@ export interface RegisterFieldsOptions {
   properties: PropertyDto[];
   /** `useOwnerDirectory()` — empty when the admin may not list owners. */
   owners: OwnerSummaryDto[];
+  /**
+   * `owner:list`. Walk-in resolves the walk-in account through the owners list,
+   * so without it the toggle could never match — it is not offered at all.
+   */
+  canListOwners: boolean;
   /** `useProfessions()` — active only, as every picker. */
   professions: ProfessionDto[];
 }
@@ -39,13 +44,15 @@ function byLabel(locale: string) {
  * The band (spec §4, design 05): fourteen filters in four sections. Only the
  * date goes to the server; `matchesRegister` applies the rest to the loaded
  * window. A select or multi-select with no options is hidden by the band itself,
- * so an admin without `owner:list` simply has no Owner control.
+ * so an admin without `owner:list` simply has no Owner control — and no Walk-in
+ * toggle, which is dropped here (a boolean has no options to run out of).
  */
 export function registerFields({
   t,
   locale,
   properties,
   owners,
+  canListOwners,
   professions,
 }: RegisterFieldsOptions): { fields: FilterField[]; sections: FilterSection[] } {
   const sort = byLabel(locale);
@@ -121,12 +128,14 @@ export function registerFields({
     },
     { kind: "select", section: "where", key: "city", label: t("filters.city"), options: cityOptions },
     { kind: "select", section: "where", key: "owner", label: t("filters.owner"), options: ownerOptions },
-    {
-      kind: "booleanGroup",
-      section: "where",
-      label: t("filters.walkIn"),
-      items: [{ key: "walkIn", label: t("filters.walkIn") }],
-    },
+    ...(canListOwners
+      ? [{
+          kind: "booleanGroup",
+          section: "where",
+          label: t("filters.walkIn"),
+          items: [{ key: "walkIn", label: t("filters.walkIn") }],
+        } satisfies FilterField]
+      : []),
     // What it needs
     {
       kind: "multiSelect",

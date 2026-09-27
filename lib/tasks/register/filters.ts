@@ -61,9 +61,23 @@ export type RegisterTab = (typeof REGISTER_TABS)[number];
 export const DEFAULT_REGISTER_TAB: RegisterTab = "thisWeek";
 
 /**
- * A strip tile as one URL write (never `setTab` then `setFilters` — the second
- * would drop the first). A tab tile clears the band's dates and the calendar's
- * week, so it lands on its tab's own window in either drawing.
+ * A saved-view tab as one URL write (never `setTab` then `setFilters` — the
+ * second would drop the first). A tab **is** its window, so picking one clears
+ * what would override that window: the band's dates, the Overdue flag (a tile's
+ * own date span) and the calendar's paged week. The drawing (`view`) and every
+ * other band filter are left alone — the patch never names them.
+ *
+ * Without this, a range the List inherited from the calendar's pager (or the
+ * Overdue tile) would outlive the tab click and override the tab's own window in
+ * `resolveWindow`: Calendar › next week → List → "Today" drew "Nothing matches".
+ */
+export function tabPatch(tab: string): Record<string, string> {
+  return { tab: tab === DEFAULT_REGISTER_TAB ? "" : tab, from: "", to: "", overdue: "", week: "" };
+}
+
+/**
+ * A strip tile as one URL write. A tab tile is exactly its saved view
+ * (`tabPatch`), so it lands on its tab's own window in either drawing.
  *
  * Overdue counts over the Dispatch window, which reaches back
  * `DISPATCH_BACKSTOP_DAYS`, so it lands on that span up to today (an overdue day
@@ -76,9 +90,20 @@ export function tilePatch(target: RegisterTab | "overdue", todayKey: string): Re
     const from = toDayKey(addDays(fromDayKey(todayKey), -DISPATCH_BACKSTOP_DAYS));
     return { tab: "", overdue: "true", from, to: todayKey, week: "", view: "" };
   }
-  return {
-    tab: target === DEFAULT_REGISTER_TAB ? "" : target, overdue: "", from: "", to: "", week: "",
-  };
+  return tabPatch(target);
+}
+
+const TILE_TABS: readonly string[] = ["unstaffed", "short", "next7"];
+
+/**
+ * The strip tile that reads as "on": Overdue while its flag is set, else the
+ * tile of the current tab — but only while no band dates override the tab's
+ * window, since the tile's count is over that window.
+ */
+export function activeTile(tab: string, values: Record<string, string>): RegisterTab | "overdue" | null {
+  if (values.overdue === "true") return "overdue";
+  if (values.from || values.to) return null;
+  return TILE_TABS.includes(tab) ? (tab as RegisterTab) : null;
 }
 
 export interface RegisterWindow {
@@ -100,6 +125,27 @@ function bounds(fromKey: string, toKey: string): RegisterWindow {
   return { fromKey, toKey, fromIso: from.toISOString(), toIso: to.toISOString() };
 }
 
+/** A span of day keys, both ends inclusive. */
+export interface DaySpan { from: string; to: string }
+
+/**
+ * The days a saved view is about, or `null` for "This week" — whose range is
+ * whichever week is on screen (the current one in the list, the pager's in the
+ * calendar), so it has no span of its own to intersect with.
+ */
+export function tabSpan(tab: string, todayKey: string): DaySpan | null {
+  switch (tab) {
+    case "today":
+    case "unstaffed":
+      return { from: todayKey, to: todayKey };
+    case "short":
+    case "next7":
+      return { from: todayKey, to: toDayKey(addDays(fromDayKey(todayKey), 6)) };
+    default:
+      return null;
+  }
+}
+
 export function resolveWindow(
   tab: string,
   values: Record<string, string>,
@@ -108,21 +154,17 @@ export function resolveWindow(
   const from = values.from && DAY_KEY.test(values.from) ? values.from : null;
   const to = values.to && DAY_KEY.test(values.to) ? values.to : null;
   if (from || to) return bounds(from ?? to!, to ?? from!);
-  const today = fromDayKey(todayKey);
-  switch (tab) {
-    case "today":
-    case "unstaffed":
-      return bounds(todayKey, todayKey);
-    case "short":
-    case "next7":
-      return bounds(todayKey, toDayKey(addDays(today, 6)));
-    default: {
-      const week = weekOf(todayKey, todayKey);
-      return bounds(week.dayKeys[0], week.dayKeys[6]);
-    }
-  }
+  const span = tabSpan(tab, todayKey);
+  if (span) return bounds(span.from, span.to);
+  const week = weekOf(todayKey, todayKey);
+  return bounds(week.dayKeys[0], week.dayKeys[6]);
 }
 
+/**
+ * The tab's narrowing beyond its window. `next7` keeps the **open** days only —
+ * what the Next 7 days tile counts (`registerSummary`), so the tile and the view
+ * it opens agree.
+ */
 export function tabMatches(tab: string, row: RegisterRow, todayKey: string): boolean {
   switch (tab) {
     case "today":
@@ -131,6 +173,8 @@ export function tabMatches(tab: string, row: RegisterRow, todayKey: string): boo
       return row.unstaffedToday;
     case "short":
       return row.assignable;
+    case "next7":
+      return row.open;
     default:
       return true;
   }
