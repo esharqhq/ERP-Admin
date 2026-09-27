@@ -2301,6 +2301,107 @@
         "cityGone": "That city is no longer available. Choose another from the list.",
         "generic": "The copy could not be created. Please try again."
       }
+    },
+    "register": {
+      "title": "Tasks",
+      "subtitle": "Every day of work an owner has asked for, and how many people it still needs.",
+      "search": "Property, title or id",
+      "tabsLabel": "Saved views",
+      "tabs": {
+        "thisWeek": "This week",
+        "today": "Today",
+        "unstaffed": "Unstaffed today",
+        "short": "Short of a body",
+        "next7": "Next 7 days"
+      },
+      "strip": {
+        "label": "Open right now",
+        "unstaffed": {
+          "title": "{count} unstaffed today",
+          "detail": "nobody assigned, starts today",
+          "action": "Fill"
+        },
+        "short": {
+          "title": "{count} short of a body",
+          "detail": "next 7 days, assigned < required",
+          "action": "Open"
+        },
+        "overdue": {
+          "title": "{count} overdue",
+          "detail": "past deadline, not done",
+          "action": "Chase"
+        },
+        "next7": {
+          "title": "{count} next 7 days",
+          "detail": "planned",
+          "action": "Plan"
+        }
+      },
+      "columns": {
+        "task": "Task",
+        "status": "Status",
+        "schedule": "Schedule",
+        "staffing": "Staffing",
+        "professions": "Professions",
+        "action": "Action",
+        "deadline": "Deadline",
+        "ratingFloor": "Rating floor",
+        "created": "Created",
+        "taskId": "Task id"
+      },
+      "status": {
+        "Open": "Open",
+        "Scheduled": "Scheduled",
+        "Running": "Running",
+        "Review": "In review",
+        "Disputed": "In dispute",
+        "Done": "Done",
+        "Unstaffed": "Unstaffed",
+        "Overdue": "Overdue",
+        "Cancelled": "Cancelled"
+      },
+      "staffing": {
+        "short": "{count, plural, one {one short} other {# short}}",
+        "full": "fully staffed",
+        "over": "+{count} over",
+        "none": "nobody yet"
+      },
+      "assign": "Assign",
+      "repeating": "Part of a multi-day booking",
+      "capped": "Showing the first 5,000 days. Narrow the dates to see the rest.",
+      "empty": {
+        "title": "No tasks in these dates",
+        "body": "Pick other dates or another view."
+      },
+      "sections": {
+        "when": "When",
+        "state": "State",
+        "where": "Where & who for",
+        "needs": "What it needs"
+      },
+      "filters": {
+        "dates": "Date range",
+        "timeOfDay": "Starts between",
+        "timeOfDayEnd": "And before",
+        "overdue": "Deadline passed",
+        "repeating": "Repeating",
+        "status": "Status",
+        "staffing": "Staffing",
+        "checkedIn": "Has a check-in",
+        "property": "Property",
+        "city": "City",
+        "owner": "Owner",
+        "walkIn": "Walk-in only",
+        "profession": "Profession",
+        "required": "Workers required",
+        "ratingMin": "Rating floor at least",
+        "staffingOptions": {
+          "none": "Nobody",
+          "short": "Short",
+          "full": "Full",
+          "over": "Over"
+        }
+      }
     }
   },
   "complaints": {

@@ -1,226 +1,157 @@
 "use client";
 
-import { useState } from "react";
-import { Link } from "@/i18n/navigation";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useMemo, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
+import { DataTable } from "@/components/ui/data-table";
+import { useTableUrlState } from "@/hooks/use-table-url-state";
+import { useTodayKey, useClock } from "@/hooks/use-today";
+import { useDispatchQueue } from "@/hooks/use-tasks";
+import { useTaskRegister } from "@/hooks/use-task-register";
+import { useProfessions } from "@/hooks/use-professions";
+import { useProperties } from "@/hooks/use-properties";
+import { useOwnerDirectory } from "@/hooks/use-owners";
+import { useHasPermission } from "@/hooks/use-current-permissions";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Search, Eye, LayoutList, CalendarDays } from "lucide-react";
-import { useTranslations } from "next-intl";
-import { useAdminTaskGroups } from "@/hooks/use-tasks";
-import {
-  TASK_GROUP_STATUS_FILTERS,
-  type TaskGroupStatusFilter,
-  type TaskGroupDto,
-} from "@/lib/types/task.types";
-import { groupBucket } from "@/lib/tasks/staffing";
-import { TaskDaysBadge } from "@/components/tasks/task-days-badge";
-import { TasksCalendar } from "@/components/tasks/tasks-calendar";
+  DEFAULT_REGISTER_TAB, REGISTER_FILTER_KEYS, REGISTER_TABS, isCapped, matchesRegister,
+  matchesSearch, resolveWindow, tabMatches, type RegisterTab,
+} from "@/lib/tasks/register/filters";
+import { registerSummary } from "@/lib/tasks/register/summary";
+import type { RegisterRow } from "@/lib/tasks/register/rows";
+import { professionLabel } from "@/lib/types/profession.types";
+import { registerColumns } from "@/components/tasks/register/register-columns";
+import { RegisterRowCard } from "@/components/tasks/register/register-row-card";
+import { RegisterStrip } from "@/components/tasks/register/register-strip";
+import { registerFields } from "@/components/tasks/register/register-fields";
+// Task 6 adds the assign sheet; Task 7 adds the calendar switch.
 
-function dateRange(group: TaskGroupDto): string {
-  const dates = (group.dates ?? [])
-    .map((d) => d.scheduledDate)
-    .filter(Boolean)
-    .sort();
-  if (dates.length === 0) return "—";
-  if (dates.length === 1) return dates[0];
-  return `${dates[0]} → ${dates[dates.length - 1]}`;
-}
+const TILE_TABS: readonly string[] = ["unstaffed", "short", "next7"];
 
-function distinctWorkers(group: TaskGroupDto): number {
-  const ids = new Set<string>();
-  for (const task of group.tasks ?? []) {
-    for (const tw of task.workers ?? []) ids.add(tw.workerId);
-  }
-  return ids.size;
-}
-
+/**
+ * The Tasks register (spec §3): one row per day of work, over a date window the
+ * server returns, narrowed in the browser by the band and the saved views.
+ */
 export default function TasksPage() {
-  const t = useTranslations("tasks");
-  const tCommon = useTranslations("common");
-  const [tab, setTab] = useState<TaskGroupStatusFilter>("all");
-  const [search, setSearch] = useState("");
-  const [view, setView] = useState<"list" | "calendar">("calendar");
-
-  const { data: groups = [], isLoading, isError } = useAdminTaskGroups();
-
-  const filtered = groups.filter((g) => {
-    // ⚠ Was `normalizeStatus(g.status)`. F-07 ·0 deleted the booking's status
-    // word, so this compared `undefined` and every tab but "all" showed nothing.
-    // `groupBucket` reconstructs the same four buckets from the day counts.
-    if (tab !== "all" && groupBucket(g) !== tab) return false;
-    if (!search) return true;
-    return (g.title ?? "").toLowerCase().includes(search.toLowerCase());
+  const t = useTranslations("tasks.register");
+  const locale = useLocale();
+  const todayKey = useTodayKey();
+  const clock = useClock();
+  const state = useTableUrlState({
+    filterKeys: [...REGISTER_FILTER_KEYS],
+    defaultTab: DEFAULT_REGISTER_TAB,
+    // Design 06: soonest first is the only order an admin reads it in.
+    defaultSort: { key: "schedule", dir: "asc" },
   });
+  const range = useMemo(
+    () => (todayKey ? resolveWindow(state.tab, state.filters, todayKey) : null),
+    [state.tab, state.filters, todayKey],
+  );
+  // resolveWindow needs a real day; until the clock is known the hook gets a dummy
+  // window and reports loading (useTaskRegister waits on the clock too).
+  const register = useTaskRegister(range ?? resolveWindow(DEFAULT_REGISTER_TAB, {}, "2000-01-03"));
+  const dispatch = useDispatchQueue();
+  const professions = useProfessions();
+  // Same args as the read inside useTaskRegister — one cache entry, no second request.
+  const properties = useProperties();
+  // Gated like the properties page: an admin with task:list_any but not
+  // owner:list gets no Owner filter rather than a 403 on page load.
+  const canListOwners = useHasPermission("owner:list");
+  const owners = useOwnerDirectory(undefined, canListOwners);
+
+  // `useClock()` is 0 on the server snapshot — count nothing rather than count against 1970.
+  const summary = useMemo(
+    () => (clock
+      ? registerSummary(dispatch.data ?? [], new Date(clock))
+      : { unstaffedToday: 0, short: 0, overdue: 0, next7: 0 }),
+    [dispatch.data, clock],
+  );
+  // Task 6 opens the assign sheet on this; until then it only records the row.
+  const [, setAssignRow] = useState<RegisterRow | null>(null);
+
+  const columns = useMemo(() => {
+    const byId = new Map((professions.data ?? []).map((p) => [p.id, p]));
+    const professionName = (id: string) => {
+      const p = byId.get(id);
+      return p ? professionLabel(p, locale) || p.code : id;
+    };
+    return registerColumns({ t, locale, professionName, onAssign: setAssignRow });
+  }, [t, locale, professions.data]);
+
+  const tabRows = useMemo(
+    () => register.rows.filter((r) => tabMatches(state.tab, r, todayKey)),
+    [register.rows, state.tab, todayKey],
+  );
+  const tabs = REGISTER_TABS.map((value) => ({
+    value,
+    label: t(`tabs.${value}`),
+    count: value === state.tab && !register.isLoading ? tabRows.length : undefined,
+  }));
+  const { fields, sections } = useMemo(
+    () => registerFields({
+      t,
+      locale,
+      properties: properties.data ?? [],
+      owners: canListOwners ? (owners.data ?? []) : [],
+      professions: professions.data ?? [],
+    }),
+    [t, locale, properties.data, owners.data, canListOwners, professions.data],
+  );
+
+  /**
+   * One URL write, never two. `setTab` then `setFilters` in the same tick both
+   * merge into the query captured at render, so the second would silently drop
+   * the first (see `setFilters` in use-table-url-state.ts). `tab` is not a filter
+   * key, but the write accepts any param and `""` removes it — the default tab.
+   */
+  function pick(target: RegisterTab | "overdue") {
+    if (target === "overdue") {
+      state.setFilters({ tab: "", overdue: "true", from: "", to: "" });
+      return;
+    }
+    state.setFilters({ tab: target === DEFAULT_REGISTER_TAB ? "" : target, overdue: "", from: "", to: "" });
+  }
+
+  const hasDates = Boolean(state.filters.from || state.filters.to);
+  const activeTile = state.filters.overdue === "true"
+    ? "overdue"
+    : !hasDates && TILE_TABS.includes(state.tab) ? (state.tab as RegisterTab) : null;
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="font-heading text-3xl font-bold tracking-tight leading-tight">
-          {t("title")}
-        </h1>
-        <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
-      </div>
-
-      {/* View switcher */}
-      <div className="flex rounded-lg border border-border bg-muted/50 p-0.5 self-start">
-        {(["list", "calendar"] as const).map((v) => (
-          <button
-            key={v}
-            onClick={() => setView(v)}
-            className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-              view === v
-                ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {v === "list" ? (
-              <span className="flex items-center gap-1.5">
-                <LayoutList className="size-3.5" />
-                {t("list.label")}
-              </span>
-            ) : (
-              <span className="flex items-center gap-1.5">
-                <CalendarDays className="size-3.5" />
-                {t("calendar.label")}
-              </span>
-            )}
-          </button>
-        ))}
-      </div>
-
-      {view === "list" && (
-        <>
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="flex rounded-lg border border-border bg-muted/50 p-0.5">
-              {TASK_GROUP_STATUS_FILTERS.map((key) => (
-                <button
-                  key={key}
-                  onClick={() => setTab(key)}
-                  className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                    tab === key
-                      ? "bg-background text-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {t(`list.tabs.${key}`)}
-                </button>
-              ))}
-            </div>
-            <div className="relative flex-1 min-w-[200px] max-w-sm">
-              <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
-              <Input
-                placeholder={t("searchPlaceholder")}
-                className="pl-8"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <p className="text-xs text-muted-foreground">
-                {isLoading
-                  ? tCommon("loading")
-                  : tCommon("resultsFound", { count: filtered.length })}
-              </p>
-            </CardHeader>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t("list.columns.title")}</TableHead>
-                    <TableHead>{t("list.columns.status")}</TableHead>
-                    <TableHead>{t("list.columns.dates")}</TableHead>
-                    <TableHead className="text-center">
-                      {t("list.columns.tasks")}
-                    </TableHead>
-                    <TableHead className="text-center">
-                      {t("list.columns.workers")}
-                    </TableHead>
-                    <TableHead className="text-right">
-                      {t("list.columns.actions")}
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {isLoading ? (
-                    Array.from({ length: 5 }).map((_, i) => (
-                      <TableRow key={i}>
-                        <TableCell colSpan={6}>
-                          <Skeleton className="h-8 w-full rounded-md" />
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  ) : isError ? (
-                    <TableRow>
-                      <TableCell
-                        colSpan={6}
-                        className="py-10 text-center text-sm text-destructive"
-                      >
-                        {tCommon("error")}
-                      </TableCell>
-                    </TableRow>
-                  ) : filtered.length === 0 ? (
-                    <TableRow>
-                      <TableCell
-                        colSpan={6}
-                        className="py-10 text-center text-sm text-muted-foreground"
-                      >
-                        {t("list.empty")}
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    filtered.map((group) => (
-                      <TableRow key={group.id} className="hover:bg-accent/40">
-                        <TableCell className="py-3 font-medium">
-                          {group.title ?? "—"}
-                        </TableCell>
-                        <TableCell>
-                          <TaskDaysBadge group={group} />
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
-                          {dateRange(group)}
-                        </TableCell>
-                        <TableCell className="text-center text-sm">
-                          {(group.tasks ?? []).length}
-                        </TableCell>
-                        <TableCell className="text-center text-sm">
-                          {distinctWorkers(group)}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            nativeButton={false}
-                            className="gap-1.5 text-muted-foreground"
-                            render={<Link href={`/dashboard/tasks/${group.id}`} />}
-                          >
-                            <Eye className="size-3.5" />
-                            {tCommon("view")}
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </>
-      )}
-
-      {view === "calendar" && <TasksCalendar />}
+    <div className="flex min-h-0 flex-1 flex-col gap-3">
+      <RegisterStrip
+        summary={summary}
+        isLoading={dispatch.isPending || !clock}
+        onPick={pick}
+        active={activeTile}
+      />
+      {isCapped(register.count) ? <p className="text-xs text-muted-foreground">{t("capped")}</p> : null}
+      <DataTable
+        state={state}
+        scope="tasks-register"
+        title={t("title")}
+        subtitle={t("subtitle")}
+        columns={columns}
+        rowKey={(r) => r.task.id}
+        rowHref={(r) => `/dashboard/tasks/${r.task.groupId}`}
+        rowLabel={(r) => r.title ?? r.task.propertyName ?? r.task.id}
+        // The workers table's rail, and the only one this screen draws (design 01).
+        rowClassName={(r) => (r.unstaffedToday ? "border-l-[3px] border-l-status-cancelled" : undefined)}
+        mobileCard={(r) => <RegisterRowCard row={r} onAssign={setAssignRow} />}
+        tabs={tabs}
+        tabsLabel={t("tabsLabel")}
+        fields={fields}
+        sections={sections}
+        searchPlaceholder={t("search")}
+        empty={{ title: t("empty.title"), body: t("empty.body") }}
+        source={{
+          mode: "client",
+          rows: tabRows,
+          isLoading: register.isLoading,
+          isError: register.isError,
+          isForbidden: register.isForbidden,
+          matches: matchesSearch,
+          filter: (row, values) => matchesRegister(row, values, register.lookups),
+        }}
+      />
     </div>
   );
 }
