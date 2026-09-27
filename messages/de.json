@@ -2046,32 +2046,14 @@
     }
   },
   "tasks": {
-    "title": "Aufgaben",
-    "subtitle": "Arbeitsaufträge verwalten und verfolgen",
     "newTask": "Neue Aufgabe",
-    "searchPlaceholder": "Aufgaben suchen...",
     "empty": "Leer",
     "list": {
-      "label": "Liste",
-      "empty": "Keine Aufgabengruppen gefunden",
-      "tabs": {
-        "all": "Alle",
-        "Pending": "Ausstehend",
-        "Active": "Aktiv",
-        "Done": "Erledigt",
-        "Cancelled": "Abgebrochen"
-      },
       "columns": {
-        "title": "Titel",
-        "status": "Status",
-        "dates": "Termine",
-        "tasks": "Aufgaben",
-        "workers": "Mitarbeiter",
-        "actions": "Aktionen"
+        "title": "Titel"
       }
     },
     "calendar": {
-      "label": "Kalender",
       "noTasksThisWeek": "Keine Aufgaben diese Woche",
       "workers": "Mitarbeiter"
     },

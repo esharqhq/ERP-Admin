@@ -386,26 +386,6 @@ export interface OverrideTaskWorkerOutcomeRequest {
   outcome: OverrideOutcomeTarget;
 }
 
-/** Filterable task-group statuses for the admin Tasks list (plus "all"). */
-/**
- * The tasks list's tab set.
- *
- * ⚠ These are **client-side buckets**, not server values, and have been since
- * F-07 ·0 (2026-09-17) deleted `TaskGroupDto.status`. Nothing sends them to the
- * API; the page files each booking with `groupBucket` (lib/tasks/staffing.ts)
- * off its day counts. The words are kept because the i18n keys and the operators'
- * vocabulary both use them — do not send one as a `?status=` value, which is a
- * different, per-DAY enum that now binds `CheckedIn`/`InReview`.
- */
-export const TASK_GROUP_STATUS_FILTERS = [
-  "all",
-  "Pending",
-  "Active",
-  "Done",
-  "Cancelled",
-] as const;
-export type TaskGroupStatusFilter = (typeof TASK_GROUP_STATUS_FILTERS)[number];
-
 export const TASK_WORKER_OUTCOMES: TaskWorkerOutcomeName[] = [
   "Pending",
   "Completed",

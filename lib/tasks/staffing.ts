@@ -133,17 +133,20 @@ export function settledDays(group: TaskGroupDto): number {
   return d.done + d.cancelled + d.rejected;
 }
 
-/** The four buckets the tasks list's tabs offer. */
+/** The four buckets a booking's day counts settle into. */
 export type GroupBucket = "Pending" | "Active" | "Done" | "Cancelled";
 
 /**
- * Which tab a booking files under, derived from its day counts.
+ * Which bucket a booking files under, derived from its day counts.
  *
  * ⚠ This is a reconstruction, not a contract. Until F-07 ·0 the server sent a
- * `TaskGroupStatus` word and these tabs compared against it; the word is gone and
- * the backend offers no replacement for a *booking*-level state, so the buckets
- * are ours. Keep them here rather than in the page — the same question is asked
- * by the tab filter and by the Active/History split, and two copies would drift.
+ * `TaskGroupStatus` word and the old tasks list's tabs compared against it; the
+ * word is gone and the backend offers no replacement for a *booking*-level
+ * state, so the buckets are ours. That tab filter is gone too (replaced by the
+ * Tasks register, which buckets per day, not per booking) — the remaining
+ * reader is `TaskDaysBadge`, shared by the Task Detail page and the Walk-In
+ * orders screens. Keep the bucketing here rather than in a component, so a
+ * future second reader cannot drift from this one.
  *
  * `Cancelled` means EVERY settled day was cancelled — a booking with three done
  * days and one cancelled is `Done`, not `Cancelled`, because calling it cancelled

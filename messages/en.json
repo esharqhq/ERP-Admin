@@ -2046,32 +2046,14 @@
     }
   },
   "tasks": {
-    "title": "Tasks",
-    "subtitle": "Manage and track work assignments",
     "newTask": "New Task",
-    "searchPlaceholder": "Search tasks...",
     "empty": "Empty",
     "list": {
-      "label": "List",
-      "empty": "No task groups found",
-      "tabs": {
-        "all": "All",
-        "Pending": "Pending",
-        "Active": "Active",
-        "Done": "Done",
-        "Cancelled": "Cancelled"
-      },
       "columns": {
-        "title": "Title",
-        "status": "Status",
-        "dates": "Dates",
-        "tasks": "Tasks",
-        "workers": "Workers",
-        "actions": "Actions"
+        "title": "Title"
       }
     },
     "calendar": {
-      "label": "Calendar",
       "noTasksThisWeek": "No tasks this week",
       "workers": "workers"
     },
