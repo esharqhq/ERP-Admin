@@ -18,7 +18,7 @@ import { useRegisterKeys } from "@/hooks/use-register-keys";
 import {
   DEFAULT_REGISTER_TAB, REGISTER_FILTER_KEYS, REGISTER_TABS, bandResetPatch, bandValues,
   isBandFiltered, isCapped, matchesRegister, matchesSearch, resolveWindow, tabMatches,
-  type RegisterTab,
+  tilePatch, type RegisterTab,
 } from "@/lib/tasks/register/filters";
 import {
   calendarBandPatch, calendarWeek, registerView, toListPatch, weekPatch, type RegisterView,
@@ -26,11 +26,9 @@ import {
 import { registerSummary } from "@/lib/tasks/register/summary";
 import type { RegisterRow } from "@/lib/tasks/register/rows";
 import { compareSchedule } from "@/lib/tasks/register/sort";
-import { DISPATCH_BACKSTOP_DAYS } from "@/lib/tasks/dispatch-window";
 import { assignRefusalText, classifyAssignError } from "@/lib/tasks/assign-errors";
 import { propertyLabel } from "@/lib/tasks/dispatch-search";
 import { professionLabel } from "@/lib/types/profession.types";
-import { addDays, fromDayKey, toDayKey } from "@/lib/ui/week";
 import { dayLabel, registerColumns } from "@/components/tasks/register/register-columns";
 import { RegisterRowCard } from "@/components/tasks/register/register-row-card";
 import { RegisterStrip } from "@/components/tasks/register/register-strip";
@@ -156,19 +154,9 @@ export default function TasksPage() {
    * key, but the write accepts any param and `""` removes it — the default tab.
    */
   function pick(target: RegisterTab | "overdue") {
-    if (target === "overdue") {
-      // The tile counts over the Dispatch window, which reaches back
-      // DISPATCH_BACKSTOP_DAYS; land on that same span up to today so the list
-      // shows what the tile counted (an overdue day is never in the future).
-      const from = todayKey
-        ? toDayKey(addDays(fromDayKey(todayKey), -DISPATCH_BACKSTOP_DAYS))
-        : "";
-      state.setFilters({ tab: "", overdue: "true", from, to: todayKey });
-      return;
-    }
-    state.setFilters({
-      tab: target === DEFAULT_REGISTER_TAB ? "" : target, overdue: "", from: "", to: "", week: "",
-    });
+    // Pure and tested (`tilePatch`): the overdue span is not a Mon–Sun week, so
+    // that tile also lands on the List — the drawing whose window is what it counted.
+    if (todayKey) state.setFilters(tilePatch(target, todayKey));
   }
 
   /**
@@ -178,12 +166,12 @@ export default function TasksPage() {
    * turn an empty window into "Nothing matches these filters", and Clear filters
    * would throw the admin out of the calendar. The shell gets band-only versions.
    */
-  const tableState = useMemo(() => ({
+  const tableState = {
     ...state,
     filters: bandValues(state.filters),
     isFiltered: isBandFiltered(state.filters, state.search),
     resetFilters: () => state.setFilters(bandResetPatch()),
-  }), [state]);
+  };
 
   function setView(next: RegisterView) {
     if (next === view) return;

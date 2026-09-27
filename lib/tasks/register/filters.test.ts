@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   REGISTER_FILTER_KEYS, bandResetPatch, bandValues, isBandFiltered,
-  isCapped, matchesRegister, matchesSearch, resolveWindow, staffingBucket, tabMatches,
+  isCapped, matchesRegister, matchesSearch, resolveWindow, staffingBucket, tabMatches, tilePatch,
   type RegisterLookups,
 } from "@/lib/tasks/register/filters";
 import type { RegisterRow } from "@/lib/tasks/register/rows";
@@ -142,5 +142,18 @@ describe("the view keys", () => {
     expect(Object.keys(patch)).not.toContain("view");
     expect(Object.keys(patch)).not.toContain("week");
     expect(patch).toMatchObject({ from: "", to: "", status: "", ratingMin: "" });
+  });
+});
+
+describe("tilePatch", () => {
+  it("lands a tab tile on its own window in either drawing", () => {
+    expect(tilePatch("unstaffed", TODAY)).toEqual({ tab: "unstaffed", overdue: "", from: "", to: "", week: "" });
+    expect(tilePatch("thisWeek", TODAY)).toMatchObject({ tab: "" });
+  });
+  it("lands overdue on the backstop span, in the List — it is not a Mon–Sun week", () => {
+    // Tue 2026-09-29: the span reaches back into the previous week.
+    expect(tilePatch("overdue", "2026-09-29")).toEqual({
+      tab: "", overdue: "true", from: "2026-09-27", to: "2026-09-29", week: "", view: "",
+    });
   });
 });

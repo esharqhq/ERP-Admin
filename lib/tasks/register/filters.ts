@@ -1,4 +1,5 @@
 import type { RegisterRow } from "@/lib/tasks/register/rows";
+import { DISPATCH_BACKSTOP_DAYS } from "@/lib/tasks/dispatch-window";
 import { addDays, fromDayKey, toDayKey, weekOf } from "@/lib/ui/week";
 
 /** Mirrors components/ui/filter-bar.tsx parseMulti; kept local so lib/ imports no component. */
@@ -58,6 +59,27 @@ export function bandResetPatch(): Record<string, string> {
 export const REGISTER_TABS = ["thisWeek", "today", "unstaffed", "short", "next7"] as const;
 export type RegisterTab = (typeof REGISTER_TABS)[number];
 export const DEFAULT_REGISTER_TAB: RegisterTab = "thisWeek";
+
+/**
+ * A strip tile as one URL write (never `setTab` then `setFilters` — the second
+ * would drop the first). A tab tile clears the band's dates and the calendar's
+ * week, so it lands on its tab's own window in either drawing.
+ *
+ * Overdue counts over the Dispatch window, which reaches back
+ * `DISPATCH_BACKSTOP_DAYS`, so it lands on that span up to today (an overdue day
+ * is never in the future). That span is not a Mon–Sun week — anchored in the
+ * calendar it would open on last week early in a week and hide today — so the
+ * tile also switches to the List, the drawing whose window is what it counted.
+ */
+export function tilePatch(target: RegisterTab | "overdue", todayKey: string): Record<string, string> {
+  if (target === "overdue") {
+    const from = toDayKey(addDays(fromDayKey(todayKey), -DISPATCH_BACKSTOP_DAYS));
+    return { tab: "", overdue: "true", from, to: todayKey, week: "", view: "" };
+  }
+  return {
+    tab: target === DEFAULT_REGISTER_TAB ? "" : target, overdue: "", from: "", to: "", week: "",
+  };
+}
 
 export interface RegisterWindow {
   fromKey: string;
