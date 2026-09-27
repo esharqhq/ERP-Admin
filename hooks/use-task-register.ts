@@ -21,6 +21,9 @@ export function useTaskRegister(window: RegisterWindow) {
   const tasks = useQuery({
     queryKey: ["admin-tasks-range", window.fromIso, window.toIso],
     queryFn: () => taskService.getAdminTasksInRange(window.fromIso, window.toIso),
+    // No clock yet (the SSR/hydration snapshot) means the caller's window is a
+    // placeholder — never ask the server for it.
+    enabled: Boolean(now),
   });
   const groups = useAdminTaskGroups();
   const properties = useProperties();

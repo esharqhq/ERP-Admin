@@ -15,11 +15,22 @@ import { cn } from "@/lib/utils";
 
 export type RegisterT = ReturnType<typeof useTranslations<"tasks.register">>;
 
+export interface ProfessionDisplay {
+  label: string;
+  hueKey: string;
+}
+
 export interface RegisterColumnsOptions {
   t: RegisterT;
   locale: string;
-  /** Display name for a profession id, in the reading locale. */
-  professionName: (id: string) => string;
+  /**
+   * A profession id resolved for display: `label` in the reading locale, and
+   * `hueKey` — the **English** name, locale-invariant, because that is what the
+   * Workers table hashes (`WorkerRowDto.skills` is English only). Hashing the
+   * German label would recolour the same profession under `de`. `null` when the
+   * id is not in the lookup at all.
+   */
+  profession: (id: string) => ProfessionDisplay | null;
   onAssign: (row: RegisterRow) => void;
 }
 
@@ -163,7 +174,7 @@ export function TaskIdentity({ row, t }: { row: RegisterRow; t: RegisterT }) {
 export function registerColumns({
   t,
   locale,
-  professionName,
+  profession,
   onAssign,
 }: RegisterColumnsOptions): DataColumn<RegisterRow>[] {
   return [
@@ -244,16 +255,24 @@ export function registerColumns({
         return (
           <div className="flex min-w-0 items-center gap-2.5">
             {shown.map((id) => {
-              const name = professionName(id);
+              const p = profession(id);
+              // Never the raw id: an unknown profession reads as an empty value.
+              if (!p) {
+                return (
+                  <span key={id} className="text-xs text-muted-foreground">
+                    –
+                  </span>
+                );
+              }
               return (
                 <span key={id} className="inline-flex min-w-0 items-center gap-1 text-xs">
                   <span
                     aria-hidden
                     className="size-1.5 flex-none rounded-full"
-                    // Data-derived like the property dot; shared with Workers.
-                    style={{ backgroundColor: professionHue(name) }}
+                    // Data-derived like the property dot; same key as Workers.
+                    style={{ backgroundColor: professionHue(p.hueKey) }}
                   />
-                  <span className="truncate">{name}</span>
+                  <span className="truncate">{p.label}</span>
                 </span>
               );
             })}

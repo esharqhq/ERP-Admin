@@ -17,7 +17,9 @@ import {
 } from "@/lib/tasks/register/filters";
 import { registerSummary } from "@/lib/tasks/register/summary";
 import type { RegisterRow } from "@/lib/tasks/register/rows";
+import { DISPATCH_BACKSTOP_DAYS } from "@/lib/tasks/dispatch-window";
 import { professionLabel } from "@/lib/types/profession.types";
+import { addDays, fromDayKey, toDayKey } from "@/lib/ui/week";
 import { registerColumns } from "@/components/tasks/register/register-columns";
 import { RegisterRowCard } from "@/components/tasks/register/register-row-card";
 import { RegisterStrip } from "@/components/tasks/register/register-strip";
@@ -49,7 +51,14 @@ export default function TasksPage() {
   // window and reports loading (useTaskRegister waits on the clock too).
   const register = useTaskRegister(range ?? resolveWindow(DEFAULT_REGISTER_TAB, {}, "2000-01-03"));
   const dispatch = useDispatchQueue();
-  const professions = useProfessions();
+  // Inactive included: a booking can still name a profession deactivated since,
+  // and its chip must show the name, not fall back to nothing.
+  const professions = useProfessions(true);
+  // The band offers active professions only, as every picker does.
+  const activeProfessions = useMemo(
+    () => (professions.data ?? []).filter((p) => p.isActive),
+    [professions.data],
+  );
   // Same args as the read inside useTaskRegister — one cache entry, no second request.
   const properties = useProperties();
   // Gated like the properties page: an admin with task:list_any but not
@@ -69,11 +78,12 @@ export default function TasksPage() {
 
   const columns = useMemo(() => {
     const byId = new Map((professions.data ?? []).map((p) => [p.id, p]));
-    const professionName = (id: string) => {
+    const profession = (id: string) => {
       const p = byId.get(id);
-      return p ? professionLabel(p, locale) || p.code : id;
+      if (!p) return null;
+      return { label: professionLabel(p, locale) || p.nameEn || p.code, hueKey: p.nameEn || p.code };
     };
-    return registerColumns({ t, locale, professionName, onAssign: setAssignRow });
+    return registerColumns({ t, locale, profession, onAssign: setAssignRow });
   }, [t, locale, professions.data]);
 
   const tabRows = useMemo(
@@ -91,9 +101,9 @@ export default function TasksPage() {
       locale,
       properties: properties.data ?? [],
       owners: canListOwners ? (owners.data ?? []) : [],
-      professions: professions.data ?? [],
+      professions: activeProfessions,
     }),
-    [t, locale, properties.data, owners.data, canListOwners, professions.data],
+    [t, locale, properties.data, owners.data, canListOwners, activeProfessions],
   );
 
   /**
@@ -104,7 +114,13 @@ export default function TasksPage() {
    */
   function pick(target: RegisterTab | "overdue") {
     if (target === "overdue") {
-      state.setFilters({ tab: "", overdue: "true", from: "", to: "" });
+      // The tile counts over the Dispatch window, which reaches back
+      // DISPATCH_BACKSTOP_DAYS; land on that same span up to today so the list
+      // shows what the tile counted (an overdue day is never in the future).
+      const from = todayKey
+        ? toDayKey(addDays(fromDayKey(todayKey), -DISPATCH_BACKSTOP_DAYS))
+        : "";
+      state.setFilters({ tab: "", overdue: "true", from, to: todayKey });
       return;
     }
     state.setFilters({ tab: target === DEFAULT_REGISTER_TAB ? "" : target, overdue: "", from: "", to: "" });
