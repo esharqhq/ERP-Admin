@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
-  buildCalendarDays, calendarBandPatch, calendarWeek, cardTone, registerView, toListPatch, weekPatch,
+  buildCalendarDays, calendarBandPatch, calendarWeek, calendarWindow, cardTone, inCalendarWindow, registerView,
+  toListPatch, weekPatch,
 } from "@/lib/tasks/register/week";
 import { weekOf } from "@/lib/ui/week";
 import type { RegisterRow } from "@/lib/tasks/register/rows";
@@ -58,6 +59,9 @@ describe("calendarWeek", () => {
     expect(calendarWeek({ from: "2026-10-08", to: "2026-10-20" }, TODAY).startKey).toBe("2026-10-05");
     expect(calendarWeek({ week: "2026-10-12", from: "2026-10-08" }, TODAY).startKey).toBe("2026-10-12");
   });
+  it("falls back to the band's last day when only that is set", () => {
+    expect(calendarWeek({ to: "2026-10-14" }, TODAY).startKey).toBe("2026-10-12");
+  });
   it("snaps a hand-edited mid-week key to its Monday", () => {
     expect(calendarWeek({ week: "2026-10-07" }, TODAY).startKey).toBe("2026-10-05");
   });
@@ -88,5 +92,36 @@ describe("toListPatch", () => {
   it("leaves the list's own window alone when no week was paged to", () => {
     expect(toListPatch({ view: "calendar", from: "2026-10-08" })).toEqual({ view: "", week: "" });
     expect(toListPatch({ view: "calendar" })).toEqual({ view: "", week: "" });
+  });
+});
+
+describe("calendarWindow", () => {
+  const week = weekOf("2026-10-05", TODAY); // Mon 05.10 – Sun 11.10
+  it("is the whole week with no band dates", () => {
+    expect(calendarWindow({}, week)).toEqual({ from: "2026-10-05", to: "2026-10-11" });
+  });
+  it("intersects the week with the band's range — the band still narrows", () => {
+    expect(calendarWindow({ from: "2026-10-08", to: "2026-10-20" }, week)).toEqual({ from: "2026-10-08", to: "2026-10-11" });
+    expect(calendarWindow({ from: "2026-10-08" }, week)).toEqual({ from: "2026-10-08", to: "2026-10-11" });
+  });
+  it("honours a to-only band", () => {
+    expect(calendarWindow({ to: "2026-10-07" }, week)).toEqual({ from: "2026-10-05", to: "2026-10-07" });
+  });
+  it("is empty when the band lies wholly outside the week", () => {
+    expect(calendarWindow({ from: "2026-10-20", to: "2026-10-25" }, week)).toBeNull();
+    expect(calendarWindow({ to: "2026-10-01" }, week)).toBeNull();
+  });
+  it("ignores a malformed bound", () => {
+    expect(calendarWindow({ from: "08.10.2026" }, week)).toEqual({ from: "2026-10-05", to: "2026-10-11" });
+  });
+});
+
+describe("inCalendarWindow", () => {
+  it("keeps the days inside, and nothing when the window is empty", () => {
+    const win = { from: "2026-10-08", to: "2026-10-11" };
+    expect(inCalendarWindow("2026-10-07", win)).toBe(false);
+    expect(inCalendarWindow("2026-10-08", win)).toBe(true);
+    expect(inCalendarWindow("2026-10-11", win)).toBe(true);
+    expect(inCalendarWindow("2026-10-08", null)).toBe(false);
   });
 });

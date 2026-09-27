@@ -44,14 +44,41 @@ export function registerView(values: Record<string, string>): RegisterView {
 
 /**
  * The week the calendar draws (spec §5: the week pager drives the date range).
- * The pager's `week` first; else the week holding the band's first day, so a
- * range picked in the List opens on its own week; else this week.
+ * The pager's `week` first; else the week holding the band's first day (or its
+ * last, when only that is set), so a range picked in the List opens on its own
+ * week; else this week.
  *
  * The two never disagree for long: paging clears the band range (`weekPatch`)
  * and a band date write clears the week (`calendarBandPatch`).
  */
 export function calendarWeek(values: Record<string, string>, todayKey: string): Week {
-  return weekOf(values.week || values.from || null, todayKey);
+  return weekOf(values.week || values.from || values.to || null, todayKey);
+}
+
+const DAY_KEY = /^\d{4}-\d{2}-\d{2}$/;
+
+export interface CalendarWindow { from: string; to: string }
+
+/**
+ * The days the calendar may draw: the week on screen **intersected** with the
+ * band's own `from`/`to`. The band's range only ever reaches the server as the
+ * window (`matchesRegister` does not filter by date), so replacing it with the
+ * week would draw days the band excludes while its chip still names them.
+ *
+ * `YYYY-MM-DD` compares lexically. A malformed bound is ignored, as
+ * `resolveWindow` ignores it. `null` means the band lies wholly outside the
+ * week — the calendar draws no rows, never the whole week.
+ */
+export function calendarWindow(values: Record<string, string>, week: Week): CalendarWindow | null {
+  const start = week.dayKeys[0];
+  const end = week.dayKeys[6];
+  const from = values.from && DAY_KEY.test(values.from) && values.from > start ? values.from : start;
+  const to = values.to && DAY_KEY.test(values.to) && values.to < end ? values.to : end;
+  return from <= to ? { from, to } : null;
+}
+
+export function inCalendarWindow(dayKey: string, window: CalendarWindow | null): boolean {
+  return window !== null && dayKey >= window.from && dayKey <= window.to;
 }
 
 /** One URL write for ‹ · This week · ›. */

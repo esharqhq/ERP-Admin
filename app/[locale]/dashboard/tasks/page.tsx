@@ -21,7 +21,8 @@ import {
   tilePatch, type RegisterTab,
 } from "@/lib/tasks/register/filters";
 import {
-  calendarBandPatch, calendarWeek, registerView, toListPatch, weekPatch, type RegisterView,
+  calendarBandPatch, calendarWeek, calendarWindow, inCalendarWindow, registerView, toListPatch,
+  weekPatch, type RegisterView,
 } from "@/lib/tasks/register/week";
 import { registerSummary } from "@/lib/tasks/register/summary";
 import type { RegisterRow } from "@/lib/tasks/register/rows";
@@ -65,16 +66,20 @@ export default function TasksPage() {
   );
   /**
    * Spec §5: while Calendar is on, the week pager **drives the date range** — the
-   * window is always the week on screen, whatever the tab's default would be,
-   * so a seven-column grid is never fed a one-day window.
+   * window is the week on screen, whatever the tab's default would be, so a
+   * seven-column grid is never fed a one-day window. **Intersected** with the
+   * band's own `from`/`to` (`calendarWindow`): the band's dates only narrow
+   * through the window, so overwriting them would draw days the band excludes.
+   * `null` = the band lies outside this week, and the calendar draws no rows.
    */
+  const calWindow = useMemo(() => (week ? calendarWindow(state.filters, week) : null), [week, state.filters]);
   const range = useMemo(() => {
     if (!todayKey) return null;
-    const values = week
-      ? { ...state.filters, from: week.dayKeys[0], to: week.dayKeys[6] }
-      : state.filters;
-    return resolveWindow(state.tab, values, todayKey);
-  }, [state.tab, state.filters, todayKey, week]);
+    if (!week) return resolveWindow(state.tab, state.filters, todayKey);
+    // An empty intersection still needs a valid request; its rows are dropped below.
+    const span = calWindow ?? { from: week.dayKeys[0], to: week.dayKeys[6] };
+    return resolveWindow(state.tab, { ...state.filters, ...span }, todayKey);
+  }, [state.tab, state.filters, todayKey, week, calWindow]);
   // resolveWindow needs a real day; until the clock is known the hook gets a dummy
   // window and reports loading (useTaskRegister waits on the clock too).
   const register = useTaskRegister(range ?? resolveWindow(DEFAULT_REGISTER_TAB, {}, "2000-01-03"));
@@ -127,9 +132,16 @@ export default function TasksPage() {
     return registerColumns({ t, locale, profession, onAssign: setAssignRow });
   }, [t, locale, professions.data]);
 
+  /**
+   * In the calendar, only the days inside `calWindow` — the window request
+   * already asks for exactly those, and this also empties the set when the band
+   * lies outside the week (the request then fetched the whole week).
+   */
   const tabRows = useMemo(
-    () => register.rows.filter((r) => tabMatches(state.tab, r, todayKey)),
-    [register.rows, state.tab, todayKey],
+    () => register.rows.filter(
+      (r) => tabMatches(state.tab, r, todayKey) && (!week || inCalendarWindow(r.dayKey, calWindow)),
+    ),
+    [register.rows, state.tab, todayKey, week, calWindow],
   );
   const tabs = REGISTER_TABS.map((value) => ({
     value,
