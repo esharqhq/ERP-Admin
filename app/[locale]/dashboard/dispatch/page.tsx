@@ -35,9 +35,9 @@ import {
 } from "@/lib/tasks/dispatch-row";
 import { cn } from "@/lib/utils";
 import {
+  assignRefusalText,
   classifyAssignError,
   classifyUnassignError,
-  type AssignErrorKind,
 } from "@/lib/tasks/assign-errors";
 import type { TaskItemDto, TaskWorkerDto } from "@/lib/types/task.types";
 
@@ -269,34 +269,32 @@ export default function DispatchPage() {
   };
 
   /**
-   * Both doors word their refusal from the same three namespaces, so the mapping
-   * lives once. `generic` differs though: a failed assign is worth retrying, a
-   * failed unassign usually is not — see `errors.unassignGeneric`.
+   * Both doors word their refusal from the same three namespaces, so the words
+   * bag is built once and only `generic` differs between them: a failed assign
+   * is worth retrying, a failed unassign usually is not — see
+   * `errors.unassignGeneric`. The switch itself lives in `assignRefusalText`
+   * (`lib/tasks/assign-errors.ts`), shared with the tasks register.
    */
-  const wordRefusal = (kind: AssignErrorKind, genericKey: string): string => {
-    switch (kind.kind) {
-      case "permission":
-        return tOnboarding("permissionDenied");
-      case "catalog":
-        return tOnboarding(`apiErrors.${kind.labelKey}`);
-      case "legacy":
-        return t(`errors.${kind.code}`);
-      case "unknown":
-        return t(genericKey);
-    }
+  const refusalWords = {
+    permission: () => tOnboarding("permissionDenied"),
+    catalog: (labelKey: string) => tOnboarding(`apiErrors.${labelKey}`),
+    legacy: (code: string) => t(`errors.${code}`),
   };
 
   const assignError =
     modal?.type === "assign" && assignWorker.isError
-      ? wordRefusal(classifyAssignError(assignWorker.error), "errors.generic")
+      ? assignRefusalText(classifyAssignError(assignWorker.error), {
+          ...refusalWords,
+          generic: () => t("errors.generic"),
+        })
       : null;
 
   const unassignError =
     modal?.type === "unassign" && unassignWorker.isError
-      ? wordRefusal(
-          classifyUnassignError(unassignWorker.error),
-          "errors.unassignGeneric",
-        )
+      ? assignRefusalText(classifyUnassignError(unassignWorker.error), {
+          ...refusalWords,
+          generic: () => t("errors.unassignGeneric"),
+        })
       : null;
 
   return (

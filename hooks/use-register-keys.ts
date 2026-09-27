@@ -3,9 +3,11 @@
 import { useEffect } from "react";
 
 /**
- * `/` focuses search, `N` opens Assign on the next unstaffed day (design 01 "Fast").
- * Ignored while typing or while a dialog is open. J/K/Enter/A row focus moves to
- * the Detail phase — the table shell does not expose its on-screen order.
+ * `/` focuses search, `N` opens Assign on the next unstaffed row on screen (design
+ * 01 "Fast") — the caller's `onNext` is responsible for narrowing to what the
+ * admin can currently see (tab, search, filters) before picking one. Ignored
+ * while typing or while a dialog is open. J/K/Enter/A row focus moves to the
+ * Detail phase — the table shell does not expose its on-screen order.
  */
 export function useRegisterKeys({ onSearch, onNext }: { onSearch: () => void; onNext: () => void }) {
   useEffect(() => {

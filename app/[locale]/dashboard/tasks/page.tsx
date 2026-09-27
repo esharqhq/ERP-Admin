@@ -21,7 +21,7 @@ import { registerSummary } from "@/lib/tasks/register/summary";
 import type { RegisterRow } from "@/lib/tasks/register/rows";
 import { compareSchedule } from "@/lib/tasks/register/sort";
 import { DISPATCH_BACKSTOP_DAYS } from "@/lib/tasks/dispatch-window";
-import { classifyAssignError, type AssignErrorKind } from "@/lib/tasks/assign-errors";
+import { assignRefusalText, classifyAssignError } from "@/lib/tasks/assign-errors";
 import { propertyLabel } from "@/lib/tasks/dispatch-search";
 import { professionLabel } from "@/lib/types/profession.types";
 import { addDays, fromDayKey, toDayKey } from "@/lib/ui/week";
@@ -172,22 +172,37 @@ export default function TasksPage() {
     assign.reset();
   };
 
-  /** Copied from `dispatch/page.tsx` — same three namespaces, same order, on purpose. */
-  const wordRefusal = (kind: AssignErrorKind, genericKey: string): string => {
-    switch (kind.kind) {
-      case "permission":
-        return tOnboarding("permissionDenied");
-      case "catalog":
-        return tOnboarding(`apiErrors.${kind.labelKey}`);
-      case "legacy":
-        return tDispatch(`errors.${kind.code}`);
-      case "unknown":
-        return tDispatch(genericKey);
-    }
-  };
-
+  /**
+   * Same four-way switch Dispatch words its own refusal from, over the same two
+   * namespaces (`dispatch.errors.*`, `onboarding.*`) — the switch itself now
+   * lives once, in `assignRefusalText` (`lib/tasks/assign-errors.ts`).
+   */
   const assignError =
-    assignRow && assign.isError ? wordRefusal(classifyAssignError(assign.error), "errors.generic") : null;
+    assignRow && assign.isError
+      ? assignRefusalText(classifyAssignError(assign.error), {
+          permission: () => tOnboarding("permissionDenied"),
+          catalog: (labelKey) => tOnboarding(`apiErrors.${labelKey}`),
+          legacy: (code) => tDispatch(`errors.${code}`),
+          generic: () => tDispatch("errors.generic"),
+        })
+      : null;
+
+  /**
+   * What `N` is allowed to pick from — `tabRows` (the tab's own narrowing)
+   * further narrowed by the search box and the filter band, the same two steps
+   * `applyClientPipeline` runs before it ever gets to paging or sort. `N` picks
+   * its own order on top (`compareSchedule`) rather than reading the table's
+   * current column sort, so this stops short of paging — deliberately: R6 is
+   * "the rows the admin can see", not "the one page of them currently sliced".
+   */
+  const visibleRows = useMemo(
+    () => tabRows.filter(
+      (r) =>
+        matchesSearch(r, state.search.trim().toLowerCase())
+        && matchesRegister(r, state.filters, register.lookups),
+    ),
+    [tabRows, state.search, state.filters, register.lookups],
+  );
 
   useRegisterKeys({
     onSearch: () => {
@@ -197,7 +212,10 @@ export default function TasksPage() {
       // Cosmetic gate: without the permission the row's own Assign button is
       // already hidden by `<Can>`, so `N` must not open a door it hid.
       if (!canAssign) return;
-      const sorted = [...register.rows].sort(compareSchedule);
+      // The next unstaffed row **on screen** (else the next assignable one on
+      // screen) — not the whole loaded window, which can hold rows the current
+      // tab, search or filter band has hidden.
+      const sorted = [...visibleRows].sort(compareSchedule);
       const next = sorted.find((r) => r.unstaffedToday) ?? sorted.find((r) => r.assignable);
       if (next) setAssignRow(next);
     },

@@ -81,3 +81,42 @@ export function classifyUnassignError(error: unknown): AssignErrorKind {
   if (UNASSIGN_ERRORS.has(info.code)) return { kind: "legacy", code: info.code };
   return { kind: "unknown" };
 }
+
+/**
+ * The words a caller reaches for to speak each of the four `AssignErrorKind`
+ * branches. Kept as `next-intl` closures rather than plain strings so every
+ * `t(...)` call still happens at the call site, in the caller's own namespace —
+ * this module imports no translator and renders no copy itself.
+ */
+export interface AssignRefusalWords {
+  permission: () => string;
+  catalog: (labelKey: string) => string;
+  legacy: (code: string) => string;
+  generic: () => string;
+}
+
+/**
+ * Words one `AssignErrorKind` from the caller's own `words`, in the same order
+ * every call site used to switch on by hand: permission, catalog, legacy,
+ * unknown → generic.
+ *
+ * Both Dispatch (assign **and** unassign) and the tasks register word a refusal
+ * this way; extracted here so the four-way switch has exactly one copy instead
+ * of a second one drifting the moment either page's copy changes. A caller
+ * supplies its own `generic` — Dispatch's assign door and its unassign door
+ * word that one differently (`errors.generic` vs. `errors.unassignGeneric`),
+ * which is exactly what stays a per-call-site decision rather than becoming a
+ * fifth argument here.
+ */
+export function assignRefusalText(kind: AssignErrorKind, words: AssignRefusalWords): string {
+  switch (kind.kind) {
+    case "permission":
+      return words.permission();
+    case "catalog":
+      return words.catalog(kind.labelKey);
+    case "legacy":
+      return words.legacy(kind.code);
+    case "unknown":
+      return words.generic();
+  }
+}
