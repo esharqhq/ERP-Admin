@@ -3,30 +3,37 @@
 import { useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { DataTable } from "@/components/ui/data-table";
+import { AssignWorkerSheet } from "@/components/tasks/assign-worker-sheet";
 import { useTableUrlState } from "@/hooks/use-table-url-state";
 import { useTodayKey, useClock } from "@/hooks/use-today";
-import { useDispatchQueue } from "@/hooks/use-tasks";
+import { useAssignWorker, useDispatchQueue } from "@/hooks/use-tasks";
 import { useTaskRegister } from "@/hooks/use-task-register";
 import { useProfessions } from "@/hooks/use-professions";
 import { useProperties } from "@/hooks/use-properties";
 import { useOwnerDirectory } from "@/hooks/use-owners";
 import { useHasPermission } from "@/hooks/use-current-permissions";
+import { useRegisterKeys } from "@/hooks/use-register-keys";
 import {
   DEFAULT_REGISTER_TAB, REGISTER_FILTER_KEYS, REGISTER_TABS, isCapped, matchesRegister,
   matchesSearch, resolveWindow, tabMatches, type RegisterTab,
 } from "@/lib/tasks/register/filters";
 import { registerSummary } from "@/lib/tasks/register/summary";
 import type { RegisterRow } from "@/lib/tasks/register/rows";
+import { compareSchedule } from "@/lib/tasks/register/sort";
 import { DISPATCH_BACKSTOP_DAYS } from "@/lib/tasks/dispatch-window";
+import { classifyAssignError, type AssignErrorKind } from "@/lib/tasks/assign-errors";
+import { propertyLabel } from "@/lib/tasks/dispatch-search";
 import { professionLabel } from "@/lib/types/profession.types";
 import { addDays, fromDayKey, toDayKey } from "@/lib/ui/week";
-import { registerColumns } from "@/components/tasks/register/register-columns";
+import { dayLabel, registerColumns } from "@/components/tasks/register/register-columns";
 import { RegisterRowCard } from "@/components/tasks/register/register-row-card";
 import { RegisterStrip } from "@/components/tasks/register/register-strip";
 import { registerFields } from "@/components/tasks/register/register-fields";
-// Task 6 adds the assign sheet; Task 7 adds the calendar switch.
+// Task 7 adds the calendar switch.
 
 const TILE_TABS: readonly string[] = ["unstaffed", "short", "next7"];
+/** The table's `scope` — also the id the search input publishes for `/`. */
+const TABLE_SCOPE = "tasks-register";
 
 /**
  * The Tasks register (spec §3): one row per day of work, over a date window the
@@ -34,6 +41,9 @@ const TILE_TABS: readonly string[] = ["unstaffed", "short", "next7"];
  */
 export default function TasksPage() {
   const t = useTranslations("tasks.register");
+  // Same two namespaces Dispatch words a refusal from — no duplicate copy here.
+  const tDispatch = useTranslations("dispatch");
+  const tOnboarding = useTranslations("onboarding");
   const locale = useLocale();
   const todayKey = useTodayKey();
   const clock = useClock();
@@ -65,6 +75,10 @@ export default function TasksPage() {
   // owner:list gets no Owner filter rather than a 403 on page load.
   const canListOwners = useHasPermission("owner:list");
   const owners = useOwnerDirectory(undefined, canListOwners);
+  // Cosmetic gate matching `AssignButton`'s own `<Can>` — the `N` key and the
+  // sheet mount both respect it, so a keyboard shortcut cannot open a door the
+  // row's own button would have hidden. The backend enforces the real gate.
+  const canAssign = useHasPermission("task:assign_worker_any");
 
   // `useClock()` is 0 on the server snapshot — count nothing rather than count against 1970.
   const summary = useMemo(
@@ -73,8 +87,17 @@ export default function TasksPage() {
       : { unstaffedToday: 0, short: 0, overdue: 0, next7: 0 }),
     [dispatch.data, clock],
   );
-  // Task 6 opens the assign sheet on this; until then it only records the row.
-  const [, setAssignRow] = useState<RegisterRow | null>(null);
+  /**
+   * The row Assign is open for — captured at the moment it was opened (click
+   * or `N`), so `urgent` and the date/time read stay what the admin actually
+   * saw. `task` itself is resolved live from `register.rows` below, exactly as
+   * Dispatch's `assignTarget` is: so the sheet's own meter moves the instant
+   * `invalidateTasks` refetches, right after a successful assign.
+   */
+  const [assignRow, setAssignRow] = useState<RegisterRow | null>(null);
+  /** Whose assign was refused — the sheet keeps that row selected (Dispatch's own state). */
+  const [refusedWorkerId, setRefusedWorkerId] = useState<string | null>(null);
+  const assign = useAssignWorker();
 
   const columns = useMemo(() => {
     const byId = new Map((professions.data ?? []).map((p) => [p.id, p]));
@@ -131,6 +154,55 @@ export default function TasksPage() {
     ? "overdue"
     : !hasDates && TILE_TABS.includes(state.tab) ? (state.tab as RegisterTab) : null;
 
+  /**
+   * The task the sheet is filling, resolved from the live rows rather than the
+   * `assignRow` snapshot — same reasoning as Dispatch's `assignTarget`: when the
+   * assign succeeds and `invalidateTasks` refetches, the sheet's own meter moves
+   * with it, and a task that vanished from the window resolves to `undefined`
+   * instead of showing a stale row.
+   */
+  const assignTask = useMemo(
+    () => (assignRow ? register.rows.find((r) => r.task.id === assignRow.task.id)?.task : undefined),
+    [register.rows, assignRow],
+  );
+
+  const close = () => {
+    setAssignRow(null);
+    setRefusedWorkerId(null);
+    assign.reset();
+  };
+
+  /** Copied from `dispatch/page.tsx` — same three namespaces, same order, on purpose. */
+  const wordRefusal = (kind: AssignErrorKind, genericKey: string): string => {
+    switch (kind.kind) {
+      case "permission":
+        return tOnboarding("permissionDenied");
+      case "catalog":
+        return tOnboarding(`apiErrors.${kind.labelKey}`);
+      case "legacy":
+        return tDispatch(`errors.${kind.code}`);
+      case "unknown":
+        return tDispatch(genericKey);
+    }
+  };
+
+  const assignError =
+    assignRow && assign.isError ? wordRefusal(classifyAssignError(assign.error), "errors.generic") : null;
+
+  useRegisterKeys({
+    onSearch: () => {
+      document.getElementById(`${TABLE_SCOPE}-search`)?.focus();
+    },
+    onNext: () => {
+      // Cosmetic gate: without the permission the row's own Assign button is
+      // already hidden by `<Can>`, so `N` must not open a door it hid.
+      if (!canAssign) return;
+      const sorted = [...register.rows].sort(compareSchedule);
+      const next = sorted.find((r) => r.unstaffedToday) ?? sorted.find((r) => r.assignable);
+      if (next) setAssignRow(next);
+    },
+  });
+
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
       <RegisterStrip
@@ -142,7 +214,7 @@ export default function TasksPage() {
       {isCapped(register.count) ? <p className="text-xs text-muted-foreground">{t("capped")}</p> : null}
       <DataTable
         state={state}
-        scope="tasks-register"
+        scope={TABLE_SCOPE}
         title={t("title")}
         subtitle={t("subtitle")}
         columns={columns}
@@ -168,6 +240,26 @@ export default function TasksPage() {
           filter: (row, values) => matchesRegister(row, values, register.lookups),
         }}
       />
+
+      {assignRow ? (
+        <AssignWorkerSheet
+          task={assignTask}
+          propertyName={assignTask ? propertyLabel(assignTask) : "—"}
+          time={assignRow.startTime}
+          dateLabel={dayLabel(assignRow, locale)}
+          urgent={assignRow.unstaffedToday}
+          onClose={close}
+          isPending={assign.isPending}
+          error={assignError}
+          refusedWorkerId={refusedWorkerId}
+          onAssign={(workerId) => {
+            // Held so the refused row stays selected and the message has an
+            // owner; cleared on success by `close` (Dispatch's own pattern).
+            setRefusedWorkerId(workerId);
+            assign.mutate({ taskId: assignRow.task.id, workerId }, { onSuccess: close });
+          }}
+        />
+      ) : null}
     </div>
   );
 }
