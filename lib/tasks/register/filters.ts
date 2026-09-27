@@ -7,12 +7,48 @@ function parseMulti(value: string | undefined): string[] {
 }
 
 /** Every wire param the register's filter band owns (spec §4). */
-export const REGISTER_FILTER_KEYS = [
+export const REGISTER_BAND_KEYS = [
   "from", "to", "startAfter", "startBefore", "overdue", "repeating",
   "status", "staffing", "checkedIn",
   "property", "city", "owner", "walkIn",
   "profession", "reqMin", "reqMax", "ratingMin",
 ] as const;
+
+/**
+ * How the set is drawn (`view=calendar`) and which Monday the calendar is on
+ * (`week`). In the URL beside the band so a pasted link reopens the same week in
+ * the same drawing — but they narrow nothing, so they are **not filters**: see
+ * `bandValues` / `isBandFiltered` / `bandResetPatch`.
+ */
+export const REGISTER_VIEW_KEYS = ["view", "week"] as const;
+
+/**
+ * Everything `useTableUrlState` reads as a filter key — one mechanism owns the
+ * URL. ⚠ That hook counts every key in `isFiltered` and clears every key in
+ * `resetFilters`, so the page hands the shell the band-only versions below.
+ */
+export const REGISTER_FILTER_KEYS = [...REGISTER_BAND_KEYS, ...REGISTER_VIEW_KEYS] as const;
+
+const VIEW_KEYS: readonly string[] = REGISTER_VIEW_KEYS;
+
+/** The filter values without the view keys — what the band and its chips narrow by. */
+export function bandValues(values: Record<string, string>): Record<string, string> {
+  return Object.fromEntries(Object.entries(values).filter(([k]) => !VIEW_KEYS.includes(k)));
+}
+
+/**
+ * `useTableUrlState.isFiltered` minus the view keys. Without this, switching to
+ * the calendar alone would make an empty window read "Nothing matches these
+ * filters" and offer a Clear that clears nothing.
+ */
+export function isBandFiltered(values: Record<string, string>, search: string): boolean {
+  return Object.keys(bandValues(values)).length > 0 || search.trim().length > 0;
+}
+
+/** "Clear filters" as one URL write: every band key, never the drawing or the week. */
+export function bandResetPatch(): Record<string, string> {
+  return Object.fromEntries(REGISTER_BAND_KEYS.map((k) => [k, ""]));
+}
 
 /**
  * The saved views (design 01) as the table's tabs. A tab also sets the **default

@@ -2,7 +2,9 @@
 
 import { useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { DataTable } from "@/components/ui/data-table";
+import { CalendarDays, LayoutList } from "lucide-react";
+import { DataTable, TableEmpty, TableError, TableForbidden, TableNoMatch } from "@/components/ui/data-table";
+import { ViewSwitch } from "@/components/ui/view-switch";
 import { AssignWorkerSheet } from "@/components/tasks/assign-worker-sheet";
 import { useTableUrlState } from "@/hooks/use-table-url-state";
 import { useTodayKey, useClock } from "@/hooks/use-today";
@@ -14,9 +16,13 @@ import { useOwnerDirectory } from "@/hooks/use-owners";
 import { useHasPermission } from "@/hooks/use-current-permissions";
 import { useRegisterKeys } from "@/hooks/use-register-keys";
 import {
-  DEFAULT_REGISTER_TAB, REGISTER_FILTER_KEYS, REGISTER_TABS, isCapped, matchesRegister,
-  matchesSearch, resolveWindow, tabMatches, type RegisterTab,
+  DEFAULT_REGISTER_TAB, REGISTER_FILTER_KEYS, REGISTER_TABS, bandResetPatch, bandValues,
+  isBandFiltered, isCapped, matchesRegister, matchesSearch, resolveWindow, tabMatches,
+  type RegisterTab,
 } from "@/lib/tasks/register/filters";
+import {
+  calendarBandPatch, calendarWeek, registerView, toListPatch, weekPatch, type RegisterView,
+} from "@/lib/tasks/register/week";
 import { registerSummary } from "@/lib/tasks/register/summary";
 import type { RegisterRow } from "@/lib/tasks/register/rows";
 import { compareSchedule } from "@/lib/tasks/register/sort";
@@ -29,7 +35,7 @@ import { dayLabel, registerColumns } from "@/components/tasks/register/register-
 import { RegisterRowCard } from "@/components/tasks/register/register-row-card";
 import { RegisterStrip } from "@/components/tasks/register/register-strip";
 import { registerFields } from "@/components/tasks/register/register-fields";
-// Task 7 adds the calendar switch.
+import { RegisterCalendarShell } from "@/components/tasks/register/register-calendar-shell";
 
 const TILE_TABS: readonly string[] = ["unstaffed", "short", "next7"];
 /** The table's `scope` — also the id the search input publishes for `/`. */
@@ -53,10 +59,24 @@ export default function TasksPage() {
     // Design 06: soonest first is the only order an admin reads it in.
     defaultSort: { key: "schedule", dir: "asc" },
   });
-  const range = useMemo(
-    () => (todayKey ? resolveWindow(state.tab, state.filters, todayKey) : null),
-    [state.tab, state.filters, todayKey],
+  const view = registerView(state.filters);
+  /** The week the calendar draws — `null` in the list, or until the clock is known. */
+  const week = useMemo(
+    () => (view === "calendar" && todayKey ? calendarWeek(state.filters, todayKey) : null),
+    [view, state.filters, todayKey],
   );
+  /**
+   * Spec §5: while Calendar is on, the week pager **drives the date range** — the
+   * window is always the week on screen, whatever the tab's default would be,
+   * so a seven-column grid is never fed a one-day window.
+   */
+  const range = useMemo(() => {
+    if (!todayKey) return null;
+    const values = week
+      ? { ...state.filters, from: week.dayKeys[0], to: week.dayKeys[6] }
+      : state.filters;
+    return resolveWindow(state.tab, values, todayKey);
+  }, [state.tab, state.filters, todayKey, week]);
   // resolveWindow needs a real day; until the clock is known the hook gets a dummy
   // window and reports loading (useTaskRegister waits on the clock too).
   const register = useTaskRegister(range ?? resolveWindow(DEFAULT_REGISTER_TAB, {}, "2000-01-03"));
@@ -146,8 +166,41 @@ export default function TasksPage() {
       state.setFilters({ tab: "", overdue: "true", from, to: todayKey });
       return;
     }
-    state.setFilters({ tab: target === DEFAULT_REGISTER_TAB ? "" : target, overdue: "", from: "", to: "" });
+    state.setFilters({
+      tab: target === DEFAULT_REGISTER_TAB ? "" : target, overdue: "", from: "", to: "", week: "",
+    });
   }
+
+  /**
+   * `view` and `week` ride in the filter keys so one mechanism owns the URL —
+   * but `useTableUrlState` counts every filter key in `isFiltered` and clears
+   * every one in `resetFilters`. Left alone, the calendar switch by itself would
+   * turn an empty window into "Nothing matches these filters", and Clear filters
+   * would throw the admin out of the calendar. The shell gets band-only versions.
+   */
+  const tableState = useMemo(() => ({
+    ...state,
+    filters: bandValues(state.filters),
+    isFiltered: isBandFiltered(state.filters, state.search),
+    resetFilters: () => state.setFilters(bandResetPatch()),
+  }), [state]);
+
+  function setView(next: RegisterView) {
+    if (next === view) return;
+    // Calendar → List keeps the paged-to week as the list's range (spec §5).
+    state.setFilters(next === "calendar" ? { view: "calendar" } : toListPatch(state.filters));
+  }
+  const viewSwitch = (
+    <ViewSwitch
+      label={t("view.label")}
+      value={view}
+      onChange={setView}
+      items={[
+        { key: "list", label: t("view.list"), Icon: LayoutList },
+        { key: "calendar", label: t("view.calendar"), Icon: CalendarDays },
+      ]}
+    />
+  );
 
   const hasDates = Boolean(state.filters.from || state.filters.to);
   const activeTile = state.filters.overdue === "true"
@@ -230,8 +283,48 @@ export default function TasksPage() {
         active={activeTile}
       />
       {isCapped(register.count) ? <p className="text-xs text-muted-foreground">{t("capped")}</p> : null}
+      {view === "calendar" ? (
+        <RegisterCalendarShell
+          state={tableState}
+          scope={TABLE_SCOPE}
+          title={t("title")}
+          subtitle={t("subtitle")}
+          count={register.isLoading || register.isForbidden ? undefined : visibleRows.length}
+          viewSwitch={viewSwitch}
+          tabs={tabs}
+          tabsLabel={t("tabsLabel")}
+          searchPlaceholder={t("search")}
+          fields={fields}
+          sections={sections}
+          // A band date write takes the range back from the week pager.
+          onBandChange={(key, value) => state.setFilters(calendarBandPatch({ [key]: value }))}
+          onBandChangeMany={(patch) => state.setFilters(calendarBandPatch(patch))}
+          onBandReset={tableState.resetFilters}
+          calendar={{
+            // The same set the list shows: tab, search and band, over the week's window.
+            rows: visibleRows,
+            weekStartKey: week?.startKey ?? "",
+            todayKey,
+            onWeek: (startKey) => state.setFilters(weekPatch(startKey)),
+            isLoading: register.isLoading || !week,
+            notice: register.isForbidden ? <TableForbidden />
+              : register.isLoading || !week ? undefined
+              : register.isError ? <TableError />
+              : visibleRows.length > 0 ? undefined
+              : tableState.isFiltered ? (
+                <TableNoMatch
+                  onClear={() => {
+                    tableState.resetFilters();
+                    state.setSearchInput("");
+                  }}
+                />
+              ) : <TableEmpty title={t("empty.title")} body={t("empty.body")} />,
+          }}
+        />
+      ) : (
       <DataTable
-        state={state}
+        state={tableState}
+        actions={viewSwitch}
         scope={TABLE_SCOPE}
         title={t("title")}
         subtitle={t("subtitle")}
@@ -258,6 +351,7 @@ export default function TasksPage() {
           filter: (row, values) => matchesRegister(row, values, register.lookups),
         }}
       />
+      )}
 
       {assignRow ? (
         <AssignWorkerSheet

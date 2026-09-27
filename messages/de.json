@@ -2401,6 +2401,27 @@
           "full": "Voll",
           "over": "Zu viel"
         }
+      },
+      "view": {
+        "label": "Darstellung dieser Liste",
+        "list": "Liste",
+        "calendar": "Kalender"
+      },
+      "calendar": {
+        "thisWeek": "Diese Woche",
+        "prevWeek": "Vorherige Woche",
+        "nextWeek": "Nächste Woche",
+        "prevDay": "Vorheriger Tag",
+        "nextDay": "Nächster Tag",
+        "days": "Tage dieser Woche",
+        "sameSet": "gleiche Filter · gleiche Seite",
+        "inView": "{count} Aufgaben sichtbar · {short} fehlen",
+        "dayCount": "{count, plural, one {# Aufgabe} other {# Aufgaben}}",
+        "short": "{count} fehlen",
+        "covered": "alles besetzt",
+        "hours": "{hours, number} Std.",
+        "legend": "Kartenfarbe",
+        "closed": "Erledigt oder storniert"
       }
     }
   },

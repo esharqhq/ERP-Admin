@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  REGISTER_FILTER_KEYS, bandResetPatch, bandValues, isBandFiltered,
   isCapped, matchesRegister, matchesSearch, resolveWindow, staffingBucket, tabMatches,
   type RegisterLookups,
 } from "@/lib/tasks/register/filters";
@@ -125,5 +126,21 @@ describe("isCapped", () => {
   it("is true at the 5,000-row ceiling", () => {
     expect(isCapped(4999)).toBe(false);
     expect(isCapped(5000)).toBe(true);
+  });
+});
+
+describe("the view keys", () => {
+  it("share the URL mechanism but are not filters", () => {
+    expect(REGISTER_FILTER_KEYS).toEqual(expect.arrayContaining(["view", "week", "from", "status"]));
+    expect(bandValues({ view: "calendar", week: "2026-10-05", status: "Open" })).toEqual({ status: "Open" });
+    expect(isBandFiltered({ view: "calendar", week: "2026-10-05" }, "")).toBe(false);
+    expect(isBandFiltered({ view: "calendar", status: "Open" }, "")).toBe(true);
+    expect(isBandFiltered({ view: "calendar" }, "  sonne ")).toBe(true);
+  });
+  it("clear every band key and keep the drawing and the week", () => {
+    const patch = bandResetPatch();
+    expect(Object.keys(patch)).not.toContain("view");
+    expect(Object.keys(patch)).not.toContain("week");
+    expect(patch).toMatchObject({ from: "", to: "", status: "", ratingMin: "" });
   });
 });
