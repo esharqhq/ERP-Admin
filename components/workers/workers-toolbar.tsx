@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { LayoutGrid, LayoutList, Search, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui/input";
+import { ViewSwitch as SharedViewSwitch } from "@/components/ui/view-switch";
 import {
   Select,
   SelectContent,
@@ -11,7 +12,6 @@ import {
   SelectTrigger,
 } from "@/components/ui/select";
 import type { TableUrlState } from "@/hooks/use-table-url-state";
-import { cn } from "@/lib/utils";
 
 /**
  * The two states of the workers screen, and the URL param that carries the choice.
@@ -168,38 +168,15 @@ export function ViewSwitch({
   onChange: (view: WorkerView) => void;
 }) {
   const t = useTranslations("workers");
-  const items = [
-    { key: "table" as const, label: t("view.table"), Icon: LayoutList },
-    { key: "matrix" as const, label: t("view.matrix"), Icon: LayoutGrid },
-  ];
-
   return (
-    <div
-      role="group"
-      aria-label={t("view.label")}
-      className="flex flex-none gap-0.5 rounded-[10px] bg-shell-tint p-[3px]"
-    >
-      {items.map(({ key, label, Icon }) => {
-        const on = value === key;
-        return (
-          <button
-            key={key}
-            type="button"
-            aria-pressed={on}
-            onClick={() => onChange(key)}
-            className={cn(
-              "flex h-7 items-center gap-[7px] rounded-lg px-3 text-[12.5px] transition-colors",
-              "outline-none focus-visible:ring-2 focus-visible:ring-ring",
-              on
-                ? "bg-card font-semibold text-primary shadow-sm"
-                : "font-medium text-ink-soft hover:text-foreground",
-            )}
-          >
-            <Icon className="size-[14px]" />
-            {label}
-          </button>
-        );
-      })}
-    </div>
+    <SharedViewSwitch
+      label={t("view.label")}
+      value={value}
+      onChange={onChange}
+      items={[
+        { key: "table", label: t("view.table"), Icon: LayoutList },
+        { key: "matrix", label: t("view.matrix"), Icon: LayoutGrid },
+      ]}
+    />
   );
 }

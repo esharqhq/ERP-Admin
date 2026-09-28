@@ -478,6 +478,11 @@ export function DataTable<Row>({
             onChange={(e) => state.setSearchInput(e.target.value)}
             placeholder={searchPlaceholder}
             aria-label={searchPlaceholder}
+            // Stable hook for a page's own `/`-to-focus shortcut — `scope` is
+            // already the unique id a table is required to carry (column
+            // prefs key off it too), so `#{scope}-search` never collides
+            // across tables and never depends on DOM order.
+            id={`${scope}-search`}
             className="h-9 rounded-lg pl-9 text-[13.5px]"
           />
         </div>

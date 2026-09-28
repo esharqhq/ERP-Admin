@@ -2046,32 +2046,14 @@
     }
   },
   "tasks": {
-    "title": "Aufgaben",
-    "subtitle": "Arbeitsaufträge verwalten und verfolgen",
     "newTask": "Neue Aufgabe",
-    "searchPlaceholder": "Aufgaben suchen...",
     "empty": "Leer",
     "list": {
-      "label": "Liste",
-      "empty": "Keine Aufgabengruppen gefunden",
-      "tabs": {
-        "all": "Alle",
-        "Pending": "Ausstehend",
-        "Active": "Aktiv",
-        "Done": "Erledigt",
-        "Cancelled": "Abgebrochen"
-      },
       "columns": {
-        "title": "Titel",
-        "status": "Status",
-        "dates": "Termine",
-        "tasks": "Aufgaben",
-        "workers": "Mitarbeiter",
-        "actions": "Aktionen"
+        "title": "Titel"
       }
     },
     "calendar": {
-      "label": "Kalender",
       "noTasksThisWeek": "Keine Aufgaben diese Woche",
       "workers": "Mitarbeiter"
     },
@@ -2300,6 +2282,128 @@
         "propertyGone": "Das Objekt des ursprünglichen Auftrags wurde gelöscht, daher kann dieser Auftrag nicht wiederholt werden.",
         "cityGone": "Diese Stadt ist nicht mehr verfügbar. Wählen Sie eine andere aus der Liste.",
         "generic": "Die Kopie konnte nicht angelegt werden. Bitte versuchen Sie es erneut."
+      }
+    },
+    "register": {
+      "title": "Aufgaben",
+      "subtitle": "Jeder Arbeitstag, den ein Eigentümer angefragt hat, und wie viele Mitarbeiter noch fehlen.",
+      "search": "Objekt, Titel oder ID",
+      "tabsLabel": "Gespeicherte Ansichten",
+      "tabs": {
+        "thisWeek": "Diese Woche",
+        "today": "Heute",
+        "unstaffed": "Heute unbesetzt",
+        "short": "Unterbesetzt",
+        "next7": "Nächste 7 Tage"
+      },
+      "strip": {
+        "label": "Jetzt offen",
+        "unstaffed": {
+          "title": "{count} heute unbesetzt",
+          "detail": "niemand eingeteilt, beginnt heute",
+          "action": "Besetzen"
+        },
+        "short": {
+          "title": "{count} unterbesetzt",
+          "detail": "nächste 7 Tage, eingeteilt < benötigt",
+          "action": "Öffnen"
+        },
+        "overdue": {
+          "title": "{count} überfällig",
+          "detail": "Frist vorbei, nicht erledigt",
+          "action": "Nachfassen"
+        },
+        "next7": {
+          "title": "{count} in 7 Tagen",
+          "detail": "geplant",
+          "action": "Planen"
+        }
+      },
+      "columns": {
+        "task": "Aufgabe",
+        "status": "Status",
+        "schedule": "Zeitplan",
+        "staffing": "Besetzung",
+        "professions": "Berufe",
+        "action": "Aktion",
+        "deadline": "Frist",
+        "ratingFloor": "Mindestbewertung",
+        "created": "Erstellt",
+        "taskId": "Aufgaben-ID"
+      },
+      "status": {
+        "Open": "Offen",
+        "Scheduled": "Geplant",
+        "Running": "Läuft",
+        "Review": "In Prüfung",
+        "Disputed": "Beschwerde offen",
+        "Done": "Erledigt",
+        "Unstaffed": "Unbesetzt",
+        "Overdue": "Überfällig",
+        "Cancelled": "Storniert"
+      },
+      "staffing": {
+        "short": "{count, plural, one {einer fehlt} other {# fehlen}}",
+        "full": "voll besetzt",
+        "over": "+{count} zu viel",
+        "none": "noch niemand"
+      },
+      "assign": "Zuweisen",
+      "repeating": "Teil einer mehrtägigen Buchung",
+      "capped": "Es werden die ersten 5.000 Tage gezeigt. Grenzen Sie den Zeitraum ein, um den Rest zu sehen.",
+      "empty": {
+        "title": "Keine Aufgaben in diesem Zeitraum",
+        "body": "Wählen Sie andere Daten oder eine andere Ansicht."
+      },
+      "sections": {
+        "when": "Wann",
+        "state": "Zustand",
+        "where": "Wo & für wen",
+        "needs": "Was benötigt wird"
+      },
+      "filters": {
+        "dates": "Zeitraum",
+        "timeOfDay": "Beginn zwischen",
+        "timeOfDayEnd": "Und vor",
+        "overdue": "Frist vorbei",
+        "repeating": "Wiederkehrend",
+        "status": "Status",
+        "staffing": "Besetzung",
+        "checkedIn": "Mit Check-in",
+        "property": "Objekt",
+        "city": "Stadt",
+        "owner": "Eigentümer",
+        "walkIn": "Nur Walk-in",
+        "profession": "Beruf",
+        "required": "Benötigte Mitarbeiter",
+        "ratingMin": "Mindestbewertung ab",
+        "staffingOptions": {
+          "none": "Niemand",
+          "short": "Zu wenig",
+          "full": "Voll",
+          "over": "Zu viel"
+        }
+      },
+      "view": {
+        "label": "Darstellung dieser Liste",
+        "list": "Liste",
+        "calendar": "Kalender"
+      },
+      "calendar": {
+        "thisWeek": "Diese Woche",
+        "prevWeek": "Vorherige Woche",
+        "nextWeek": "Nächste Woche",
+        "prevDay": "Vorheriger Tag",
+        "nextDay": "Nächster Tag",
+        "days": "Tage dieser Woche",
+        "sameSet": "gleiche Filter · gleiche Seite",
+        "inView": "{count, plural, one {# Aufgabe} other {# Aufgaben}} sichtbar · {short, plural, one {# fehlt} other {# fehlen}}",
+        "dayCount": "{count, plural, one {# Aufgabe} other {# Aufgaben}}",
+        "short": "{count, plural, one {# fehlt} other {# fehlen}}",
+        "covered": "alles besetzt",
+        "hours": "{hours, number} Std.",
+        "legend": "Kartenfarbe",
+        "closed": "Erledigt oder storniert"
       }
     }
   },

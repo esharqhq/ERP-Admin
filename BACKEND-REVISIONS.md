@@ -267,6 +267,36 @@ by every document viewer.
 
 The record of what each pass **built** or **established**. What a pass read and did not build is in §3.
 
+### 2026-09-27 — the Tasks register (v2 list + calendar)
+
+`docs/superpowers/specs/2026-09-27-admin-tasks-register-design.md` +
+`docs/superpowers/plans/2026-09-27-admin-tasks-register.md`. Replaces the old booking-table `/dashboard/tasks`
+(one row per booking, a client-bucketed status tab) with a register (one row per **day** of work) over a server
+date window, in a List and a Calendar drawing of the same filtered set.
+
+| What changed | Where |
+|---|---|
+| `useTaskRegister(window)` — the day window from `GET /api/tasks/admin?scheduledFrom&scheduledTo`, joined to the cached `GET /api/tasks/admin/groups`; query key family `admin-tasks-range` (`invalidateTasks` clears it by prefix, so an Assign anywhere refreshes it) | `hooks/use-task-register.ts` |
+| The band offers fourteen filters (when/state/where/what-it-needs, `registerFields`); only its date range reaches the server, the other thirteen run client-side over the loaded window (`matchesRegister`, `matchesSearch`, `tabMatches`) | `lib/tasks/register/filters.ts`, `components/tasks/register/register-fields.ts` |
+| Saved views (`REGISTER_TABS`: this week, today, unstaffed, short, next7) are tabs. A tab click and a tab tile both write one patch (`tabPatch`; `tilePatch` reuses it) that sets the tab and clears the band's dates, the Overdue flag and the calendar's week, so either lands on that tab's own default window (`resolveWindow`) in either drawing — the page overrides the shells' `setTab`/`resetTab` with it, since raw `setTab` left stale dates overriding the tab. `next7` keeps the open days only (`tabMatches` over `RegisterRow.open`), the set its tile counts. The Overdue strip tile is not one of these views — it sets an explicit range reaching back the Dispatch backstop span (not a Mon–Sun week) and switches to the List itself, since anchored in the calendar that span could open on last week and hide today | `lib/tasks/register/filters.ts` |
+| Strip tiles (unstaffed today, short, overdue, next 7) counted over the Dispatch window — independent of the register's own filters, and equal to what Dispatch shows because both read the same cache | `lib/tasks/register/summary.ts` |
+| Calendar draws the same filtered row set as the List, narrowed to the on-screen week **intersected** with the band's own `from`/`to`, else with the tab's own days (`tabSpan`: today, or today..+6 for short/next7; none for this week, whose range is the pager's week) — `calendarWindow`, composed with the server window in `registerRange` (`lib/tasks/register/screen.ts`). A window wholly outside the week draws no days rather than the whole week. Calendar → List hands a paged-to week's drawn days to the list as `from`/`to` (`toListPatch`); unpaged, the list returns to its own window | `lib/tasks/register/week.ts`, `components/tasks/register/register-calendar.tsx` |
+| Keyboard: `/` focuses search, `N` opens Assign on the next unstaffed-and-assignable row on screen, else the next assignable one not yet started (`nextAssignRow`); both ignored while a dialog, listbox or menu is open; J/K/Enter/A row focus deferred to the Detail phase (the table shell does not expose its on-screen order) | `hooks/use-register-keys.ts` |
+
+Design deltas from the design file (§2): no **Updated** column (no `updatedAt` on any task DTO); no **Owner**/**City**
+columns (not on `TaskItemDto` — the design moved Owner to the picker); no Owner-type filter (no such concept —
+replaced by a **Walk-in** toggle, offered only with `owner:list`, since it resolves the walk-in account through the
+owners list); no **Export**/**New task** buttons (no task export route; create is a later phase). The detail panel this design implies is the next phase, not built here.
+
+Dead code from the old page removed: `TASK_GROUP_STATUS_FILTERS`/`TaskGroupStatusFilter` (`task.types.ts`, no other
+reader); the `tasks.title`/`subtitle`/`searchPlaceholder`/`calendar.label`/`list.label`/`list.empty`/`list.tabs.*`/
+`list.columns.{status,dates,tasks,workers,actions}` message keys (`en.json`, `de.json` — `list.columns.title` stays,
+read by `components/tasks/tasks-calendar.tsx`, which Owner Detail's weekly work card still uses).
+`groupBucket`/`TaskDaysBadge` stay; their remaining reader is the Task Detail page and the Walk-In orders screens,
+not the old list.
+
+Not checked in a browser (the extension was disconnected).
+
 ### 2026-09-26 — WP4: the audit log filters on the server
 
 `GET /api/admin/audit-log` (newest first, capped at 200, no total). Filtering the newest 200 in the browser made an

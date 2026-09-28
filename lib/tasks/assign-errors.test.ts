@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { AxiosError } from "axios";
 import {
+  assignRefusalText,
   classifyAssignError,
   classifyUnassignError,
+  type AssignRefusalWords,
 } from "@/lib/tasks/assign-errors";
 
 /**
@@ -113,5 +115,45 @@ describe("classifyUnassignError", () => {
 
   it("falls back to unknown for a non-API value", () => {
     expect(classifyUnassignError(new Error("boom"))).toEqual({ kind: "unknown" });
+  });
+});
+
+describe("assignRefusalText", () => {
+  // A recorder rather than real next-intl `t` — each word is checked as a
+  // distinct call so a call site could never route "legacy" copy out of
+  // "catalog"'s function, or hand the wrong argument through.
+  const words: AssignRefusalWords = {
+    permission: () => "permission-denied",
+    catalog: (labelKey) => `catalog:${labelKey}`,
+    legacy: (code) => `legacy:${code}`,
+    generic: () => "generic",
+  };
+
+  it("words a permission refusal", () => {
+    expect(assignRefusalText({ kind: "permission" }, words)).toBe("permission-denied");
+  });
+
+  it("words a catalog refusal with its labelKey", () => {
+    expect(
+      assignRefusalText({ kind: "catalog", labelKey: "workerContractEndsBeforeTask" }, words),
+    ).toBe("catalog:workerContractEndsBeforeTask");
+  });
+
+  it("words a legacy refusal with its code", () => {
+    expect(
+      assignRefusalText({ kind: "legacy", code: "worker_limit_reached" }, words),
+    ).toBe("legacy:worker_limit_reached");
+  });
+
+  it("falls back to the caller's own generic for unknown", () => {
+    expect(assignRefusalText({ kind: "unknown" }, words)).toBe("generic");
+  });
+
+  it("lets two call sites word the same unknown kind differently", () => {
+    // Dispatch's own reason for a second function here: assign and unassign
+    // read the same `AssignErrorKind` but must never share one generic string.
+    const unassignWords: AssignRefusalWords = { ...words, generic: () => "unassign-generic" };
+    expect(assignRefusalText({ kind: "unknown" }, unassignWords)).toBe("unassign-generic");
+    expect(assignRefusalText({ kind: "unknown" }, words)).toBe("generic");
   });
 });

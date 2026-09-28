@@ -224,10 +224,14 @@ export function useOwnerKyc(ownerUserId: string) {
  * account all along. A caller that can distinguish "no such account" from
  * "couldn't check" should say so, not collapse both into the same
  * failure-open `null`.
+ *
+ * `enabled` (default on) lets a caller skip the lookup for an admin without
+ * `owner:list`, for whom it would only be a 403.
  */
-export function useWalkInOwnerId() {
+export function useWalkInOwnerId(enabled = true) {
   return useQuery({
     queryKey: ["walk-in-owner-id"],
+    enabled,
     queryFn: async () => {
       const page = await ownerService.getOwners({ ownerType: "Default", pageSize: 1 });
       // `items` is nullable on the envelope, and an unseeded environment
