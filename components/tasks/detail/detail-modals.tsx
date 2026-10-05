@@ -11,7 +11,6 @@ import { RateTeamDialog } from "@/components/tasks/rate-team-dialog";
 import { RateWorkerDialog } from "@/components/tasks/rate-worker-dialog";
 import { SupervisorOverrideDialog } from "@/components/tasks/supervisor-override-dialog";
 import { useAssignWorker, useCancelTaskGroup, useRateWorker, useUnassignWorker } from "@/hooks/use-tasks";
-import { useClock } from "@/hooks/use-today";
 import { getValidationMessage } from "@/lib/http/api-error";
 import { outcomeChoices } from "@/lib/tasks/outcome-override";
 import { ratingErrorKey } from "@/lib/tasks/team-rating";
@@ -38,12 +37,15 @@ export function DetailModals({
   group,
   groupId,
   sourceIsWalkIn,
+  now,
   onClose,
 }: {
   modal: DetailModal;
   group: TaskGroupDto;
   groupId: string;
   sourceIsWalkIn: boolean | null;
+  /** The page's live clock — the same one the row's change-outcome icon reads. */
+  now: number;
   onClose: () => void;
 }) {
   const t = useTranslations("tasks");
@@ -51,7 +53,6 @@ export function DetailModals({
   const assignWorker = useAssignWorker(groupId);
   const unassignWorker = useUnassignWorker(groupId);
   const rateWorker = useRateWorker(groupId);
-  const clock = useClock();
 
   const close = () => {
     // The per-worker star keeps its last refusal in the mutation; without a
@@ -138,7 +139,7 @@ export function DetailModals({
           onClose={close}
           taskId={modal.task.id}
           worker={modal.tw}
-          choices={outcomeChoices(modal.task, modal.tw.outcome, clock)}
+          choices={outcomeChoices(modal.task, modal.tw.outcome, now)}
           groupId={groupId}
         />
       );

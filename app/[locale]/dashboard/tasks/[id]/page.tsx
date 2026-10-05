@@ -201,6 +201,7 @@ export default function TaskGroupDetailPage({ params }: { params: Promise<{ id: 
         group={group}
         groupId={id}
         sourceIsWalkIn={sourceIsWalkIn}
+        now={now}
         onClose={() => setModal(null)}
       />
     </div>
