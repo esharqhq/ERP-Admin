@@ -58,10 +58,16 @@ export function useComplaintQueueRows(tasks: TaskItemDto[]): ComplaintQueueRow[]
   );
 }
 
-export function useTaskRead(taskId: string) {
+/**
+ * `GET /api/tasks/{taskId}` — the only read that carries `complaint`. The Task
+ * Detail page reads it for the selected day only when that day is disputed or
+ * closed by an upheld complaint (`enabled`); the complaint page always does.
+ */
+export function useTaskRead(taskId: string, enabled = true) {
   return useQuery({
     queryKey: complaintKeys.task(taskId),
     queryFn: () => taskService.getTask(taskId),
+    enabled: enabled && !!taskId,
   });
 }
 
