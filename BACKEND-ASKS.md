@@ -1109,3 +1109,26 @@ Found while making the admin panel hold one `X-Idempotency-Key` per user intent 
 
 Also for the record: a write that commits and then fails later in the pipeline (e.g. a notification after commit
 throws → `500`) is not cached, so the retry writes twice. Same fix as (1) would not cover it; noting only.
+
+---
+
+## Open — 2026-10-05 · three things the Task Detail design shows that no DTO returns
+
+**Not blocking** — the panel ships without them and words around each (spec
+`docs/superpowers/specs/2026-10-05-admin-task-detail-design.md` §2). Checked at `origin/main` `26f57e1`
+against `task-lifecycle.md` §0d and `TaskItemDto` / `TaskGroupDto`.
+
+1. **The force-close reason is write-only.** `POST /api/tasks/{taskId}/force-close` requires `reason`, and it is
+   sent to the workers and the owner in their notification, but no DTO returns it — not the booking, not
+   `GET /api/tasks/{id}`. Nothing names the admin either.
+   **Ask:** `TaskItemDto.closureNote` (string, set when `closureReason == "ClosedForced"`) and
+   `closedByAdminName`.
+2. **No close time.** `completedAt` is the hand-in (§0d), so a Done day's close moment is unknowable for
+   `OwnerAccepted` and `ClosedForced`. (We derive `AutoAccepted` ≈ hand-in + 5 h and `ClosedReplacement` from
+   `complaint.decidedAt`.)
+   **Ask:** `TaskItemDto.closedAt`.
+3. **No cancel time and no cancel actor.** Neither `TaskGroupDto` nor `TaskItemDto` says when a day or a booking
+   was cancelled, or by whom/what: the owner, the group cancel (which skips days inside 3 h), or the self-cancel
+   at window end (§0d).
+   **Ask:** `TaskItemDto.cancelledAt` + `cancelReason` (a sibling of `closureReason`, e.g. `OwnerCancelled` ·
+   `GroupCancelled` · `AutoCancelledNotStarted` · `AdminCancelled`), optionally `TaskGroupDto.cancelledAt`.

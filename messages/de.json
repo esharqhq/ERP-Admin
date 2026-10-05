@@ -2058,34 +2058,181 @@
       "workers": "Mitarbeiter"
     },
     "detail": {
-      "backToList": "Zurück zu Aufgaben",
-      "infoTitle": "Gruppeninformationen",
-      "tasksTitle": "Aufgaben",
-      "noTasks": "Keine Aufgaben in dieser Gruppe",
-      "noWorkers": "Keine Mitarbeiter zugewiesen",
-      "closedBeforeReasons": "{count, plural, one {# Tag vor Einführung der Abschlussgründe abgeschlossen} other {# Tage vor Einführung der Abschlussgründe abgeschlossen}}",
-      "info": {
-        "propertyId": "Objekt-ID",
-        "ownerId": "Eigentümer-ID",
-        "startTime": "Startzeit",
-        "deadline": "Frist",
+      "backToList": "Zurück zu den Aufträgen",
+      "created": "Erstellt {date}",
+      "kindBooking": "Buchung · {count, plural, one {# Tag} other {# Tage}}",
+      "kindSingle": "Einzelauftrag",
+      "progress": "Fortschritt",
+      "progressBooking": "/ {total} Tage erledigt",
+      "progressSingle": "/ 1 Tag",
+      "walkIn": "Walk-in-Auftrag",
+      "cancelBooking": "Buchung stornieren",
+      "cancelTask": "Auftrag stornieren",
+      "noDays": "Diese Buchung hat keine Tage.",
+      "nothingLeft": "Keine Tage mehr offen — {cancelled} von {total} Tagen wurden storniert. Abgeschlossene Tage behalten ihren Status. Sie können sie weiterhin als neuen Auftrag kopieren.",
+      "states": {
+        "pending": "Ausstehend",
+        "checkedIn": "Eingecheckt",
+        "inReview": "In Prüfung",
+        "rejected": "Beanstandet",
+        "done": "Erledigt",
+        "cancelled": "Storniert"
+      },
+      "facts": {
+        "window": "Zeitfenster",
+        "windowFrom": "ab {start}",
+        "windowVaries": "Je nach Tag",
+        "everyDay": "jeden Tag",
+        "oneDay": "ein Tag",
+        "eightHours": "8-Std.-Fenster",
+        "workers": "Kräfte / Tag",
+        "required": "benötigt",
         "ratingFloor": "Mindestbewertung",
-        "allowNewWorkers": "Neue Mitarbeiter zulassen",
-        "createdAt": "Erstellt",
-        "dates": "Termine",
-        "instructions": "Anweisungen"
+        "ratingAny": "Keine",
+        "ratingSub": "zum Beitreten",
+        "newWorkers": "Neue Kräfte",
+        "allowed": "Erlaubt",
+        "notAllowed": "Nicht erlaubt",
+        "tools": "Reinigungsmittel",
+        "toolsSub": "vor Ort",
+        "date": "Datum",
+        "dates": "Daten",
+        "dayCount": "{count, plural, one {# Tag} other {# Tage}}"
       },
-      "taskColumns": {
-        "started": "Begonnen",
-        "completed": "Abgeschlossen"
+      "instructions": "Hinweise für die Kräfte",
+      "addOn": "Zusatznotiz",
+      "days": "Tage",
+      "tally": "Abgeschlossen: {accepted} angenommen · {auto} automatisch · {forced} erzwungen · {upheld} stattgegeben",
+      "tallyNoReason": "{count} ohne Grund",
+      "notes": {
+        "unfilled": "{count, plural, one {# Platz offen} other {# Plätze offen}}",
+        "fullyStaffed": "Voll besetzt",
+        "startPassed": "Start vorbei — niemand da",
+        "late": "{count, plural, one {# Kraft verspätet} other {# Kräfte verspätet}}",
+        "onSite": "Vor Ort seit {time}",
+        "onSiteUnknown": "Vor Ort",
+        "waitingOwner": "Wartet auf den Eigentümer",
+        "disputed": "Beschwerde — Entscheidung nötig",
+        "noReason": "Abgeschlossen · kein Grund gespeichert",
+        "cancelled": "Storniert"
       },
-      "workerColumns": {
-        "worker": "Mitarbeiter",
+      "closure": {
+        "OwnerAccepted": "Vom Eigentümer angenommen",
+        "AutoAccepted": "Automatisch angenommen",
+        "ClosedForced": "Vom Admin erzwungen",
+        "ClosedReplacement": "Beschwerde stattgegeben",
+        "closed": "Abgeschlossen"
+      },
+      "steps": {
+        "scheduled": "Geplant",
+        "checkedIn": "Eingecheckt",
+        "cancelled": "Storniert",
+        "handedIn": "Abgegeben",
+        "handedInDisputed": "Abgegeben · beanstandet",
+        "awaitingRuling": "Wartet auf Entscheidung",
+        "closed": "Abgeschlossen",
+        "beforeStart": "vor Beginn",
+        "skipped": "übersprungen",
+        "about": "etwa {time}",
+        "auto": "automatisch ≈ {time}"
+      },
+      "today": "heute",
+      "dayWindow": "{start} – {end} · {count, plural, one {# Kraft benötigt} other {# Kräfte benötigt}}",
+      "dayWindowOpen": "ab {start} · {count, plural, one {# Kraft benötigt} other {# Kräfte benötigt}}",
+      "alerts": {
+        "complaint": {
+          "title": "Beschwerde des Eigentümers — offen",
+          "text": "„{reason}“ · {photos, plural, =0 {keine Fotos} one {# Foto} other {# Fotos}} · eingereicht {raised}"
+        },
+        "complaintUnloaded": {
+          "title": "Beschwerde des Eigentümers — offen",
+          "text": "Der Eigentümer hat diesen Tag beanstandet. Öffnen Sie die Beschwerde, um sie zu sehen und zu entscheiden."
+        },
+        "late": {
+          "title": "Verspätung",
+          "text": "{names} {count, plural, one {hat} other {haben}} nicht eingecheckt — {minutes} Min. nach Beginn."
+        },
+        "startPassed": {
+          "title": "Startzeit vorbei",
+          "text": "Niemand hat eingecheckt. Beginnt bis {time} niemand, storniert sich der Tag selbst."
+        },
+        "waitingOwner": {
+          "title": "Wartet auf den Eigentümer",
+          "text": "Abgegeben um {handed}. Nimmt der Eigentümer nicht innerhalb von 5 Stunden an oder beschwert sich, wird der Tag gegen {auto} automatisch angenommen."
+        },
+        "upheld": {
+          "title": "Beschwerde stattgegeben",
+          "text": "Ein Ersatzeinsatz ist fällig — planen Sie ihn als neuen Auftrag.",
+          "decided": "Entschieden {date}: „{note}“",
+          "decidedNoNote": "Entschieden {date}."
+        },
+        "forced": {
+          "title": "Vom Admin erzwungen abgeschlossen",
+          "text": "Kräfte und Eigentümer wurden mit dem Grund benachrichtigt."
+        },
+        "autoAccepted": {
+          "title": "Automatisch angenommen",
+          "text": "Der Eigentümer hat nicht innerhalb von 5 Stunden geprüft, daher wurde der Tag selbst abgeschlossen."
+        },
+        "legacyClosed": {
+          "title": "Abgeschlossen",
+          "text": "Dieser Tag wurde vor dem 21.09.2026 abgeschlossen, als noch keine Gründe gespeichert wurden."
+        },
+        "noWorkers": {
+          "title": "Keine Kräfte zugewiesen",
+          "text": "{required} von {required} Plätzen noch offen. Der Tag beginnt um {start}."
+        },
+        "understaffed": {
+          "title": "Unterbesetzt",
+          "text": "{open} von {required} Plätzen noch offen. Der Tag beginnt um {start}."
+        },
+        "ready": {
+          "title": "Bereit",
+          "text": "Alle {required} Plätze sind besetzt. Nichts zu tun, bis die Kräfte einchecken."
+        },
+        "cancelled": {
+          "title": "Tag storniert",
+          "text": "Zugewiesene Kräfte wurden freigegeben."
+        }
+      },
+      "supervisor": "Verantwortliche Kraft",
+      "supervisorSub": "erste Kraft beim Einchecken",
+      "supervisorNotYet": "Noch nicht — die erste Kraft beim Einchecken",
+      "supervisorNone": "Nicht erfasst",
+      "summary": "Arbeitsbericht",
+      "summaryLater": "Wird von der verantwortlichen Kraft bei der Abgabe geschrieben.",
+      "summaryNone": "Es wurde kein Bericht geschrieben.",
+      "workers": "Kräfte",
+      "openCount": "{count} offen",
+      "fullyStaffed": "voll besetzt",
+      "released": "freigegeben",
+      "columns": {
+        "worker": "Kraft",
         "outcome": "Ergebnis",
+        "checkIn": "Check-in",
+        "checkOut": "Check-out",
         "rating": "Bewertung",
-        "checkIn": "Einchecken",
-        "checkOut": "Auschecken",
         "actions": "Aktionen"
+      },
+      "supervisorTag": "Verantwortlich",
+      "openSlot": "Offener Platz {n}",
+      "nobody": "An diesem Tag war niemand eingeteilt.",
+      "noActions": "Keine Aktionen — dieser Tag ist abgeschlossen",
+      "outcomes": {
+        "Pending": "Ausstehend",
+        "Completed": "Erledigt",
+        "NoShow": "Nicht erschienen",
+        "Removed": "Entfernt",
+        "Cancelled": "Storniert"
+      },
+      "page": {
+        "errorTitle": "Diese Buchung konnte nicht geladen werden",
+        "errorText": "Der Server hat nicht geantwortet. Ihre Daten sind sicher — versuchen Sie es erneut.",
+        "retry": "Erneut versuchen",
+        "notFoundTitle": "Buchung nicht gefunden",
+        "notFoundText": "Sie wurde möglicherweise gelöscht, oder der Link ist falsch.",
+        "forbiddenTitle": "Sie können diese Buchung nicht öffnen",
+        "forbiddenText": "Ihre Rolle umfasst keine Buchungsdetails. Bitten Sie einen Super-Admin um Zugriff."
       }
     },
     "actions": {

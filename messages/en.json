@@ -2058,34 +2058,181 @@
       "workers": "workers"
     },
     "detail": {
-      "backToList": "Back to Tasks",
-      "infoTitle": "Group Information",
-      "tasksTitle": "Tasks",
-      "noTasks": "No tasks in this group",
-      "noWorkers": "No workers assigned",
-      "closedBeforeReasons": "{count, plural, one {# day closed before reasons were recorded} other {# days closed before reasons were recorded}}",
-      "info": {
-        "propertyId": "Property ID",
-        "ownerId": "Owner ID",
-        "startTime": "Start Time",
-        "deadline": "Deadline",
-        "ratingFloor": "Rating Floor",
-        "allowNewWorkers": "Allow New Workers",
-        "createdAt": "Created",
+      "backToList": "Back to tasks",
+      "created": "Created {date}",
+      "kindBooking": "Booking · {count, plural, one {# day} other {# days}}",
+      "kindSingle": "Single task",
+      "progress": "Progress",
+      "progressBooking": "/ {total} days done",
+      "progressSingle": "/ 1 day",
+      "walkIn": "Walk-in order",
+      "cancelBooking": "Cancel booking",
+      "cancelTask": "Cancel task",
+      "noDays": "This booking has no days.",
+      "nothingLeft": "No days left to run — {cancelled} of {total} days were cancelled. Finished days keep their status. You can still copy it as a new order.",
+      "states": {
+        "pending": "Pending",
+        "checkedIn": "Checked in",
+        "inReview": "In review",
+        "rejected": "Disputed",
+        "done": "Done",
+        "cancelled": "Cancelled"
+      },
+      "facts": {
+        "window": "Time window",
+        "windowFrom": "from {start}",
+        "windowVaries": "Varies by day",
+        "everyDay": "every day",
+        "oneDay": "one day",
+        "eightHours": "8 h window",
+        "workers": "Workers / day",
+        "required": "required",
+        "ratingFloor": "Rating floor",
+        "ratingAny": "Any",
+        "ratingSub": "minimum to join",
+        "newWorkers": "New workers",
+        "allowed": "Allowed",
+        "notAllowed": "Not allowed",
+        "tools": "Cleaning tools",
+        "toolsSub": "on site",
+        "date": "Date",
         "dates": "Dates",
-        "instructions": "Instructions"
+        "dayCount": "{count, plural, one {# day} other {# days}}"
       },
-      "taskColumns": {
-        "started": "Started",
-        "completed": "Completed"
+      "instructions": "Instructions for workers",
+      "addOn": "Add-on note",
+      "days": "Days",
+      "tally": "Closed: {accepted} accepted · {auto} auto · {forced} forced · {upheld} upheld",
+      "tallyNoReason": "{count} no reason",
+      "notes": {
+        "unfilled": "{count, plural, one {# slot unfilled} other {# slots unfilled}}",
+        "fullyStaffed": "Fully staffed",
+        "startPassed": "Start passed — nobody in",
+        "late": "{count, plural, one {# worker late} other {# workers late}}",
+        "onSite": "On site since {time}",
+        "onSiteUnknown": "On site",
+        "waitingOwner": "Waiting for owner",
+        "disputed": "Owner complaint — needs ruling",
+        "noReason": "Closed · no reason saved",
+        "cancelled": "Cancelled"
       },
-      "workerColumns": {
+      "closure": {
+        "OwnerAccepted": "Accepted by owner",
+        "AutoAccepted": "Auto-accepted",
+        "ClosedForced": "Force-closed by admin",
+        "ClosedReplacement": "Complaint upheld",
+        "closed": "Closed"
+      },
+      "steps": {
+        "scheduled": "Scheduled",
+        "checkedIn": "Checked in",
+        "cancelled": "Cancelled",
+        "handedIn": "Handed in",
+        "handedInDisputed": "Handed in · disputed",
+        "awaitingRuling": "Awaiting ruling",
+        "closed": "Closed",
+        "beforeStart": "before start",
+        "skipped": "skipped",
+        "about": "about {time}",
+        "auto": "auto ≈ {time}"
+      },
+      "today": "today",
+      "dayWindow": "{start} – {end} · {count, plural, one {# worker needed} other {# workers needed}}",
+      "dayWindowOpen": "from {start} · {count, plural, one {# worker needed} other {# workers needed}}",
+      "alerts": {
+        "complaint": {
+          "title": "Owner complaint — open",
+          "text": "“{reason}” · {photos, plural, =0 {no photos} one {# photo} other {# photos}} · raised {raised}"
+        },
+        "complaintUnloaded": {
+          "title": "Owner complaint — open",
+          "text": "The owner disputed this day. Open the complaint to see it and rule."
+        },
+        "late": {
+          "title": "Late arrival",
+          "text": "{names} {count, plural, one {has} other {have}} not checked in — {minutes} min past start."
+        },
+        "startPassed": {
+          "title": "Start time passed",
+          "text": "Nobody has checked in. If no one starts by {time}, the day cancels itself."
+        },
+        "waitingOwner": {
+          "title": "Waiting for the owner",
+          "text": "Handed in at {handed}. If the owner doesn't accept or complain within 5 hours, it accepts itself around {auto}."
+        },
+        "upheld": {
+          "title": "Complaint upheld",
+          "text": "A replacement visit is owed — plan it as a new order.",
+          "decided": "Decided {date}: “{note}”",
+          "decidedNoNote": "Decided {date}."
+        },
+        "forced": {
+          "title": "Force-closed by an admin",
+          "text": "Workers and the owner were notified with the reason."
+        },
+        "autoAccepted": {
+          "title": "Auto-accepted",
+          "text": "The owner didn't review within 5 hours, so the day closed by itself."
+        },
+        "legacyClosed": {
+          "title": "Closed",
+          "text": "This day closed before 21 Sep 2026, when reasons started being saved."
+        },
+        "noWorkers": {
+          "title": "No workers assigned",
+          "text": "{required} of {required} slots still open. The day starts at {start}."
+        },
+        "understaffed": {
+          "title": "Understaffed",
+          "text": "{open} of {required} slots still open. The day starts at {start}."
+        },
+        "ready": {
+          "title": "Ready",
+          "text": "All {required} slots are filled. Nothing to do until workers check in."
+        },
+        "cancelled": {
+          "title": "Day cancelled",
+          "text": "Assigned workers were released."
+        }
+      },
+      "supervisor": "Supervisor",
+      "supervisorSub": "first worker to check in",
+      "supervisorNotYet": "Not yet — the first worker to check in",
+      "supervisorNone": "None recorded",
+      "summary": "Work summary",
+      "summaryLater": "Written by the supervisor at hand-in.",
+      "summaryNone": "No summary was written.",
+      "workers": "Workers",
+      "openCount": "{count} open",
+      "fullyStaffed": "fully staffed",
+      "released": "released",
+      "columns": {
         "worker": "Worker",
         "outcome": "Outcome",
+        "checkIn": "Check-in",
+        "checkOut": "Check-out",
         "rating": "Rating",
-        "checkIn": "Check-In",
-        "checkOut": "Check-Out",
         "actions": "Actions"
+      },
+      "supervisorTag": "Supervisor",
+      "openSlot": "Open slot {n}",
+      "nobody": "Nobody was on this day.",
+      "noActions": "No actions — this day is closed",
+      "outcomes": {
+        "Pending": "Pending",
+        "Completed": "Completed",
+        "NoShow": "No-show",
+        "Removed": "Removed",
+        "Cancelled": "Cancelled"
+      },
+      "page": {
+        "errorTitle": "Couldn't load this booking",
+        "errorText": "The server didn't answer. Your data is safe — try again.",
+        "retry": "Try again",
+        "notFoundTitle": "Booking not found",
+        "notFoundText": "It may have been deleted, or the link is wrong.",
+        "forbiddenTitle": "You can't open this booking",
+        "forbiddenText": "Your role doesn't include booking details. Ask a super admin for access."
       }
     },
     "actions": {

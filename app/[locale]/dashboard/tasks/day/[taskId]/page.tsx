@@ -13,7 +13,7 @@ import { isPermissionDenied } from "@/lib/onboarding/errors";
 import { taskService } from "@/lib/services/task.service";
 
 /**
- * A day id → its booking page. Exists for the bell: every `Task` row carries
+ * A day id → its booking page, opened on that day (`?day=`). Exists for the bell: every `Task` row carries
  * the day id, and the booking page is keyed on the booking id. `replace`, so
  * Back returns to where the admin clicked the bell, not to this hop.
  */
@@ -32,8 +32,8 @@ export default function TaskDayResolverPage({
   });
 
   useEffect(() => {
-    if (data?.groupId) router.replace(`/dashboard/tasks/${data.groupId}`);
-  }, [data?.groupId, router]);
+    if (data?.groupId) router.replace(`/dashboard/tasks/${data.groupId}?day=${taskId}`);
+  }, [data?.groupId, router, taskId]);
 
   if (isError) {
     // `GET /api/tasks/{id}` answers an unknown id with a bodiless `NotFound()`
