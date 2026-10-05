@@ -8,6 +8,7 @@ import {
   lateWorkers,
   localMinuteOfDay,
   windowEndAt,
+  workerInitials,
   workerLabel,
 } from "@/lib/tasks/detail/day-time";
 import { at, day, worker } from "@/lib/tasks/detail/fixtures";
@@ -91,5 +92,16 @@ describe("isStartPassed", () => {
 describe("workerLabel", () => {
   it("falls back to the id's first 8 characters", () => {
     expect(workerLabel(worker({ workerName: null, workerId: "abcdef0123456" }))).toBe("abcdef01");
+  });
+});
+
+describe("workerInitials", () => {
+  it("skips a leading [tag] and takes the first letter of the first two words", () => {
+    expect(workerInitials("[DEMO] Oliver Smith")).toBe("OS");
+    expect(workerInitials("Sardor Aliyev")).toBe("SA");
+    expect(workerInitials("abcdef01")).toBe("A");
+  });
+  it("is a dash when there is no letter", () => {
+    expect(workerInitials("[x] 123")).toBe("–");
   });
 });

@@ -62,6 +62,13 @@ export function windowFact(tasks: TaskItemDto[]): WindowFact {
   return { kind: "same", start: instant(pool[0].scheduledAt)!, end: instant(pool[0].deadline) };
 }
 
+/** The time-window fact's sub-line key — none unless every live day shares one window. */
+export function windowSubKey(win: WindowFact, single: boolean): "eightHours" | "oneDay" | "everyDay" | null {
+  if (win.kind !== "same") return null;
+  if (win.end === null) return "eightHours";
+  return single ? "oneDay" : "everyDay";
+}
+
 export function workersFact(tasks: TaskItemDto[]): { min: number; max: number } | null {
   if (tasks.length === 0) return null;
   const counts = tasks.map((t) => t.requiredWorkerCount);
@@ -90,14 +97,19 @@ export type Place = { kind: "walkIn" } | { kind: "text"; text: string } | { kind
 export function headerPlace(input: {
   isWalkIn: boolean | null;
   address?: string | null;
+  /** The name to show, in the viewer's locale. */
   cityName?: string | null;
+  /** Every name the city goes by (`nameDe`, `nameEn`) — an address holding either is not suffixed. */
+  cityNames?: (string | null | undefined)[];
   propertyName?: string | null;
 }): Place {
   if (input.isWalkIn === true) return { kind: "walkIn" };
   const address = input.address?.trim();
   if (address) {
     const city = input.cityName?.trim();
-    const text = city && !address.includes(city) ? `${address} ${city}` : address;
+    const names = [city, ...(input.cityNames ?? [])].map((n) => n?.trim()).filter((n): n is string => !!n);
+    const named = names.some((n) => address.toLocaleLowerCase().includes(n.toLocaleLowerCase()));
+    const text = city && !named ? `${address} ${city}` : address;
     return { kind: "text", text };
   }
   const name = input.propertyName?.trim();

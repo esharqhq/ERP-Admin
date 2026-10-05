@@ -5,6 +5,7 @@ import {
   dayStaffing,
   daySteps,
   dayTone,
+  supervisorLabel,
 } from "@/lib/tasks/detail/day-view";
 import { AUTO_ACCEPT_MS } from "@/lib/tasks/detail/day-time";
 import { at, complaint, day, worker } from "@/lib/tasks/detail/fixtures";
@@ -126,5 +127,26 @@ describe("daySteps — spec §4.2", () => {
     const s = daySteps(day({ status: "Cancelled" }), null);
     expect(s.map((x) => x.state)).toEqual(["ok", "cancel", "off", "off"]);
     expect(s[1].time).toEqual({ kind: "beforeStart" });
+  });
+});
+
+describe("supervisorLabel — spec §4.4", () => {
+  const sup = worker({ workerId: "sup-123456789", workerName: "  " });
+  it("uses workerLabel, so a blank name falls back to the id", () => {
+    expect(supervisorLabel(day({ status: "CheckedIn", supervisorWorkerId: "sup-123456789", workers: [sup] }))).toEqual({
+      kind: "name",
+      text: "sup-1234",
+    });
+  });
+  it("a supervisor no longer in workers still shows an id, never 'not yet'", () => {
+    expect(supervisorLabel(day({ status: "CheckedIn", supervisorWorkerId: "gone-987654321", workers: [] }))).toEqual({
+      kind: "name",
+      text: "gone-987",
+    });
+  });
+  it("no supervisor: not yet on open days, a dash when cancelled, none otherwise", () => {
+    expect(supervisorLabel(day())).toEqual({ kind: "notYet" });
+    expect(supervisorLabel(day({ status: "Cancelled" }))).toEqual({ kind: "dash" });
+    expect(supervisorLabel(day({ status: "Done" }))).toEqual({ kind: "none" });
   });
 });

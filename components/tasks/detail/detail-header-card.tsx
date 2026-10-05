@@ -8,6 +8,7 @@ import {
   datesFact,
   legendCounts,
   windowFact,
+  windowSubKey,
   workersFact,
   type Place,
 } from "@/lib/tasks/detail/booking-facts";
@@ -59,6 +60,7 @@ export function DetailHeaderCard({
 
   const counts = legendCounts(days);
   const win = windowFact(days);
+  const winSub = windowSubKey(win, single);
   const workers = workersFact(days);
   const dates = datesFact(days);
   const tools = toolsAnswerKey(group.ownerProvidesTools);
@@ -75,12 +77,7 @@ export function DetailHeaderCard({
           : win.kind === "varies"
             ? t("facts.windowVaries")
             : "–",
-      sub:
-        win.kind === "same" && win.end === null
-          ? t("facts.eightHours")
-          : single
-            ? t("facts.oneDay")
-            : t("facts.everyDay"),
+      sub: winSub ? t(`facts.${winSub}`) : undefined,
     },
     {
       label: t("facts.workers"),
@@ -116,7 +113,7 @@ export function DetailHeaderCard({
 
   return (
     <Card className="gap-5 px-5 py-5">
-      <div className="flex items-start justify-between gap-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
         <div className="flex min-w-0 flex-col gap-2">
           <div className="flex flex-wrap items-center gap-2.5">
             <span className="overline-label inline-flex h-[22px] items-center rounded-md bg-muted px-2 text-foreground/80">
@@ -131,7 +128,7 @@ export function DetailHeaderCard({
           </h1>
           <span className="text-sm text-muted-foreground">{line}</span>
         </div>
-        <div className="flex flex-none flex-col items-end gap-1">
+        <div className="flex flex-none flex-col gap-1 sm:items-end">
           <span className="overline-label text-muted-foreground">{t("progress")}</span>
           <span className="font-mono text-2xl font-semibold tabular-nums">
             {group.days?.done ?? 0}{" "}
@@ -148,7 +145,7 @@ export function DetailHeaderCard({
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
             {LEGEND.map((s) => (
               <span key={s} className="flex items-center gap-1.5">
-                <span aria-hidden className={cn("size-2 rounded-full", DAY_TONE_CLASS[s].bar)} />
+                <span aria-hidden className={cn("size-2 rounded-full", DAY_TONE_CLASS[s].dot)} />
                 {t(`states.${s}`)}
                 <span className="font-mono font-semibold tabular-nums text-foreground">{counts[s]}</span>
               </span>

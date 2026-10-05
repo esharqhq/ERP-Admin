@@ -1,7 +1,7 @@
 "use client";
 
 import { use, useEffect, useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { ArrowLeft, Copy, Info, XCircle } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { Can } from "@/components/auth/can";
@@ -26,6 +26,11 @@ import { dayToPin, resolveSelectedDay, sortDays } from "@/lib/tasks/detail/selec
 import { isGroupActive } from "@/lib/tasks/staffing";
 import { canonicalTaskStatus } from "@/lib/tasks/status-vocab";
 
+/** Writes `?day=` in place — no history entry, no route refetch. */
+function writeDay(taskId: string) {
+  window.history.replaceState(null, "", `?day=${encodeURIComponent(taskId)}`);
+}
+
 /**
  * The booking page — spec `2026-10-05-admin-task-detail-design.md`. Thin on
  * purpose: every decision is a tested function in `lib/tasks/detail/`.
@@ -35,7 +40,6 @@ export default function TaskGroupDetailPage({ params }: { params: Promise<{ id: 
   const t = useTranslations("tasks");
   const tDetail = useTranslations("tasks.detail");
   const locale = useLocale();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const dayParam = searchParams.get("day");
   // Ticks each minute: "34 min past start" and the late verdicts must move.
@@ -54,11 +58,14 @@ export default function TaskGroupDetailPage({ params }: { params: Promise<{ id: 
 
   // Pin the resolved day into the URL (also over a stale `?day=`), so it does not
   // jump as the clock turns a day "late", and so the address is shareable.
+  // `history.replaceState` rather than `router.replace`: Next 16 syncs it with
+  // `useSearchParams` (docs: single-page-applications.md → "Native History API"),
+  // so switching days does not refetch the route.
   const pin = dayToPin(dayParam, selectedId, now);
   useEffect(() => {
-    if (pin) router.replace(`?day=${pin}`, { scroll: false });
-  }, [pin, router]);
-  const selectDay = (taskId: string) => router.replace(`?day=${taskId}`, { scroll: false });
+    if (pin) writeDay(pin);
+  }, [pin]);
+  const selectDay = writeDay;
 
   /**
    * `null` while the walk-in lookup has not answered — then copy is hidden and
@@ -117,6 +124,7 @@ export default function TaskGroupDetailPage({ params }: { params: Promise<{ id: 
     isWalkIn: sourceIsWalkIn,
     address: property.data?.address,
     cityName,
+    cityNames: [property.data?.city?.nameDe, property.data?.city?.nameEn],
     propertyName: days[0]?.propertyName,
   });
   const ownerName = owner.data?.fullName?.trim() || null;
@@ -201,6 +209,7 @@ export default function TaskGroupDetailPage({ params }: { params: Promise<{ id: 
         group={group}
         groupId={id}
         sourceIsWalkIn={sourceIsWalkIn}
+        now={now}
         onClose={() => setModal(null)}
       />
     </div>

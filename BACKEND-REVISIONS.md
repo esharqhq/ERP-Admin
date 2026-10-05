@@ -293,6 +293,18 @@ Verified: `tsc`, `lint`, `npm test` (1592/1592), `npm run build`, `npm run verif
 unknown group id on `GET /api/tasks/groups/{id}` — `404` or empty `403`? — and a MODERATOR token on the same
 read. If the first is an empty `403`, the forbidden copy must add "or the link may be wrong" (`classifyGroupLoad`).
 
+Follow-ups: the review's two Important findings fixed before merge (a stale `?day=` is re-pinned —
+`dayToPin`; a limit of 0 reads staffed, not red). `fix/task-detail-minors`
+(`docs/superpowers/plans/2026-10-05-task-detail-minors.md`): review minors 1–6 fixed — "No actions" counts only
+permitted buttons (`visibleDayActions`), the supervisor box always names a set supervisor (`supervisorLabel`), the
+time-window sub-line only under a shared window, Ready copy at a limit of 0, one live clock for the outcome dialog,
+day switches via `history.replaceState`. 12-hour `en` times left as the app-wide convention.
+**Browser pass done 2026-10-05** (Chrome, SUPER_ADMIN, dev demo data, 1440 + 900/390px frames): every state
+above rendered as specified; four display bugs fixed on the same branch (initials skip `[DEMO]`, the city is not
+repeated across languages, a visible cancelled stripe and legend dot, a stacked header below `sm`). **Live probe:**
+an unknown group id answers **404** problem-details to SUPER_ADMIN, so "Booking not found" is right. Still open: a
+MODERATOR token on the read (no token available).
+
 ### 2026-09-27 — the Tasks register (v2 list + calendar)
 
 `docs/superpowers/specs/2026-09-27-admin-tasks-register-design.md` +

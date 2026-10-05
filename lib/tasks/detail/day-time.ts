@@ -67,6 +67,19 @@ export function workerLabel(w: Pick<TaskWorkerDto, "workerName" | "workerId">): 
   return w.workerName?.trim() || w.workerId.slice(0, 8);
 }
 
+/**
+ * Two avatar letters. A leading `[…]` tag (the demo seed's `[DEMO] `) is skipped,
+ * and only letters count — "[DEMO] Oliver Smith" is "OS", not "[O".
+ */
+export function workerInitials(name: string): string {
+  const words = name.replace(/^\s*\[[^\]]*\]\s*/, "").split(/\s+/);
+  const letters = words
+    .map((w) => w.match(/\p{L}/u)?.[0])
+    .filter((c): c is string => !!c)
+    .slice(0, 2);
+  return letters.length ? letters.join("").toUpperCase() : "–";
+}
+
 export function formatHm(ms: number, locale: string): string {
   return new Intl.DateTimeFormat(locale, { hour: "2-digit", minute: "2-digit" }).format(ms);
 }

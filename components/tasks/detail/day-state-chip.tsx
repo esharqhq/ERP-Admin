@@ -23,7 +23,7 @@ export const DAY_TONE_CLASS: Record<DayTone, { chip: string; dot: string; bar: s
   cancelled: {
     chip: "bg-muted text-muted-foreground/70",
     dot: "bg-muted-foreground/30",
-    bar: "bg-[repeating-linear-gradient(135deg,var(--color-muted)_0_4px,var(--color-background)_4px_8px)]",
+    bar: "bg-[repeating-linear-gradient(135deg,var(--color-border)_0_4px,var(--color-muted)_4px_8px)]",
   },
   unknown: { chip: "text-muted-foreground ring-1 ring-inset ring-border", dot: "bg-muted-foreground/40", bar: "bg-muted" },
 };

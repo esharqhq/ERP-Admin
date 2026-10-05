@@ -32,6 +32,29 @@ export function dayActions(task: TaskItemDto): DayActionKey[] {
   return out;
 }
 
+/** The `<Can>` code behind each day button — `null` means the target page gates itself. */
+export const DAY_ACTION_PERMISSION: Record<DayActionKey, string | null> = {
+  supervisor: "task:supervisor_override_any",
+  forceClose: "task:force_close_any",
+  assign: "task:assign_worker_any",
+  openComplaint: null,
+  rateTeam: "task_worker:rate_any",
+};
+
+/**
+ * The buttons this admin will actually see. "No actions" is decided on this
+ * list — spec §6 says "no *visible* button".
+ */
+export function visibleDayActions(
+  actions: DayActionKey[],
+  can: (permission: string) => boolean,
+): DayActionKey[] {
+  return actions.filter((a) => {
+    const p = DAY_ACTION_PERMISSION[a];
+    return p === null || can(p);
+  });
+}
+
 export type RowActionKey = "rate" | "outcome" | "unassign";
 
 /**

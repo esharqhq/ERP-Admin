@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dayActions, isClosedDay, openSlots, rowActions } from "@/lib/tasks/detail/day-actions";
+import { dayActions, isClosedDay, openSlots, rowActions, visibleDayActions } from "@/lib/tasks/detail/day-actions";
 import { at, day, worker } from "@/lib/tasks/detail/fixtures";
 
 const BEFORE = at("2026-10-05T06:00:00");
@@ -59,5 +59,15 @@ describe("isClosedDay", () => {
     expect(isClosedDay(day({ status: "Done" }))).toBe(true);
     expect(isClosedDay(day({ status: "Cancelled" }))).toBe(true);
     expect(isClosedDay(day({ status: "Rejected" }))).toBe(false);
+  });
+});
+
+describe("visibleDayActions", () => {
+  it("keeps only the buttons the admin holds; open complaint needs none", () => {
+    const none = () => false;
+    expect(visibleDayActions(["rateTeam"], none)).toEqual([]);
+    expect(visibleDayActions(["openComplaint"], none)).toEqual(["openComplaint"]);
+    const only = (p: string) => p === "task:assign_worker_any";
+    expect(visibleDayActions(["supervisor", "forceClose", "assign"], only)).toEqual(["assign"]);
   });
 });
