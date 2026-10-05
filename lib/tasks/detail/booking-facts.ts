@@ -97,14 +97,19 @@ export type Place = { kind: "walkIn" } | { kind: "text"; text: string } | { kind
 export function headerPlace(input: {
   isWalkIn: boolean | null;
   address?: string | null;
+  /** The name to show, in the viewer's locale. */
   cityName?: string | null;
+  /** Every name the city goes by (`nameDe`, `nameEn`) — an address holding either is not suffixed. */
+  cityNames?: (string | null | undefined)[];
   propertyName?: string | null;
 }): Place {
   if (input.isWalkIn === true) return { kind: "walkIn" };
   const address = input.address?.trim();
   if (address) {
     const city = input.cityName?.trim();
-    const text = city && !address.includes(city) ? `${address} ${city}` : address;
+    const names = [city, ...(input.cityNames ?? [])].map((n) => n?.trim()).filter((n): n is string => !!n);
+    const named = names.some((n) => address.toLocaleLowerCase().includes(n.toLocaleLowerCase()));
+    const text = city && !named ? `${address} ${city}` : address;
     return { kind: "text", text };
   }
   const name = input.propertyName?.trim();

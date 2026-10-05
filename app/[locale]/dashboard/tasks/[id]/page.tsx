@@ -124,6 +124,7 @@ export default function TaskGroupDetailPage({ params }: { params: Promise<{ id: 
     isWalkIn: sourceIsWalkIn,
     address: property.data?.address,
     cityName,
+    cityNames: [property.data?.city?.nameDe, property.data?.city?.nameEn],
     propertyName: days[0]?.propertyName,
   });
   const ownerName = owner.data?.fullName?.trim() || null;

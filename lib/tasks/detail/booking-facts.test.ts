@@ -126,3 +126,11 @@ describe("windowSubKey", () => {
     expect(windowSubKey({ kind: "same", start: 1, end: null }, false)).toBe("eightHours");
   });
 });
+
+describe("headerPlace — city in either language", () => {
+  it("does not append the city when the address already names it in another language", () => {
+    expect(
+      headerPlace({ isWalkIn: false, address: "Marienplatz 8, 80331 München", cityName: "Munich", cityNames: ["München", "Munich"] }),
+    ).toEqual({ kind: "text", text: "Marienplatz 8, 80331 München" });
+  });
+});

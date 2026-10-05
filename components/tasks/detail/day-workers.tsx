@@ -6,7 +6,7 @@ import { CheckinDoorLabel } from "@/components/attendance/checkin-door-label";
 import { Can } from "@/components/auth/can";
 import { Button } from "@/components/ui/button";
 import { openSlots, rowActions, type RowActionKey } from "@/lib/tasks/detail/day-actions";
-import { formatHm, instant, lateWorkers, workerLabel } from "@/lib/tasks/detail/day-time";
+import { formatHm, instant, lateWorkers, workerInitials, workerLabel } from "@/lib/tasks/detail/day-time";
 import { dayStaffing, type NoteTone } from "@/lib/tasks/detail/day-view";
 import { activeWorkers } from "@/lib/tasks/staffing";
 import { canonicalTaskStatus } from "@/lib/tasks/status-vocab";
@@ -150,7 +150,7 @@ export function DayWorkers({
                       isSup ? "bg-primary text-primary-foreground" : "bg-muted text-foreground",
                     )}
                   >
-                    {initials(name)}
+                    {workerInitials(name)}
                   </span>
                   <span className="flex min-w-0 flex-col">
                     <span
@@ -256,7 +256,3 @@ export function DayWorkers({
   );
 }
 
-function initials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  return ((parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "")).toUpperCase() || "–";
-}
