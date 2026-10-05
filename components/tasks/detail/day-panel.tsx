@@ -2,7 +2,6 @@
 
 import { LockKeyhole, MessageSquareWarning, ShieldCheck, Star, UserPlus } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { Can } from "@/components/auth/can";
 import { DayAlertBox } from "@/components/tasks/detail/day-alert";
 import { DayStateChip } from "@/components/tasks/detail/day-state-chip";
 import { DayTimeline } from "@/components/tasks/detail/day-timeline";
@@ -10,8 +9,9 @@ import { DayWorkers } from "@/components/tasks/detail/day-workers";
 import type { DetailModal } from "@/components/tasks/detail/detail-modals";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useCurrentPermissions } from "@/hooks/use-current-permissions";
 import { Link } from "@/i18n/navigation";
-import { dayActions, isClosedDay } from "@/lib/tasks/detail/day-actions";
+import { dayActions, isClosedDay, visibleDayActions } from "@/lib/tasks/detail/day-actions";
 import { formatDayLong, formatHm, instant } from "@/lib/tasks/detail/day-time";
 import { canonicalTaskStatus } from "@/lib/tasks/status-vocab";
 import type { TaskComplaintDto, TaskItemDto } from "@/lib/types/task.types";
@@ -38,7 +38,9 @@ export function DayPanel({
   const t = useTranslations("tasks.detail");
   const tTasks = useTranslations("tasks");
   const state = canonicalTaskStatus(task.status);
-  const actions = dayActions(task);
+  const { permissions } = useCurrentPermissions();
+  // Filtered to what this admin holds; an unknown grant set (null) hides all (fail closed).
+  const actions = visibleDayActions(dayActions(task), (p) => permissions?.has(p) ?? false);
   const start = instant(task.scheduledAt);
   const end = instant(task.deadline);
   const count = task.requiredWorkerCount;
@@ -74,38 +76,32 @@ export function DayPanel({
         </div>
         <div className="flex flex-wrap gap-2 md:justify-end">
           {actions.includes("supervisor") ? (
-            <Can permission="task:supervisor_override_any">
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-1.5"
-                onClick={() => onModal({ type: "supervisor", task })}
-              >
-                <ShieldCheck className="size-3.5" />
-                {tTasks("supervisor.submit")}
-              </Button>
-            </Can>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              onClick={() => onModal({ type: "supervisor", task })}
+            >
+              <ShieldCheck className="size-3.5" />
+              {tTasks("supervisor.submit")}
+            </Button>
           ) : null}
           {actions.includes("forceClose") ? (
-            <Can permission="task:force_close_any">
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-1.5 text-destructive"
-                onClick={() => onModal({ type: "forceClose", task })}
-              >
-                <LockKeyhole className="size-3.5" />
-                {tTasks("forceClose.action")}
-              </Button>
-            </Can>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5 text-destructive"
+              onClick={() => onModal({ type: "forceClose", task })}
+            >
+              <LockKeyhole className="size-3.5" />
+              {tTasks("forceClose.action")}
+            </Button>
           ) : null}
           {actions.includes("assign") ? (
-            <Can permission="task:assign_worker_any">
-              <Button size="sm" className="gap-1.5" onClick={() => onModal({ type: "assign", taskId: task.id })}>
-                <UserPlus className="size-3.5" />
-                {tTasks("actions.assign")}
-              </Button>
-            </Can>
+            <Button size="sm" className="gap-1.5" onClick={() => onModal({ type: "assign", taskId: task.id })}>
+              <UserPlus className="size-3.5" />
+              {tTasks("actions.assign")}
+            </Button>
           ) : null}
           {actions.includes("openComplaint") ? (
             <Button
@@ -119,12 +115,10 @@ export function DayPanel({
             </Button>
           ) : null}
           {actions.includes("rateTeam") ? (
-            <Can permission="task_worker:rate_any">
-              <Button size="sm" className="gap-1.5" onClick={() => onModal({ type: "rateTeam", task })}>
-                <Star className="size-3.5" />
-                {tTasks("rateTeam.action")}
-              </Button>
-            </Can>
+            <Button size="sm" className="gap-1.5" onClick={() => onModal({ type: "rateTeam", task })}>
+              <Star className="size-3.5" />
+              {tTasks("rateTeam.action")}
+            </Button>
           ) : null}
           {actions.length === 0 && isClosedDay(task) ? (
             <span className="flex h-8 items-center text-xs text-muted-foreground">{t("noActions")}</span>
