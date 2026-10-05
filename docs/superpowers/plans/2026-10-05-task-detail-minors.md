@@ -250,6 +250,37 @@ const writeDay = (taskId: string) => window.history.replaceState(null, "", `?day
   *"Follow-up `fix/task-detail-minors`: review minors 1–6 fixed; 12-hour `en` times left as the app-wide
   convention."* Commit with the last task, or as `docs(tasks): …`.
 
+### Task 8: Fixes from the browser pass (2026-10-05, Chrome, SUPER_ADMIN, dev demo data)
+
+These were found by opening the page. Each fix that is a decision gets a failing test first.
+
+- [ ] **8a — avatar initials.** Demo names start with `[DEMO] `, so the avatar reads "[O" / "[E". Move
+  `initials` out of `day-workers.tsx` into `lib/tasks/detail/day-time.ts` as `workerInitials(name)`.
+  - It drops a leading `[…]` tag and takes the first letter (`\p{L}`) of the first two words.
+  - It returns `"–"` when there is no letter at all.
+  - Test: `"[DEMO] Oliver Smith"` → `"OS"`, `"Sardor Aliyev"` → `"SA"`, `"abcdef01"` → `"A"`, `"[x] 123"` → `"–"`.
+- [ ] **8b — city written twice.** The header reads "Marienplatz 8, 80331 München Munich", because the address
+  holds the German name and the check only compares the English one.
+  - `headerPlace` takes `cityNames: string[]` (both `nameDe` and `nameEn`) plus `cityName`, the one to show.
+  - It appends `cityName` only when no listed name already appears in the address.
+  - Test: an address containing "München" with names `["München","Munich"]` → no suffix.
+- [ ] **8c — cancelled stripe and legend dot nearly invisible.**
+  - The stripe is `--color-muted` over `--color-background`, both near-white. It becomes
+    `--color-border` over `--color-muted`.
+  - The legend uses each tone's `dot` class instead of `bar`, so Cancelled gets a visible dot.
+  - No test (styling). Re-check in the browser.
+- [ ] **8d — 390px header.** The progress block sits beside the title and squeezes it to about 130px, one word
+  per line. Change the header row to `flex-col gap-3 sm:flex-row`, with progress left-aligned below `sm`.
+  - No test (layout). Re-check in a 390px frame.
+
+Verified fine in the same pass (no change): Harbour Hotel booking (default day = next upcoming, client-side
+day switch updates `?day=`), disputed single task (complaint loaded: reason, 3 photos, raised time), upheld
+single task (decision note and time), mixed finished booking ("No days left to run", no Cancel), 900px (2-col
+days list), 390px (no horizontal scroll, worker cards). **Live probe:** `GET /api/tasks/groups/{unknown}` as
+SUPER_ADMIN → **404** problem-details, so "Booking not found" is right. A MODERATOR token was not available.
+Dark mode was not assessed: the app sets no `.dark` (`globals.css` note), and the forest "Done" tone is
+invisible there app-wide.
+
 ## Not in this plan
 
 The Chrome verification pass (1440 / 900 / 390px), and the two live probes (unknown group id → 404 or empty
