@@ -1747,7 +1747,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 - [ ] **Step 1: Confirm no other reader of the old keys**
 
-Run: `npx rg -n "detail\.(infoTitle|tasksTitle|noTasks|noWorkers|closedBeforeReasons|info\.|taskColumns|workerColumns)" app components lib hooks`
+Run: `git grep -n -E "detail\.(infoTitle|tasksTitle|noTasks|noWorkers|closedBeforeReasons|info\.|taskColumns|workerColumns)" -- app components lib hooks`
 Expected: matches **only** in `app/[locale]/dashboard/tasks/[id]/page.tsx` (rewritten in Task 9). Hits in
 other namespaces, such as `attendance` or `skill-requests`, use their own `detail` objects; ignore them. If
 any other `tasks.detail` reader shows up, keep that key in the new block.
@@ -3680,7 +3680,7 @@ stay in the repo for their other readers).
 
 - [ ] **Step 6: Check for dead message keys**
 
-Run: `npx rg -n "\"(infoTitle|tasksTitle|noTasks|closedBeforeReasons)\"" messages`
+Run: `git grep -n -E "\"(infoTitle|tasksTitle|noTasks|closedBeforeReasons)\"" -- messages`
 Expected: no matches. They were removed in Task 6, and nothing now reads them.
 
 - [ ] **Step 7: Commit**
@@ -3777,7 +3777,7 @@ In `BACKEND-REVISIONS.md` §1:
 - Set **CHANGELOG reviewed through** to
   `**2026-10-03** — the demo-seed entry (data only; nothing to build on this screen); nothing newer at \`26f57e1\``.
 - Set **Last HEAD check** to
-  `2026-10-05, \`origin/main\` \`26f57e1\`. Commits touching \`docs/handoff\` or \`index/\` since \`9de945d9\`: the demo-seed close-out (\`8538811\`, \`3b0c4b4\`) and two \`index/\`/mind items (\`2d4c43b\`, \`385963e\` — owner location edit, WP2 remainder's backend half). No task contract moved.`
+  `2026-10-05, \`origin/main\` \`26f57e1\`. Commits touching \`docs/handoff\` or \`index/\` since \`9de945d9\`: the demo-seed close-out (\`8538811\`, \`3b0c4b4\`) a mind card (\`2d4c43b\`) and \`385963e\` (fix: owners — \`isActive\` enforced on the admin location edit; relevant to the WP2 remainder, not to tasks). No task contract moved.`
 - Leave `task-lifecycle.md`'s **Absorbed to** unchanged (WP6 and WP11 are still open).
 
 In §4, insert at the top (above the 2026-09-27 register entry):
