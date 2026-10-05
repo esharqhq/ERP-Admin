@@ -6,6 +6,7 @@ import {
   isSingleDay,
   legendCounts,
   windowFact,
+  windowSubKey,
   workersFact,
 } from "@/lib/tasks/detail/booking-facts";
 import { at, booking, day } from "@/lib/tasks/detail/fixtures";
@@ -113,5 +114,15 @@ describe("headerPlace", () => {
   it("falls back to the property name, then none", () => {
     expect(headerPlace({ isWalkIn: null, propertyName: "Torstraße 88" })).toEqual({ kind: "text", text: "Torstraße 88" });
     expect(headerPlace({ isWalkIn: null })).toEqual({ kind: "none" });
+  });
+});
+
+describe("windowSubKey", () => {
+  it("only a shared window gets a sub-line", () => {
+    expect(windowSubKey({ kind: "varies" }, false)).toBeNull();
+    expect(windowSubKey({ kind: "none" }, false)).toBeNull();
+    expect(windowSubKey({ kind: "same", start: 1, end: 2 }, false)).toBe("everyDay");
+    expect(windowSubKey({ kind: "same", start: 1, end: 2 }, true)).toBe("oneDay");
+    expect(windowSubKey({ kind: "same", start: 1, end: null }, false)).toBe("eightHours");
   });
 });

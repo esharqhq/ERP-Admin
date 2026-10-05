@@ -62,6 +62,13 @@ export function windowFact(tasks: TaskItemDto[]): WindowFact {
   return { kind: "same", start: instant(pool[0].scheduledAt)!, end: instant(pool[0].deadline) };
 }
 
+/** The time-window fact's sub-line key — none unless every live day shares one window. */
+export function windowSubKey(win: WindowFact, single: boolean): "eightHours" | "oneDay" | "everyDay" | null {
+  if (win.kind !== "same") return null;
+  if (win.end === null) return "eightHours";
+  return single ? "oneDay" : "everyDay";
+}
+
 export function workersFact(tasks: TaskItemDto[]): { min: number; max: number } | null {
   if (tasks.length === 0) return null;
   const counts = tasks.map((t) => t.requiredWorkerCount);

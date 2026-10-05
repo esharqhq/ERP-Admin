@@ -8,6 +8,7 @@ import {
   datesFact,
   legendCounts,
   windowFact,
+  windowSubKey,
   workersFact,
   type Place,
 } from "@/lib/tasks/detail/booking-facts";
@@ -59,6 +60,7 @@ export function DetailHeaderCard({
 
   const counts = legendCounts(days);
   const win = windowFact(days);
+  const winSub = windowSubKey(win, single);
   const workers = workersFact(days);
   const dates = datesFact(days);
   const tools = toolsAnswerKey(group.ownerProvidesTools);
@@ -75,12 +77,7 @@ export function DetailHeaderCard({
           : win.kind === "varies"
             ? t("facts.windowVaries")
             : "–",
-      sub:
-        win.kind === "same" && win.end === null
-          ? t("facts.eightHours")
-          : single
-            ? t("facts.oneDay")
-            : t("facts.everyDay"),
+      sub: winSub ? t(`facts.${winSub}`) : undefined,
     },
     {
       label: t("facts.workers"),
