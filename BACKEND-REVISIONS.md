@@ -299,6 +299,11 @@ Follow-ups: the review's two Important findings fixed before merge (a stale `?da
 permitted buttons (`visibleDayActions`), the supervisor box always names a set supervisor (`supervisorLabel`), the
 time-window sub-line only under a shared window, Ready copy at a limit of 0, one live clock for the outcome dialog,
 day switches via `history.replaceState`. 12-hour `en` times left as the app-wide convention.
+**Browser pass done 2026-10-05** (Chrome, SUPER_ADMIN, dev demo data, 1440 + 900/390px frames): every state
+above rendered as specified; four display bugs fixed on the same branch (initials skip `[DEMO]`, the city is not
+repeated across languages, a visible cancelled stripe and legend dot, a stacked header below `sm`). **Live probe:**
+an unknown group id answers **404** problem-details to SUPER_ADMIN, so "Booking not found" is right. Still open: a
+MODERATOR token on the read (no token available).
 
 ### 2026-09-27 — the Tasks register (v2 list + calendar)
 
