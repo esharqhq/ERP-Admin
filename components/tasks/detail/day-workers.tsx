@@ -7,6 +7,7 @@ import { Can } from "@/components/auth/can";
 import { Button } from "@/components/ui/button";
 import { openSlots, rowActions, type RowActionKey } from "@/lib/tasks/detail/day-actions";
 import { formatHm, instant, lateWorkers, workerLabel } from "@/lib/tasks/detail/day-time";
+import { dayStaffing, type NoteTone } from "@/lib/tasks/detail/day-view";
 import { activeWorkers } from "@/lib/tasks/staffing";
 import { canonicalTaskStatus } from "@/lib/tasks/status-vocab";
 import { normalizeStatus, type TaskItemDto, type TaskWorkerDto } from "@/lib/types/task.types";
@@ -26,6 +27,12 @@ const OUTCOME_KEY: Record<string, string> = {
   noshow: "NoShow",
   removed: "Removed",
   cancelled: "Cancelled",
+};
+
+const STAFF_TONE: Record<NoteTone, string> = {
+  muted: "text-muted-foreground",
+  warning: "text-status-pending-deep",
+  danger: "text-status-cancelled-deep",
 };
 
 const ROW_GRID = "md:grid md:grid-cols-[minmax(0,2.2fr)_1.1fr_1.4fr_1fr_0.8fr_104px] md:items-center md:gap-3";
@@ -67,13 +74,8 @@ export function DayWorkers({
   const open = state === "pending" || state === "checkedIn";
   const cancelled = state === "cancelled";
 
-  const staffTone = !open
-    ? "text-muted-foreground"
-    : filled === 0
-      ? "text-status-cancelled-deep"
-      : filled < task.requiredWorkerCount
-        ? "text-status-pending-deep"
-        : "text-muted-foreground";
+  // One verdict for the header and the days list (`dayStaffing`), so they agree.
+  const staffTone = STAFF_TONE[dayStaffing(task)?.tone ?? "muted"];
   const staffNote = cancelled
     ? t("released")
     : !open

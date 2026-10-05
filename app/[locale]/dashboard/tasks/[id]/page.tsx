@@ -22,7 +22,7 @@ import { Link } from "@/i18n/navigation";
 import { isWalkInSource } from "@/lib/tasks/clone-order";
 import { headerPlace, isNothingLeftToRun, isSingleDay } from "@/lib/tasks/detail/booking-facts";
 import { classifyGroupLoad } from "@/lib/tasks/detail/page-state";
-import { resolveSelectedDay, sortDays } from "@/lib/tasks/detail/select-day";
+import { dayToPin, resolveSelectedDay, sortDays } from "@/lib/tasks/detail/select-day";
 import { isGroupActive } from "@/lib/tasks/staffing";
 import { canonicalTaskStatus } from "@/lib/tasks/status-vocab";
 
@@ -52,11 +52,12 @@ export default function TaskGroupDetailPage({ params }: { params: Promise<{ id: 
   const selected = resolveSelectedDay(days, dayParam, now, todayKey);
   const selectedId = selected?.id ?? null;
 
-  // Pin the default day into the URL once, so it does not jump as the clock
-  // turns a day "late", and so the address is shareable.
+  // Pin the resolved day into the URL (also over a stale `?day=`), so it does not
+  // jump as the clock turns a day "late", and so the address is shareable.
+  const pin = dayToPin(dayParam, selectedId, now);
   useEffect(() => {
-    if (!dayParam && selectedId) router.replace(`?day=${selectedId}`, { scroll: false });
-  }, [dayParam, selectedId, router]);
+    if (pin) router.replace(`?day=${pin}`, { scroll: false });
+  }, [pin, router]);
   const selectDay = (taskId: string) => router.replace(`?day=${taskId}`, { scroll: false });
 
   /**

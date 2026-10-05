@@ -33,6 +33,17 @@ export function pickDefaultDay(
   );
 }
 
+/**
+ * The id to write into `?day=`, or `null` for nothing to do. Pins the resolved
+ * day whenever the URL does not already name it — missing, or naming a day not
+ * in this booking — so the panel never re-picks on a clock tick or a refetch.
+ * Never before the clock is known (`now <= 0`): the default could still move.
+ */
+export function dayToPin(dayParam: string | null, selectedId: string | null, now: number): string | null {
+  if (now <= 0 || !selectedId) return null;
+  return dayParam === selectedId ? null : selectedId;
+}
+
 /** `?day=` when it names a day of this booking, else the default. */
 export function resolveSelectedDay(
   tasks: TaskItemDto[],

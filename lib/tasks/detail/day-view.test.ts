@@ -65,6 +65,9 @@ describe("dayStaffing", () => {
     expect(dayStaffing(day())).toEqual({ filled: 0, required: 3, tone: "danger" });
     expect(dayStaffing(day({ workers: [worker()] }))?.tone).toBe("warning");
   });
+  it("a limit of 0 with nobody on it is muted, not danger (it reads Ready)", () => {
+    expect(dayStaffing(day({ requiredWorkerCount: 0 }))?.tone).toBe("muted");
+  });
   it("stays muted on a closed day whatever the count", () => {
     expect(dayStaffing(day({ status: "Done" }))?.tone).toBe("muted");
   });

@@ -83,13 +83,9 @@ export function dayStaffing(
   const filled = activeWorkers(task).length;
   const required = task.requiredWorkerCount;
   const open = state === "pending" || state === "checkedIn";
-  const tone: NoteTone = !open
-    ? "muted"
-    : filled === 0
-      ? "danger"
-      : filled < required
-        ? "warning"
-        : "muted";
+  // `>=` first, as in `dayAlert`: a limit of 0 (or one lowered under the
+  // assigned count) is staffed, not "nobody on it".
+  const tone: NoteTone = !open || filled >= required ? "muted" : filled === 0 ? "danger" : "warning";
   return { filled, required, tone };
 }
 

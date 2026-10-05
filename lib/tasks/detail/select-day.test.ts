@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { pickDefaultDay, resolveSelectedDay, sortDays } from "@/lib/tasks/detail/select-day";
+import { dayToPin, pickDefaultDay, resolveSelectedDay, sortDays } from "@/lib/tasks/detail/select-day";
 import { at, day, worker } from "@/lib/tasks/detail/fixtures";
 
 const NOW = at("2026-10-05T09:00:00");
@@ -48,6 +48,22 @@ describe("pickDefaultDay — spec §3", () => {
   });
   it("answers null for no days", () => {
     expect(pickDefaultDay([], NOW, TODAY)).toBeNull();
+  });
+});
+
+describe("dayToPin", () => {
+  it("pins the resolved day when ?day= is missing", () => {
+    expect(dayToPin(null, "d06", NOW)).toBe("d06");
+  });
+  it("re-pins when ?day= names a day outside the booking (resolved to another)", () => {
+    expect(dayToPin("stale-id", "d06", NOW)).toBe("d06");
+  });
+  it("does nothing once the URL matches", () => {
+    expect(dayToPin("d06", "d06", NOW)).toBeNull();
+  });
+  it("never pins before the clock is known, nor with no day", () => {
+    expect(dayToPin(null, "d06", 0)).toBeNull();
+    expect(dayToPin(null, null, NOW)).toBeNull();
   });
 });
 
