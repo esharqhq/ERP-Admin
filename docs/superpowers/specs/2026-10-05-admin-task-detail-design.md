@@ -78,6 +78,13 @@ The day's state is read through `canonicalTaskStatus`. "Active workers" means `a
 leaves out NoShow, Removed and Cancelled. `req` is `task.requiredWorkerCount`. "Late" means
 `now > scheduledAt` and at least one active worker has `checkinAt == null`.
 
+**Times.** Responses carry UTC instants (`…Z`, `guidance.md`), and the app already renders them in the
+**viewer's local zone** (the register, Dispatch, broadcasts). This page does the same. ⚠ The group's
+`defaultStartTime`/`defaultDeadline` are wall-clock strings with no zone, so for a viewer outside Berlin they
+would disagree with the day instants (08:00 against 11:00). **The page therefore never prints the two
+wall-clock strings.** Every time on screen, the header's time window included (§8), comes from the
+`scheduledAt`/`deadline`/`startedAt`/`completedAt` instants.
+
 ### 4.1 Chip, rail colour and days-list note
 
 There is one chip per day row. The detail page gets its own tones that follow the design. `TaskStatusBadge`
@@ -187,7 +194,7 @@ Step times are local `HH:mm` in mono.
 
 | Button | Shown when | Gate |
 |---|---|---|
-| Assign worker (primary) | state ∈ {pending, checkedIn}. **The current page also shows it on InReview — dropped**, per the design | `task:assign_worker_any` |
+| Assign worker (primary) | state ∈ {pending, checkedIn}. **The current page also shows it on InReview — dropped**, per the design. ⚠ **This is our rule, not the server's.** `POST …/admin-assign` has **no** day-state or date guard (`index/controllers/tasks.md`, gap `GT_AdminFillHasNoDateOrStatusGuard`), so it would fill an InReview, Done or Cancelled day. The client is the only guard, which is why it lives in `dayActions` with a test | `task:assign_worker_any` |
 | Change supervisor | `canOverrideSupervisor(task)` (existing) | `task:supervisor_override_any` (SUPER_ADMIN) |
 | Force close (danger outline) | `canForceClose(task)` (existing) | `task:force_close_any` (SUPER_ADMIN) |
 | Open complaint (primary) | state = rejected; links to `/dashboard/complaints/{taskId}` | none (the complaint page gates itself) |
@@ -215,12 +222,24 @@ reused unchanged: `AssignWorkerDialog`, `ConfirmDialog`, `RateWorkerDialog`, `Ra
 |---|---|---|
 | Loading | `useTaskGroup.isLoading` | Back, plus a skeleton at the final size: a 260px header and a 300px + fluid two-column body (single column for a single task, once the kind is known — before that, the booking layout) |
 | Error | 5xx or network | an icon tile, *"Couldn't load this booking"*, *"The server didn't answer. Your data is safe — try again."*, and **Try again** (`refetch`) |
-| Not found | `404` | *"Booking not found"*, *"It may have been deleted, or the link is wrong."*, and **Back to tasks** |
+| Not found | `404` | *"Booking not found"*, *"It may have been deleted, or the link is wrong."*, and **Back to tasks**. ⚠ Not verified live (see below) |
 | No permission | `403` with an empty body (`isPermissionDenied`) | *"You can't open this booking"*, with the role explanation and no error code, and **Back to tasks** |
-| Booking cancelled | `days.cancelled > 0` and `pending == 0`, `checkedIn == 0`, `inReview == 0`, `rejected == 0` | a neutral notice above the header, *"This booking was cancelled. Finished days stay as they were; the remaining days were cancelled. You can still copy it as a new order."*, Copy only. The design's condition leaves out `rejected`; a booking with an open dispute is not finished, so we add it |
+| Nothing left to run (the design's "Booking cancelled") | `days.cancelled > 0` and `pending == 0`, `checkedIn == 0`, `inReview == 0`, `rejected == 0` | a neutral notice above the header: *"No days left to run — {cancelled} of {total} days were cancelled. Finished days keep their status. You can still copy it as a new order."* Copy only. ⚠ **The design's assertive wording (*"This booking was cancelled … the remaining days were cancelled"*) is not used.** The same counts come from six Done days plus one day the owner cancelled, or one that cancelled itself at window end, and nothing says which (§2 #3). The design's condition also leaves out `rejected`; a booking with an open dispute is not finished, so we add it |
 
 `classifyGroupLoad(error)` turns the error into one of `error`, `notFound` or `forbidden`. It is pure and
 tested. Rule order: permission, then 404, then generic.
+
+⚠ **Two things to check live, which may change this table:**
+- **An unknown id.** `GET /api/tasks/groups/{id}` has no `[RequirePermission]` filter. It checks in the action:
+  `task_group:read_any` (Global) **or** `task_group:read` on the group's property (`index/controllers/tasks.md`).
+  What it answers for an unknown id is **not documented**. Its clone sibling's owner route answers an unknown
+  id with an **empty `403`**, because the filter cannot resolve a property. If this read does the same, a
+  deleted booking would show the No-permission state. The plan includes a live probe. If it does answer
+  `403`, the forbidden copy changes to *"You can't open this booking — your role may not include booking
+  details, or the link may be wrong."*, since the two can't be told apart.
+- **Which permission the read needs.** The read needs `task_group:read_any`, but the Tasks nav and route gate
+  use `task:list_any`. A custom role can hold the second without the first and land on No-permission from the
+  list. That is the state working as intended, not a bug.
 
 ## 8. Header card
 
@@ -228,7 +247,8 @@ tested. Rule order: permission, then 404, then generic.
   Next to it, `Created {createdAt}`.
 - **Title:** `group.title`, or `–`. Below it, the header line (§5).
 - **Progress** (right): `{days.done} / {days.total} days done`, or `/ 1 day` for a single task. In mono.
-- **Day rail** (booking only): one bar per day in `repeat(7, 1fr)` rows, so a long booking wraps by week. Each
+- **Day rail** (booking only): one bar per day in `repeat(7, 1fr)` rows, so a long booking wraps every 7 bars.
+  The days don't have to be consecutive, so a row is not a calendar week. Each
   bar has a mono `Wkd dd` label; the selected bar gets a ring; clicking selects the day.
 - **Legend:** the six states, each with a count of the **tasks by state** (the same source as the rail, so the
   two always agree). An unknown state is counted under none.
@@ -236,7 +256,7 @@ tested. Rule order: permission, then 404, then generic.
 
   | Fact | Value | Sub-line |
   |---|---|---|
-  | Time window | `defaultStartTime – defaultDeadline` (`HH:mm`) | `every day` / `one day`. With no deadline: *"from {start}"*, sub-line *"8 h window"* |
+  | Time window | the local `HH:mm` of `scheduledAt – deadline` on the non-cancelled days (all days if every one is cancelled). *"Varies"* when the days don't share one window | `every day` / `one day`. With no deadline: *"from {start}"*, sub-line *"8 h window"* |
   | Workers / day | `requiredWorkerCount`, or `min–max` when the days differ | `required` |
   | Rating floor | `ratingFloor ★`, or *"Any"* at 0 | `minimum to join` |
   | New workers | `Allowed` / `Not allowed` | — |
@@ -325,3 +345,12 @@ only by the old page are removed from both.
   open days (§6). The first follows the design; the other two avoid offering refusals.
 - One addition the design doesn't have: the pending-past-start alert (§4.3).
 - `TaskStatusBadge` is not recoloured: it has four other users, and the detail page uses its own chip (§4.1).
+- Every time comes from the UTC instants, in the viewer's zone. The group's wall-clock defaults are never
+  printed (§4).
+- The design's cancelled-booking wording is replaced with a neutral "nothing left to run" (§7).
+
+## 14. Notes for the plan
+
+- `?day=` is read with `useSearchParams`. Under Next 16 that may need a `<Suspense>` boundary around the client
+  part. Read `node_modules/next/dist/docs/` on `useSearchParams` before writing the page (AGENTS.md).
+- Live probes, once someone has an admin session: an unknown group id (§7), and a MODERATOR token on the read.
