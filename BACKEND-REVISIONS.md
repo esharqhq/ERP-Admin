@@ -27,11 +27,11 @@ only for what it says.
 | | |
 |---|---|
 | **Last full pass** | **2026-09-25 — full audit**, every admin-panel guide and every CHANGELOG entry naming one, read at `origin/main` **`692bd26`** ([§4](#2026-09-25--full-audit-of-every-admin-panel-guide)) |
-| **CHANGELOG reviewed through** | **2026-09-25** — the rating-card entry (read and actioned, [§4](#2026-09-26--rating-card-the-change-result-button-is-state-guarded)); nothing newer at `9de945d9` |
+| **CHANGELOG reviewed through** | **2026-10-03** — the demo-seed entry (data only; nothing to build on any admin screen); nothing newer at `26f57e1` |
 | **Actioned through** | **Per guide, in §2.** A single date would lie: ten guides are fully absorbed (as of 2026-09-25, after WP0–WP2), the rest carry open packages in §3. |
 | **Oldest `Absorbed to`** | **2026-07-01** (`support-ticket-followup-fix`, `worker-doc-approved-delete-guard` — both verified, nothing to build). A return pass starts reading the CHANGELOG here. |
 | **Deployed?** | Yes. The live swagger (`api.uyer.app`, 2026-09-25) matches the guides: `GET /api/admin/owners` takes `CityId`/`CountryId` (no `companyCityId`); `OwnerRowDto` has no `companyCity`; `OwnerCompanyDto` has no city/country names; `AccountStatusFilter` = `Active,Pending,Deleted,Lapsed,Blocked`. ⚠ Swagger's `required` is empty for the whole schema — required-ness comes from source, not swagger. |
-| **Last HEAD check** | 2026-09-26, `origin/main` `9de945d9`. One commit touching `docs/handoff` or `index/` since `692bd26`: `bbf30cb8`, the rating card (both folders). |
+| **Last HEAD check** | 2026-10-05, `origin/main` `26f57e1`. Commits touching `docs/handoff` or `index/` since `9de945d9`: the demo-seed close-out (`8538811`, `3b0c4b4`), a mind card (`2d4c43b`) and `385963e` (fix: owners — `isActive` enforced on the admin location edit; relevant to the WP2 remainder, not to tasks). No task contract moved. |
 | **`verify-v2.mjs`** | ✅ **0 FAIL / 116 PASS (2026-09-25, swagger-only, after WP0–WP2).** It was 5 FAIL / 96 PASS before WP0: three were the script's own stale expectations, two were real app bugs (fixed in WP2). The logged-in half needs `ERP_ADMIN_EMAIL`/`ERP_ADMIN_PASSWORD` (WP10). |
 
 ---
@@ -266,6 +266,32 @@ by every document viewer.
 ## 4. Pass log — newest first
 
 The record of what each pass **built** or **established**. What a pass read and did not build is in §3.
+
+### 2026-10-05 — Task Detail (the booking page on the v2 detail design)
+
+`docs/superpowers/specs/2026-10-05-admin-task-detail-design.md` +
+`docs/superpowers/plans/2026-10-05-admin-task-detail.md`. A re-layout of `/dashboard/tasks/{groupId}` onto the
+two design files (`ERP-Admin-Assests/Uyer Admin Task Detail*.dc.html`): header card with progress, rail and
+facts; days list; selected-day panel with a four-step timeline, one state alert, supervisor/summary and a workers
+table with open-slot rows. No new route or field — every dialog and guard is reused.
+
+| What changed | Where |
+|---|---|
+| The selected day lives in `?day=`; default is needs-attention first (disputed → late → in review → today → next → last), pinned into the URL once | `lib/tasks/detail/select-day.ts` |
+| The bell resolver lands on the day (`?day=`) | `app/[locale]/dashboard/tasks/day/[taskId]/page.tsx` |
+| Chip, note, staffing, timeline and alert per day state, incl. a pending-past-start alert the design lacks (§0d self-cancel) | `lib/tasks/detail/day-view.ts`, `day-alert.ts` |
+| Buttons narrowed to what the server accepts: Assign/unassign on Pending+CheckedIn only (admin-assign has **no** state guard — `GT_AdminFillHasNoDateOrStatusGuard` — so the client is the only guard); the per-row star on `Completed` only; supervisor and force-close on CheckedIn+InReview only (design) | `lib/tasks/detail/day-actions.ts` |
+| Every time from the UTC instants in the viewer's zone; the group's zone-less `defaultStartTime`/`defaultDeadline` are no longer printed | `lib/tasks/detail/booking-facts.ts` |
+| The complaint is read per selected day (`GET /api/tasks/{id}`) only when disputed or upheld | `hooks/use-complaints.ts` (`useTaskRead(id, enabled)`) |
+
+Design deltas: no force-close reason, no close time for OwnerAccepted/ClosedForced, no cancel date or actor —
+none is on any DTO (BACKEND-ASKS 2026-10-05). The design's "This booking was cancelled" is worded neutrally
+("No days left to run — n of N cancelled"): the same counts come from one owner- or self-cancelled day.
+
+Verified: `tsc`, `lint`, `npm test` (1592/1592), `npm run build`, `npm run verify:api` (ALL PASS).
+**Not checked in a browser** (the Chrome extension was disconnected). **Live probes not run** (no session): an
+unknown group id on `GET /api/tasks/groups/{id}` — `404` or empty `403`? — and a MODERATOR token on the same
+read. If the first is an empty `403`, the forbidden copy must add "or the link may be wrong" (`classifyGroupLoad`).
 
 ### 2026-09-27 — the Tasks register (v2 list + calendar)
 
