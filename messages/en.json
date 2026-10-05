@@ -2188,7 +2188,7 @@
         },
         "ready": {
           "title": "Ready",
-          "text": "All {required} slots are filled. Nothing to do until workers check in."
+          "text": "{required, plural, =0 {No workers are required for this day.} other {All # slots are filled. Nothing to do until workers check in.}}"
         },
         "cancelled": {
           "title": "Day cancelled",

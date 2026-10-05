@@ -2188,7 +2188,7 @@
         },
         "ready": {
           "title": "Bereit",
-          "text": "Alle {required} Plätze sind besetzt. Nichts zu tun, bis die Kräfte einchecken."
+          "text": "{required, plural, =0 {Für diesen Tag werden keine Kräfte benötigt.} other {Alle # Plätze sind besetzt. Nichts zu tun, bis die Kräfte einchecken.}}"
         },
         "cancelled": {
           "title": "Tag storniert",
