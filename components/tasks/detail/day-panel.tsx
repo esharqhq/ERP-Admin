@@ -13,6 +13,7 @@ import { useCurrentPermissions } from "@/hooks/use-current-permissions";
 import { Link } from "@/i18n/navigation";
 import { dayActions, isClosedDay, visibleDayActions } from "@/lib/tasks/detail/day-actions";
 import { formatDayLong, formatHm, instant } from "@/lib/tasks/detail/day-time";
+import { supervisorLabel } from "@/lib/tasks/detail/day-view";
 import { canonicalTaskStatus } from "@/lib/tasks/status-vocab";
 import type { TaskComplaintDto, TaskItemDto } from "@/lib/types/task.types";
 
@@ -52,15 +53,16 @@ export function DayPanel({
         : t("dayWindow", { start: formatHm(start, locale), end: formatHm(end, locale), count });
   const title = `${formatDayLong(task.scheduledDate, locale)}${task.scheduledDate === todayKey ? ` · ${t("today")}` : ""}`;
 
-  const supervisor = (task.workers ?? []).find((w) => w.workerId === task.supervisorWorkerId);
   const openDay = state === "pending" || state === "checkedIn";
-  const supervisorText = supervisor
-    ? (supervisor.workerName ?? supervisor.workerId.slice(0, 8))
-    : openDay
-      ? t("supervisorNotYet")
-      : state === "cancelled"
-        ? "–"
-        : t("supervisorNone");
+  const sup = supervisorLabel(task);
+  const supervisorText =
+    sup.kind === "name"
+      ? sup.text
+      : sup.kind === "notYet"
+        ? t("supervisorNotYet")
+        : sup.kind === "dash"
+          ? "–"
+          : t("supervisorNone");
   const summary = task.workSummary?.trim();
   const summaryText = summary || (openDay ? t("summaryLater") : state === "cancelled" ? "–" : t("summaryNone"));
 

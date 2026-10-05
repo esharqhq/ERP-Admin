@@ -3,6 +3,7 @@ import {
   instant,
   isStartPassed,
   lateWorkers,
+  workerLabel,
 } from "@/lib/tasks/detail/day-time";
 import { activeWorkers } from "@/lib/tasks/staffing";
 import { canonicalTaskStatus, type TaskStateKey } from "@/lib/tasks/status-vocab";
@@ -87,6 +88,29 @@ export function dayStaffing(
   // assigned count) is staffed, not "nobody on it".
   const tone: NoteTone = !open || filled >= required ? "muted" : filled === 0 ? "danger" : "warning";
   return { filled, required, tone };
+}
+
+export type SupervisorLabel =
+  | { kind: "name"; text: string }
+  | { kind: "notYet" }
+  | { kind: "none" }
+  | { kind: "dash" };
+
+/**
+ * The supervisor box — spec §4.4. A set `supervisorWorkerId` always shows an
+ * identifier, even when that worker has since left `workers`; "not yet" is
+ * only for a day nobody has checked in on.
+ */
+export function supervisorLabel(task: TaskItemDto): SupervisorLabel {
+  const id = task.supervisorWorkerId;
+  if (id) {
+    const w = (task.workers ?? []).find((x) => x.workerId === id);
+    return { kind: "name", text: w ? workerLabel(w) : id.slice(0, 8) };
+  }
+  const state = canonicalTaskStatus(task.status);
+  if (state === "pending" || state === "checkedIn") return { kind: "notYet" };
+  if (state === "cancelled") return { kind: "dash" };
+  return { kind: "none" };
 }
 
 /** A message key under `tasks.detail.*`, or a word to print verbatim. */
