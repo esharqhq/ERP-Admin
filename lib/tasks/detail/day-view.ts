@@ -9,6 +9,22 @@ import { activeWorkers } from "@/lib/tasks/staffing";
 import { canonicalTaskStatus, type TaskStateKey } from "@/lib/tasks/status-vocab";
 import type { TaskItemDto } from "@/lib/types/task.types";
 
+/** How a day was cancelled (§0k·2). `null` for absent or a road this panel does not know. */
+export type CancelHow = "day" | "booking" | "auto";
+
+export function cancelHow(reason: string | null | undefined): CancelHow | null {
+  switch (reason) {
+    case "DayCancelled":
+      return "day";
+    case "BookingCancelled":
+      return "booking";
+    case "AutoCancelled":
+      return "auto";
+    default:
+      return null;
+  }
+}
+
 /** The six day states plus `unknown`: the set is not closed (spec §4.1). */
 export type DayTone = TaskStateKey | "unknown";
 

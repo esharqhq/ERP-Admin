@@ -8,7 +8,7 @@ import {
   supervisorLabel,
 } from "@/lib/tasks/detail/day-view";
 import { AUTO_ACCEPT_MS } from "@/lib/tasks/detail/day-time";
-import { at, complaint, day, worker } from "@/lib/tasks/detail/fixtures";
+import { at, day, worker } from "@/lib/tasks/detail/fixtures";
 
 const NOW = at("2026-10-05T07:00:00");
 
