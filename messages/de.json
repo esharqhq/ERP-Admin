@@ -1325,7 +1325,13 @@
       "unassignTitle": "Diesen Mitarbeiter entfernen?",
       "unassignDescription": "Der Mitarbeiter wird von diesem Job entfernt. Der Job bleibt bestehen und kann neu besetzt werden.",
       "unassignConfirm": "Entfernen",
-      "unassignFailed": "Der Mitarbeiter konnte nicht entfernt werden."
+      "unassignFailed": "Der Mitarbeiter konnte nicht entfernt werden.",
+      "cancelledDay": "Storniert · {date}",
+      "cancelledDayNoDate": "Storniert",
+      "cancelledBooking": "Mit dem Auftrag storniert · {date}",
+      "cancelledBookingNoDate": "Mit dem Auftrag storniert",
+      "cancelledAuto": "Selbst storniert · {date}",
+      "cancelledAutoNoDate": "Selbst storniert"
     }
   },
   "orderFields": {

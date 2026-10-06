@@ -1325,7 +1325,13 @@
       "unassignTitle": "Remove this worker?",
       "unassignDescription": "The worker is taken off this job. The job itself stays and can be staffed again.",
       "unassignConfirm": "Remove",
-      "unassignFailed": "The worker could not be removed."
+      "unassignFailed": "The worker could not be removed.",
+      "cancelledDay": "Cancelled · {date}",
+      "cancelledDayNoDate": "Cancelled",
+      "cancelledBooking": "Cancelled with the order · {date}",
+      "cancelledBookingNoDate": "Cancelled with the order",
+      "cancelledAuto": "Cancelled itself · {date}",
+      "cancelledAutoNoDate": "Cancelled itself"
     }
   },
   "orderFields": {
