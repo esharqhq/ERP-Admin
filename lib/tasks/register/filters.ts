@@ -190,8 +190,20 @@ export function staffingBucket(row: RegisterRow): StaffingBucket {
 
 export interface RegisterLookups {
   cityByProperty: ReadonlyMap<string, string>;
+  /**
+   * propertyId → its BOSS (`PropertyDto.bossOwnerUserId`). The Owner filter matches on this,
+   * not on the booking's `ownerId`: that is whoever booked — a MANAGER on the owner doors
+   * (`task-lifecycle.md` §0k·3) — while the server's own owner filter means "properties this
+   * owner is BOSS of" (`f-02a-1-admin-task-list-filters.md` §7).
+   */
+  bossByProperty: ReadonlyMap<string, string>;
   /** `useWalkInOwnerId()`: undefined while pending, null when there is none. */
   walkInOwnerId: string | null | undefined;
+}
+
+/** The owner a row files under: its property's BOSS, else (property not listed) whoever booked. */
+export function rowOwnerId(row: RegisterRow, lookups: RegisterLookups): string | null {
+  return lookups.bossByProperty.get(row.task.propertyId) ?? row.ownerId;
 }
 
 function num(value: string | undefined): number | null {
@@ -224,8 +236,9 @@ export function matchesRegister(
   const properties = parseMulti(values.property);
   if (properties.length && !properties.includes(row.task.propertyId)) return false;
   if (values.city && lookups.cityByProperty.get(row.task.propertyId) !== values.city) return false;
-  if (values.owner && row.ownerId !== values.owner) return false;
-  if (values.walkIn === "true" && (!lookups.walkInOwnerId || row.ownerId !== lookups.walkInOwnerId)) {
+  const owner = rowOwnerId(row, lookups);
+  if (values.owner && owner !== values.owner) return false;
+  if (values.walkIn === "true" && (!lookups.walkInOwnerId || owner !== lookups.walkInOwnerId)) {
     return false;
   }
 

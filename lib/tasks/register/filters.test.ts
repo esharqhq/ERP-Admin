@@ -7,7 +7,11 @@ import {
 import type { RegisterRow } from "@/lib/tasks/register/rows";
 
 const TODAY = "2026-09-27"; // a Sunday
-const lookups: RegisterLookups = { cityByProperty: new Map([["p-1", "c-berlin"]]), walkInOwnerId: "o-walk" };
+const lookups: RegisterLookups = {
+  cityByProperty: new Map([["p-1", "c-berlin"]]),
+  bossByProperty: new Map(),
+  walkInOwnerId: "o-walk",
+};
 
 function row(over: Partial<RegisterRow> = {}): RegisterRow {
   return {
@@ -218,5 +222,25 @@ describe("tilePatch", () => {
     expect(tilePatch("overdue", "2026-09-29")).toEqual({
       tab: "", overdue: "true", from: "2026-09-27", to: "2026-09-29", week: "", view: "",
     });
+  });
+});
+
+describe("Owner filter — the property's BOSS, not whoever booked (§0k·3, f-02a-1 §7)", () => {
+  const boss = "boss-1";
+  const manager = "manager-9";
+  const lk: RegisterLookups = { ...lookups, bossByProperty: new Map([["p-1", boss]]) };
+  const at = (propertyId: string, ownerId: string) =>
+    row({ task: { id: "t-1", propertyId, propertyName: "Sonnenhof", requiredWorkerCount: 2 } as RegisterRow["task"], ownerId });
+  it("keeps a booking a manager made at the BOSS's property", () => {
+    expect(matchesRegister(at("p-1", manager), { owner: boss }, lk)).toBe(true);
+  });
+  it("drops it for the manager's own id — they own no property", () => {
+    expect(matchesRegister(at("p-1", manager), { owner: manager }, lk)).toBe(false);
+  });
+  it("falls back to ownerId when the property is not in the list", () => {
+    expect(matchesRegister(at("p-unknown", boss), { owner: boss }, lk)).toBe(true);
+  });
+  it("the walk-in filter uses the same match", () => {
+    expect(matchesRegister(at("p-1", manager), { walkIn: "true" }, { ...lk, walkInOwnerId: boss })).toBe(true);
   });
 });
