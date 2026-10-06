@@ -2133,7 +2133,6 @@
         "closed": "Abgeschlossen",
         "beforeStart": "vor Beginn",
         "skipped": "übersprungen",
-        "about": "etwa {time}",
         "auto": "automatisch ≈ {time}"
       },
       "today": "heute",

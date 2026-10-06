@@ -7,7 +7,7 @@ import {
 } from "@/lib/tasks/detail/day-time";
 import { activeWorkers } from "@/lib/tasks/staffing";
 import { canonicalTaskStatus, type TaskStateKey } from "@/lib/tasks/status-vocab";
-import type { TaskComplaintDto, TaskItemDto } from "@/lib/types/task.types";
+import type { TaskItemDto } from "@/lib/types/task.types";
 
 /** The six day states plus `unknown`: the set is not closed (spec §4.1). */
 export type DayTone = TaskStateKey | "unknown";
@@ -133,7 +133,6 @@ export type StepState = "ok" | "current" | "todo" | "bad" | "badOpen" | "skip" |
 
 export type StepTime =
   | { kind: "at"; at: number }
-  | { kind: "about"; at: number }
   | { kind: "auto"; at: number }
   | { kind: "beforeStart" }
   | { kind: "skipped" }
@@ -152,25 +151,9 @@ function atTime(iso: string | null | undefined): StepTime {
   return t === null ? NONE : { kind: "at", at: t };
 }
 
-/**
- * Step 4's time on a Done day. There is no `closedAt` (spec §2 #2), so only two
- * reasons have one: AutoAccepted (≈ hand-in + 5 h) and ClosedReplacement (the
- * ruling, from the per-day complaint read).
- */
-function closedTime(task: TaskItemDto, complaint: TaskComplaintDto | null | undefined): StepTime {
-  if (task.closureReason === "AutoAccepted") {
-    const t = autoAcceptAt(task);
-    return t === null ? NONE : { kind: "about", at: t };
-  }
-  if (task.closureReason === "ClosedReplacement") return atTime(complaint?.decidedAt);
-  return NONE;
-}
 
 /** Scheduled → Checked in → Handed in → Closed — spec §4.2. Always four steps. */
-export function daySteps(
-  task: TaskItemDto,
-  complaint: TaskComplaintDto | null | undefined,
-): DayStep[] {
+export function daySteps(task: TaskItemDto): DayStep[] {
   const step = (key: string, state: StepState, time: StepTime = NONE): DayStep => ({
     label: { key },
     state,
@@ -212,13 +195,23 @@ export function daySteps(
         handed === null
           ? step("handedIn", "skip", { kind: "skipped" })
           : step("handedIn", "ok", { kind: "at", at: handed }),
-        { label: closureLabel(task.closureReason), state: "ok", time: closedTime(task, complaint) },
+        // The server's `closedAt` on every road (§0k·1). `null` (an owner-accepted day closed
+        // before 2026-10-06) reads "–" — never estimated from `completedAt`.
+        { label: closureLabel(task.closureReason), state: "ok", time: atTime(task.closedAt) },
       ];
     }
     case "cancelled":
       return [
         scheduled("ok"),
-        step("cancelled", "cancel", task.startedAt ? atTime(task.startedAt) : { kind: "beforeStart" }),
+        step(
+          "cancelled",
+          "cancel",
+          task.cancelledAt
+            ? atTime(task.cancelledAt)
+            : task.startedAt
+              ? atTime(task.startedAt)
+              : { kind: "beforeStart" },
+        ),
         step("handedIn", "off"),
         step("closed", "off"),
       ];
