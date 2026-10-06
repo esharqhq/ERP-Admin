@@ -27,11 +27,11 @@ only for what it says.
 | | |
 |---|---|
 | **Last full pass** | **2026-09-25 — full audit**, every admin-panel guide and every CHANGELOG entry naming one, read at `origin/main` **`692bd26`** ([§4](#2026-09-25--full-audit-of-every-admin-panel-guide)) |
-| **CHANGELOG reviewed through** | **2026-10-03** — the demo-seed entry (data only; nothing to build on any admin screen); nothing newer at `26f57e1` |
+| **CHANGELOG reviewed through** | **2026-10-06** — `day-close-cancel-facts` (read and actioned on Task Detail, [§4](#2026-10-06--day-close-cancel-facts-on-task-detail)); nothing newer at `767b3e6` |
 | **Actioned through** | **Per guide, in §2.** A single date would lie: ten guides are fully absorbed (as of 2026-09-25, after WP0–WP2), the rest carry open packages in §3. |
 | **Oldest `Absorbed to`** | **2026-07-01** (`support-ticket-followup-fix`, `worker-doc-approved-delete-guard` — both verified, nothing to build). A return pass starts reading the CHANGELOG here. |
 | **Deployed?** | Yes. The live swagger (`api.uyer.app`, 2026-09-25) matches the guides: `GET /api/admin/owners` takes `CityId`/`CountryId` (no `companyCityId`); `OwnerRowDto` has no `companyCity`; `OwnerCompanyDto` has no city/country names; `AccountStatusFilter` = `Active,Pending,Deleted,Lapsed,Blocked`. ⚠ Swagger's `required` is empty for the whole schema — required-ness comes from source, not swagger. |
-| **Last HEAD check** | 2026-10-05, `origin/main` `26f57e1`. Commits touching `docs/handoff` or `index/` since `9de945d9`: the demo-seed close-out (`8538811`, `3b0c4b4`), a mind card (`2d4c43b`) and `385963e` (fix: owners — `isActive` enforced on the admin location edit; relevant to the WP2 remainder, not to tasks). No task contract moved. |
+| **Last HEAD check** | 2026-10-06, `origin/main` `767b3e6`. Commits touching `docs/handoff` or `index/` since `26f57e1`: `b6a45d1` + `d8ad68f`, the `day-close-cancel-facts` card (§0k, CHANGELOG, guidance rows, index/). |
 | **`verify-v2.mjs`** | ✅ **0 FAIL / 116 PASS (2026-09-25, swagger-only, after WP0–WP2).** It was 5 FAIL / 96 PASS before WP0: three were the script's own stale expectations, two were real app bugs (fixed in WP2). The logged-in half needs `ERP_ADMIN_EMAIL`/`ERP_ADMIN_PASSWORD` (WP10). |
 
 ---
@@ -52,10 +52,10 @@ guide is not current to it. Every row was audited; `—` no longer means "never 
 
 | Guide | Shape | Revision | Absorbed to | State | Open packages / note |
 |---|---|---|---|---|---|
-| `task-lifecycle.md` | companion set | 2026-09-25 | 2026-09-21 | ⚠ | WP6, WP11, WP10. The ·0 day-state rename was completed 2026-09-25 (WP1, §4). One living document for all thirteen F-07 slices; read its delta through CHANGELOG entries, never its own diff. §2 `canJoin`, §3 browse, §4 join, §5 drop are worker-app only. |
+| `task-lifecycle.md` | companion set | 2026-10-06 | 2026-09-21 | ⚠ | WP6, WP11, WP10. §0k (2026-10-06) absorbed on Task Detail (§4) — `Absorbed to` stays for the open packages. The ·0 day-state rename was completed 2026-09-25 (WP1, §4). One living document for all thirteen F-07 slices; read its delta through CHANGELOG entries, never its own diff. §2 `canJoin`, §3 browse, §4 join, §5 drop are worker-app only. |
 | `task-cancel-lifecycle-guards.md` | companion set | 2026-09-22 | 2026-07-01 | ⚠ | WP6 (group-cancel 409s unhandled). The `204` re-fetch is verified. |
 | `notification-bell.md` | companion set | 2026-09-22 | 2026-08-05 | ❌ | **WP3** — the 08-05 core rule (upsert by `id`) was never met. |
-| `f-02b-6-default-owner-walk-in-orders.md` | companion set | 2026-09-24 | 2026-08-12 | ⚠ | WP11 (clone). Everything else in the order form is verified. |
+| `f-02b-6-default-owner-walk-in-orders.md` | companion set | 2026-10-06 | 2026-08-12 | ⚠ | WP11 (clone). 2026-10-06: the §3.2 empty-`propertyName` quirk is gone; our fallbacks only fire on `""` and stay harmless. Everything else in the order form is verified. |
 | `f-02a-1-admin-task-list-filters.md` | standalone | 2026-09-17 | 2026-08-10 | ⚠ | WP9 (no 500/5,000 cap signal). `scheduledFrom`/`scheduledTo`/`status` **are** sent; only `propertyId` and repeatable `status` are unbuilt (no consumer needs them). |
 | `f-06-c-checkin-proof.md` | companion set | 2026-09-23 | 2026-09-08 | ⚠ | WP6 (property dialogs skip problem-details — minor). Nothing can read a filed order's coordinates back — §4.2, upstream gap. |
 | `f-02c-property-rework.md` | companion set | 2026-09-23 | 2026-08-07 | ⚠ | **WP12** (09-23 ·9b property `countryId`/`cityId`). |
@@ -133,6 +133,12 @@ clone, and `kind`/`cityId` on the task DTOs. Add each one's routes and fields as
 MISSING: admin owner location edit on `PUT /api/owners/{id}` (`countryId`/`cityId`, pickers
 pre-selected, `city_country_mismatch`/`country_not_found`/`city_not_found`) — `lib/owners/detail-actions.ts:31-35`.
 A new form section; needs its own design.
+
+### §0k elsewhere — available, not owed (read 2026-10-06)
+
+`day-close-cancel-facts` is absorbed on Task Detail (§4). The same fields could also serve the Tasks register (close /
+cancel time in a row), the complaint page (`closedByAdminName` on a decided complaint) and the walk-in order sheet
+(`propertyAddress`). Nothing is wrong there today: each one is an improvement, not a fix.
 
 ### WP3 — Notification bell · ✅ done 2026-09-26 ([§4](#2026-09-26--wp3-the-bell-upserts-by-id-dedupes-pages-and-can-delete))
 
@@ -266,6 +272,26 @@ by every document viewer.
 ## 4. Pass log — newest first
 
 The record of what each pass **built** or **established**. What a pass read and did not build is in §3.
+
+### 2026-10-06 — day-close-cancel-facts on Task Detail
+
+Backend `26f57e1 → 767b3e6`. CHANGELOG 2026-10-06 (additive, affects admin-panel), `task-lifecycle.md` §0k —
+the backend's answer to all four of our 2026-10-05 asks. Plan:
+`docs/superpowers/plans/2026-10-06-day-close-cancel-facts.md`.
+
+| What changed | Where |
+|---|---|
+| `TaskItemDto` += `closedAt`, `closedByAdminId`, `closedByAdminName`, `closureNote`, `cancelledAt`, `cancellationReason`; `TaskGroupDto` += `propertyName`, `propertyAddress`, `bossOwnerName`; all gated in verify-v2 (live: ALL PASS) | `lib/types/task.types.ts`, `scripts/verify-v2.mjs` |
+| Timeline step 4 is the server's `closedAt` on every road; the `completedAt + 5 h` estimate and the `decidedAt` read are gone (§0k says do not estimate); a cancelled day's step 2 is `cancelledAt` | `lib/tasks/detail/day-view.ts` `daySteps` |
+| The alert quotes the closing admin — note, name, time — titled neutrally "Closed by an admin", since §0e records a complaint decided for the workers as `ClosedForced` too; upheld reads `closureNote` first; a cancelled day says how and when | `lib/tasks/detail/day-alert.ts`, `components/tasks/detail/day-alert.tsx` |
+| "This booking was cancelled on {date}" returns, read from the days that went with the booking (`BookingCancelled`); otherwise the neutral count | `lib/tasks/detail/booking-facts.ts` `bookingCancelledAt`, the page |
+| The header reads `bossOwnerName` · `propertyAddress` from the booking; the `usePropertyById`/`useOwner` reads are gone (§0k·3). The complaint is read only for a disputed day, or an upheld row the backfill did not reach | `app/[locale]/dashboard/tasks/[id]/page.tsx` |
+
+Verified in Chrome (SUPER_ADMIN, dev demo data): force-closed day quotes "[DEMO] Demo Operations" with its reason and
+time; auto-accepted day shows the server's 11:04 PM; a self-cancelled day says so with its date; the upheld task
+shows the decision without a complaint request; the page makes one task request (`/api/tasks/groups/{id}`).
+
+Not built (available, not owed — §3): the register, the complaint page and the walk-in sheet could show the same facts.
 
 ### 2026-10-05 — Task Detail (the booking page on the v2 detail design)
 

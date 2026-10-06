@@ -8,7 +8,7 @@ import {
   supervisorLabel,
 } from "@/lib/tasks/detail/day-view";
 import { AUTO_ACCEPT_MS } from "@/lib/tasks/detail/day-time";
-import { at, complaint, day, worker } from "@/lib/tasks/detail/fixtures";
+import { at, day, worker } from "@/lib/tasks/detail/fixtures";
 
 const NOW = at("2026-10-05T07:00:00");
 
@@ -83,10 +83,10 @@ describe("closureLabel", () => {
 });
 
 describe("daySteps — spec §4.2", () => {
-  const states = (task: Parameters<typeof daySteps>[0]) => daySteps(task, null).map((s) => s.state);
+  const states = (task: Parameters<typeof daySteps>[0]) => daySteps(task).map((s) => s.state);
 
   it("always has four steps", () => {
-    expect(daySteps(day({ status: "Paused" }), null)).toHaveLength(4);
+    expect(daySteps(day({ status: "Paused" }))).toHaveLength(4);
   });
   it("pending / checked in / in review", () => {
     expect(states(day())).toEqual(["current", "todo", "todo", "todo"]);
@@ -94,39 +94,46 @@ describe("daySteps — spec §4.2", () => {
     expect(states(day({ status: "InReview" }))).toEqual(["ok", "ok", "current", "todo"]);
   });
   it("in review shows the auto-accept time on step 4", () => {
-    const s = daySteps(day({ status: "InReview", completedAt: "2026-10-05T11:52:00" }), null);
+    const s = daySteps(day({ status: "InReview", completedAt: "2026-10-05T11:52:00" }));
     expect(s[3].time).toEqual({ kind: "auto", at: at("2026-10-05T11:52:00") + AUTO_ACCEPT_MS });
   });
   it("disputed", () => {
-    const s = daySteps(day({ status: "Rejected" }), null);
+    const s = daySteps(day({ status: "Rejected" }));
     expect(s.map((x) => x.state)).toEqual(["ok", "ok", "bad", "badOpen"]);
     expect(s[2].label).toEqual({ key: "handedInDisputed" });
     expect(s[3].label).toEqual({ key: "awaitingRuling" });
   });
   it("done with no hand-in (force-closed) skips step 3", () => {
-    const s = daySteps(day({ status: "Done", closureReason: "ClosedForced", completedAt: null }), null);
+    const s = daySteps(day({ status: "Done", closureReason: "ClosedForced", completedAt: null }));
     expect(s.map((x) => x.state)).toEqual(["ok", "ok", "skip", "ok"]);
     expect(s[2].time).toEqual({ kind: "skipped" });
     expect(s[3].time).toEqual({ kind: "none" });
     expect(s[3].label).toEqual({ key: "ClosedForced" });
   });
-  it("done · auto-accepted: 'about' hand-in + 5 h", () => {
-    const s = daySteps(day({ status: "Done", closureReason: "AutoAccepted", completedAt: "2026-09-30T11:40:00" }), null);
-    expect(s[3].time).toEqual({ kind: "about", at: at("2026-09-30T11:40:00") + AUTO_ACCEPT_MS });
+  it("done: step 4 is the server's closedAt on every road (§0k·1)", () => {
+    for (const closureReason of ["AutoAccepted", "ClosedReplacement", "ClosedForced", "OwnerAccepted"]) {
+      const s = daySteps(
+        day({ status: "Done", closureReason, completedAt: "2026-09-30T11:40:00", closedAt: "2026-09-30T16:41:00" }),
+      );
+      expect(s[3].time).toEqual({ kind: "at", at: at("2026-09-30T16:41:00") });
+    }
   });
-  it("done · upheld: the ruling time, only when the complaint is loaded", () => {
-    const t = day({ status: "Done", closureReason: "ClosedReplacement", completedAt: "2026-10-02T11:52:00" });
-    expect(daySteps(t, null)[3].time).toEqual({ kind: "none" });
-    expect(daySteps(t, complaint({ decidedAt: "2026-10-02T15:10:00" }))[3].time).toEqual({ kind: "at", at: at("2026-10-02T15:10:00") });
+  it("done · owner-accepted before 2026-10-06 has closedAt null → no time, never an estimate", () => {
+    const s = daySteps(day({ status: "Done", closureReason: "OwnerAccepted", completedAt: "2026-09-29T11:48:00", closedAt: null }));
+    expect(s[3].time).toEqual({ kind: "none" });
   });
-  it("done · owner-accepted has no close time (no closedAt on the DTO)", () => {
-    const s = daySteps(day({ status: "Done", closureReason: "OwnerAccepted", completedAt: "2026-09-29T11:48:00" }), null);
+  it("done · auto-accepted with no closedAt is not estimated from the hand-in", () => {
+    const s = daySteps(day({ status: "Done", closureReason: "AutoAccepted", completedAt: "2026-09-30T11:40:00" }));
     expect(s[3].time).toEqual({ kind: "none" });
   });
   it("cancelled before start", () => {
-    const s = daySteps(day({ status: "Cancelled" }), null);
+    const s = daySteps(day({ status: "Cancelled" }));
     expect(s.map((x) => x.state)).toEqual(["ok", "cancel", "off", "off"]);
     expect(s[1].time).toEqual({ kind: "beforeStart" });
+  });
+  it("cancelled: step 2 carries cancelledAt when the server has it", () => {
+    const s = daySteps(day({ status: "Cancelled", cancelledAt: "2026-10-03T09:12:00" }));
+    expect(s[1].time).toEqual({ kind: "at", at: at("2026-10-03T09:12:00") });
   });
 });
 
@@ -148,5 +155,15 @@ describe("supervisorLabel — spec §4.4", () => {
     expect(supervisorLabel(day())).toEqual({ kind: "notYet" });
     expect(supervisorLabel(day({ status: "Cancelled" }))).toEqual({ kind: "dash" });
     expect(supervisorLabel(day({ status: "Done" }))).toEqual({ kind: "none" });
+  });
+});
+
+describe("dayNote — a cancelled day says which road (§0k·2)", () => {
+  it("maps the three roads and leaves anything else generic", () => {
+    const n = (cancellationReason: string | null) => dayNote(day({ status: "Cancelled", cancellationReason }), 0);
+    expect(n("BookingCancelled")).toEqual({ key: "cancelled", how: "booking", tone: "muted" });
+    expect(n("AutoCancelled")).toMatchObject({ how: "auto" });
+    expect(n("DayCancelled")).toMatchObject({ how: "day" });
+    expect(n("Other")).toMatchObject({ how: null });
   });
 });

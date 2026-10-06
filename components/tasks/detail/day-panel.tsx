@@ -128,7 +128,7 @@ export function DayPanel({
         </div>
       </div>
 
-      <DayTimeline task={task} complaint={complaint} locale={locale} />
+      <DayTimeline task={task} locale={locale} />
       <DayAlertBox task={task} complaint={complaint} now={now} locale={locale} />
 
       <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">

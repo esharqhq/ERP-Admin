@@ -6,6 +6,7 @@ import {
   windowEndAt,
   workerLabel,
 } from "@/lib/tasks/detail/day-time";
+import { cancelHow, type CancelHow } from "@/lib/tasks/detail/day-view";
 import { activeWorkers } from "@/lib/tasks/staffing";
 import { canonicalTaskStatus } from "@/lib/tasks/status-vocab";
 import type { TaskComplaintDto, TaskItemDto } from "@/lib/types/task.types";
@@ -22,15 +23,15 @@ export type DayAlert =
   | { kind: "late"; tone: "warning"; names: string[]; minutes: number }
   | { kind: "startPassed"; tone: "warning"; cancelsAt: number | null }
   | { kind: "waitingOwner"; tone: "warning"; handedAt: number | null; autoAt: number | null }
-  | { kind: "upheld"; tone: "critical"; note: string | null; decidedAt: number | null }
-  | { kind: "forced"; tone: "neutral" }
-  | { kind: "autoAccepted"; tone: "neutral" }
+  | { kind: "upheld"; tone: "critical"; note: string | null; by: string | null; at: number | null }
+  | { kind: "forced"; tone: "neutral"; note: string | null; by: string | null; at: number | null }
+  | { kind: "autoAccepted"; tone: "neutral"; at: number | null }
   | { kind: "legacyClosed"; tone: "neutral" }
   | { kind: "unknownReason"; tone: "neutral"; reason: string }
   | { kind: "noWorkers"; tone: "critical"; required: number; startsAt: number | null }
   | { kind: "understaffed"; tone: "warning"; open: number; required: number; startsAt: number | null }
   | { kind: "ready"; tone: "positive"; required: number }
-  | { kind: "cancelled"; tone: "neutral" };
+  | { kind: "cancelled"; tone: "neutral"; how: CancelHow | null; at: number | null };
 
 export function dayAlert(
   task: TaskItemDto,
@@ -93,24 +94,35 @@ export function dayAlert(
         case "OwnerAccepted":
           return null;
         case "AutoAccepted":
-          return { kind: "autoAccepted", tone: "neutral" };
+          return { kind: "autoAccepted", tone: "neutral", at: instant(task.closedAt) };
         case "ClosedForced":
-          // The admin's reason is not on any DTO (spec §2 #1) — not quoted.
-          return { kind: "forced", tone: "neutral" };
+          // §0k·1: the admin's words, name and time. ⚠ Also the shape of a complaint
+          // decided for the workers (§0e: SidedWithWorker → ClosedForced), so the
+          // wording stays neutral — "closed by an admin", not "force-closed".
+          return {
+            kind: "forced",
+            tone: "neutral",
+            note: task.closureNote?.trim() || null,
+            by: task.closedByAdminName?.trim() || null,
+            at: instant(task.closedAt),
+          };
         case "ClosedReplacement":
+          // The server's facts first; the complaint read only fills a row closed
+          // before the 2026-10-06 backfill reached it.
           return {
             kind: "upheld",
             tone: "critical",
-            note: complaint?.decisionNote?.trim() || null,
-            decidedAt: instant(complaint?.decidedAt),
+            note: task.closureNote?.trim() || complaint?.decisionNote?.trim() || null,
+            by: task.closedByAdminName?.trim() || null,
+            at: instant(task.closedAt) ?? instant(complaint?.decidedAt),
           };
         default:
           return { kind: "unknownReason", tone: "neutral", reason: task.closureReason };
       }
 
     case "cancelled":
-      // No date, no actor: neither is on any DTO (spec §2 #3).
-      return { kind: "cancelled", tone: "neutral" };
+      // §0k·2: when, and which road — never the owner's typed reason.
+      return { kind: "cancelled", tone: "neutral", how: cancelHow(task.cancellationReason), at: instant(task.cancelledAt) };
 
     default:
       return null;

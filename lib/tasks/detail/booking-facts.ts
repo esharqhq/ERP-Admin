@@ -36,6 +36,19 @@ export function isNothingLeftToRun(group: Pick<TaskGroupDto, "days">): boolean {
   return d.cancelled > 0 && d.pending === 0 && d.checkedIn === 0 && d.inReview === 0 && d.rejected === 0;
 }
 
+/**
+ * When the booking itself was cancelled — §0k·2: there is no booking-level field,
+ * so it is read from the days that went WITH the booking (`BookingCancelled`).
+ * Days cancelled on their own or by the timer do not count. `null` when none did.
+ */
+export function bookingCancelledAt(tasks: TaskItemDto[]): number | null {
+  const times = tasks
+    .filter((t) => t.cancellationReason === "BookingCancelled")
+    .map((t) => instant(t.cancelledAt))
+    .filter((t): t is number => t !== null);
+  return times.length ? Math.max(...times) : null;
+}
+
 export type WindowFact =
   | { kind: "same"; start: number; end: number | null }
   | { kind: "varies" }

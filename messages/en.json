@@ -2114,7 +2114,9 @@
         "waitingOwner": "Waiting for owner",
         "disputed": "Owner complaint — needs ruling",
         "noReason": "Closed · no reason saved",
-        "cancelled": "Cancelled"
+        "cancelledBooking": "With the booking",
+        "cancelledAuto": "Cancelled itself",
+        "cancelledDay": "Cancelled"
       },
       "closure": {
         "OwnerAccepted": "Accepted by owner",
@@ -2133,7 +2135,6 @@
         "closed": "Closed",
         "beforeStart": "before start",
         "skipped": "skipped",
-        "about": "about {time}",
         "auto": "auto ≈ {time}"
       },
       "today": "today",
@@ -2164,15 +2165,23 @@
           "title": "Complaint upheld",
           "text": "A replacement visit is owed — plan it as a new order.",
           "decided": "Decided {date}: “{note}”",
-          "decidedNoNote": "Decided {date}."
+          "decidedNoNote": "Decided {date}.",
+          "decidedBy": "Decided {date} by {by}: “{note}”",
+          "decidedByNoNote": "Decided {date} by {by}."
         },
         "forced": {
-          "title": "Force-closed by an admin",
-          "text": "Workers and the owner were notified with the reason."
+          "title": "Closed by an admin",
+          "reason": "Reason: “{note}”",
+          "noReason": "No reason was recorded",
+          "byAt": "— {by}, {time}",
+          "by": "— {by}",
+          "at": "· {time}",
+          "text": "Workers and the owner were notified."
         },
         "autoAccepted": {
           "title": "Auto-accepted",
-          "text": "The owner didn't review within 5 hours, so the day closed by itself."
+          "text": "The owner didn't review within 5 hours, so the day closed by itself.",
+          "textAt": "The owner didn't review within 5 hours, so the day closed by itself at {time}."
         },
         "legacyClosed": {
           "title": "Closed",
@@ -2192,7 +2201,13 @@
         },
         "cancelled": {
           "title": "Day cancelled",
-          "text": "Assigned workers were released."
+          "text": "Assigned workers were released.",
+          "day": "This day was cancelled on {date}.",
+          "dayNoDate": "This day was cancelled.",
+          "booking": "Cancelled with the whole booking on {date}.",
+          "bookingNoDate": "Cancelled with the whole booking.",
+          "auto": "Nobody started it within its work window, so it cancelled itself on {date}.",
+          "autoNoDate": "Nobody started it within its work window, so it cancelled itself."
         }
       },
       "supervisor": "Supervisor",
@@ -2233,7 +2248,8 @@
         "notFoundText": "It may have been deleted, or the link is wrong.",
         "forbiddenTitle": "You can't open this booking",
         "forbiddenText": "Your role doesn't include booking details. Ask a super admin for access."
-      }
+      },
+      "bookingCancelled": "This booking was cancelled on {date}. Finished days keep their status; the remaining days were cancelled. You can still copy it as a new order."
     },
     "actions": {
       "cancelGroup": "Cancel Group",

@@ -4,7 +4,7 @@ import { Check, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { formatHm } from "@/lib/tasks/detail/day-time";
 import { daySteps, type Label, type StepState, type StepTime } from "@/lib/tasks/detail/day-view";
-import type { TaskComplaintDto, TaskItemDto } from "@/lib/types/task.types";
+import type { TaskItemDto } from "@/lib/types/task.types";
 import { cn } from "@/lib/utils";
 
 const DOT: Record<StepState, string> = {
@@ -51,15 +51,13 @@ const CLOSURE_KEYS: ReadonlySet<string> = new Set([
 /** Scheduled → Checked in → Handed in → Closed; vertical below 768px. */
 export function DayTimeline({
   task,
-  complaint,
   locale,
 }: {
   task: TaskItemDto;
-  complaint: TaskComplaintDto | null;
   locale: string;
 }) {
   const t = useTranslations("tasks.detail");
-  const steps = daySteps(task, complaint);
+  const steps = daySteps(task);
 
   // `closureLabel(null)` is `{ key: "closed" }` → `steps.closed` ("Closed"), never "Accepted".
   const label = (l: Label) =>
@@ -68,8 +66,6 @@ export function DayTimeline({
     switch (s.kind) {
       case "at":
         return formatHm(s.at, locale);
-      case "about":
-        return t("steps.about", { time: formatHm(s.at, locale) });
       case "auto":
         return t("steps.auto", { time: formatHm(s.at, locale) });
       case "beforeStart":

@@ -2114,7 +2114,9 @@
         "waitingOwner": "Wartet auf den Eigentümer",
         "disputed": "Beschwerde — Entscheidung nötig",
         "noReason": "Abgeschlossen · kein Grund gespeichert",
-        "cancelled": "Storniert"
+        "cancelledBooking": "Mit der Buchung",
+        "cancelledAuto": "Selbst storniert",
+        "cancelledDay": "Storniert"
       },
       "closure": {
         "OwnerAccepted": "Vom Eigentümer angenommen",
@@ -2133,7 +2135,6 @@
         "closed": "Abgeschlossen",
         "beforeStart": "vor Beginn",
         "skipped": "übersprungen",
-        "about": "etwa {time}",
         "auto": "automatisch ≈ {time}"
       },
       "today": "heute",
@@ -2164,15 +2165,23 @@
           "title": "Beschwerde stattgegeben",
           "text": "Ein Ersatzeinsatz ist fällig — planen Sie ihn als neuen Auftrag.",
           "decided": "Entschieden {date}: „{note}“",
-          "decidedNoNote": "Entschieden {date}."
+          "decidedNoNote": "Entschieden {date}.",
+          "decidedBy": "Entschieden {date} von {by}: „{note}“",
+          "decidedByNoNote": "Entschieden {date} von {by}."
         },
         "forced": {
-          "title": "Vom Admin erzwungen abgeschlossen",
-          "text": "Kräfte und Eigentümer wurden mit dem Grund benachrichtigt."
+          "title": "Von einem Admin abgeschlossen",
+          "reason": "Grund: „{note}“",
+          "noReason": "Kein Grund erfasst",
+          "byAt": "— {by}, {time}",
+          "by": "— {by}",
+          "at": "· {time}",
+          "text": "Kräfte und Eigentümer wurden benachrichtigt."
         },
         "autoAccepted": {
           "title": "Automatisch angenommen",
-          "text": "Der Eigentümer hat nicht innerhalb von 5 Stunden geprüft, daher wurde der Tag selbst abgeschlossen."
+          "text": "Der Eigentümer hat nicht innerhalb von 5 Stunden geprüft, daher wurde der Tag selbst abgeschlossen.",
+          "textAt": "Der Eigentümer hat nicht innerhalb von 5 Stunden geprüft, daher wurde der Tag um {time} selbst abgeschlossen."
         },
         "legacyClosed": {
           "title": "Abgeschlossen",
@@ -2192,7 +2201,13 @@
         },
         "cancelled": {
           "title": "Tag storniert",
-          "text": "Zugewiesene Kräfte wurden freigegeben."
+          "text": "Zugewiesene Kräfte wurden freigegeben.",
+          "day": "Dieser Tag wurde am {date} storniert.",
+          "dayNoDate": "Dieser Tag wurde storniert.",
+          "booking": "Mit der ganzen Buchung am {date} storniert.",
+          "bookingNoDate": "Mit der ganzen Buchung storniert.",
+          "auto": "Niemand hat ihn im Arbeitsfenster begonnen, daher hat er sich am {date} selbst storniert.",
+          "autoNoDate": "Niemand hat ihn im Arbeitsfenster begonnen, daher hat er sich selbst storniert."
         }
       },
       "supervisor": "Verantwortliche Kraft",
@@ -2233,7 +2248,8 @@
         "notFoundText": "Sie wurde möglicherweise gelöscht, oder der Link ist falsch.",
         "forbiddenTitle": "Sie können diese Buchung nicht öffnen",
         "forbiddenText": "Ihre Rolle umfasst keine Buchungsdetails. Bitten Sie einen Super-Admin um Zugriff."
-      }
+      },
+      "bookingCancelled": "Diese Buchung wurde am {date} storniert. Abgeschlossene Tage behalten ihren Status; die übrigen Tage wurden storniert. Sie können sie weiterhin als neuen Auftrag kopieren."
     },
     "actions": {
       "cancelGroup": "Gruppe abbrechen",

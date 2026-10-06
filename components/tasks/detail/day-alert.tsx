@@ -47,6 +47,10 @@ export function DayAlertBox({
   const hm = (ms: number | null) => (ms === null ? "–" : formatHm(ms, locale));
   const dt = (ms: number | null) =>
     ms === null ? "–" : new Date(ms).toLocaleString(locale, { dateStyle: "medium", timeStyle: "short" });
+  const day = (ms: number) => new Date(ms).toLocaleDateString(locale, { dateStyle: "medium" });
+  // "— D. Krüger, 1 Oct 2026, 13:05" from whichever parts the server sent (§0k·1).
+  const byAt = (by: string | null, at: number | null) =>
+    by && at !== null ? t("forced.byAt", { by, time: dt(at) }) : by ? t("forced.by", { by }) : at !== null ? t("forced.at", { time: dt(at) }) : "";
 
   const words = (a: DayAlert): { title: string; text: string | null } => {
     switch (a.kind) {
@@ -70,18 +74,27 @@ export function DayAlertBox({
           text: t("waitingOwner.text", { handed: hm(a.handedAt), auto: hm(a.autoAt) }),
         };
       case "upheld": {
+        const date = a.at === null ? null : dt(a.at);
         const decided =
-          a.decidedAt === null
-            ? ""
+          date === null
+            ? a.note
+              ? `“${a.note}” `
+              : ""
             : a.note
-              ? `${t("upheld.decided", { date: dt(a.decidedAt), note: a.note })} `
-              : `${t("upheld.decidedNoNote", { date: dt(a.decidedAt) })} `;
+              ? `${a.by ? t("upheld.decidedBy", { date, by: a.by, note: a.note }) : t("upheld.decided", { date, note: a.note })} `
+              : `${a.by ? t("upheld.decidedByNoNote", { date, by: a.by }) : t("upheld.decidedNoNote", { date })} `;
         return { title: t("upheld.title"), text: `${decided}${t("upheld.text")}` };
       }
-      case "forced":
-        return { title: t("forced.title"), text: t("forced.text") };
+      case "forced": {
+        const reason = a.note ? t("forced.reason", { note: a.note }) : t("forced.noReason");
+        const tail = byAt(a.by, a.at);
+        return { title: t("forced.title"), text: `${reason}${tail ? ` ${tail}` : ""}. ${t("forced.text")}` };
+      }
       case "autoAccepted":
-        return { title: t("autoAccepted.title"), text: t("autoAccepted.text") };
+        return {
+          title: t("autoAccepted.title"),
+          text: a.at === null ? t("autoAccepted.text") : t("autoAccepted.textAt", { time: hm(a.at) }),
+        };
       case "legacyClosed":
         return { title: t("legacyClosed.title"), text: t("legacyClosed.text") };
       case "unknownReason":
@@ -98,8 +111,12 @@ export function DayAlertBox({
         };
       case "ready":
         return { title: t("ready.title"), text: t("ready.text", { required: a.required }) };
-      case "cancelled":
-        return { title: t("cancelled.title"), text: t("cancelled.text") };
+      case "cancelled": {
+        // §0k·2 — the road and the date; an unknown road reads as a plain cancel.
+        const how = a.how ?? "day";
+        const first = a.at === null ? t(`cancelled.${how}NoDate`) : t(`cancelled.${how}`, { date: day(a.at) });
+        return { title: t("cancelled.title"), text: `${first} ${t("cancelled.text")}` };
+      }
     }
   };
 

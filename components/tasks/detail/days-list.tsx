@@ -47,6 +47,12 @@ export function DaysList({
         const l = closureLabel(n.reason ?? null);
         return "raw" in l ? l.raw : t(`closure.${l.key}`);
       }
+      case "cancelled":
+        return n.how === "booking"
+          ? t("notes.cancelledBooking")
+          : n.how === "auto"
+            ? t("notes.cancelledAuto")
+            : t("notes.cancelledDay");
       case "none":
         return "–";
       default:
