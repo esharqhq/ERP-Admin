@@ -359,10 +359,10 @@ function JobRow({
           .filter(Boolean)
           .join(" · ")
       : (() => {
-          const how = ending.how === "booking" ? "Booking" : ending.how === "auto" ? "Auto" : "Day";
+          const how = ending.how ?? "day";
           return ending.at === null
-            ? t(`cancelled${how}NoDate`)
-            : t(`cancelled${how}`, { date: new Date(ending.at).toLocaleDateString(locale, { dateStyle: "medium" }) });
+            ? t(`cancelledHow.${how}NoDate`)
+            : t(`cancelledHow.${how}`, { date: new Date(ending.at).toLocaleDateString(locale, { dateStyle: "medium" }) });
         })();
   // Only open tasks may be staffed from here. The backend has no date or status
   // guard on admin-assign (GT_AdminFillHasNoDateOrStatusGuard) — it would happily
