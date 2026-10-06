@@ -1325,7 +1325,15 @@
       "unassignTitle": "Diesen Mitarbeiter entfernen?",
       "unassignDescription": "Der Mitarbeiter wird von diesem Job entfernt. Der Job bleibt bestehen und kann neu besetzt werden.",
       "unassignConfirm": "Entfernen",
-      "unassignFailed": "Der Mitarbeiter konnte nicht entfernt werden."
+      "unassignFailed": "Der Mitarbeiter konnte nicht entfernt werden.",
+      "cancelledHow": {
+        "day": "Storniert · {date}",
+        "dayNoDate": "Storniert",
+        "booking": "Mit dem Auftrag storniert · {date}",
+        "bookingNoDate": "Mit dem Auftrag storniert",
+        "auto": "Selbst storniert · {date}",
+        "autoNoDate": "Selbst storniert"
+      }
     }
   },
   "orderFields": {
@@ -2638,7 +2646,8 @@
       "decidedWorker": "Entschieden für die Mitarbeiter",
       "decidedOther": "Entschieden",
       "decidedAt": "am {time}",
-      "note": "Hinweis"
+      "note": "Hinweis",
+      "decidedBy": "von {name}"
     },
     "dialog": {
       "titleOwner": "Für den Eigentümer entscheiden?",

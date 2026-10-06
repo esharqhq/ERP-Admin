@@ -1325,7 +1325,15 @@
       "unassignTitle": "Remove this worker?",
       "unassignDescription": "The worker is taken off this job. The job itself stays and can be staffed again.",
       "unassignConfirm": "Remove",
-      "unassignFailed": "The worker could not be removed."
+      "unassignFailed": "The worker could not be removed.",
+      "cancelledHow": {
+        "day": "Cancelled · {date}",
+        "dayNoDate": "Cancelled",
+        "booking": "Cancelled with the order · {date}",
+        "bookingNoDate": "Cancelled with the order",
+        "auto": "Cancelled itself · {date}",
+        "autoNoDate": "Cancelled itself"
+      }
     }
   },
   "orderFields": {
@@ -2638,7 +2646,8 @@
       "decidedWorker": "Decided for the workers",
       "decidedOther": "Decided",
       "decidedAt": "on {time}",
-      "note": "Note"
+      "note": "Note",
+      "decidedBy": "by {name}"
     },
     "dialog": {
       "titleOwner": "Decide for the owner?",

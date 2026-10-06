@@ -136,9 +136,8 @@ A new form section; needs its own design.
 
 ### §0k elsewhere — available, not owed (read 2026-10-06)
 
-`day-close-cancel-facts` is absorbed on Task Detail (§4). The same fields could also serve the Tasks register (close /
-cancel time in a row), the complaint page (`closedByAdminName` on a decided complaint) and the walk-in order sheet
-(`propertyAddress`). Nothing is wrong there today: each one is an improvement, not a fix.
+`day-close-cancel-facts` is absorbed on Task Detail, the complaint page and the walk-in sheet, and it exposed the
+register Owner-filter bug, now fixed (§4). Still available, not owed: close/cancel times in register rows.
 
 ### WP3 — Notification bell · ✅ done 2026-09-26 ([§4](#2026-09-26--wp3-the-bell-upserts-by-id-dedupes-pages-and-can-delete))
 
@@ -272,6 +271,21 @@ by every document viewer.
 ## 4. Pass log — newest first
 
 The record of what each pass **built** or **established**. What a pass read and did not build is in §3.
+
+### 2026-10-06 — §0k carried to the register, complaint page and walk-in sheet
+
+No backend move (still `767b3e6`). Plan: `docs/superpowers/plans/2026-10-06-close-facts-other-screens.md`.
+
+| What changed | Where |
+|---|---|
+| **Bug fixed:** the register's Owner filter (and its Walk-in toggle) matched the booking's `ownerId` — whoever booked, a MANAGER on the owner doors (§0k·3) — so filtering by a property's owner hid every booking a manager made there. It now matches the property's BOSS (`PropertyDto.bossOwnerUserId`, from the property list the register already loads), falling back to `ownerId` for a property not in the list; the same semantics as the server's `?ownerUserId` (`f-02a-1` §7) | `lib/tasks/register/filters.ts` `rowOwnerId`, `hooks/use-task-register.ts` |
+| A decided complaint names the deciding admin (`closedByAdminName`, admin tokens) | `components/complaints/complaint-decision-card.tsx` |
+| A finished or cancelled walk-in job says how and when it ended (`dayEnding`: closure label + `closedAt`, or the cancel road + `cancelledAt`); the sheet header reads the booking's `propertyName` | `lib/tasks/detail/day-view.ts`, `components/walk-in/walk-in-order-sheet.tsx` |
+
+Verified in Chrome (SUPER_ADMIN, dev demo data): the complaint card reads "… · by [DEMO] Demo Operations"; walk-in jobs
+read "Force-closed by admin · 03:34 PM" and "Cancelled itself · Sep 21, 2026". ⚠ The Owner-filter fix cannot be seen on
+the demo data — none of its 40 bookings was made by a non-BOSS (checked against the property list) — so it rests on
+its tests (`filters.test.ts`, the BOSS/manager cases).
 
 ### 2026-10-06 — day-close-cancel-facts on Task Detail
 

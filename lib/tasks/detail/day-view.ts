@@ -147,6 +147,23 @@ export function closureLabel(reason: string | null): Label {
   return KNOWN_CLOSURES.has(reason) ? { key: reason } : { raw: reason };
 }
 
+/** How a finished day ended, as one compact line (the walk-in sheet's job rows) — §0k. */
+export type DayEnding =
+  | { kind: "closed"; label: Label; at: number | null }
+  | { kind: "cancelled"; how: CancelHow | null; at: number | null };
+
+/** `null` while the day is open, or in a state this panel does not know. */
+export function dayEnding(task: TaskItemDto): DayEnding | null {
+  switch (canonicalTaskStatus(task.status)) {
+    case "done":
+      return { kind: "closed", label: closureLabel(task.closureReason), at: instant(task.closedAt) };
+    case "cancelled":
+      return { kind: "cancelled", how: cancelHow(task.cancellationReason), at: instant(task.cancelledAt) };
+    default:
+      return null;
+  }
+}
+
 export type StepState = "ok" | "current" | "todo" | "bad" | "badOpen" | "skip" | "cancel" | "off";
 
 export type StepTime =

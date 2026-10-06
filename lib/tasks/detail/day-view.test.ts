@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   closureLabel,
+  dayEnding,
   dayNote,
   dayStaffing,
   daySteps,
@@ -165,5 +166,27 @@ describe("dayNote — a cancelled day says which road (§0k·2)", () => {
     expect(n("AutoCancelled")).toMatchObject({ how: "auto" });
     expect(n("DayCancelled")).toMatchObject({ how: "day" });
     expect(n("Other")).toMatchObject({ how: null });
+  });
+});
+
+describe("dayEnding — a one-line ending for compact rows (§0k)", () => {
+  it("a done day: its closure label and closedAt", () => {
+    expect(dayEnding(day({ status: "Done", closureReason: "AutoAccepted", closedAt: "2026-09-30T16:41:00" }))).toEqual({
+      kind: "closed",
+      label: { key: "AutoAccepted" },
+      at: at("2026-09-30T16:41:00"),
+    });
+  });
+  it("a legacy done day: 'closed', no time", () => {
+    expect(dayEnding(day({ status: "Done" }))).toEqual({ kind: "closed", label: { key: "closed" }, at: null });
+  });
+  it("a cancelled day: the road and cancelledAt", () => {
+    expect(
+      dayEnding(day({ status: "Cancelled", cancellationReason: "BookingCancelled", cancelledAt: "2026-10-03T09:00:00" })),
+    ).toEqual({ kind: "cancelled", how: "booking", at: at("2026-10-03T09:00:00") });
+  });
+  it("an open or unknown day: null", () => {
+    expect(dayEnding(day())).toBeNull();
+    expect(dayEnding(day({ status: "Paused" }))).toBeNull();
   });
 });

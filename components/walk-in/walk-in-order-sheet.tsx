@@ -26,6 +26,8 @@ import {
   useUnassignWorker,
 } from "@/hooks/use-tasks";
 import { useHasPermission } from "@/hooks/use-current-permissions";
+import { formatHm } from "@/lib/tasks/detail/day-time";
+import { dayEnding } from "@/lib/tasks/detail/day-view";
 import { activeWorkers, isGroupActive, isOpen } from "@/lib/tasks/staffing";
 import { classifyAssignError } from "@/lib/tasks/assign-errors";
 import {
@@ -143,7 +145,7 @@ export function WalkInOrderSheet({
 
             <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 px-4 py-3 text-sm">
               <dt className="text-muted-foreground">{t("property")}</dt>
-              <dd className="truncate">{group.tasks[0]?.propertyName || "—"}</dd>
+              <dd className="truncate">{group.propertyName || group.tasks[0]?.propertyName || "—"}</dd>
               <dt className="text-muted-foreground">{t("startTime")}</dt>
               <dd className="tabular-nums">{hhmm(group.defaultStartTime) ?? "—"}</dd>
               <dt className="text-muted-foreground">{t("deadline")}</dt>
@@ -342,7 +344,26 @@ function JobRow({
   onUnassign: (worker: TaskWorkerDto) => void;
 }) {
   const t = useTranslations("walkIn.detail");
+  const tDetail = useTranslations("tasks.detail");
+  const locale = useLocale();
   const staffed = activeWorkers(task);
+  // §0k — how a finished job ended: the closure and its time, or the cancel road and date.
+  const ending = dayEnding(task);
+  const endingText = !ending
+    ? null
+    : ending.kind === "closed"
+      ? [
+          "raw" in ending.label ? ending.label.raw : tDetail(`closure.${ending.label.key}`),
+          ending.at === null ? null : formatHm(ending.at, locale),
+        ]
+          .filter(Boolean)
+          .join(" · ")
+      : (() => {
+          const how = ending.how ?? "day";
+          return ending.at === null
+            ? t(`cancelledHow.${how}NoDate`)
+            : t(`cancelledHow.${how}`, { date: new Date(ending.at).toLocaleDateString(locale, { dateStyle: "medium" }) });
+        })();
   // Only open tasks may be staffed from here. The backend has no date or status
   // guard on admin-assign (GT_AdminFillHasNoDateOrStatusGuard) — it would happily
   // staff a finished job — so this is the guard.
@@ -359,6 +380,7 @@ function JobRow({
           <TaskStatusBadge status={task.status} />
         </div>
       </div>
+      {endingText ? <p className="text-[11px] text-muted-foreground">{endingText}</p> : null}
 
       {staffed.length === 0 ? (
         <p className="text-xs text-muted-foreground">{t("noWorkers")}</p>

@@ -42,6 +42,7 @@ export function useTaskRegister(window: RegisterWindow | null) {
     cityByProperty: new Map(
       (properties.data ?? []).flatMap((p) => (p.city ? [[p.id, p.city.id] as const] : [])),
     ),
+    bossByProperty: new Map((properties.data ?? []).map((p) => [p.id, p.bossOwnerUserId] as const)),
     walkInOwnerId: walkIn.isSuccess ? walkIn.data : undefined,
   }), [properties.data, walkIn.isSuccess, walkIn.data]);
 
