@@ -89,6 +89,25 @@ export interface TaskItemDto {
    */
   closureReason: string | null;
   /**
+   * When the day became `Done`, on every road — `task-lifecycle.md` §0k·1 (2026-10-06). ⚠ Not
+   * `completedAt` (the hand-in). ⚠ Owner-accepted days closed before 2026-10-06 stay `null` — show "–",
+   * never an estimate.
+   */
+  closedAt?: string | null;
+  /** The admin who closed it (force-close, or a complaint decision either way). `null` when the owner or the 5-h timer did. */
+  closedByAdminId?: string | null;
+  /** That admin's name — admin tokens only (§0k·1). */
+  closedByAdminName?: string | null;
+  /** The admin's own words: the force-close reason or the complaint decision note (may be empty). */
+  closureNote?: string | null;
+  /** When the day was cancelled — §0k·2. */
+  cancelledAt?: string | null;
+  /**
+   * How: `"DayCancelled"` · `"BookingCancelled"` · `"AutoCancelled"`. ⚠ Never the owner's typed reason.
+   * Typed open — the set is not promised closed.
+   */
+  cancellationReason?: "DayCancelled" | "BookingCancelled" | "AutoCancelled" | (string & {}) | null;
+  /**
    * Who files and submits this day — F-07 ·4 (2026-09-19). `null` until somebody
    * checks in: the role goes to the **first worker to arrive**, and a
    * better-rated worker arriving later never takes it off them.
@@ -191,6 +210,12 @@ export interface TaskGroupDto {
   addOnNote?: string | null;
   /** F-07 ·9b (2026-09-23). Set only on a walk-in order; `null` on every ordinary booking. */
   cityId?: string | null;
+  /** §0k·3 (2026-10-06). The property's name — every reader. */
+  propertyName?: string | null;
+  /** The property's address — admins and owner side. On a walk-in order: the placeholder "Manual order — address per order". */
+  propertyAddress?: string | null;
+  /** The property's BOSS (as `PropertyDto.bossOwnerName`). ⚠ Not `ownerId`'s person — that is whoever booked. */
+  bossOwnerName?: string | null;
 }
 
 export type TaskGroupKind = "Booking" | "SingleTask";

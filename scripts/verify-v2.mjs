@@ -170,7 +170,9 @@ const EXPECTED_FIELDS = {
     "instructions", "days", "closed", "ratingFloor", "allowNewWorkers", "eligibleProfessionIds",
     "dates", "tasks", "createdAt", "ownerProvidesTools", "cityId",
     // F-07 ·12 / ·7 — rendered on the booking page and the walk-in sheet.
-    "kind", "addOnNote"],
+    "kind", "addOnNote",
+    // day-close-cancel-facts (§0k·3, 2026-10-06) — the Task Detail header reads these, not a property read.
+    "propertyName", "propertyAddress", "bossOwnerName"],
   TaskGroupDayCountsDto: ["total", "pending", "checkedIn", "inReview", "done", "cancelled",
     "rejected"],
   // ⚠ `closedReplacement` is always 0 today — forward-declared for ·5. Gated so
@@ -183,7 +185,9 @@ const EXPECTED_FIELDS = {
     "supervisorWorkerId", "workSummary", "closureReason",
     // F-07 ·5 — filled by `GET /api/tasks/{taskId}` only; every list, PATCH,
     // admin-assign and the tasks nested in a booking serve `null`.
-    "complaint"],
+    "complaint",
+    // day-close-cancel-facts (§0k·1–2, 2026-10-06) — the timeline and alert read these instead of estimating.
+    "closedAt", "closedByAdminId", "closedByAdminName", "closureNote", "cancelledAt", "cancellationReason"],
   AdminSetSupervisorRequest: ["workerId"],
   TaskSupervisorDto: ["taskId", "supervisorWorkerId"],
   // ⚠ Mandatory. A bodiless request is refused by model binding before the
