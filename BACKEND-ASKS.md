@@ -1112,7 +1112,12 @@ throws → `500`) is not cached, so the retry writes twice. Same fix as (1) woul
 
 ---
 
-## Open — 2026-10-05 · three things the Task Detail design shows that no DTO returns
+## ✅ Shipped 2026-10-06 — three things the Task Detail design shows that no DTO returns (+ the booking header)
+
+> **Shipped as `day-close-cancel-facts`** (backend `origin/main` `767b3e6`, CHANGELOG 2026-10-06,
+> `task-lifecycle.md` §0k): `closedAt`, `closedByAdminId`/`closedByAdminName`, `closureNote`, `cancelledAt`,
+> `cancellationReason` on `TaskItemDto`; and a fourth we needed, `propertyName`/`propertyAddress`/`bossOwnerName`
+> on `TaskGroupDto`. Absorbed on Task Detail 2026-10-06 (`BACKEND-REVISIONS.md` §4). Kept below as the record.
 
 **Not blocking** — the panel ships without them and words around each (spec
 `docs/superpowers/specs/2026-10-05-admin-task-detail-design.md` §2). Checked at `origin/main` `26f57e1`
