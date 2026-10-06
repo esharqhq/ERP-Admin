@@ -2114,7 +2114,9 @@
         "waitingOwner": "Waiting for owner",
         "disputed": "Owner complaint — needs ruling",
         "noReason": "Closed · no reason saved",
-        "cancelled": "Cancelled"
+        "cancelledBooking": "With the booking",
+        "cancelledAuto": "Cancelled itself",
+        "cancelledDay": "Cancelled"
       },
       "closure": {
         "OwnerAccepted": "Accepted by owner",
@@ -2246,7 +2248,8 @@
         "notFoundText": "It may have been deleted, or the link is wrong.",
         "forbiddenTitle": "You can't open this booking",
         "forbiddenText": "Your role doesn't include booking details. Ask a super admin for access."
-      }
+      },
+      "bookingCancelled": "This booking was cancelled on {date}. Finished days keep their status; the remaining days were cancelled. You can still copy it as a new order."
     },
     "actions": {
       "cancelGroup": "Cancel Group",

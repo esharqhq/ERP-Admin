@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  bookingCancelledAt,
   datesFact,
   headerPlace,
   isNothingLeftToRun,
@@ -132,5 +133,22 @@ describe("headerPlace — city in either language", () => {
     expect(
       headerPlace({ isWalkIn: false, address: "Marienplatz 8, 80331 München", cityName: "Munich", cityNames: ["München", "Munich"] }),
     ).toEqual({ kind: "text", text: "Marienplatz 8, 80331 München" });
+  });
+});
+
+describe("bookingCancelledAt — §0k·2, read from the days", () => {
+  it("is the latest cancelledAt among BookingCancelled days", () => {
+    expect(
+      bookingCancelledAt([
+        day({ id: "a", status: "Cancelled", cancellationReason: "BookingCancelled", cancelledAt: "2026-10-03T09:00:00" }),
+        day({ id: "b", status: "Cancelled", cancellationReason: "DayCancelled", cancelledAt: "2026-10-04T09:00:00" }),
+        day({ id: "c", status: "Done" }),
+      ]),
+    ).toBe(at("2026-10-03T09:00:00"));
+  });
+  it("is null when no day went with the booking", () => {
+    expect(
+      bookingCancelledAt([day({ status: "Cancelled", cancellationReason: "AutoCancelled", cancelledAt: "2026-10-03T09:00:00" })]),
+    ).toBeNull();
   });
 });

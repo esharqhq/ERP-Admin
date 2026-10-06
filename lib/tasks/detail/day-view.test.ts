@@ -157,3 +157,13 @@ describe("supervisorLabel — spec §4.4", () => {
     expect(supervisorLabel(day({ status: "Done" }))).toEqual({ kind: "none" });
   });
 });
+
+describe("dayNote — a cancelled day says which road (§0k·2)", () => {
+  it("maps the three roads and leaves anything else generic", () => {
+    const n = (cancellationReason: string | null) => dayNote(day({ status: "Cancelled", cancellationReason }), 0);
+    expect(n("BookingCancelled")).toEqual({ key: "cancelled", how: "booking", tone: "muted" });
+    expect(n("AutoCancelled")).toMatchObject({ how: "auto" });
+    expect(n("DayCancelled")).toMatchObject({ how: "day" });
+    expect(n("Other")).toMatchObject({ how: null });
+  });
+});

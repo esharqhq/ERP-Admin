@@ -2114,7 +2114,9 @@
         "waitingOwner": "Wartet auf den Eigentümer",
         "disputed": "Beschwerde — Entscheidung nötig",
         "noReason": "Abgeschlossen · kein Grund gespeichert",
-        "cancelled": "Storniert"
+        "cancelledBooking": "Mit der Buchung",
+        "cancelledAuto": "Selbst storniert",
+        "cancelledDay": "Storniert"
       },
       "closure": {
         "OwnerAccepted": "Vom Eigentümer angenommen",
@@ -2246,7 +2248,8 @@
         "notFoundText": "Sie wurde möglicherweise gelöscht, oder der Link ist falsch.",
         "forbiddenTitle": "Sie können diese Buchung nicht öffnen",
         "forbiddenText": "Ihre Rolle umfasst keine Buchungsdetails. Bitten Sie einen Super-Admin um Zugriff."
-      }
+      },
+      "bookingCancelled": "Diese Buchung wurde am {date} storniert. Abgeschlossene Tage behalten ihren Status; die übrigen Tage wurden storniert. Sie können sie weiterhin als neuen Auftrag kopieren."
     },
     "actions": {
       "cancelGroup": "Gruppe abbrechen",

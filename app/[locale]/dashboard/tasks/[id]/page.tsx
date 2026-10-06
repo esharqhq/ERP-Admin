@@ -20,7 +20,7 @@ import { useTaskGroup } from "@/hooks/use-tasks";
 import { useLiveClock, useTodayKey } from "@/hooks/use-today";
 import { Link } from "@/i18n/navigation";
 import { isWalkInSource } from "@/lib/tasks/clone-order";
-import { headerPlace, isNothingLeftToRun, isSingleDay } from "@/lib/tasks/detail/booking-facts";
+import { bookingCancelledAt, headerPlace, isNothingLeftToRun, isSingleDay } from "@/lib/tasks/detail/booking-facts";
 import { classifyGroupLoad } from "@/lib/tasks/detail/page-state";
 import { dayToPin, resolveSelectedDay, sortDays } from "@/lib/tasks/detail/select-day";
 import { isGroupActive } from "@/lib/tasks/staffing";
@@ -115,6 +115,7 @@ export default function TaskGroupDetailPage({ params }: { params: Promise<{ id: 
 
   const single = isSingleDay(group);
   const nothingLeft = isNothingLeftToRun(group);
+  const cancelledOn = bookingCancelledAt(days);
   const cityName = property.data?.city
     ? locale === "de"
       ? property.data.city.nameDe
@@ -163,7 +164,13 @@ export default function TaskGroupDetailPage({ params }: { params: Promise<{ id: 
         <div className="flex items-center gap-3 rounded-xl bg-muted/60 px-4 py-3 ring-1 ring-inset ring-border">
           <Info className="size-4 flex-none text-muted-foreground" />
           <span className="text-[13px]">
-            {tDetail("nothingLeft", { cancelled: group.days.cancelled, total: group.days.total })}
+            {/* §0k·2: the booking's own cancel date, read from the days that went with it;
+                without one, the neutral count (one day can be cancelled on its own or by the timer). */}
+            {cancelledOn !== null
+              ? tDetail("bookingCancelled", {
+                  date: new Date(cancelledOn).toLocaleDateString(locale, { dateStyle: "medium" }),
+                })
+              : tDetail("nothingLeft", { cancelled: group.days.cancelled, total: group.days.total })}
           </span>
         </div>
       ) : null}

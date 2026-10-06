@@ -51,6 +51,8 @@ export interface DayNote {
   count?: number;
   at?: number | null;
   reason?: string;
+  /** On a cancelled day: which road (§0k·2). */
+  how?: CancelHow | null;
 }
 
 /** The one-line note under a day's chip in the days list — spec §4.1. */
@@ -81,7 +83,7 @@ export function dayNote(task: TaskItemDto, now: number): DayNote {
         ? { key: "closure", reason: task.closureReason, tone: "muted" }
         : { key: "noReason", tone: "muted" };
     case "cancelled":
-      return { key: "cancelled", tone: "muted" };
+      return { key: "cancelled", how: cancelHow(task.cancellationReason), tone: "muted" };
     default:
       return { key: "none", tone: "muted" };
   }
