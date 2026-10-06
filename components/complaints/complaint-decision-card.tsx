@@ -51,6 +51,10 @@ export function ComplaintDecisionCard({
                   ? t("decidedWorker")
                   : t("decidedOther")}
               {complaint.decidedAt ? ` · ${t("decidedAt", { time: fmt(complaint.decidedAt, locale) })}` : null}
+              {/* §0k·1: who decided — admin tokens only; `null` on a row the 2026-10-06 backfill did not reach. */}
+              {task.closedByAdminName?.trim()
+                ? ` · ${t("decidedBy", { name: task.closedByAdminName.trim() })}`
+                : null}
             </p>
             {complaint.decisionNote ? (
               <p className="whitespace-pre-wrap text-muted-foreground">

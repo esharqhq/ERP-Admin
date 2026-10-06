@@ -2638,7 +2638,8 @@
       "decidedWorker": "Decided for the workers",
       "decidedOther": "Decided",
       "decidedAt": "on {time}",
-      "note": "Note"
+      "note": "Note",
+      "decidedBy": "by {name}"
     },
     "dialog": {
       "titleOwner": "Decide for the owner?",

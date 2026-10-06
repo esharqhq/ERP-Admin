@@ -2638,7 +2638,8 @@
       "decidedWorker": "Entschieden für die Mitarbeiter",
       "decidedOther": "Entschieden",
       "decidedAt": "am {time}",
-      "note": "Hinweis"
+      "note": "Hinweis",
+      "decidedBy": "von {name}"
     },
     "dialog": {
       "titleOwner": "Für den Eigentümer entscheiden?",
