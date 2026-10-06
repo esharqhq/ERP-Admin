@@ -152,3 +152,17 @@ describe("bookingCancelledAt — §0k·2, read from the days", () => {
     ).toBeNull();
   });
 });
+
+describe("headerPlace — the booking's own header fields (§0k·3)", () => {
+  it("a walk-in never shows the placeholder address", () => {
+    expect(
+      headerPlace({ isWalkIn: true, address: "Manual order — address per order", propertyName: "Walk-in / Manual Orders" }),
+    ).toEqual({ kind: "walkIn" });
+  });
+  it("an ordinary booking shows propertyAddress as sent", () => {
+    expect(headerPlace({ isWalkIn: false, address: "Am Sandtorkai 50, 20457 Hamburg", propertyName: "Harbour Hotel" })).toEqual({
+      kind: "text",
+      text: "Am Sandtorkai 50, 20457 Hamburg",
+    });
+  });
+});

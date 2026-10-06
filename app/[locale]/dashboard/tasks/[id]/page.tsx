@@ -12,10 +12,8 @@ import { DetailModals, type DetailModal } from "@/components/tasks/detail/detail
 import { DetailFailure, DetailSkeleton } from "@/components/tasks/detail/detail-page-state";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { useHasPermission } from "@/hooks/use-current-permissions";
 import { useTaskRead } from "@/hooks/use-complaints";
-import { useOwner, useWalkInOwnerId } from "@/hooks/use-owners";
-import { usePropertyById } from "@/hooks/use-properties";
+import { useWalkInOwnerId } from "@/hooks/use-owners";
 import { useTaskGroup } from "@/hooks/use-tasks";
 import { useLiveClock, useTodayKey } from "@/hooks/use-today";
 import { Link } from "@/i18n/navigation";
@@ -48,8 +46,6 @@ export default function TaskGroupDetailPage({ params }: { params: Promise<{ id: 
 
   const { data: group, isLoading, error, refetch } = useTaskGroup(id);
   const walkIn = useWalkInOwnerId();
-  const canReadProperty = useHasPermission("property:list");
-  const canReadOwner = useHasPermission("owner:list");
   const [modal, setModal] = useState<DetailModal>(null);
 
   const days = useMemo(() => sortDays(group?.tasks ?? []), [group?.tasks]);
@@ -68,18 +64,22 @@ export default function TaskGroupDetailPage({ params }: { params: Promise<{ id: 
   const selectDay = writeDay;
 
   /**
-   * `null` while the walk-in lookup has not answered — then copy is hidden and
-   * the address is not fetched: the walk-in property's address is a placeholder.
+   * `null` while the walk-in lookup has not answered — then copy is hidden. A
+   * walk-in's `propertyAddress` is a placeholder, so the header says "Walk-in order".
    */
   const sourceIsWalkIn = group ? isWalkInSource(group, walkIn.isSuccess ? walkIn.data : undefined) : null;
-  // `""` disables each read (both hooks gate `enabled` on the id).
-  const property = usePropertyById(group && canReadProperty && sourceIsWalkIn === false ? group.propertyId : "");
-  const owner = useOwner(group && canReadOwner ? group.ownerId : "");
 
   const selectedState = selected ? canonicalTaskStatus(selected.status) : null;
+  // The complaint rides only on `GET /api/tasks/{id}`. A disputed day needs it (reason,
+  // photos). An upheld day reads its note from `closureNote` (§0k·1); only a row the
+  // 2026-10-06 backfill did not reach (no note, no close time) still falls back to it.
   const needsComplaint =
     !!selected &&
-    (selectedState === "rejected" || (selectedState === "done" && selected.closureReason === "ClosedReplacement"));
+    (selectedState === "rejected" ||
+      (selectedState === "done" &&
+        selected.closureReason === "ClosedReplacement" &&
+        selected.closureNote == null &&
+        selected.closedAt == null));
   const complaintRead = useTaskRead(selectedId ?? "", needsComplaint);
   const complaint = needsComplaint ? (complaintRead.data?.complaint ?? null) : null;
 
@@ -116,19 +116,14 @@ export default function TaskGroupDetailPage({ params }: { params: Promise<{ id: 
   const single = isSingleDay(group);
   const nothingLeft = isNothingLeftToRun(group);
   const cancelledOn = bookingCancelledAt(days);
-  const cityName = property.data?.city
-    ? locale === "de"
-      ? property.data.city.nameDe
-      : property.data.city.nameEn
-    : null;
+  // §0k·3: the header comes from the booking — no property or owner read. ⚠ `ownerId`
+  // is whoever booked; the header names the property's BOSS (`bossOwnerName`).
   const place = headerPlace({
     isWalkIn: sourceIsWalkIn,
-    address: property.data?.address,
-    cityName,
-    cityNames: [property.data?.city?.nameDe, property.data?.city?.nameEn],
-    propertyName: days[0]?.propertyName,
+    address: group.propertyAddress,
+    propertyName: group.propertyName ?? days[0]?.propertyName,
   });
-  const ownerName = owner.data?.fullName?.trim() || null;
+  const ownerName = group.bossOwnerName?.trim() || null;
 
   return (
     <div className="flex flex-col gap-4">
