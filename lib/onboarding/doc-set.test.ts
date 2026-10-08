@@ -180,6 +180,23 @@ describe("viewerKind", () => {
     expect(viewerKind("noextension", null)).toBe("unsupported");
     expect(viewerKind(null, null)).toBe("unsupported");
   });
+
+  it("frames a pdf only when the stored file is a pdf too", () => {
+    // The file route picks the Content-Type from the storage key's extension,
+    // not from the display name. A key ending in .html is served as a page, so
+    // framing it would run an uploader's script inside the panel's layout.
+    expect(viewerKind("scan.pdf", "kyc/2026/abc-scan.pdf")).toBe("pdf");
+    expect(viewerKind("scan.pdf", "kyc/2026/abc-scan.html")).toBe("unsupported");
+    expect(viewerKind("scan.pdf", "kyc/2026/abc-scan")).toBe("unsupported");
+  });
+
+  it("reads the stored extension past a signed url's query and fragment", () => {
+    expect(
+      viewerKind("contract.pdf", "https://api.uyer.app/files/contracts/c1/contract.pdf?exp=1&sig=ab"),
+    ).toBe("pdf");
+    expect(viewerKind(null, "contracts/c1/contract.PDF#page=2")).toBe("pdf");
+    expect(viewerKind(null, "https://api.uyer.app/files/x.html?f=.pdf")).toBe("unsupported");
+  });
 });
 
 describe("the representative's authorization letter (2026-09-01)", () => {

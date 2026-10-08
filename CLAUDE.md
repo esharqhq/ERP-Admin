@@ -100,8 +100,12 @@ primitive. Tables use `components/ui/data-table`. URL-synced table state lives i
 
 **Environment:**
 - `NEXT_PUBLIC_API_URL` and `NEXT_PUBLIC_ONESIGNAL_APP_ID` are inlined at build time.
-- `HEALTH_URL`, `DEPLOY_REGION`, `MAINTENANCE_MODE` and `MAINTENANCE_UNTIL` are server-only and read at
-  runtime, so an operator can change them without rebuilding.
+- `HEALTH_URL`, `DEPLOY_REGION`, `MAINTENANCE_MODE`, `MAINTENANCE_UNTIL` and `CSP_REPORT_ONLY` are
+  server-only and read at runtime, so an operator can change them without rebuilding.
+- **CSP:** `proxy.ts` sends a per-request nonce Content-Security-Policy, built in `lib/http/csp.ts`. A new
+  external origin (script, API, websocket, frame) has to be added there, or the browser blocks it. Setting
+  `CSP_REPORT_ONLY=1` turns blocking into console reports if production breaks. Security headers other than
+  CSP live in `nginx/admin`.
 
 Deploy uses `Dockerfile`, `docker-compose*.yml` and `nginx/`.
 

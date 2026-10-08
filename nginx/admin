@@ -25,15 +25,26 @@ server {
     ssl_dhparam         /etc/letsencrypt/ssl-dhparams.pem;
 
     # Security headers
+    # ⚠ nginx inherits add_header only into a location that has NONE of its own.
+    # Any location below that adds a header must repeat this whole block, or its
+    # responses go out without them. The Content-Security-Policy is not here:
+    # it carries a per-request nonce, so proxy.ts sets it.
     add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
     add_header X-Frame-Options           SAMEORIGIN                                      always;
     add_header X-Content-Type-Options    nosniff                                         always;
     add_header Referrer-Policy           strict-origin-when-cross-origin                 always;
+    add_header Permissions-Policy        "camera=(), microphone=(), geolocation=(), payment=(), usb=()" always;
 
     # Next.js static assets — immutable, cache 1 year
     location /_next/static/ {
         proxy_pass http://127.0.0.1:3100;
         add_header Cache-Control "public, max-age=31536000, immutable";
+        # Repeated from the server block; see the note there.
+        add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
+        add_header X-Frame-Options           SAMEORIGIN                                      always;
+        add_header X-Content-Type-Options    nosniff                                         always;
+        add_header Referrer-Policy           strict-origin-when-cross-origin                 always;
+        add_header Permissions-Policy        "camera=(), microphone=(), geolocation=(), payment=(), usb=()" always;
     }
 
     # Next.js image optimisation

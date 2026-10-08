@@ -1137,3 +1137,30 @@ against `task-lifecycle.md` §0d and `TaskItemDto` / `TaskGroupDto`.
    at window end (§0d).
    **Ask:** `TaskItemDto.cancelledAt` + `cancelReason` (a sibling of `closureReason`, e.g. `OwnerCancelled` ·
    `GroupCancelled` · `AutoCancelledNotStarted` · `AdminCancelled`), optionally `TaskGroupDto.cancelledAt`.
+
+---
+
+## Open — 2026-10-08 · security review: no logout door, and `/files` serves uploads as live pages
+
+Found in the panel's security pass (origin/main `42894b56`). The panel shipped what it can do on its side; both
+gaps below need the backend.
+
+1. **No way to end a session server-side.** `AuthController` has no logout or revoke route.
+   `IRefreshTokenStore.RevokeAsync` and `RevokeAllForUserAsync` exist, but nothing calls them over HTTP. The
+   access token lives 24h, and the refresh token lives 7 days and rotates on every use. So a token copied before
+   the admin logs out keeps working: the access token until it expires, and the refresh token indefinitely,
+   because each use issues a new one. The panel now wipes both from the browser on logout
+   (`lib/http/sign-out.ts`), and that is all it can do.
+   **Ask:** `POST /api/Auth/logout { refreshToken }` → `RevokeAsync`, with a `204` even for an unknown token so
+   it can't be used to probe. Optionally "log out everywhere" → `RevokeAllForUserAsync`.
+2. **`GET /files/{key}` takes the Content-Type from the key's extension and serves it inline.** It sets no
+   `nosniff`, no `Content-Disposition`, and no `Content-Security-Policy: sandbox`. If an upload door accepts an
+   `.html` or `.svg` key, the file runs as a page on `api.uyer.app`, the origin every client calls with a bearer
+   token. The admin panel now frames only keys that end in `.pdf` (`viewerKind`, `lib/onboarding/doc-set.ts`).
+   That protects this panel, not the owner/worker apps or a direct link.
+   **Ask:** an extension allowlist on every upload door, and on `/files` add `X-Content-Type-Options: nosniff`,
+   `Content-Security-Policy: sandbox`, and `Content-Disposition: attachment` for anything that is not an
+   image or a PDF.
+3. **Question, not yet an ask:** apart from `contracts/` and agency applications, `/files` serves without a
+   signature, to anyone who has the key. Is that the intended model for identity documents (passport, ID card,
+   residence permit)? If it is, the GUID in the key is the only thing protecting a passport scan.

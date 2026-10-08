@@ -1,6 +1,6 @@
 import createMiddleware from 'next-intl/middleware';
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { buildCsp } from '@/lib/http/csp';
 
 const locales = ['en', 'de'] as const;
 const defaultLocale = 'en';
@@ -10,6 +10,42 @@ const intlMiddleware = createMiddleware({
   defaultLocale,
   localePrefix: 'always',
 });
+
+/**
+ * A fresh nonce and the policy that names it (see `lib/http/csp.ts`).
+ *
+ * The policy goes on the *request* as well, because that is where Next reads
+ * the nonce to stamp it on its own script tags. Without the request copy every
+ * page would render with scripts the response header then blocks.
+ *
+ * `CSP_REPORT_ONLY=1` is a runtime switch like `MAINTENANCE_MODE`: if the policy
+ * blocks something in production, an operator can turn it into reports
+ * without a rebuild while the policy is fixed.
+ */
+function withCsp(request: NextRequest) {
+  const nonce = btoa(crypto.randomUUID());
+  const policy = buildCsp({
+    nonce,
+    apiUrl: process.env.NEXT_PUBLIC_API_URL,
+    healthUrl: process.env.HEALTH_URL,
+    dev: process.env.NODE_ENV === 'development',
+  });
+  const headers = new Headers(request.headers);
+  headers.set('x-nonce', nonce);
+  headers.set('content-security-policy', policy);
+  return {
+    request: new NextRequest(request, { headers }),
+    headers,
+    stamp<T extends Response>(response: T): T {
+      const name =
+        process.env.CSP_REPORT_ONLY === '1'
+          ? 'Content-Security-Policy-Report-Only'
+          : 'Content-Security-Policy';
+      response.headers.set(name, policy);
+      return response;
+    },
+  };
+}
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -24,6 +60,8 @@ export function proxy(request: NextRequest) {
   const isLogin = path === '/login';
   const isMaintenance = path === '/maintenance';
 
+  const csp = withCsp(request);
+
   // Maintenance is checked BEFORE auth on purpose: during an upgrade the login
   // form cannot succeed, so bouncing an unauthenticated operator to it would
   // hide the reason. Rewrite rather than redirect so the URL they typed stays
@@ -32,7 +70,9 @@ export function proxy(request: NextRequest) {
   if (process.env.MAINTENANCE_MODE === '1' && !isMaintenance) {
     const url = request.nextUrl.clone();
     url.pathname = `/${locale}/maintenance`;
-    return NextResponse.rewrite(url, { status: 503 });
+    return csp.stamp(
+      NextResponse.rewrite(url, { status: 503, request: { headers: csp.headers } }),
+    );
   }
 
   // Unauthenticated users may only see the login page
@@ -49,8 +89,9 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Otherwise hand off to next-intl for locale routing
-  return intlMiddleware(request);
+  // Otherwise hand off to next-intl for locale routing. It copies the request's
+  // headers onto its rewrite, so the nonce travels with it.
+  return csp.stamp(intlMiddleware(csp.request));
 }
 
 export const config = {

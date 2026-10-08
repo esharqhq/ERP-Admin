@@ -5,6 +5,10 @@ services:
       - "127.0.0.1:3100:3100"   # bind only to loopback — nginx proxies from outside
     environment:
       - NODE_ENV=production
+      # Runtime switch read by proxy.ts. Set it in an untracked .env next to this
+      # file (the deploy's `git reset --hard` keeps untracked files), then
+      # `docker compose up -d app`.
+      - CSP_REPORT_ONLY=${CSP_REPORT_ONLY:-}
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:3100/"]
