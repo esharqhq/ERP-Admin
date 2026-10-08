@@ -110,10 +110,10 @@ export const navGroups: NavGroup[] = [
     // (`/dashboard/agency-requests/{id}`) is covered by its list's gate with no
     // entry of its own.
     //
-    // ⚠ A gate does NOT hide these rows — `app-sidebar.tsx`'s `canSeeItem` dims
-    // and locks them instead, sending a click to `/forbidden?permission=…`.
-    // MODERATOR holds `agency_application:read` and NOT `agency:read`
-    // (`DatabaseSeeder.cs:1954,1960`), so for them exactly one of these two locks.
+    // A row whose gate the admin fails is hidden (`visibleNavGroups`). MODERATOR
+    // holds `agency_application:read` and NOT `agency:read`
+    // (`DatabaseSeeder.cs:1954,1960`), so for them Agencies is the one of these
+    // two that does not appear.
     items: [
       { title: "Agencies", labelKey: "nav.agencies",       url: "/dashboard/agencies",         icon: Briefcase, permission: "agency:read" },
       { title: "Requests", labelKey: "nav.agencyRequests", url: "/dashboard/agency-requests", icon: Inbox, permission: "agency_application:read", badge: "waiting" },
@@ -133,27 +133,48 @@ export const navGroups: NavGroup[] = [
         anyOf: ["conversation:list_any", "support_ticket:list_any"], badge: "waiting" },
       { title: "Settings", labelKey: "nav.settings", url: "/dashboard/settings", icon: Settings,
         anyOf: ["system:settings:read", "admin:list", "system:permission:read", "system:audit:read", "profession:create"] },
-      // ⚠ Still dim + lock + `/forbidden?permission=…` on a missing grant,
-      // NOT hidden outright. The design's own decision #05 says "The nav
-      // item is hidden, not disabled" — but the *only* nav-gating mechanism
-      // that exists in this app (`app-sidebar.tsx`'s `canSeeItem`/
-      // `lockedHref`) does the opposite for every row, deliberately, and the
-      // user approved that exact behaviour for this item one phase ago.
     ],
   },
 ]
 
 export const navItems: NavItem[] = navGroups.flatMap((g) => g.items)
 
+/** Whether an admin holding `permissions` may open this row. An ungated row is open to all. */
+export function canSeeNavItem(item: NavItem, permissions: ReadonlySet<string>): boolean {
+  if (item.anyOf) return item.anyOf.some((p) => permissions.has(p))
+  return !item.permission || permissions.has(item.permission)
+}
+
+/**
+ * The nav as this admin may use it. Rows they cannot open are left out, and so
+ * is any group with no rows left, so no header stands over nothing.
+ *
+ * Hidden, not dimmed: the design's decision #05 says "The nav item is hidden,
+ * not disabled", and on 2026-10-08 the product owner chose it over the dim +
+ * lock rows the panel shipped before. A moderator saw 14 locked rows out of
+ * 20. Hiding is not the protection, either way: every route's API still answers
+ * 403 to an admin without the grant.
+ */
+export function visibleNavGroups(
+  groups: NavGroup[],
+  permissions: ReadonlySet<string>,
+): NavGroup[] {
+  return groups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => canSeeNavItem(item, permissions)),
+    }))
+    .filter((group) => group.items.length > 0)
+}
+
 // ── Route access control ─────────────────────────────────────────────────────
 // The permission gate for a given dashboard route. `null` = no gate (any
-// authenticated admin may view). Consumed by BOTH the sidebar and the central
-// RouteGuard (which blocks page access). Backend still enforces every
+// authenticated admin may view). Backend still enforces every
 // [RequirePermission] independently — this layer is UX only.
 //
-// The sidebar no longer *hides* a gated row: per the nav spec it dims the row,
-// marks it with a lock and points it at `/forbidden?permission=<code>`, so an
-// operator can see the section exists and ask for the grant by name.
+// ⚠ Nothing calls `resolveRouteGate` today (checked 2026-10-08). The "central
+// RouteGuard" this comment used to name does not exist. A page reached by URL
+// without its grant renders, and the API's 403 decides what it shows.
 
 export type RouteGate = { permission?: string; anyOf?: string[] }
 

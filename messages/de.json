@@ -1681,9 +1681,7 @@
     "sidebar": {
       "tagline": "Leitstelle",
       "collapse": "Seitenleiste einklappen",
-      "expand": "Seitenleiste ausklappen",
-      "locked": "Erfordert {permission}",
-      "lockedGeneric": "Ihre Rolle umfasst diesen Bereich nicht"
+      "expand": "Seitenleiste ausklappen"
     },
     "notifications": {
       "title": "Benachrichtigungen",

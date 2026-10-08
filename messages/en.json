@@ -1681,9 +1681,7 @@
     "sidebar": {
       "tagline": "Control center",
       "collapse": "Collapse sidebar",
-      "expand": "Expand sidebar",
-      "locked": "Requires {permission}",
-      "lockedGeneric": "Your role does not include this section"
+      "expand": "Expand sidebar"
     },
     "notifications": {
       "title": "Notifications",

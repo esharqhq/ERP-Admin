@@ -1,5 +1,6 @@
 "use client"
 
+import { useMemo } from "react"
 import Image from "next/image"
 import { Link } from "@/i18n/navigation";
 import { usePathname } from "next/navigation"
@@ -27,12 +28,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { navGroups, type NavBadgeKind, type NavItem } from "@/lib/nav-items"
+import { navGroups, visibleNavGroups, type NavBadgeKind } from "@/lib/nav-items"
 import { useLogout } from "@/hooks/use-logout"
 import { useAuthStore } from "@/store/auth.store"
 import { useCurrentPermissions } from "@/hooks/use-current-permissions"
 import { useRoutePrefetch } from "@/hooks/use-route-prefetch"
-import { ChevronsUpDown, Lock, LogOut, UserCircle } from "lucide-react"
+import { ChevronsUpDown, LogOut, UserCircle } from "lucide-react"
 import { useTranslations, useLocale } from "next-intl"
 
 /**
@@ -42,7 +43,7 @@ import { useTranslations, useLocale } from "next-intl"
  * `nav` size variant in `components/ui/sidebar.tsx`, because it has to hold in
  * both states and icon mode needs a 44x36 box rather than the 32x32 the other
  * sizes clamp to. What stays here is composition: the 66 brand band, the five
- * role groups, the badge vocabulary, the locked row, and the account block.
+ * role groups, the badge vocabulary, and the account block.
  *
  * Every colour is an opacity of white over the forest ground — see the
  * `--sidebar-*` block in `app/globals.css` for why `--sidebar-foreground` is
@@ -157,40 +158,12 @@ export function AppSidebar() {
 
   // Fail CLOSED while the grant set is UNKNOWN (cold start): the skeleton below
   // holds until permissions resolve, so a limited admin never flashes sections
-  // before we know whether they hold them.
-  //
-  // Once the set IS known, the spec reverses the old behaviour: "Roles dim, not
-  // delete. A permission-less row stays with a lock icon and opens the 403 page
-  // that names the missing scope." Hiding a row taught the operator the feature
-  // did not exist; dimming it lets them see it and ask for the grant. The
-  // fail-closed rule above is untouched — it was only ever about the unknown
-  // state, which is a different thing from a known denial.
-  const canSee = (perm?: string) => !perm || (permissions?.has(perm) ?? false)
-
-  const canSeeItem = (item: NavItem) =>
-    item.anyOf
-      ? permissions
-        ? item.anyOf.some((p) => permissions.has(p))
-        : false
-      : canSee(item.permission)
-
-  /**
-   * Where a locked row points. The 403 page already reads `?permission=` and
-   * prints the scope in the mono face, so the lock hands the operator the exact
-   * string to relay. An `anyOf` row has no single scope to name — the page
-   * branches on the param's absence and falls back to generic copy, so passing
-   * the first entry would name one of several requirements as though it were
-   * the requirement. Better to say nothing than to name the wrong one.
-   */
-  const lockedHref = (item: NavItem) =>
-    item.anyOf || !item.permission
-      ? "/forbidden"
-      : `/forbidden?permission=${encodeURIComponent(item.permission)}`
-
-  const lockedHint = (item: NavItem) =>
-    item.anyOf || !item.permission
-      ? t("layout.sidebar.lockedGeneric")
-      : t("layout.sidebar.locked", { permission: item.permission })
+  // before we know whether they hold them. Once it is known, rows the admin
+  // cannot open are left out (`visibleNavGroups` says why hidden, not locked).
+  const groups = useMemo(
+    () => (permissions ? visibleNavGroups(navGroups, permissions) : []),
+    [permissions],
+  )
 
   const email = adminMe?.email ?? "admin@erp.com"
   const displayName = adminMe?.fullName ?? email
@@ -271,7 +244,7 @@ export function AppSidebar() {
           ) : null}
 
           {permissions !== null &&
-            navGroups.map((group, groupIndex) => (
+            groups.map((group, groupIndex) => (
               <SidebarGroup
                 key={group.id}
                 className="gap-0 p-0 group-data-[collapsible=icon]:items-center"
@@ -296,16 +269,11 @@ export function AppSidebar() {
                   <SidebarMenu className="gap-[2px] group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:gap-[3px]">
                     {group.items.map((item) => {
                       const label = t(item.labelKey)
-                      const locked = !canSeeItem(item)
                       const count = navBadgeCounts[item.url]
-                      // A locked row is never active: it does not lead to the
-                      // route it names, so marking it as where you are would
-                      // be a lie about your own position.
                       const isActive =
-                        !locked &&
-                        (pathname === item.url ||
-                          (item.url !== "/dashboard" &&
-                            pathname.startsWith(item.url)))
+                        pathname === item.url ||
+                        (item.url !== "/dashboard" &&
+                          pathname.startsWith(item.url))
 
                       return (
                         <SidebarMenuItem
@@ -316,31 +284,21 @@ export function AppSidebar() {
                             size="nav"
                             render={
                               <Link
-                                href={locked ? lockedHref(item) : item.url}
+                                href={item.url}
                                 /*
-                                  The sidebar is on every page with all 17 rows
-                                  in the viewport, so the App Router's default
-                                  would prefetch the whole console on every
-                                  load. `useRoutePrefetch` puts it back on
+                                  The sidebar is on every page with all of its
+                                  rows in the viewport, so the App Router's
+                                  default would prefetch the whole console on
+                                  every load. `useRoutePrefetch` puts it back on
                                   hover, where it predicts something.
-
-                                  A locked row is deliberately excluded: it
-                                  leads to `/forbidden`, and warming that is
-                                  warming the one route the admin is not
-                                  trying to reach.
                                 */
                                 prefetch={false}
                               />
                             }
-                            onMouseEnter={
-                              locked ? undefined : () => prefetchRoute(item.url)
-                            }
-                            onFocus={
-                              locked ? undefined : () => prefetchRoute(item.url)
-                            }
+                            onMouseEnter={() => prefetchRoute(item.url)}
+                            onFocus={() => prefetchRoute(item.url)}
                             isActive={isActive}
                             aria-current={isActive ? "page" : undefined}
-                            title={locked ? lockedHint(item) : undefined}
                             tooltip={{
                               children: (
                                 <>
@@ -360,27 +318,18 @@ export function AppSidebar() {
                               ),
                               sideOffset: 10,
                             }}
-                            className={
-                              locked
-                                ? "opacity-[0.42] hover:bg-transparent hover:opacity-60"
-                                : undefined
-                            }
                           >
                             <item.icon strokeWidth={2} />
                             <span className="flex-1 truncate group-data-[collapsible=icon]:hidden">
                               {label}
                             </span>
-                            {locked ? (
-                              // The `!` beats the row's `[&_svg]:size-[18px]`,
-                              // which wins on selector specificity otherwise.
-                              <Lock className="size-3.5! shrink-0 text-sidebar-foreground/55 group-data-[collapsible=icon]:hidden" />
-                            ) : item.badge ? (
-                              <span className="group-data-[collapsible=icon]:hidden">
-                                <NavBadge kind={item.badge} count={count} />
-                              </span>
-                            ) : null}
-                            {!locked && item.badge ? (
-                              <NavRailBadge kind={item.badge} count={count} />
+                            {item.badge ? (
+                              <>
+                                <span className="group-data-[collapsible=icon]:hidden">
+                                  <NavBadge kind={item.badge} count={count} />
+                                </span>
+                                <NavRailBadge kind={item.badge} count={count} />
+                              </>
                             ) : null}
                           </SidebarMenuButton>
                         </SidebarMenuItem>

@@ -77,9 +77,11 @@ retry into a duplicate.
 There are two built-in roles plus custom ones: `SUPER_ADMIN`, `MODERATOR` (a subset) and
 `custom_<uuid>`. Never assume a moderator can write.
 
-Nav entries in `lib/nav-items.ts` carry their permission code, and route gating reuses the same codes:
-`resolveRouteGate` matches by path prefix, so a detail route is covered by its list's gate. An entry the
-admin lacks is shown dimmed with a lock and links to `/forbidden?permission=<code>`. It is never hidden.
+Nav entries in `lib/nav-items.ts` carry their permission code. An entry the admin lacks is **hidden**
+(`visibleNavGroups`), and so is a group left with no entries. This was the product owner's choice on
+2026-10-08, and it matches design decision #05; before that, entries were dimmed with a lock. Hiding is
+UX, not protection: the API answers 403 either way. `resolveRouteGate` (prefix match, so a detail route
+inherits its list's gate) exists, but nothing calls it yet.
 
 ⚠ Some comments cite `lib/http/on-forbidden.ts` (a 403-triggered refetch). That file never existed; see
 `BACKEND-REVISIONS.md` §6.1.
