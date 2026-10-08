@@ -80,8 +80,17 @@ There are two built-in roles plus custom ones: `SUPER_ADMIN`, `MODERATOR` (a sub
 Nav entries in `lib/nav-items.ts` carry their permission code. An entry the admin lacks is **hidden**
 (`visibleNavGroups`), and so is a group left with no entries. This was the product owner's choice on
 2026-10-08, and it matches design decision #05; before that, entries were dimmed with a lock. Hiding is
-UX, not protection: the API answers 403 either way. `resolveRouteGate` (prefix match, so a detail route
-inherits its list's gate) exists, but nothing calls it yet.
+UX, not protection: the API answers 403 either way.
+
+`RouteGuard` (`components/auth/route-guard.tsx`, in the dashboard layout) sends an admin who opens a
+page without its grant to `/forbidden?permission=<code>`:
+- It gates **list pages only**. `resolveRouteGate` matches the exact URL, because detail pages are gated
+  differently by the backend (task detail needs `task:read_any`, not `task:list_any`). Detail pages are
+  left to the API's 403.
+- It redirects only on a grant set the server sent this session (`routeAccess`). On cached grants it
+  waits, and if the fetch fails it lets the page render.
+- A page's gate must be the permission of the request the page makes on load. A stricter gate locks out
+  admins the API would serve.
 
 ⚠ Some comments cite `lib/http/on-forbidden.ts` (a 403-triggered refetch). That file never existed; see
 `BACKEND-REVISIONS.md` §6.1.

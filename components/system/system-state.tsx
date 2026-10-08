@@ -130,6 +130,7 @@ export function SystemAction({
       <Button
         variant={variant}
         className={className}
+        nativeButton={false}
         render={<Link href={href} />}
       >
         {children}

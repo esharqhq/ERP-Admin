@@ -3,6 +3,7 @@ import { cookies } from "next/headers"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/layout/app-sidebar"
 import { DashboardHeader } from "@/components/layout/dashboard-header"
+import { RouteGuard } from "@/components/auth/route-guard"
 import { OneSignalProvider } from "@/providers/onesignal-provider"
 import { NotificationProvider } from "@/providers/notification-provider"
 import { Toaster } from "sonner"
@@ -32,7 +33,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
             nothing rather than claiming health it never checked. */}
         <DashboardHeader healthUrl={process.env.HEALTH_URL} />
         <main className="flex flex-1 flex-col gap-4 p-4">
-          {children}
+          <RouteGuard>{children}</RouteGuard>
         </main>
       </SidebarInset>
     </SidebarProvider>

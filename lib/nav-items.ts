@@ -168,54 +168,46 @@ export function visibleNavGroups(
 }
 
 // ── Route access control ─────────────────────────────────────────────────────
-// The permission gate for a given dashboard route. `null` = no gate (any
-// authenticated admin may view). Backend still enforces every
-// [RequirePermission] independently — this layer is UX only.
-//
-// ⚠ Nothing calls `resolveRouteGate` today (checked 2026-10-08). The "central
-// RouteGuard" this comment used to name does not exist. A page reached by URL
-// without its grant renders, and the API's 403 decides what it shows.
+// The permission a page URL needs before `RouteGuard` renders it (see
+// `lib/route-access.ts`). Backend still enforces every [RequirePermission]
+// independently — this layer is UX only.
 
 export type RouteGate = { permission?: string; anyOf?: string[] }
 
 /**
- * Extra gates for pages that are NOT top-level nav items (mostly settings
- * sub-pages). These use LONGER prefixes than the nav entries, so they win the
- * longest-prefix match below and get their own specific permission instead of
- * inheriting the broader `/dashboard/settings` anyOf gate.
+ * Gates for pages that are NOT nav items (settings sub-pages). Each one is the
+ * permission of the request the page makes on load.
  */
-const EXTRA_ROUTE_GATES: { prefix: string; permission?: string; anyOf?: string[] }[] = [
-  { prefix: "/dashboard/settings/admins",      permission: "admin:list" },
-  { prefix: "/dashboard/settings/admins/presets", permission: "system:permission:read" },
-  { prefix: "/dashboard/settings/audit",       permission: "system:audit:read" },
-  { prefix: "/dashboard/settings/professions", permission: "profession:create" },
-  { prefix: "/dashboard/skill-requests", permission: "worker_profession_request:read" },
-  { prefix: "/dashboard/settings/property-categories", permission: "property_category:update" },
+const EXTRA_ROUTE_GATES: { path: string; permission?: string; anyOf?: string[] }[] = [
+  { path: "/dashboard/settings/admins",              permission: "admin:list" },
+  { path: "/dashboard/settings/admins/presets",      permission: "system:permission:read" },
+  { path: "/dashboard/settings/audit",               permission: "system:audit:read" },
+  // These two lists are served to any signed-in admin (ProfessionsController.List,
+  // PropertyCategoriesController.List: `[Authorize]` only). The pages are for
+  // managing them, so either write grant opens them; one grant alone must not.
+  { path: "/dashboard/settings/professions",         anyOf: ["profession:create", "profession:update"] },
+  { path: "/dashboard/settings/property-categories", anyOf: ["property_category:create", "property_category:update"] },
 ]
 
-/** Routes always visible to any authenticated admin (no permission needed). */
-const OPEN_PREFIXES = ["/dashboard/profile"]
-
 /**
- * Resolve the permission gate for a path (locale already stripped, e.g.
- * "/dashboard/owners/123"). Matches the longest configured prefix so detail
- * pages inherit their section's gate (`/dashboard/owners/123` → `owner:list`).
- * Returns `null` for open/ungated routes (e.g. the "/dashboard" overview).
+ * The gate for exactly this page (locale stripped, e.g. "/dashboard/owners"),
+ * or `null` for an ungated one.
+ *
+ * ⚠ **Exact match, not prefix.** A detail page does not inherit its list's
+ * gate, because the backend gates it differently: task detail needs
+ * `task:read_any` where the list needs `task:list_any`, worker detail
+ * `worker:read` where the list needs `worker:list`, an owner's documents
+ * `kyc:review` where the queue needs `kyc:read`. Inheriting would bounce an
+ * admin from a page the API would serve them. Detail pages are left to the
+ * API's 403.
  */
 export function resolveRouteGate(path: string): RouteGate | null {
-  if (OPEN_PREFIXES.some((p) => path === p || path.startsWith(`${p}/`))) return null
-
-  const entries = [
-    ...EXTRA_ROUTE_GATES,
-    ...navItems
+  const page = path.replace(/\/+$/, "") || "/"
+  const entry =
+    EXTRA_ROUTE_GATES.find((e) => e.path === page) ??
+    navItems
       .filter((i) => i.permission || i.anyOf)
-      .map((i) => ({ prefix: i.url, permission: i.permission, anyOf: i.anyOf })),
-  ].sort((a, b) => b.prefix.length - a.prefix.length)
-
-  for (const e of entries) {
-    if (path === e.prefix || path.startsWith(`${e.prefix}/`)) {
-      return { permission: e.permission, anyOf: e.anyOf }
-    }
-  }
-  return null
+      .map((i) => ({ path: i.url, permission: i.permission, anyOf: i.anyOf }))
+      .find((e) => e.path === page)
+  return entry ? { permission: entry.permission, anyOf: entry.anyOf } : null
 }

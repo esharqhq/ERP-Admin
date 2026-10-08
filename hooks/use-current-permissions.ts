@@ -4,6 +4,7 @@ import { useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { permissionService } from "@/lib/services/permission.service";
 import { useAuthStore } from "@/store/auth.store";
+import type { GrantSource } from "@/lib/route-access";
 
 /**
  * Resolve the current admin's *effective* permission codes from the backend
@@ -70,7 +71,13 @@ export function useCurrentPermissions() {
     [query.data],
   );
 
-  return { permissions, isLoading: query.isLoading };
+  // Where `permissions` came from. The seed has `dataUpdatedAt` 0 (see
+  // `initialDataUpdatedAt` above), so a non-zero value means the server has
+  // answered at least once this session. `RouteGuard` redirects only on that.
+  const source: GrantSource =
+    query.dataUpdatedAt > 0 ? "server" : query.isError ? "failed" : "cache";
+
+  return { permissions, isLoading: query.isLoading, source };
 }
 
 /**
