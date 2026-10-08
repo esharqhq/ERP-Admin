@@ -5,8 +5,8 @@
  * The response interceptor in `client.ts` reads a 401 as "this session expired,
  * go refresh it". For `/api/Auth/login` a 401 means the opposite — the
  * credentials just offered were wrong — and there is no session to refresh. Sent
- * down the refresh branch it finds no refresh token, throws, and ends at
- * `window.location.href`, whose reload discards the React Query error the login
+ * down the refresh branch it finds no refresh token, throws, and ends in
+ * `signOutHere`, whose page reload discards the React Query error the login
  * form was about to render: a mistyped password blanked the form and explained
  * nothing (measured against api.uyer.app, 2026-09-21).
  *

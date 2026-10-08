@@ -19,21 +19,11 @@ export function OneSignalProvider() {
         setIsInitialized(true);
         OneSignal.Notifications.requestPermission();
 
+        // No logging here: a notification's payload names workers, owners and
+        // tasks, and the console is readable by anyone at the machine and by
+        // every browser extension.
         OneSignal.Notifications.addEventListener("foregroundWillDisplay", (e) => {
-          console.log("[OneSignal] foregroundWillDisplay →", e.notification);
           e.notification.display();
-        });
-
-        OneSignal.Notifications.addEventListener("click", (e) => {
-          console.log("[OneSignal] click →", e.notification);
-        });
-
-        OneSignal.Notifications.addEventListener("permissionChange", (granted) => {
-          console.log("[OneSignal] permissionChange →", granted);
-        });
-
-        OneSignal.Notifications.addEventListener("dismiss", (e) => {
-          console.log("[OneSignal] dismiss →", e.notification);
         });
       })
       .catch(() => {
