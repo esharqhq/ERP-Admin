@@ -28,7 +28,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { navGroups, type NavBadgeKind, type NavItem } from "@/lib/nav-items"
-import { logoutAction } from "@/app/[locale]/login/actions"
+import { useLogout } from "@/hooks/use-logout"
 import { useAuthStore } from "@/store/auth.store"
 import { useCurrentPermissions } from "@/hooks/use-current-permissions"
 import { useRoutePrefetch } from "@/hooks/use-route-prefetch"
@@ -152,6 +152,7 @@ export function AppSidebar() {
   const pathname = rawPathname.replace(`/${locale}`, "") || "/"
   const adminMe = useAuthStore((s) => s.adminMe)
   const { permissions } = useCurrentPermissions()
+  const logout = useLogout()
   const t = useTranslations()
 
   // Fail CLOSED while the grant set is UNKNOWN (cold start): the skeleton below
@@ -441,17 +442,14 @@ export function AppSidebar() {
                     {t("profile.title")}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <form action={logoutAction}>
-                    <DropdownMenuItem
-                      variant="destructive"
-                      className="w-full cursor-pointer"
-                      nativeButton
-                      render={<button type="submit" />}
-                    >
-                      <LogOut />
-                      {t("auth.logout")}
-                    </DropdownMenuItem>
-                  </form>
+                  <DropdownMenuItem
+                    variant="destructive"
+                    className="w-full cursor-pointer"
+                    onClick={logout}
+                  >
+                    <LogOut />
+                    {t("auth.logout")}
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </SidebarMenuItem>
