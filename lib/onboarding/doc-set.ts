@@ -132,13 +132,26 @@ export function firstToRead(docs: ReviewDoc[]): ReviewDoc | null {
  * there is. Anything not recognised gets the "cannot be shown inline" panel,
  * which still carries Open original and the full verdict row — **the decision is
  * never blocked by the preview**.
+ *
+ * ⚠ A pdf is framed only when the **stored** file ends in `.pdf` as well. The
+ * file route serves whatever Content-Type the storage key's extension implies,
+ * so a `.pdf` display name over an `.html` key would put an uploader's page in
+ * an iframe inside the panel. An `<img>` cannot run script, so images keep
+ * trusting the name.
  */
 export type ViewerKind = "pdf" | "image" | "unsupported";
 
+function extensionOf(value: string): string {
+  const path = value.split(/[?#]/)[0].toLowerCase();
+  const dot = path.lastIndexOf(".");
+  return dot > path.lastIndexOf("/") ? path.slice(dot + 1) : "";
+}
+
 export function viewerKind(fileName: string | null, fileUrl: string | null): ViewerKind {
-  const name = (fileName || fileUrl || "").toLowerCase();
-  const ext = name.slice(name.lastIndexOf(".") + 1);
-  if (ext === "pdf") return "pdf";
+  const ext = extensionOf(fileName || fileUrl || "");
+  if (ext === "pdf") {
+    return fileUrl && extensionOf(fileUrl) !== "pdf" ? "unsupported" : "pdf";
+  }
   if (["png", "jpg", "jpeg", "webp", "gif", "avif"].includes(ext)) return "image";
   return "unsupported";
 }

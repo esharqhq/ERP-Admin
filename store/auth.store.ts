@@ -33,7 +33,9 @@ export const useAuthStore = create<AuthState>()(
 
       setTokens: (result) => {
         if (typeof document !== "undefined") {
-          document.cookie = `auth-token=1; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+          // Secure on https only, so `next dev` on http://localhost still logs in.
+          const secure = location.protocol === "https:" ? "; Secure" : "";
+          document.cookie = `auth-token=1; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${secure}`;
         }
         set({
           accessToken: result.accessToken,

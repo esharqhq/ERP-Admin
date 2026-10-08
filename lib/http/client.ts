@@ -1,6 +1,7 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
-import { useAuthStore } from "@/store/auth.store";
 import { isSessionMintingEndpoint } from "@/lib/http/auth-endpoint";
+import { localeFromPath } from "@/lib/http/sign-out";
+import { signOutHere } from "@/lib/http/sign-out-here";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 
@@ -106,8 +107,8 @@ apiClient.interceptors.response.use(
       return apiClient(original);
     } catch (refreshError) {
       flushQueue(refreshError);
-      useAuthStore.getState().clearAuth();
-      window.location.href = "/login";
+      // Same teardown as Log out. The full page load drops the query cache.
+      void signOutHere(localeFromPath(window.location.pathname));
       return Promise.reject(refreshError);
     } finally {
       isRefreshing = false;
