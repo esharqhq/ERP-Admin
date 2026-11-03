@@ -2,6 +2,8 @@ import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { isSessionMintingEndpoint } from "@/lib/http/auth-endpoint";
 import { localeFromPath } from "@/lib/http/sign-out";
 import { signOutHere } from "@/lib/http/sign-out-here";
+import { idleExpiredHere } from "@/lib/auth/idle";
+import { useAuthStore } from "@/store/auth.store";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 
@@ -11,40 +13,103 @@ export const apiClient = axios.create({
   timeout: 15000,
 });
 
-// ─── Request interceptor: attach access token ────────────────────────────────
+// ─── Request interceptor: idle timeout, then the access token ───────────────
 apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   if (typeof window === "undefined") return config;
 
-  try {
-    const raw = localStorage.getItem("auth-storage");
-    if (!raw) return config;
-
-    const parsed = JSON.parse(raw) as {
-      state?: { accessToken?: string };
-    };
-    const token = parsed?.state?.accessToken;
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-  } catch {
-    // corrupt storage — ignore
+  // An hour without the admin touching the panel ends the session
+  // (`lib/auth/idle.ts`). Checked here as well as in `SessionGate`, because a
+  // refetch on wake can fire before the gate's own check runs.
+  if (!isSessionMintingEndpoint(config.url) && idleExpiredHere()) {
+    void signOutHere(localeFromPath(window.location.pathname));
+    return Promise.reject(new Error("session_idle"));
   }
+
+  const token = readTokens().accessToken;
+  if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
 // ─── Response interceptor: refresh on 401 ────────────────────────────────────
-let isRefreshing = false;
-let failedQueue: Array<{
-  resolve: (token: string) => void;
-  reject: (err: unknown) => void;
-}> = [];
+//
+// Two bugs lived here, and together they made an expired session open the
+// dashboard, show data for a few seconds, and only then fall to the login page:
+//
+// 1. The refreshed tokens went straight into localStorage while the zustand
+//    store kept the old ones in memory. The next write to the store (a changed
+//    grant set, a profile edit) persisted the old pair back, and the old
+//    refresh token is dead: the backend deletes it on use
+//    (`RedisRefreshTokenStore.ValidateAndRotateAsync`). The next 401 then ended
+//    in a sign-out. Tokens are now written through the store.
+// 2. Tabs restored together all refreshed with the same one-use token. One won;
+//    the others were refused and signed out, which wiped the winner's tokens
+//    too. A refresh now runs under a browser-wide lock, and inside it a token
+//    that differs from the one the failed request carried means another tab
+//    (or an earlier 401 in this one) already refreshed, so it is reused.
 
-function flushQueue(error: unknown, token?: string) {
-  failedQueue.forEach(({ resolve, reject }) => {
-    if (error) reject(error);
-    else resolve(token!);
+const REFRESH_LOCK = "uyer-admin-auth-refresh";
+
+interface StoredTokens {
+  accessToken?: string | null;
+  refreshToken?: string | null;
+}
+
+/** The tokens as storage holds them now: storage is shared by every tab. */
+function readTokens(): StoredTokens {
+  try {
+    const parsed = JSON.parse(localStorage.getItem("auth-storage") ?? "{}") as {
+      state?: StoredTokens;
+    };
+    return parsed?.state ?? {};
+  } catch {
+    return {}; // corrupt storage: no session
+  }
+}
+
+let localTail: Promise<unknown> = Promise.resolve();
+
+/** Run `fn` alone across every tab; one tab at a time where Web Locks are missing. */
+function withRefreshLock<T>(fn: () => Promise<T>): Promise<T> {
+  if (typeof navigator !== "undefined" && navigator.locks?.request) {
+    // The lock resolves with what `fn` resolves to; its typing nests the promise.
+    return navigator.locks.request(REFRESH_LOCK, fn) as Promise<T>;
+  }
+  const run = localTail.then(fn, fn);
+  localTail = run.catch(() => {});
+  return run;
+}
+
+/**
+ * An access token newer than `staleToken`: one another refresh already got,
+ * or a fresh pair from `/api/Auth/refresh`.
+ */
+function freshAccessToken(staleToken: string | undefined): Promise<string> {
+  return withRefreshLock(async () => {
+    const current = readTokens();
+    if (current.accessToken && current.accessToken !== staleToken) {
+      return current.accessToken;
+    }
+    if (!current.refreshToken) throw new Error("No refresh token");
+
+    const { data } = await axios.post<{
+      accessToken: string;
+      refreshToken: string;
+      expireDate: string;
+    }>(`${BASE_URL}/api/Auth/refresh`, { refreshToken: current.refreshToken });
+
+    // Through the store, so its memory and storage agree (bug 1 above).
+    useAuthStore.setState({
+      accessToken: data.accessToken,
+      refreshToken: data.refreshToken,
+      expireDate: data.expireDate,
+    });
+    return data.accessToken;
   });
-  failedQueue = [];
+}
+
+function bearerOf(config: InternalAxiosRequestConfig): string | undefined {
+  const header = config.headers?.Authorization;
+  return typeof header === "string" ? header.replace(/^Bearer\s+/i, "") : undefined;
 }
 
 apiClient.interceptors.response.use(
@@ -59,59 +124,24 @@ apiClient.interceptors.response.use(
     // reload that throws away the error the form was about to show. Hand it back
     // to the caller so `useLogin`'s `error` survives and the banner renders.
     if (
+      !original ||
       error.response?.status !== 401 ||
       original._retry ||
-      isSessionMintingEndpoint(original?.url)
+      isSessionMintingEndpoint(original.url)
     ) {
       return Promise.reject(error);
     }
-
-    if (isRefreshing) {
-      return new Promise<string>((resolve, reject) => {
-        failedQueue.push({ resolve, reject });
-      }).then((token) => {
-        original.headers.Authorization = `Bearer ${token}`;
-        return apiClient(original);
-      });
-    }
-
     original._retry = true;
-    isRefreshing = true;
 
+    let token: string;
     try {
-      const raw = localStorage.getItem("auth-storage");
-      const parsed = JSON.parse(raw ?? "{}") as {
-        state?: { refreshToken?: string };
-      };
-      const refreshToken = parsed?.state?.refreshToken;
-      if (!refreshToken) throw new Error("No refresh token");
-
-      const { data } = await axios.post<{
-        accessToken: string;
-        refreshToken: string;
-        expireDate: string;
-      }>(`${BASE_URL}/api/Auth/refresh`, { refreshToken });
-
-      // update persisted store
-      const stored = JSON.parse(raw ?? "{}");
-      stored.state = {
-        ...stored.state,
-        accessToken: data.accessToken,
-        refreshToken: data.refreshToken,
-        expireDate: data.expireDate,
-      };
-      localStorage.setItem("auth-storage", JSON.stringify(stored));
-
-      flushQueue(null, data.accessToken);
-      original.headers.Authorization = `Bearer ${data.accessToken}`;
-      return apiClient(original);
+      token = await freshAccessToken(bearerOf(original));
     } catch (refreshError) {
-      flushQueue(refreshError);
       // Same teardown as Log out. The full page load drops the query cache.
       void signOutHere(localeFromPath(window.location.pathname));
       return Promise.reject(refreshError);
-    } finally {
-      isRefreshing = false;
     }
+    original.headers.Authorization = `Bearer ${token}`;
+    return apiClient(original);
   },
 );

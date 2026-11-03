@@ -27,6 +27,11 @@ jobs:
       - name: Type-check
         run: npx tsc --noEmit
 
+      # Unit tests: the CSP, sign-out, proxy matcher and file-link rules live
+      # in lib/ and are pinned there.
+      - name: Test
+        run: npm test
+
       - name: Build
         run: npm run build
         env:

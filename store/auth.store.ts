@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { AdminMeDto, AuthResultDto } from "@/lib/types/auth.types";
+import { authCookie, expiredAuthCookie } from "@/lib/auth/session-cookie";
+import { recordActivity } from "@/lib/auth/idle";
 
 interface AuthState {
   accessToken: string | null;
@@ -15,7 +17,8 @@ interface AuthState {
    * re-fetches. Null until the first successful fetch of a session.
    */
   cachedPermissions: string[] | null;
-  setTokens: (result: AuthResultDto) => void;
+  /** `remember`: the login form's "Keep me signed in" (`lib/auth/session-cookie.ts`). */
+  setTokens: (result: AuthResultDto, remember: boolean) => void;
   setAdminMe: (me: AdminMeDto) => void;
   setCachedPermissions: (codes: string[]) => void;
   clearAuth: () => void;
@@ -31,11 +34,11 @@ export const useAuthStore = create<AuthState>()(
       adminMe: null,
       cachedPermissions: null,
 
-      setTokens: (result) => {
+      setTokens: (result, remember) => {
         if (typeof document !== "undefined") {
-          // Secure on https only, so `next dev` on http://localhost still logs in.
-          const secure = location.protocol === "https:" ? "; Secure" : "";
-          document.cookie = `auth-token=1; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${secure}`;
+          document.cookie = authCookie({ remember, secure: location.protocol === "https:" });
+          // Signing in is activity: the idle hour starts here (`lib/auth/idle.ts`).
+          recordActivity();
         }
         set({
           accessToken: result.accessToken,
@@ -51,7 +54,7 @@ export const useAuthStore = create<AuthState>()(
 
       clearAuth: () => {
         if (typeof document !== "undefined") {
-          document.cookie = "auth-token=; path=/; max-age=0";
+          document.cookie = expiredAuthCookie;
         }
         set({
           accessToken: null,

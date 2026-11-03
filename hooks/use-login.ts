@@ -12,9 +12,12 @@ export function useLogin() {
   const router = useRouter();
 
   return useMutation({
-    mutationFn: (credentials: LoginDto) => authService.login(credentials),
-    onSuccess: async (data) => {
-      setTokens(data);
+    // `remember` stays in the panel: it decides the routing cookie's lifetime
+    // and is not part of the login request.
+    mutationFn: ({ email, password }: LoginDto & { remember: boolean }) =>
+      authService.login({ email, password }),
+    onSuccess: async (data, { remember }) => {
+      setTokens(data, remember);
       try {
         const me = await authService.getProfile();
         setAdminMe(me);

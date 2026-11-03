@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { localeFromPath, signOut } from "@/lib/http/sign-out";
+import { localeFromPath, signedOutElsewhere, signOut } from "@/lib/http/sign-out";
 
 function steps() {
   const calls: string[] = [];
@@ -88,5 +88,28 @@ describe("localeFromPath", () => {
     expect(localeFromPath("/dashboard")).toBe("en");
     expect(localeFromPath("/")).toBe("en");
     expect(localeFromPath("/fr/dashboard")).toBe("en");
+  });
+});
+
+describe("signedOutElsewhere", () => {
+  const stored = (accessToken: string | null) =>
+    JSON.stringify({ state: { accessToken, refreshToken: "r" }, version: 0 });
+
+  it("reads a removed or emptied auth entry as a sign-out", () => {
+    expect(signedOutElsewhere("auth-storage", null)).toBe(true);
+    expect(signedOutElsewhere("auth-storage", stored(null))).toBe(true);
+  });
+
+  it("reads storage cleared wholesale as a sign-out", () => {
+    expect(signedOutElsewhere(null, null)).toBe(true);
+  });
+
+  it("reads a corrupt entry as a sign-out, since no request can use it", () => {
+    expect(signedOutElsewhere("auth-storage", "{not json")).toBe(true);
+  });
+
+  it("ignores a refresh in another tab and unrelated keys", () => {
+    expect(signedOutElsewhere("auth-storage", stored("new-access"))).toBe(false);
+    expect(signedOutElsewhere("sidebar", null)).toBe(false);
   });
 });

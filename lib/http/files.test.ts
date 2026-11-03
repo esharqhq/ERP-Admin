@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { FILES_BASE, resolveFileUrl } from "@/lib/http/files";
+import { FILES_BASE, openableFileUrl, resolveFileUrl } from "@/lib/http/files";
 
 /**
  * The regression these pin: every `fileUrl` on the wire was being handed to an
@@ -59,5 +59,46 @@ describe("resolveFileUrl", () => {
     expect(resolveFileUrl(null)).toBeNull();
     expect(resolveFileUrl("")).toBeNull();
     expect(resolveFileUrl("   ")).toBeNull();
+  });
+});
+
+/**
+ * `/files` serves the type the key's extension implies, inline, with no
+ * `nosniff` and no sandbox (BACKEND-ASKS, 2026-10-08). A link that opens an
+ * uploaded `.html` or `.svg` runs it as a page on the API origin, so only types
+ * a browser shows inertly or downloads get a link.
+ */
+describe("openableFileUrl", () => {
+  it.each([
+    "https://api.uyer.app/files/kyc/2026/08/03/a-passport.pdf",
+    "https://api.uyer.app/files/chat/a-photo.JPG",
+    "https://api.uyer.app/files/chat/a-note.docx",
+    "https://api.uyer.app/files/chat/a-voice.m4a",
+    "https://api.uyer.app/files/contracts/c.pdf?exp=1&sig=abc",
+  ])("keeps %s", (url) => {
+    expect(openableFileUrl(url)).toBe(url);
+  });
+
+  it.each([
+    "https://api.uyer.app/files/chat/a-page.html",
+    "https://api.uyer.app/files/chat/a-page.HTM",
+    "https://api.uyer.app/files/chat/a-logo.svg",
+    "https://api.uyer.app/files/chat/a-feed.xml",
+    "https://api.uyer.app/files/chat/a-page.xhtml",
+    "https://api.uyer.app/files/chat/no-extension",
+    // the display name is not what the server reads; the key is
+    "https://api.uyer.app/files/chat/a.pdf.html",
+    "https://api.uyer.app/files/chat/a.html?name=x.pdf",
+  ])("refuses %s", (url) => {
+    expect(openableFileUrl(url)).toBeNull();
+  });
+
+  it("refuses a non-http scheme", () => {
+    expect(openableFileUrl("javascript:alert(1)//.pdf")).toBeNull();
+    expect(openableFileUrl("data:text/html;base64,PGI+.pdf")).toBeNull();
+  });
+
+  it("passes null through", () => {
+    expect(openableFileUrl(null)).toBeNull();
   });
 });

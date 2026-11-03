@@ -5,6 +5,7 @@ import { AppSidebar } from "@/components/layout/app-sidebar"
 import { DashboardHeader } from "@/components/layout/dashboard-header"
 import { OneSignalProvider } from "@/providers/onesignal-provider"
 import { NotificationProvider } from "@/providers/notification-provider"
+import { SessionGate } from "@/components/auth/session-gate"
 import { Toaster } from "sonner"
 
 /**
@@ -20,21 +21,25 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const collapsedChoice = store.get("sidebar_state")?.value
   return (
     <SidebarProvider defaultOpen={collapsedChoice !== "false"}>
-      <OneSignalProvider />
-      <NotificationProvider />
-      <Toaster richColors position="top-right" />
-      <AppSidebar />
-      <SidebarInset>
-        {/* Read here rather than in the header: this layout is a server
-            component, and `HEALTH_URL` is deliberately not a `NEXT_PUBLIC_*`
-            var — those are inlined at build time and so could not be changed by
-            whoever runs the container. Unset, the topbar's status chip renders
-            nothing rather than claiming health it never checked. */}
-        <DashboardHeader healthUrl={process.env.HEALTH_URL} />
-        <main className="flex flex-1 flex-col gap-4 p-4">
-          {children}
-        </main>
-      </SidebarInset>
+      {/* Nothing below renders, fetches or connects until the session is
+          known to be live (idle hour, `lib/auth/idle.ts`). */}
+      <SessionGate>
+        <OneSignalProvider />
+        <NotificationProvider />
+        <Toaster richColors position="top-right" />
+        <AppSidebar />
+        <SidebarInset>
+          {/* Read here rather than in the header: this layout is a server
+              component, and `HEALTH_URL` is deliberately not a `NEXT_PUBLIC_*`
+              var — those are inlined at build time and so could not be changed by
+              whoever runs the container. Unset, the topbar's status chip renders
+              nothing rather than claiming health it never checked. */}
+          <DashboardHeader healthUrl={process.env.HEALTH_URL} />
+          <main className="flex flex-1 flex-col gap-4 p-4">
+            {children}
+          </main>
+        </SidebarInset>
+      </SessionGate>
     </SidebarProvider>
   )
 }

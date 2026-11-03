@@ -94,8 +94,17 @@ export function proxy(request: NextRequest) {
   return csp.stamp(intlMiddleware(csp.request));
 }
 
+/**
+ * A path with a dot is skipped as a public file only when it is NOT under a
+ * locale. Skipping every dotted path also skipped pages whose dynamic segment
+ * holds one (`/en/dashboard/tasks/abc.x`), and those rendered with no login
+ * redirect and no CSP. Public files sit at the root (`public/`), never under
+ * `/en` or `/de`. The locales are spelled out because the matcher must be a
+ * literal; keep them in step with `locales` above.
+ * Tested in `lib/http/proxy-matcher.test.ts`.
+ */
 export const config = {
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|(?!(?:en|de)(?:/|$)).*\\..*).*)',
   ],
 };

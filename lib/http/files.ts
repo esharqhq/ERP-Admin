@@ -50,3 +50,45 @@ export function resolveFileUrl(value: string | null | undefined): string | null 
     : raw;
   return `${FILES_BASE}/files/${key}`;
 }
+
+/**
+ * The extension of a file URL or name, lower-cased, read past a query or
+ * fragment (a signed URL carries one). Empty when the last segment has none.
+ */
+export function extensionOf(value: string): string {
+  const path = value.split(/[?#]/)[0].toLowerCase();
+  const dot = path.lastIndexOf(".");
+  return dot > path.lastIndexOf("/") ? path.slice(dot + 1) : "";
+}
+
+/**
+ * Types a browser shows inertly (PDF viewer, raster image, media player, plain
+ * text) or downloads (office files, archives). Nothing here can run script as a
+ * page. `svg`, `html` and `xml` are left out on purpose: each is a document that
+ * runs script when opened directly.
+ */
+const OPENABLE = new Set([
+  "pdf",
+  "png", "jpg", "jpeg", "webp", "gif", "avif", "bmp", "heic", "heif",
+  "mp4", "mov", "webm", "m4v",
+  "mp3", "m4a", "aac", "ogg", "oga", "opus", "wav",
+  "txt", "csv",
+  "doc", "docx", "xls", "xlsx", "ppt", "pptx", "odt", "ods", "odp", "rtf",
+  "zip",
+]);
+
+/**
+ * The URL, when it is safe to open in a new tab; otherwise null, and the
+ * caller shows the file without a link.
+ *
+ * `/files` takes the Content-Type from the key's extension and serves it
+ * inline, with no `nosniff` and no `Content-Security-Policy: sandbox`
+ * (BACKEND-ASKS, 2026-10-08). Workers and owners upload these files, so an
+ * `.html` or `.svg` key opened from the panel would run as a page on the API
+ * origin. The check reads the URL's own extension, because that is what the
+ * server reads; a display name ending in `.pdf` proves nothing.
+ */
+export function openableFileUrl(url: string | null | undefined): string | null {
+  if (!url || !/^https?:\/\//i.test(url)) return null;
+  return OPENABLE.has(extensionOf(url)) ? url : null;
+}

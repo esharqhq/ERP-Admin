@@ -24,6 +24,7 @@ import {
 import { useConversationHub } from "@/hooks/use-conversation-hub";
 import { supportService } from "@/lib/services/support.service";
 import { uploadService } from "@/lib/services/upload.service";
+import { openableFileUrl, resolveFileUrl } from "@/lib/http/files";
 import { normalizeStatus } from "@/lib/types/task.types";
 import type {
   AttachmentTypeName,
@@ -234,6 +235,7 @@ function AttachmentView({
   onOpenMedia: (m: MediaView) => void;
   onPrimary: boolean;
 }) {
+  const t = useTranslations("support");
   const kind = normalizeStatus(a.type);
 
   if (kind === "voice") {
@@ -289,16 +291,29 @@ function AttachmentView({
     );
   }
 
+  const chip = `flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs ${
+    onPrimary
+      ? "border-primary-foreground/25 bg-primary-foreground/10 text-primary-foreground"
+      : "border-border/60 bg-background/60"
+  }`;
+  // The sender chose this file. An `.html` or `.svg` would open as a live page
+  // on the API origin, so it is listed without a link (`openableFileUrl`).
+  const href = openableFileUrl(resolveFileUrl(a.url));
+  if (!href) {
+    return (
+      <span className={chip} title={t("thread.attachmentNotOpenable")}>
+        <Paperclip className="size-3" />
+        {a.fileName}
+      </span>
+    );
+  }
+
   return (
     <a
-      href={a.url}
+      href={href}
       target="_blank"
       rel="noreferrer"
-      className={`flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs underline-offset-2 hover:underline ${
-        onPrimary
-          ? "border-primary-foreground/25 bg-primary-foreground/10 text-primary-foreground"
-          : "border-border/60 bg-background/60"
-      }`}
+      className={`${chip} underline-offset-2 hover:underline`}
     >
       <Paperclip className="size-3" />
       {a.fileName}

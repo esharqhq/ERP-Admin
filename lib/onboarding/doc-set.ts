@@ -1,3 +1,4 @@
+import { extensionOf } from "@/lib/http/files";
 import { normalizeStatus } from "@/lib/types/task.types";
 import type { ReviewDoc } from "@/lib/types/review-doc.types";
 import type { DocVerdict } from "@/lib/onboarding/queue-detail";
@@ -140,12 +141,6 @@ export function firstToRead(docs: ReviewDoc[]): ReviewDoc | null {
  * trusting the name.
  */
 export type ViewerKind = "pdf" | "image" | "unsupported";
-
-function extensionOf(value: string): string {
-  const path = value.split(/[?#]/)[0].toLowerCase();
-  const dot = path.lastIndexOf(".");
-  return dot > path.lastIndexOf("/") ? path.slice(dot + 1) : "";
-}
 
 export function viewerKind(fileName: string | null, fileUrl: string | null): ViewerKind {
   const ext = extensionOf(fileName || fileUrl || "");

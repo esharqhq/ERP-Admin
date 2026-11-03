@@ -14,7 +14,7 @@ import {
 import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/components/docs-workspace/queue-cells";
-import { resolveFileUrl } from "@/lib/http/files";
+import { openableFileUrl, resolveFileUrl } from "@/lib/http/files";
 import { viewerKind } from "@/lib/onboarding/doc-set";
 import type { ReviewDoc } from "@/lib/types/review-doc.types";
 import { cn } from "@/lib/utils";
@@ -120,6 +120,9 @@ export function FileViewer({
 
   const kind = viewerKind(doc.fileName, doc.fileUrl);
   const url = resolveFileUrl(doc.fileUrl);
+  // "Open original" leaves the panel's frame, so an uploaded `.html` or `.svg`
+  // key would run as a page on the API origin (`openableFileUrl`).
+  const originalUrl = openableFileUrl(url);
   /**
    * Zoom and rotate exist for an image and not for a PDF. A PDF renders inside
    * the browser's own viewer, which owns its zoom and cannot be driven from
@@ -177,13 +180,13 @@ export function FileViewer({
           </div>
         )}
 
-        {url && (
+        {originalUrl && (
           <Button
             variant="outline"
             size="sm"
             nativeButton={false}
             className="h-[30px] shrink-0 gap-1.5 rounded-[9px] px-2.5 text-[12.5px]"
-            render={<a href={url} target="_blank" rel="noreferrer" />}
+            render={<a href={originalUrl} target="_blank" rel="noreferrer" />}
           >
             <ExternalLink className="size-3.5" />
             {t("openOriginal")}

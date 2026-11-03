@@ -73,3 +73,24 @@ export function localeFromPath(pathname: string): string {
     ? first
     : routing.defaultLocale;
 }
+
+/**
+ * True when a `storage` event says another tab of this browser signed out.
+ *
+ * Without it, a tab left open kept its in-memory store, so its SignalR sockets
+ * stayed connected as the admin who had just logged out elsewhere, until its
+ * next request failed. `key` is null when storage was cleared wholesale.
+ * A refresh in another tab rewrites the entry with a new token, which is not a
+ * sign-out.
+ */
+export function signedOutElsewhere(key: string | null, newValue: string | null): boolean {
+  if (key === null) return true;
+  if (key !== "auth-storage") return false;
+  if (newValue === null) return true;
+  try {
+    const parsed = JSON.parse(newValue) as { state?: { accessToken?: string | null } };
+    return !parsed?.state?.accessToken;
+  } catch {
+    return true;
+  }
+}

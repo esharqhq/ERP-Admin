@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
-import { resolveFileUrl } from "@/lib/http/files";
+import { openableFileUrl, resolveFileUrl } from "@/lib/http/files";
 import { cn } from "@/lib/utils";
 import type { KycDocDto } from "@/lib/types/kyc.types";
 
@@ -122,8 +122,9 @@ export function OwnerDocumentsCard({
               "group flex items-start gap-3 rounded-lg border border-border bg-card p-2.5 transition-colors";
 
             // A document with no file is still worth listing — its status is the
-            // point — but it must not look like a link to nowhere.
-            const href = resolveFileUrl(doc.fileUrl);
+            // point — but it must not look like a link to nowhere. Nor may it link
+            // to a type that would open as a live page (`openableFileUrl`).
+            const href = openableFileUrl(resolveFileUrl(doc.fileUrl));
             return href ? (
               <a
                 key={doc.id}

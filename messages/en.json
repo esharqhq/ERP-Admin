@@ -1728,7 +1728,7 @@
     "signIn": "Sign in",
     "staffOnly": "Staff accounts only. Owners and workers use the mobile apps.",
     "allSystemsNormal": "All systems normal",
-    "rememberMe30": "Keep me signed in for 30 days",
+    "staySignedIn": "Stay signed in after closing the browser",
     "systemsDegraded": "Some systems are degraded",
     "forgotPasswordHelp": "Staff passwords are reset by an owner-admin — contact your administrator."
   },
@@ -2049,6 +2049,7 @@
       "stopAndSend": "Stop and send",
       "cancelRecording": "Cancel recording",
       "uploadFailed": "Upload failed",
+      "attachmentNotOpenable": "This file type can't be opened safely in the browser.",
       "removeAttachment": "Remove attachment",
       "micDenied": "Microphone access was denied."
     }

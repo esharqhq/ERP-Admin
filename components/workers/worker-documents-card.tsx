@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { CardRowsSkeleton, CardState } from "@/components/detail/card-state";
 import { DocApproveModal } from "@/components/workers/doc-approve-modal";
 import { DocRejectModal } from "@/components/workers/doc-reject-modal";
-import { resolveFileUrl } from "@/lib/http/files";
+import { openableFileUrl, resolveFileUrl } from "@/lib/http/files";
 import { normalizeStatus } from "@/lib/types/task.types";
 import { cn } from "@/lib/utils";
 import type { WorkerDocumentDto } from "@/lib/types/worker.types";
@@ -61,7 +61,8 @@ function DocRow({
     });
   }
 
-  const fileHref = resolveFileUrl(doc.fileUrl);
+  // No link for a type that would open as a live page (`openableFileUrl`).
+  const fileHref = openableFileUrl(resolveFileUrl(doc.fileUrl));
 
   const provenance = pending
     ? t("uploaded", { date: formatDate(doc.createdAt) })

@@ -1,10 +1,11 @@
 "use client";
 
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
 import {useLogin} from "@/hooks/use-login";
+import {discardStaleSession} from "@/lib/http/sign-out-here";
 import {useTranslations} from "next-intl";
 import {AlertCircle, ArrowRight, Eye, EyeOff, Loader2, Lock, Mail,} from "lucide-react";
 
@@ -30,12 +31,20 @@ export function LoginForm() {
     const [showReset, setShowReset] = useState(false);
     const {mutate: login, isPending, error} = useLogin();
 
+    // Only a browser without the routing cookie reaches this page, so tokens
+    // still in storage belong to a session that has ended (see
+    // `discardStaleSession`).
+    useEffect(() => {
+        discardStaleSession();
+    }, []);
+
     function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
         const form = new FormData(e.currentTarget);
         login({
             email: String(form.get("email") ?? "").trim(),
             password: String(form.get("password") ?? ""),
+            remember: form.get("remember") === "on",
         });
     }
 
@@ -109,7 +118,7 @@ export function LoginForm() {
                         name="remember"
                         className="size-[18px] rounded-sm border-border accent-primary"
                     />
-                    <span>{t('rememberMe30')}</span>
+                    <span>{t('staySignedIn')}</span>
                 </label>
                 <button
                     type="button"

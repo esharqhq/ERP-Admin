@@ -1728,7 +1728,7 @@
     "signIn": "Anmelden",
     "staffOnly": "Nur Mitarbeitendenkonten. Eigentümer und Mitarbeitende nutzen die Apps.",
     "allSystemsNormal": "Alle Systeme normal",
-    "rememberMe30": "30 Tage angemeldet bleiben",
+    "staySignedIn": "Nach dem Schließen des Browsers angemeldet bleiben",
     "systemsDegraded": "Einige Systeme sind eingeschränkt",
     "forgotPasswordHelp": "Mitarbeitenden-Passwörter werden von einem Owner-Admin zurückgesetzt — wenden Sie sich an Ihre Administration."
   },
@@ -2049,6 +2049,7 @@
       "stopAndSend": "Stoppen und senden",
       "cancelRecording": "Aufnahme abbrechen",
       "uploadFailed": "Upload fehlgeschlagen",
+      "attachmentNotOpenable": "Dieser Dateityp lässt sich im Browser nicht sicher öffnen.",
       "removeAttachment": "Anhang entfernen",
       "micDenied": "Mikrofonzugriff wurde verweigert."
     }
