@@ -102,7 +102,15 @@ const EXPECTED_FIELDS = {
     "deletedAt", "deletedBy"],
   WorkerRowDtoPagedResult: ["items", "total", "page", "pageSize", "totalPages"],
   WorkerDetailDto: ["id", "fullName", "onboardingStatus", "onboardingRejectReason",
-    "onboardingReviewedAt", "professions", "documents"],
+    "onboardingReviewedAt", "professions", "documents",
+    // The support pane names a worker requester from these (use-requester-names).
+    "email", "phoneNumber"],
+  // Support: the ticket carries only who, not a name; the name is read from the
+  // owner/worker profile with the requester's id (use-requester-names).
+  SupportTicketDto: ["id", "subject", "status", "category", "priority",
+    "requesterUserId", "requesterUserType", "assignedAdminId", "conversationId",
+    "resolvedAt", "closedAt", "createdAt"],
+  OwnerSummaryDto: ["id", "fullName", "email", "phoneNumber", "roleCode"],
   AdminOwnerContractDto: ["id", "eligibleFrom", "eligibleTo", "fileName", "fileUrl", "isActive",
     "createdAt", "status", "phase", "sentAt", "signedAt", "documentUrl", "previewUrl",
     "ownerProfileId", "ownerUserId", "ownerFullName", "ownerEmail",
@@ -247,6 +255,7 @@ for (const [route, method] of [
   ["/api/admin/workers", "get"], ["/api/admin/workers/{id}", "get"],
   ["/api/admin/workers/{id}/approve", "post"], ["/api/admin/workers/{id}/reject", "post"],
   ["/api/admin/owners", "get"], ["/api/admin/owners/export", "get"], ["/api/admin/owners/bosses", "get"],
+  ["/api/owners/{id}", "get"], ["/api/support-tickets/admin/all", "get"],
   ["/api/contracts/admin/owner", "get"], ["/api/contracts/admin/owner/{contractId}", "get"],
   ["/api/contracts/admin/owner/{contractId}/send", "post"],
   ["/api/contracts/admin/owner/{contractId}/recall", "post"],
