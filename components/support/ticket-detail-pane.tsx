@@ -502,6 +502,7 @@ export function TicketDetailPane({ ticketId, onBack }: Props) {
       <ConversationThread
         conversationId={ticket.conversationId}
         disabled={isClosed || ticket.conversationArchived}
+        participant={{ id: requesterId, label: requesterName ?? kindLabel }}
       />
     </div>
   );

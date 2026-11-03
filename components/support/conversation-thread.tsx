@@ -26,6 +26,7 @@ import { supportService } from "@/lib/services/support.service";
 import { uploadService } from "@/lib/services/upload.service";
 import { openableFileUrl, resolveFileUrl } from "@/lib/http/files";
 import { normalizeStatus } from "@/lib/types/task.types";
+import { requesterKind } from "@/lib/support/requester";
 import type {
   AttachmentTypeName,
   ConversationMessageDto,
@@ -327,12 +328,14 @@ function MessageBubble({
   showName,
   isLastOfGroup,
   onOpenMedia,
+  participant,
 }: {
   msg: ConversationMessageDto;
   locale: string;
   showName: boolean;
   isLastOfGroup: boolean;
   onOpenMedia: (m: MediaView) => void;
+  participant?: ThreadParticipant;
 }) {
   const t = useTranslations("support");
   const isSystem = normalizeStatus(msg.messageType) === "system";
@@ -359,7 +362,7 @@ function MessageBubble({
   return (
     <div
       className={`flex ${isAdmin ? "justify-end" : "justify-start"} ${
-        isLastOfGroup ? "mb-2" : "mb-0.5"
+        isLastOfGroup ? "mb-3" : "mb-1.5"
       }`}
     >
       <div
@@ -371,7 +374,11 @@ function MessageBubble({
       >
         {showName && !isAdmin ? (
           <span className="text-[11px] font-semibold text-primary">
-            {msg.senderUserType || t("thread.participant")}
+            {participant && msg.senderUserId === participant.id
+              ? participant.label
+              : msg.senderUserType
+                ? t(`roles.${requesterKind(msg.senderUserType)}`)
+                : t("thread.participant")}
           </span>
         ) : null}
         {msg.body ? (
@@ -411,13 +418,20 @@ interface PendingAttachment {
   storageKey?: string;
 }
 
+/** The ticket's requester, named over their own messages instead of the type code. */
+export interface ThreadParticipant {
+  id: string;
+  label: string;
+}
+
 interface Props {
   conversationId: string;
   /** Closed/archived conversation → composer is read-only. */
   disabled?: boolean;
+  participant?: ThreadParticipant;
 }
 
-export function ConversationThread({ conversationId, disabled }: Props) {
+export function ConversationThread({ conversationId, disabled, participant }: Props) {
   const t = useTranslations("support");
   const tCommon = useTranslations("common");
   const locale = useLocale();
@@ -689,6 +703,7 @@ export function ConversationThread({ conversationId, disabled }: Props) {
                   showName={!grouped}
                   isLastOfGroup={isLastOfGroup}
                   onOpenMedia={setLightbox}
+                  participant={participant}
                 />
               </div>
             );
