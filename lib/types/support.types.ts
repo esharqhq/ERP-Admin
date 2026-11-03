@@ -2,6 +2,8 @@
 // Enums serialize as their PascalCase string NAME (global JsonStringEnumConverter). Compare
 // case-insensitively via normalizeStatus() from task.types (re-exported below for convenience).
 
+import type { RequesterKind } from "@/lib/support/requester";
+
 export type SupportTicketStatusName =
   | "Open"
   | "InProgress"
@@ -19,7 +21,8 @@ export interface SupportTicketDto {
   category: string;
   priority: string;
   requesterUserId: string;
-  requesterUserType: string; // "Owner" | "Worker" | "Admin"
+  /** The enum CODE on the wire: `OWNER_USER` · `WORKER` · `ADMIN`. Read it with `requesterKind`. */
+  requesterUserType: string;
   assignedAdminId: string | null;
   relatedPropertyId: string | null;
   relatedTaskGroupId: string | null;
@@ -133,7 +136,10 @@ export interface SupportInboxRow {
   category: string;
   priority: string; // Low | Normal | High | Urgent (kept string; new values won't crash)
   status: SupportTicketStatusName; // Open | InProgress | Resolved | Closed
-  requesterUserType: string; // normalized to friendly form ("Owner"|"Worker"|"Admin")
+  requesterUserId: string;
+  requesterKind: RequesterKind;
+  /** From the owner/worker profile; null until read, or when it cannot be (`useRequesterNames`). */
+  requesterName: string | null;
   assignedAdminId: string | null;
   lastMessageAt: string | null;
   createdAt: string;

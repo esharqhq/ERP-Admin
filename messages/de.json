@@ -2005,7 +2005,8 @@
     "roles": {
       "worker": "Mitarbeiter",
       "owner": "Eigentümer",
-      "admin": "Administrator"
+      "admin": "Administrator",
+      "unknown": "Benutzer"
     },
     "actions": {
       "assignToMe": "Mir zuweisen",

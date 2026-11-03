@@ -23,6 +23,7 @@ import {
   ArrowLeft,
   Info,
 } from "lucide-react";
+import { useMemo } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -45,6 +46,14 @@ import {
   useCloseTicket,
 } from "@/hooks/use-support";
 import { useAuthStore } from "@/store/auth.store";
+import { useHasPermission } from "@/hooks/use-current-permissions";
+import { useRequesterNames } from "@/hooks/use-requester-names";
+import {
+  requesterKind,
+  requesterProfilePath,
+  requesterProfilePermission,
+  shortId,
+} from "@/lib/support/requester";
 import { getApiErrorCode } from "@/lib/http/api-error";
 import { normalizeStatus } from "@/lib/types/task.types";
 
@@ -149,6 +158,21 @@ export function TicketDetailPane({ ticketId, onBack }: Props) {
   const resolve = useResolveTicket();
   const close = useCloseTicket();
 
+  // The ticket carries no requester name: read it from the owner/worker
+  // profile with the same id, and link there (`lib/support/requester.ts`).
+  const requesterId = ticket?.requesterUserId ?? "";
+  const requesterType = ticket?.requesterUserType ?? "";
+  const requesterRefs = useMemo(
+    () => (requesterId ? [{ id: requesterId, type: requesterType }] : []),
+    [requesterId, requesterType],
+  );
+  const requester = useRequesterNames(requesterRefs).get(requesterId);
+  const kind = requesterKind(requesterType);
+  const profilePath = requesterProfilePath(kind, requesterId);
+  const profileGate = requesterProfilePermission(profilePath);
+  // No path means no link anyway; an ungated path is open to everyone.
+  const canOpenProfile = useHasPermission(profileGate ?? undefined);
+
   const actionError = [assign, resolve, close].find((m) => m.isError);
   const actionErrorMsg = actionError
     ? (() => {
@@ -190,9 +214,15 @@ export function TicketDetailPane({ ticketId, onBack }: Props) {
   const assignedToMe =
     !!currentAdminId && ticket.assignedAdminId === currentAdminId;
   const busy = assign.isPending || resolve.isPending || close.isPending;
-  const requesterInitial = (ticket.requesterUserType || "?")
-    .charAt(0)
-    .toUpperCase();
+  const kindLabel = t(`roles.${kind}`);
+  const requesterName = requester?.name ?? null;
+  const requesterInitial = (requesterName ?? kindLabel).charAt(0).toUpperCase();
+  const requesterLabel = requesterName ?? (
+    <>
+      {kindLabel} ·{" "}
+      <span className="font-mono tabular-nums">{shortId(requesterId)}</span>
+    </>
+  );
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -228,7 +258,9 @@ export function TicketDetailPane({ ticketId, onBack }: Props) {
               </Badge>
             ) : null}
             <span className="hidden text-xs text-muted-foreground sm:inline">
-              {t("detail.from", { who: ticket.requesterUserType })}
+              {t("detail.from", {
+                who: requesterName ? `${requesterName} (${kindLabel})` : kindLabel,
+              })}
             </span>
           </div>
         </div>
@@ -320,7 +352,27 @@ export function TicketDetailPane({ ticketId, onBack }: Props) {
                   <InfoRow
                     icon={User}
                     label={t("detail.info.requester")}
-                    value={ticket.requesterUserType}
+                    value={
+                      <span className="flex flex-col gap-0.5">
+                        {profilePath && canOpenProfile ? (
+                          <Link
+                            href={profilePath}
+                            className="font-medium underline underline-offset-2"
+                          >
+                            {requesterLabel}
+                          </Link>
+                        ) : (
+                          <span className="font-medium">{requesterLabel}</span>
+                        )}
+                        {requesterName || requester?.contact ? (
+                          <span className="text-xs text-muted-foreground">
+                            {[requesterName ? kindLabel : null, requester?.contact]
+                              .filter(Boolean)
+                              .join(" · ")}
+                          </span>
+                        ) : null}
+                      </span>
+                    }
                   />
                   <InfoRow
                     icon={UserCheck}

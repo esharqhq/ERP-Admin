@@ -17,6 +17,7 @@ import {
 import { supportService } from "@/lib/services/support.service";
 import { normalizeStatus } from "@/lib/types/task.types";
 import type { SupportInboxRow } from "@/lib/types/support.types";
+import { shortId } from "@/lib/support/requester";
 
 function categoryMeta(category: string): { Icon: LucideIcon } {
   switch (normalizeStatus(category)) {
@@ -70,6 +71,8 @@ interface Props {
 function InboxRowBase({ row, selected, onSelect }: Props) {
   const locale = useLocale();
   const t = useTranslations("supportInbox");
+  const tSupport = useTranslations("support");
+  const kindLabel = tSupport(`roles.${row.requesterKind}`);
   const qc = useQueryClient();
 
   const prefetch = () => {
@@ -120,7 +123,19 @@ function InboxRowBase({ row, selected, onSelect }: Props) {
 
         <span className="flex items-center justify-between gap-2">
           <span className="truncate text-xs text-muted-foreground">
-            {row.requesterUserType} · {row.category}
+            {row.requesterName ? (
+              <span className="font-medium text-foreground">{row.requesterName}</span>
+            ) : null}
+            {row.requesterName ? " · " : null}
+            {kindLabel}
+            {row.requesterName ? null : (
+              <>
+                {" "}
+                <span className="font-mono tabular-nums">{shortId(row.requesterUserId)}</span>
+              </>
+            )}
+            {" · "}
+            {row.category}
           </span>
           <span className="flex shrink-0 items-center gap-1">
             {urgent ? (

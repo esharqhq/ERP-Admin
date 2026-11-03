@@ -4,19 +4,14 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supportService } from "@/lib/services/support.service";
 import { useAuthStore } from "@/store/auth.store";
+import { useRequesterNames } from "@/hooks/use-requester-names";
+import { requesterKind } from "@/lib/support/requester";
 import { normalizeStatus } from "@/lib/types/task.types";
 import type {
   SupportInboxRow,
   SupportInboxQuery,
 } from "@/lib/types/support.types";
 import type { SupportTicketStatusName } from "@/lib/types/support.types";
-
-/** "OWNER_USER" → "Owner", "WORKER" → "Worker"; already-friendly labels pass through. */
-function prettyUserType(code: string): string {
-  if (!code) return "—";
-  const head = code.split("_")[0];
-  return head.charAt(0) + head.slice(1).toLowerCase();
-}
 
 /**
  * Unified Support Inbox rows. FALLBACK MODE: fetches all tickets + the admin
@@ -38,6 +33,17 @@ export function useSupportInbox(query: SupportInboxQuery) {
     queryFn: () => supportService.listConversations(),
   });
 
+  // The tickets carry no requester name; this reads it from the profiles.
+  const requesterRefs = useMemo(
+    () =>
+      (ticketsQ.data ?? []).map((tk) => ({
+        id: tk.requesterUserId,
+        type: tk.requesterUserType,
+      })),
+    [ticketsQ.data],
+  );
+  const names = useRequesterNames(requesterRefs);
+
   const rows = useMemo<SupportInboxRow[]>(() => {
     const tickets = ticketsQ.data ?? [];
     const convos = convosQ.data ?? [];
@@ -52,7 +58,9 @@ export function useSupportInbox(query: SupportInboxQuery) {
         category: tk.category,
         priority: tk.priority,
         status: tk.status as SupportTicketStatusName,
-        requesterUserType: prettyUserType(tk.requesterUserType),
+        requesterUserId: tk.requesterUserId,
+        requesterKind: requesterKind(tk.requesterUserType),
+        requesterName: names.get(tk.requesterUserId)?.name ?? null,
         assignedAdminId: tk.assignedAdminId,
         lastMessageAt: c?.lastMessageAt ?? null,
         createdAt: tk.createdAt,
@@ -81,7 +89,8 @@ export function useSupportInbox(query: SupportInboxQuery) {
         (r) =>
           r.subject.toLowerCase().includes(q) ||
           r.category.toLowerCase().includes(q) ||
-          r.requesterUserType.toLowerCase().includes(q),
+          r.requesterKind.includes(q) ||
+          (r.requesterName ?? "").toLowerCase().includes(q),
       );
     }
 
@@ -91,7 +100,7 @@ export function useSupportInbox(query: SupportInboxQuery) {
       const bx = b.lastMessageAt ?? b.createdAt;
       return bx.localeCompare(ax);
     });
-  }, [ticketsQ.data, convosQ.data, query, myId]);
+  }, [ticketsQ.data, convosQ.data, query, myId, names]);
 
   return {
     rows,

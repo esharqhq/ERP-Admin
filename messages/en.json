@@ -2005,7 +2005,8 @@
     "roles": {
       "worker": "Worker",
       "owner": "Owner",
-      "admin": "Admin"
+      "admin": "Admin",
+      "unknown": "User"
     },
     "actions": {
       "assignToMe": "Assign to me",

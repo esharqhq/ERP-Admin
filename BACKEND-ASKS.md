@@ -1164,3 +1164,21 @@ gaps below need the backend.
 3. **Question, not yet an ask:** apart from `contracts/` and agency applications, `/files` serves without a
    signature, to anyone who has the key. Is that the intended model for identity documents (passport, ID card,
    residence permit)? If it is, the GUID in the key is the only thing protecting a passport scan.
+
+---
+
+## Open — 2026-11-03 · a support ticket does not say who opened it
+
+`SupportTicketDto` and `ConversationSummaryDto` carry `requesterUserId` and `requesterUserType`
+(`OWNER_USER` · `WORKER` · `ADMIN`) and no name. The DTO's own doc comment says so (`SupportDtos.cs`,
+on `RequesterAgency`). The panel showed `OWNER_USER` as the requester on every owner ticket, so an admin
+could not tell which owner had written.
+
+**What the panel does now (interim):** it reads the name from the profile with the same id
+(`hooks/use-requester-names.ts`). Owners come from `GET /api/admin/owners/bosses` in one request, and a
+sub-account or a worker costs one `GET` each. The read is gated on `owner:read` / `worker:read`, so an admin
+without those grants still sees only the type and a short id.
+
+**Ask:** `requesterName` (and ideally `requesterEmail` / `requesterPhone`) on `SupportTicketDto` and
+`ConversationSummaryDto`. Then the per-requester reads go away, and the name shows for every admin who can
+read the ticket.
