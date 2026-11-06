@@ -10,26 +10,38 @@ import {
   LayoutList,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { DataTableCard } from "@/components/ui/data-table-card";
+import {
+  DataTable,
+  TableEmpty,
+  TableError,
+  TableForbidden,
+  TableNoMatch,
+} from "@/components/ui/data-table";
 import { AccountLog } from "@/components/detail/account-log";
 import { useAccountLog } from "@/hooks/use-account-log";
-import { TableCell, TableRow } from "@/components/ui/table";
-import { RowLink } from "@/components/ui/row-link";
-import { TasksCalendar } from "@/components/tasks/tasks-calendar";
-import { useWeekNavigation } from "@/hooks/use-week-navigation";
-import { useOwnerTaskGroups } from "@/hooks/use-owners";
+import { RegisterCalendarShell } from "@/components/tasks/register/register-calendar-shell";
 import {
+  WeeklyWorkRowCard,
+  weeklyDayLabel,
+  weeklyWorkColumns,
+} from "@/components/owners/weekly-work-columns";
+import { useLocalTableState } from "@/hooks/use-local-table-state";
+import { useClock, useTodayKey } from "@/hooks/use-today";
+import { useOwnerTaskGroups } from "@/hooks/use-owners";
+import { isPermissionDenied } from "@/lib/onboarding/errors";
+import {
+  countRowsByStatus,
   filterRowsByStatus,
   flattenTaskRows,
+  matchesWeeklyRow,
+  ownerRegisterRows,
   rowsInWeek,
-  toLocalDateKey,
-  workerSummary,
-  type WeeklyTaskRow,
+  visibleWeeklyRows,
+  weeklyRowHref,
 } from "@/lib/tasks/weekly-rows";
+import { shiftWeek, weekOf, weekRangeLabel } from "@/lib/ui/week";
 import type { PropertyDto } from "@/lib/types/property.types";
 
 /**
@@ -58,23 +70,26 @@ const STATUSES = [
   "rejected",
 ] as const;
 
-function fmtTime(iso: string): string {
-  const t = iso.includes("T") ? iso.split("T")[1] : iso;
-  return t.slice(0, 5);
-}
-
 /**
  * What this owner has booked, by week.
  *
- * Laid out like the Workers screen: a `line` tab row switches view, a second
- * `line` tab row filters status, and the table itself is a `DataTableCard` — so
- * the column headers, the result count and the card chrome match every other
- * table in the panel rather than being hand-rolled here.
+ * A `line` tab row switches view. The table view is the panel's own
+ * `DataTable` shell — the same one the Tasks register renders through — so the
+ * header, the status tabs, search, the column picker, density, the four
+ * notice states, the pager and the row-cards below 768px all match every other
+ * table rather than being hand-rolled here. The week arrows sit in the shell's
+ * action slot, where the register keeps its view switch.
+ *
+ * The table's state is held in memory (`useLocalTableState`), not in the URL:
+ * the walk-in screen embeds this card and reads `?tab=` itself, so a status tab
+ * here writing `?tab=` would switch that page's tab.
  *
  * Both views read the **same** query — the task groups the detail page already
  * fetches — so switching cannot show two different answers and neither costs a
- * request. The calendar shows the shape of the week; the table shows what is in
- * it.
+ * request. They also share one week, one status tab and one search, so the
+ * calendar — the Tasks register's own week grid (`RegisterCalendarShell`) —
+ * draws exactly the set the table lists. It replaced `TasksCalendar`, a
+ * hand-drawn grid that read a second, wider query and scrolled sideways.
  *
  * The "Booking" column is the task group's title, not a service type: the API
  * has neither a service field nor a service catalogue, and the title is what an
@@ -113,11 +128,29 @@ export function WeeklyWorkCard({
   // translated Previous/Next Week pair in both locales.
   const tNav = useTranslations("workers.calendar");
   const locale = useLocale();
-  const nav = useWeekNavigation();
+  const todayKey = useTodayKey();
+  const clock = useClock();
+  /**
+   * One week for both views — the table's arrows and the calendar's pager move
+   * the same key, so switching view never jumps to another week. `null` means
+   * "this week", resolved once the clock is known (`""` on the server snapshot).
+   */
+  const [weekStart, setWeekStart] = useState<string | null>(null);
+  const week = useMemo(
+    () => (todayKey ? weekOf(weekStart ?? todayKey, todayKey) : null),
+    [weekStart, todayKey],
+  );
   const [view, setView] = useState<"calendar" | "table" | "log">("calendar");
-  const [status, setStatus] = useState<string>("all");
+  const table = useLocalTableState({
+    defaultSort: { key: "date", dir: "asc" },
+  });
 
-  const { data: groups = [], isLoading } = useOwnerTaskGroups(ownerUserId);
+  const {
+    data: groups = [],
+    isLoading,
+    isError,
+    error,
+  } = useOwnerTaskGroups(ownerUserId);
   const log = useAccountLog(showLog ? [ownerUserId, ownerProfileId] : []);
 
   const propertyNames = useMemo(
@@ -125,52 +158,96 @@ export function WeeklyWorkCard({
     [properties],
   );
 
-  const weekKeys = useMemo(() => nav.days.map(toLocalDateKey), [nav.days]);
+  const weekKeys = useMemo(() => week?.dayKeys ?? [], [week]);
+  const waiting = isLoading || !week || !clock;
 
-  const rows = useMemo(
-    () =>
-      filterRowsByStatus(
-        rowsInWeek(flattenTaskRows(groups, propertyNames), weekKeys),
-        status,
-      ),
-    [groups, propertyNames, weekKeys, status],
+  /** The week, before the status tab — what the tab counts are taken over. */
+  const weekRows = useMemo(
+    () => rowsInWeek(flattenTaskRows(groups, propertyNames), weekKeys),
+    [groups, propertyNames, weekKeys],
   );
 
-  const columns = [
-    { label: t("work.columns.date") },
-    { label: t("work.columns.property") },
-    { label: t("work.columns.time") },
-    { label: t("work.columns.worker") },
-    { label: t("work.columns.booking") },
-    { label: t("work.columns.status") },
-  ];
+  /**
+   * Narrowed by the tab **before** the shell sees it, as the register does: a
+   * tab is which slice you are looking at, not a filter, so it must not light
+   * up "Nothing matches these filters" or be cleared by Clear all.
+   */
+  const rows = useMemo(
+    () => filterRowsByStatus(weekRows, table.tab),
+    [weekRows, table.tab],
+  );
 
-  // The calendar carries its own week navigation, so this pairs with the table
-  // only — two sets of arrows on one card would be ambiguous.
+  const counts = useMemo(() => countRowsByStatus(weekRows, STATUSES), [weekRows]);
+  const tabs = STATUSES.map((s) => ({
+    value: s,
+    label: t(`work.status.${s}` as Parameters<typeof t>[0]),
+    count: waiting || isError ? undefined : counts[s],
+  }));
+
+  /**
+   * The calendar draws the register's own week grid over **the same set** the
+   * table lists — tab and search applied — joined by task id, so the two views
+   * cannot disagree about what is booked.
+   */
+  const calendarRows = useMemo(() => {
+    if (!clock) return [];
+    const visible = new Set(
+      visibleWeeklyRows(weekRows, table.tab, table.search).map((r) => r.taskId),
+    );
+    return ownerRegisterRows(groups, propertyNames, new Date(clock)).filter((r) =>
+      visible.has(r.task.id),
+    );
+  }, [groups, propertyNames, clock, weekRows, table.tab, table.search]);
+
+  const forbidden = isError && isPermissionDenied(error);
+  const emptyCopy = table.isDefaultTab
+    ? { title: t("work.empty.title"), body: t("work.empty.body") }
+    : {
+        title: t("work.empty.tabTitle", {
+          status: t(`work.status.${table.tab}` as Parameters<typeof t>[0]),
+        }),
+        body: t("work.empty.tabBody"),
+      };
+  const calendarNotice = forbidden ? (
+    <TableForbidden />
+  ) : waiting ? undefined : isError ? (
+    <TableError />
+  ) : calendarRows.length > 0 ? undefined : table.isFiltered ? (
+    <TableNoMatch onClear={() => table.setSearchInput("")} />
+  ) : (
+    <TableEmpty {...emptyCopy} icon={<CalendarDays className="size-4" />} />
+  );
+
+  const columns = useMemo(() => weeklyWorkColumns({ t, locale }), [t, locale]);
+
+  // The table's week arrows. The calendar draws its own pager over the same
+  // `weekStart`, so whichever view moved the week, the other is already there.
   const weekNav = (
     <div className="flex items-center gap-1">
       <Button
-        variant="ghost"
-        size="sm"
-        className="size-8 p-0"
-        onClick={nav.prev}
+        variant="outline"
+        size="icon-sm"
+        className="size-7 rounded-lg"
+        disabled={!week}
+        onClick={() => week && setWeekStart(shiftWeek(week.startKey, -1))}
         // Direction, not the range: an identical label on both buttons leaves
         // the chevron as the only cue, which AT users cannot see.
         aria-label={tNav("previousWeek")}
       >
-        <ChevronLeft className="size-4" />
+        <ChevronLeft className="size-3.5" />
       </Button>
-      <span className="min-w-[9rem] text-center text-sm font-medium tabular-nums">
-        {nav.dateRangeLabel}
+      <span className="min-w-[9rem] text-center font-mono text-[12.5px] font-semibold tabular-nums">
+        {week ? weekRangeLabel(week, locale) : "–"}
       </span>
       <Button
-        variant="ghost"
-        size="sm"
-        className="size-8 p-0"
-        onClick={nav.next}
+        variant="outline"
+        size="icon-sm"
+        className="size-7 rounded-lg"
+        disabled={!week}
+        onClick={() => week && setWeekStart(shiftWeek(week.startKey, 1))}
         aria-label={tNav("nextWeek")}
       >
-        <ChevronRight className="size-4" />
+        <ChevronRight className="size-3.5" />
       </Button>
     </div>
   );
@@ -198,91 +275,62 @@ export function WeeklyWorkCard({
         ) : null}
       </TabsList>
 
-      <TabsContent value="calendar">
-        <TasksCalendar ownerUserId={ownerUserId} properties={properties} />
+      <TabsContent value="calendar" className="flex flex-col">
+        <RegisterCalendarShell
+          state={table}
+          scope="owner-weekly-work-calendar"
+          title={t("work.title")}
+          count={waiting || isError ? undefined : calendarRows.length}
+          viewSwitch={null}
+          tabs={tabs}
+          tabsLabel={t("work.tabsLabel")}
+          searchPlaceholder={t("work.search")}
+          // No filter band on this card: the tabs and search are the whole set.
+          fields={[]}
+          onBandChange={() => {}}
+          onBandChangeMany={() => {}}
+          onBandReset={() => {}}
+          calendar={{
+            rows: calendarRows,
+            weekStartKey: week?.startKey ?? "",
+            todayKey,
+            onWeek: setWeekStart,
+            isLoading: waiting,
+            notice: calendarNotice,
+          }}
+        />
       </TabsContent>
 
-      <TabsContent value="table" className="flex flex-col gap-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <Tabs value={status} onValueChange={setStatus}>
-            <TabsList variant="line" className="self-start">
-              {STATUSES.map((s) => (
-                <TabsTrigger key={s} value={s}>
-                  {t(`work.status.${s}` as Parameters<typeof t>[0])}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
-          {weekNav}
-        </div>
-
-        {isLoading ? (
-          <div className="flex flex-col gap-2 rounded-xl border border-border p-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-11 w-full rounded-lg" />
-            ))}
-          </div>
-        ) : (
-          <DataTableCard
-            title={t("work.title")}
-            count={rows.length}
-            columns={columns}
-            data={rows}
-            renderRow={(row: WeeklyTaskRow) => {
-              const staff = workerSummary(row);
-              const label = new Date(
-                `${row.scheduledDate}T00:00:00`,
-              ).toLocaleDateString(locale, {
-                weekday: "short",
-                day: "2-digit",
-                month: "short",
-              });
-
-              return (
-                <TableRow
-                  key={row.taskId}
-                  className="group/row relative cursor-pointer transition-colors duration-150 hover:bg-accent/40"
-                >
-                  <TableCell className="py-2.5 text-sm tabular-nums">
-                    <RowLink
-                      href={`/dashboard/tasks/${row.taskId}`}
-                      label={label}
-                    />
-                    {label}
-                  </TableCell>
-                  <TableCell className="text-sm">
-                    {row.propertyName || "—"}
-                  </TableCell>
-                  <TableCell className="text-sm tabular-nums text-muted-foreground">
-                    {fmtTime(row.scheduledAt)}
-                  </TableCell>
-                  <TableCell className="text-sm">
-                    {staff.names.length === 0 ? (
-                      <span className="text-muted-foreground">
-                        {t("work.unstaffed")}
-                      </span>
-                    ) : (
-                      <span>
-                        {staff.names.join(", ")}
-                        {staff.extra > 0 ? (
-                          <span className="ml-1 text-muted-foreground">
-                            {t("work.more", { count: staff.extra })}
-                          </span>
-                        ) : null}
-                      </span>
-                    )}
-                  </TableCell>
-                  <TableCell className="max-w-[14rem] truncate text-sm text-muted-foreground">
-                    {row.groupTitle || "—"}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">{row.status}</Badge>
-                  </TableCell>
-                </TableRow>
-              );
-            }}
-          />
-        )}
+      <TabsContent value="table" className="flex flex-col">
+        <DataTable
+          state={table}
+          scope="owner-weekly-work"
+          title={t("work.title")}
+          actions={weekNav}
+          columns={columns}
+          rowKey={(row) => row.taskId}
+          rowHref={weeklyRowHref}
+          rowLabel={(row) =>
+            `${weeklyDayLabel(row, locale)} · ${row.propertyName || row.groupTitle}`
+          }
+          mobileCard={(row) => (
+            <WeeklyWorkRowCard row={row} t={t} locale={locale} />
+          )}
+          tabs={tabs}
+          tabsLabel={t("work.tabsLabel")}
+          searchPlaceholder={t("work.search")}
+          // On a status tab the week is not empty — that one slice is. Saying
+          // "nothing booked" there would be false; the shell adds "See all".
+          empty={{ ...emptyCopy, icon: <CalendarDays className="size-4" /> }}
+          source={{
+            mode: "client",
+            rows,
+            isLoading: waiting,
+            isError,
+            isForbidden: forbidden,
+            matches: matchesWeeklyRow,
+          }}
+        />
       </TabsContent>
 
       {showLog ? (

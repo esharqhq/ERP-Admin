@@ -1095,8 +1095,16 @@
       "title": "Gebuchte Arbeit",
       "viewCalendar": "Kalender",
       "viewTable": "Tabelle",
-      "unstaffed": "—",
+      "unstaffed": "–",
       "more": "+{count}",
+      "search": "Objekt, Mitarbeiter oder Buchung suchen",
+      "tabsLabel": "Status des Tages",
+      "empty": {
+        "title": "Diese Woche ist nichts gebucht",
+        "body": "Mit den Pfeilen eine andere Woche ansehen oder zum Kalender wechseln.",
+        "tabTitle": "Diese Woche nichts unter „{status}“",
+        "tabBody": "Die übrigen Tage dieser Woche stehen unter Alle."
+      },
       "columns": {
         "date": "Datum",
         "property": "Objekt",

@@ -1,7 +1,15 @@
 import { describe, expect, it } from "vitest";
 import {
+  compareText,
+  compareWeeklySchedule,
+  compareWeeklyStatus,
+  countRowsByStatus,
   flattenTaskRows,
   filterRowsByStatus,
+  matchesWeeklyRow,
+  ownerRegisterRows,
+  visibleWeeklyRows,
+  weeklyRowHref,
   rowsInWeek,
   toLocalDateKey,
   workerSummary,
@@ -243,5 +251,103 @@ describe("workerSummary", () => {
   it("skips a worker with no name rather than rendering a blank", () => {
     const row = { ...rows[0], workers: [worker(null), worker("Ali")] };
     expect(workerSummary(row)).toEqual({ names: ["Ali"], extra: 0 });
+  });
+});
+
+describe("weeklyRowHref", () => {
+  it("opens the group page on the row's own day, not a group named by the task id", () => {
+    const [row] = flattenTaskRows([GROUP], {});
+    expect(weeklyRowHref(row)).toBe("/dashboard/tasks/g1?day=t1");
+  });
+});
+
+describe("matchesWeeklyRow", () => {
+  const rows = flattenTaskRows([GROUP], { p1: "Villa Chilonzor" });
+
+  it("matches the property, the booking title and a worker on the job", () => {
+    expect(matchesWeeklyRow(rows[0], "chilonzor")).toBe(true);
+    expect(matchesWeeklyRow(rows[0], "weekly")).toBe(true);
+    expect(matchesWeeklyRow(rows[0], "bek")).toBe(true);
+    expect(matchesWeeklyRow(rows[0], "nobody")).toBe(false);
+  });
+
+  it("does not match a worker who vacated the job, because the row does not show them", () => {
+    const row = { ...rows[0], workers: [worker("Gone", "removed")] };
+    expect(matchesWeeklyRow(row, "gone")).toBe(false);
+  });
+
+  it("treats an empty needle as no search", () => {
+    expect(matchesWeeklyRow(rows[1], "")).toBe(true);
+  });
+});
+
+describe("compareWeeklySchedule", () => {
+  it("orders by day, then by start time", () => {
+    const [a, b] = flattenTaskRows([GROUP], {});
+    const later = { ...a, scheduledAt: "2026-08-12T15:00:00Z" };
+    expect(compareWeeklySchedule(a, b)).toBeLessThan(0);
+    expect(compareWeeklySchedule(later, a)).toBeGreaterThan(0);
+    expect(compareWeeklySchedule(a, a)).toBe(0);
+  });
+});
+
+describe("compareText", () => {
+  it("sorts an empty value last rather than first", () => {
+    expect(["", "b", "a"].sort(compareText)).toEqual(["a", "b", ""]);
+  });
+});
+
+describe("countRowsByStatus", () => {
+  it("counts each tab with the same rule the tab filters by", () => {
+    const rows = flattenTaskRows([GROUP], {});
+    expect(countRowsByStatus(rows, ["all", "pending", "done", "rejected"] as const)).toEqual({
+      all: 2,
+      pending: 1,
+      done: 1,
+      rejected: 0,
+    });
+  });
+});
+
+describe("compareWeeklyStatus", () => {
+  it("puts open work before closed days, and an unknown word last", () => {
+    const [pending, done] = flattenTaskRows([GROUP], {});
+    const disputed = { ...pending, status: "Rejected" };
+    const odd = { ...pending, status: "Wobbly" };
+    const sorted = [odd, done, pending, disputed].sort(compareWeeklyStatus);
+    expect(sorted.map((r) => r.status)).toEqual(["Rejected", "Pending", "Done", "Wobbly"]);
+  });
+});
+
+describe("visibleWeeklyRows", () => {
+  const rows = flattenTaskRows([GROUP], { p1: "Villa Chilonzor" });
+
+  it("narrows by the status tab and the search together", () => {
+    expect(visibleWeeklyRows(rows, "all", "").map((r) => r.taskId)).toEqual(["t1", "t2"]);
+    expect(visibleWeeklyRows(rows, "done", "").map((r) => r.taskId)).toEqual(["t2"]);
+    expect(visibleWeeklyRows(rows, "all", "  BEK ").map((r) => r.taskId)).toEqual(["t1"]);
+    expect(visibleWeeklyRows(rows, "done", "bek")).toEqual([]);
+  });
+});
+
+describe("ownerRegisterRows", () => {
+  const now = new Date("2026-08-10T08:00:00Z");
+
+  it("flattens each booking's days and joins the booking back in", () => {
+    const rows = ownerRegisterRows([GROUP], {}, now);
+    expect(rows.map((r) => r.task.id)).toEqual(["t1", "t2"]);
+    expect(rows[0].title).toBe("Weekly cleaning");
+    expect(rows[0].group?.id).toBe("g1");
+  });
+
+  it("fills a blank property name from the owner's property list", () => {
+    const group = { ...GROUP, tasks: GROUP.tasks!.map((t) => ({ ...t, propertyName: "" })) };
+    const [row] = ownerRegisterRows([group], { p1: "Villa Chilonzor" }, now);
+    expect(row.task.propertyName).toBe("Villa Chilonzor");
+  });
+
+  it("survives a booking whose days array is missing", () => {
+    const g = { ...GROUP, tasks: undefined as unknown as TaskGroupDto["tasks"] };
+    expect(ownerRegisterRows([g], {}, now)).toEqual([]);
   });
 });

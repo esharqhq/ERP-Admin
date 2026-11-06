@@ -1095,8 +1095,16 @@
       "title": "Booked work",
       "viewCalendar": "Calendar",
       "viewTable": "Table",
-      "unstaffed": "—",
+      "unstaffed": "–",
       "more": "+{count}",
+      "search": "Search property, worker or booking",
+      "tabsLabel": "Status of the day",
+      "empty": {
+        "title": "Nothing booked this week",
+        "body": "Use the arrows to look at another week, or switch to the calendar.",
+        "tabTitle": "Nothing under “{status}” this week",
+        "tabBody": "The rest of this week's days are under All."
+      },
       "columns": {
         "date": "Date",
         "property": "Property",
